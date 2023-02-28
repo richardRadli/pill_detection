@@ -129,8 +129,8 @@ def train_model(model, device, timestamp, epochs: int = 15, batch_size: int = 4,
     train_loader = DataLoader(train_set, shuffle=True, **loader_cfg)
     val_loader = DataLoader(val_set, shuffle=False, drop_last=True, **loader_cfg)
 
-    # (Initialize logging)y
-    experiment = wandb.init(project='U-Net', dir=CONST.dir_wandb_logs, resume='allow', anonymous='must')
+    # (Initialize logging)
+    experiment = wandb.init(project='U-Net', dir=CONST.dir_wandb_checkpoint_logs, resume='allow', anonymous='must')
     experiment.config.update(
         dict(epochs=epochs, batch_size=batch_size, learning_rate=learning_rate,
              val_percent=val_percent, save_checkpoint=save_checkpoint, img_scale=img_scale, amp=amp)

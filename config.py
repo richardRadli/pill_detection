@@ -87,11 +87,12 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--type_of_network", type=str, default="Texture", help="RGB | Contour | Texture")
         self.parser.add_argument("--margin", type=float, default=1.0)
-        self.parser.add_argument("--epochs", type=int, default=10)
+        self.parser.add_argument("--epochs", type=int, default=200)
         self.parser.add_argument("--batch_size", type=int, default=32)
         self.parser.add_argument("--learning_rate", type=float, default=2e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)
         self.parser.add_argument("--save", type=bool, default=True)
+        self.parser.add_argument("--save_freq", type=int, default=5)
 
     def parse(self):
         self.opt = self.parser.parse_args()

@@ -5,6 +5,7 @@ import re
 from glob import glob
 
 from const import CONST
+from utils.dataset_operations import create_label_dirs
 
 
 def numerical_sort(value):
@@ -121,9 +122,12 @@ def main():
     :return:
     """
 
-    # save_bounding_box_images()
+    save_bounding_box_images()
+    create_label_dirs()
     save_contour_images()
+    create_label_dirs()
     save_texture_images()
+    create_label_dirs()
 
 
 if __name__ == "__main__":

@@ -1,66 +1,19 @@
 import os
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+import wandb
 
 from tqdm import tqdm
 from torch.utils.data import DataLoader
+from torchsummary import summary
 
 from config import ConfigStreamNetwork
 from const import CONST
 from stream_dataset_loader import StreamDataset
 from stream_network import StreamNetwork
 from utils.utils import create_timestamp
+from utils.triplet_loss import TripletLoss
 
 cfg = ConfigStreamNetwork().parse()
-
-
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# +++++++++++++++++++++++++++++++++++++++++++++++ T R I P L E T   L O S S ++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class TripletLoss(nn.Module):
-    # ------------------------------------------------------------------------------------------------------------------
-    # --------------------------------------------------- _ I N I T _ --------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self, margin=cfg.margin):
-        """
-        This function initializes an instance of the TripletLoss class. The constructor takes an optional margin
-        argument, which is initialized to the value of the "cfg.margin" constant if it is not provided.
-        :param margin: margin that is enforced between positive and negative pairs
-        """
-
-        super(TripletLoss, self).__init__()
-        self.margin = margin
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # -------------------------------------------------- F O R W A R D -------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def forward(self, anchor, positive, negative):
-        """
-        The forward method takes as input three tensors: anchor, positive, and negative, which represent the embeddings
-        of an anchor sample, a positive sample, and a negative sample, respectively.
-
-        The method calculates the Euclidean distance between the anchor and positive examples (pos_dist) and the
-        Euclidean distance between the anchor and negative examples (neg_dist). It then calculates the triplet loss as
-        the mean of the maximum of 0 and the difference between the pos_dist and neg_dist, with a margin value
-        subtracted from the difference.
-
-        :param anchor:
-        :param positive:
-        :param negative:
-        :return: loss
-        """
-
-        # Calculate the Euclidean distance between anchor and positive examples
-        pos_dist = F.pairwise_distance(anchor, positive, p=2)
-
-        # Calculate the Euclidean distance between anchor and negative examples
-        neg_dist = F.pairwise_distance(anchor, negative, p=2)
-
-        # Calculate the triplet loss
-        loss = torch.mean(torch.clamp(pos_dist - neg_dist + self.margin, min=0.0))
-
-        return loss
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -78,6 +31,8 @@ class TrainModel:
         available), and set the loss function and optimizer.
         """
 
+        print(f"The selected network is {cfg.type_of_network}")
+
         # Create time stamp
         self.timestamp = create_timestamp()
 
@@ -88,6 +43,7 @@ class TrainModel:
             list_of_channels = [3, 64, 96, 128, 256, 384, 512]
             dataset = StreamDataset(CONST.dir_bounding_box, cfg.type_of_network)
             self.save_path = os.path.join(CONST.dir_stream_rgb_model_weights, self.timestamp)
+            self.wandb_dir = CONST.dir_wandb_rgb_logs
         elif cfg.type_of_network in ["Texture", "Contour"]:
             list_of_channels = [1, 32, 48, 64, 128, 192, 256]
             dataset = StreamDataset(CONST.dir_texture, cfg.type_of_network) if cfg.type_of_network == "Texture" else \
@@ -95,6 +51,8 @@ class TrainModel:
             self.save_path = os.path.join(CONST.dir_stream_texture_model_weights, self.timestamp) \
                 if cfg.type_of_network == "Texture" \
                 else os.path.join(CONST.dir_stream_contour_model_weights, self.timestamp)
+            self.wandb_dir = CONST.dir_wandb_texture_logs if cfg.type_of_network == "Texture" \
+                else CONST.dir_wandb_contour_logs
         else:
             raise ValueError("Wrong type was given!")
 
@@ -109,11 +67,10 @@ class TrainModel:
 
         # Load model and upload it to the GPU
         self.model.to(self.device)
-        print(self.model)
+        summary(self.model, (list_of_channels[0], 128, 128))
 
         # Specify loss function
         self.criterion = TripletLoss().cuda(self.device)
-        self.best_valid_loss = float('inf')
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
@@ -127,10 +84,17 @@ class TrainModel:
         :return:
         """
 
-        for epoch in range(cfg.epochs):
+        # (Initialize logging)y
+        experiment = wandb.init(project='U-Net', dir=self.wandb_dir, resume='allow', anonymous='must')
+        experiment.config.update(
+            dict(epochs=cfg.epochs, batch_size=cfg.batch_size, learning_rate=cfg.learning_rate)
+        )
+        global_step = 0
+
+        for epoch in tqdm(range(cfg.epochs), desc="Training epochs"):
             running_loss = 0.0
             for idx, (anchor, positive, negative) in tqdm(enumerate(self.train_data_loader),
-                                                          total=len(self.train_data_loader)):
+                                                          total=len(self.train_data_loader), desc="Batch processing"):
                 anchor = anchor.to(self.device)
                 positive = positive.to(self.device)
                 negative = negative.to(self.device)
@@ -150,12 +114,18 @@ class TrainModel:
                 self.optimizer.step()
 
                 # Display loss
+                global_step += 1
                 running_loss += loss.item()
+                experiment.log({
+                    'train loss': loss.item(),
+                    'step': global_step,
+                    'epoch': epoch
+                })
 
             # Print average loss for epoch
             print('\nEpoch %d, loss: %.4f' % (epoch + 1, running_loss / len(self.train_data_loader)))
 
-            if cfg.save:
+            if cfg.save and epoch % cfg.save_freq == 0:
                 torch.save(self.model.state_dict(), self.save_path + "/" + "epoch_" + (str(epoch) + ".pt"))
 
 
