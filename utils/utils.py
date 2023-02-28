@@ -5,13 +5,19 @@ import numpy as np
 import re
 import torch
 
-from const import CONST
+from datetime import datetime
 from glob import glob
 from os.path import splitext
 from PIL import Image
 from torch import Tensor
 
 
+from const import CONST
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------- P L O T   I M G   &   M A S K -------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def plot_img_and_mask(img, mask):
     classes = mask.max() + 1
     fig, ax = plt.subplots(1, classes + 1)
@@ -24,6 +30,9 @@ def plot_img_and_mask(img, mask):
     plt.show()
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------  D I C E   C O E F F ------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_batch_first: bool = False, epsilon: float = 1e-6):
     # Average of Dice coefficient for all batches, or for a single mask
     assert input_tensor.size() == target.size()
@@ -39,12 +48,18 @@ def dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_batch_first: b
     return dice.mean()
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------ M C L A S S   D I C E   C O E F F -----------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def multiclass_dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_batch_first: bool = False,
                                 epsilon: float = 1e-6):
     # Average of Dice coefficient for all classes
     return dice_coefficient(input_tensor.flatten(0, 1), target.flatten(0, 1), reduce_batch_first, epsilon)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------ D I C E   L O S S ---------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def dice_loss(input_tensor: Tensor, target: Tensor, multiclass: bool = False):
     """
     Dice loss (objective to minimize) between 0 and 1
@@ -53,6 +68,9 @@ def dice_loss(input_tensor: Tensor, target: Tensor, multiclass: bool = False):
     return 1 - fn(input_tensor, target, reduce_batch_first=True)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------ L O A D   I M A G E -------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def load_image(filename):
     ext = splitext(filename)[1]
     if ext == '.npy':
@@ -63,6 +81,9 @@ def load_image(filename):
         return Image.open(filename)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------ U N I Q U E   M A S K   V A L U E S ---------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def unique_mask_values(idx, mask_dir, mask_suffix):
     mask_file = list(mask_dir.glob(idx + mask_suffix + '.*'))[0]
     mask = np.asarray(load_image(mask_file))
@@ -75,6 +96,9 @@ def unique_mask_values(idx, mask_dir, mask_suffix):
         raise ValueError(f'Loaded masks should have 2 or 3 dimensions, found {mask.ndim}')
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------ R E A D   I M G   A N D   M A S K -----------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def read_image_and_mask():
     images = sorted(glob(CONST.dir_img + "*.png"))
     masks = sorted(glob(CONST.dir_mask + "*.png"))
@@ -90,7 +114,19 @@ def read_image_and_mask():
     return np.array(images_list), np.array(masks_list)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------- P L O T   D I A G R A M S ----------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def plot_diagrams(input_image, gt_image, pred_image, save_path):
+    """
+
+    :param input_image:
+    :param gt_image:
+    :param pred_image:
+    :param save_path:
+    :return:
+    """
+
     plt.figure()
 
     # subplot(r,c) provide the no. of rows and columns
@@ -112,8 +148,29 @@ def plot_diagrams(input_image, gt_image, pred_image, save_path):
     gc.collect()
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------- N U M E R I C A L   S O R T --------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def numerical_sort(value):
+    """
+    This function sorts the numerical values correctly.
+    :param value: input numbers.
+    :return:
+    """
+
     numbers = re.compile(r'(\d+)')
     parts = numbers.split(value)
     parts[1::2] = map(int, parts[1::2])
     return parts
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------- C R E A T E   T I M E S T A M P ------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def create_timestamp():
+    """
+    This function creates a timestamp.
+    :return: timestamp
+    """
+
+    return datetime.now().strftime('%Y-%m-%d_%H-%M-%S')

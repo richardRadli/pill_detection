@@ -8,7 +8,7 @@ from PIL import Image
 
 from config import ConfigTesting
 from unet import UNet
-from utils.data_loading import BasicDataset
+from unet.data_loading import BasicDataset
 from utils.utils import plot_img_and_mask
 
 cfg = ConfigTesting().parse()

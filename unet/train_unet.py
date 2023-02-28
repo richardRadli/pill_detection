@@ -1,4 +1,5 @@
 import logging
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as fun
@@ -11,9 +12,8 @@ from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 
 from unet import UNet
-from utils.data_loading import BasicDataset, CustomDataset
-from utils.utils import dice_loss
-from utils.utils import multiclass_dice_coefficient, dice_coefficient
+from unet.data_loading import BasicDataset, CustomDataset
+from utils.utils import dice_loss, multiclass_dice_coefficient, dice_coefficient, create_timestamp
 from config import ConfigTraining
 from const import CONST
 
@@ -78,7 +78,7 @@ def evaluate(net, dataloader, device, amp):
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------------- T R A I N   M O D E L -------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def train_model(model, device, epochs: int = 15, batch_size: int = 4, learning_rate: float = 1e-5,
+def train_model(model, device, timestamp, epochs: int = 15, batch_size: int = 4, learning_rate: float = 1e-5,
                 val_percent: float = 0.1, save_checkpoint: bool = True, img_scale: float = 0.5, amp: bool = False,
                 weight_decay: float = 1e-8, momentum: float = 0.999, gradient_clipping: float = 1.0):
 
@@ -99,6 +99,7 @@ def train_model(model, device, epochs: int = 15, batch_size: int = 4, learning_r
 
     :param model: the UNet model instance
     :param device: the device (CPU or GPU) to use for training
+    :param timestamp:
     :param epochs: the number of training epochs
     :param batch_size: the batch size for training
     :param learning_rate: the learning rate for optimization
@@ -128,8 +129,8 @@ def train_model(model, device, epochs: int = 15, batch_size: int = 4, learning_r
     train_loader = DataLoader(train_set, shuffle=True, **loader_cfg)
     val_loader = DataLoader(val_set, shuffle=False, drop_last=True, **loader_cfg)
 
-    # (Initialize logging)
-    experiment = wandb.init(project='U-Net', resume='allow', anonymous='must')
+    # (Initialize logging)y
+    experiment = wandb.init(project='U-Net', dir=CONST.dir_wandb_logs, resume='allow', anonymous='must')
     experiment.config.update(
         dict(epochs=epochs, batch_size=batch_size, learning_rate=learning_rate,
              val_percent=val_percent, save_checkpoint=save_checkpoint, img_scale=img_scale, amp=amp)
@@ -232,10 +233,11 @@ def train_model(model, device, epochs: int = 15, batch_size: int = 4, learning_r
                             print(e)
 
         if save_checkpoint:
-            Path(CONST.dir_checkpoint).mkdir(parents=True, exist_ok=True)
+            path_to_save = os.path.join(CONST.dir_checkpoint, timestamp)
+            Path(path_to_save).mkdir(parents=True, exist_ok=True)
             state_dict = model.state_dict()
             state_dict['mask_values'] = dataset.mask_values
-            torch.save(state_dict, (CONST.dir_checkpoint + '/checkpoint_epoch{}.pth'.format(epoch)))
+            torch.save(state_dict, (path_to_save + '/checkpoint_epoch{}.pth'.format(epoch)))
             logging.info(f'Checkpoint {epoch} saved!')
 
 
@@ -256,6 +258,7 @@ def main():
 
     :return:
     """
+    timestamp = create_timestamp()
 
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -283,6 +286,7 @@ def main():
 
     train_model(
         model=model,
+        timestamp=timestamp,
         epochs=cfg.epochs,
         batch_size=cfg.batch_size,
         learning_rate=cfg.lr,

@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -9,6 +10,7 @@ from config import ConfigStreamNetwork
 from const import CONST
 from stream_dataset_loader import StreamDataset
 from stream_network import StreamNetwork
+from utils.utils import create_timestamp
 
 cfg = ConfigStreamNetwork().parse()
 
@@ -76,21 +78,28 @@ class TrainModel:
         available), and set the loss function and optimizer.
         """
 
+        # Create time stamp
+        self.timestamp = create_timestamp()
+
         # Select the GPU if possibly
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         if cfg.type_of_network == "RGB":
             list_of_channels = [3, 64, 96, 128, 256, 384, 512]
             dataset = StreamDataset(CONST.dir_bounding_box, cfg.type_of_network)
-            self.save_path = CONST.dir_stream_rgb_model_weights
+            self.save_path = os.path.join(CONST.dir_stream_rgb_model_weights, self.timestamp)
         elif cfg.type_of_network in ["Texture", "Contour"]:
             list_of_channels = [1, 32, 48, 64, 128, 192, 256]
             dataset = StreamDataset(CONST.dir_texture, cfg.type_of_network) if cfg.type_of_network == "Texture" else \
                 StreamDataset(CONST.dir_contour, cfg.type_of_network)
-            self.save_path = CONST.dir_stream_texture_model_weights if cfg.type_of_network == "Texture" else \
-                CONST.dir_stream_contour_model_weights
+            self.save_path = os.path.join(CONST.dir_stream_texture_model_weights, self.timestamp) \
+                if cfg.type_of_network == "Texture" \
+                else os.path.join(CONST.dir_stream_contour_model_weights, self.timestamp)
         else:
             raise ValueError("Wrong type was given!")
+
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
 
         # Load dataset
         self.train_data_loader = DataLoader(dataset, batch_size=cfg.batch_size, shuffle=True)
