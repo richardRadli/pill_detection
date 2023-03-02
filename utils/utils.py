@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import re
+import shutil
 import torch
 
 from datetime import datetime
@@ -218,3 +219,17 @@ def find_latest_file(path):
         print("No directories found in the path")
 
     return latest_file
+
+
+def copy_ref_images(source_directory: str, destination_directory: str):
+    for subdir_name in os.listdir(source_directory):
+        subdir_path = os.path.join(source_directory, subdir_name)
+
+        if os.path.isdir(subdir_path):
+            file_to_pick = os.listdir(subdir_path)[0]
+            latest_file_path = os.path.join(subdir_path, file_to_pick)
+            destination_file_path = os.path.join(destination_directory, "tex", latest_file_path.split("\\")[2])
+            shutil.copy2(latest_file_path, destination_file_path)
+
+
+copy_ref_images("E:/users/ricsi/IVM/images/texture", "E:/users/ricsi/IVM/images/ref_images")
