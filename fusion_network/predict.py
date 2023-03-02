@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 import re
 import torch
 import torch.nn.functional as func
@@ -8,7 +9,7 @@ from PIL import Image
 
 from const import CONST
 from stream_network.stream_network import StreamNetwork
-from utils.utils import find_latest_file
+from utils.utils import find_latest_file, BColors
 
 
 class PillRecognition:
@@ -114,29 +115,52 @@ class PillRecognition:
         return reference_vectors, labels
 
     def measure_similarity(self, labels, reference_vectors, query_vector):
-        similarity_scores = []
+        similarity_scores_cosine = []
         for reference_vector in reference_vectors:
             similarity_score = func.cosine_similarity(query_vector.unsqueeze(0), reference_vector.unsqueeze(0)).item()
-            similarity_scores.append(similarity_score)
+            similarity_scores_cosine.append(similarity_score)
 
-        print("\nCosine similarity")
-        for idx, (l, s) in enumerate(zip(labels, similarity_scores)):
-            print(f"{l}: {s:.4%}")
-
-        similarity_scores = []
+        similarity_scores_euclidean = []
         for reference_vector in reference_vectors:
             similarity_score = self.euclidean_distance(query_vector, reference_vector).item()
-            similarity_scores.append(similarity_score)
+            similarity_scores_euclidean.append(similarity_score)
 
-        print("\nEuclidean distance")
-        for idx, (l, s) in enumerate(zip(labels, similarity_scores)):
-            print(f"{l}: {s:.2f}")
+        df = pd.DataFrame(list(zip(labels, similarity_scores_cosine, similarity_scores_euclidean)),
+                          columns=['Medicine Name', 'Cosine similarity', 'Euclidian distance'])
+
+        pd.set_option('display.max_rows', None)
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.width', None)
+        pd.set_option('display.max_colwidth', None)
+
+        print(df)
+
+        return labels, similarity_scores_euclidean, similarity_scores_cosine
+
+    @staticmethod
+    def find_best_match(labels, similarity_scores, sim_type):
+        my_dict = dict(zip(labels, similarity_scores))
+
+        # Find the maximum value and its corresponding key
+        if sim_type == "euclidian":
+            key = min(my_dict, key=my_dict.get)
+            value = my_dict[key]
+            print(f"The best match is {BColors.HEADER}{key}{BColors.ENDC} with {value:.4f} Euclidian distance")
+        elif sim_type == "cosine":
+            key = max(my_dict, key=my_dict.get)
+            value = my_dict[key]
+            print(f"The best match is {BColors.HEADER}{key}{BColors.ENDC} with {value:.4%} cosine similarity score")
+        else:
+            raise ValueError("Wrong type!")
 
     def main(self):
         self.get_query_image()
         query_vector = self.get_query_vector()
         ref_vecs, labels = self.get_ref_vectors()
-        self.measure_similarity(labels, ref_vecs, query_vector)
+        labels, sim_euc, sim_cos = self.measure_similarity(labels, ref_vecs, query_vector)
+        print("\n")
+        self.find_best_match(labels, sim_euc, "euclidian")
+        self.find_best_match(labels, sim_cos, "cosine")
 
 
 if __name__ == "__main__":
