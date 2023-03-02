@@ -2,6 +2,7 @@ import cv2
 import gc
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import re
 import torch
 
@@ -174,3 +175,28 @@ def create_timestamp():
     """
 
     return datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------- F I N D   L A T E S T   F I L E ------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def find_latest_file(directory):
+    """
+    This function finds the latest file in a directory.
+    :param directory: input directory to search
+    :return:
+    """
+
+    latest_file = None
+    latest_time = datetime.fromtimestamp(0)
+
+    for filename in os.listdir(directory):
+        filepath = os.path.join(directory, filename)
+        if os.path.isfile(filepath):
+            modified_time = datetime.fromtimestamp(os.path.getmtime(filepath))
+            if modified_time > latest_time:
+                latest_file = filepath
+                latest_time = modified_time
+
+    print(f"The latest file is {latest_file}")
+    return latest_file

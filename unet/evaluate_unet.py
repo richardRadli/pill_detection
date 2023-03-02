@@ -7,7 +7,7 @@ from glob import glob
 from sklearn.metrics import confusion_matrix, classification_report
 
 from const import CONST
-from utils import plot_diagrams, numerical_sort
+from utils.utils import plot_diagrams, numerical_sort
 
 
 # ----------------------------------------------------------------------------------------#

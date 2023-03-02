@@ -1,10 +1,23 @@
 import os
+import re
 import torch
 
 from torchvision import transforms
 from PIL import Image
 
 from stream_network.stream_network import StreamNetwork
+# from utils.utils import find_latest_file
+
+#
+# class PillRecognition:
+#     def __init__(self):
+#         latest=find_latest_file("C:/Users/rrb12/Downloads/pt/")
+#         print(latest)
+
+
+def euclidean_distance(x, y):
+    return torch.norm(x - y)
+
 
 list_of_channels_tex_con = [1, 32, 48, 64, 128, 192, 256]
 list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
@@ -23,16 +36,10 @@ network_con.load_state_dict(torch.load(network1_path))
 network_rgb.load_state_dict(torch.load(network2_path))
 network_tex.load_state_dict(torch.load(network3_path))
 
-
-# Assume you have a set of reference images and three separate networks
-ref_images_contour = os.listdir("C:/Users/rrb12/Downloads/imgs/cont/")
-ref_images_rgb = os.listdir("C:/Users/rrb12/Downloads/imgs/rgb/")
-ref_images_texture = os.listdir("C:/Users/rrb12/Downloads/imgs/tex/")
-
 # # Load the query image and apply any necessary preprocessing (e.g., resizing, normalization).
-query_image_path_con = 'C:/Users/rrb12/Downloads/imgs/cont/003_advilultraforte_s1_2_a_f4_b.png'
-query_image_path_rgb = 'C:/Users/rrb12/Downloads/imgs/rgb/003_advilultraforte_s1_2_a_f4_b.png'
-query_image_path_tex = 'C:/Users/rrb12/Downloads/imgs/tex/003_advilultraforte_s1_2_a_f4_b.png'
+query_image_path_con = 'C:/Users/rrb12/Downloads/query/cont/003_advilultraforte_s1_2_a_f4_b.png'
+query_image_path_rgb = 'C:/Users/rrb12/Downloads/query/rgb/003_advilultraforte_s1_2_a_f4_b.png'
+query_image_path_tex = 'C:/Users/rrb12/Downloads/query/tex/003_advilultraforte_s1_2_a_f4_b.png'
 
 preprocess_rgb = transforms.Compose([transforms.Resize((128, 128)),
                                  transforms.ToTensor(),
@@ -64,7 +71,12 @@ reference_image_paths_rgb = os.listdir("C:/Users/rrb12/Downloads/imgs/rgb/")
 reference_image_paths_tex = os.listdir("C:/Users/rrb12/Downloads/imgs/tex/")
 
 reference_vectors = []
+labels = []
+
 for idx, (con, rgb, tex) in enumerate(zip(reference_image_paths_con, reference_image_paths_rgb, reference_image_paths_tex)):
+    match = re.search(r"\d{3,4}_(.+)_s", con)
+    labels.append(match.group(1))
+
     con_ref_image = Image.open(os.path.join("C:/Users/rrb12/Downloads/imgs/cont/", con))
     con_ref_image = preprocess_con_tex(con_ref_image)
 
@@ -88,5 +100,16 @@ for reference_vector in reference_vectors:
     similarity_score = torch.nn.functional.cosine_similarity(query_vector.unsqueeze(0), reference_vector.unsqueeze(0)).item()
     similarity_scores.append(similarity_score)
 
-print(similarity_scores)
+print("Cosine similarity")
+for idx, (l, s) in enumerate(zip(labels, similarity_scores)):
+    print(f"{l}: {s:.4%}")
 
+similarity_scores = []
+for reference_vector in reference_vectors:
+    similarity_score = euclidean_distance(query_vector, reference_vector).item()
+    similarity_scores.append(similarity_score)
+
+print("\nEuclidean distance")
+# Print the similarity scores.
+for idx, (l, s) in enumerate(zip(labels, similarity_scores)):
+    print(f"{l}: {s:.4f}")
