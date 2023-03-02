@@ -244,4 +244,19 @@ def copy_ref_images(source_directory: str, destination_directory: str):
             shutil.copy2(latest_file_path, destination_file_path)
 
 
-copy_ref_images("E:/users/ricsi/IVM/images/texture", "E:/users/ricsi/IVM/images/ref_images")
+def segment_pills(img_path, img_gray_path, label, predicted_value):
+    img = cv2.imread(img_path, 1)
+    img_gray = cv2.imread(img_gray_path, 0)
+
+    # Create a blank 3 channel image with zeros
+    img_color = np.zeros((img_gray.shape[0], img_gray.shape[1], 3), dtype=np.uint8)
+
+    # Merge the gray image with the blank color image to get a 3 channel image
+    img_color = cv2.merge((img_gray, img_color[:, :, 1], img_color[:, :, 2]))
+    vis_img = cv2.addWeighted(img, 1.0, img_color, 0.3, 0)
+
+    cv2.putText(vis_img, str(label) + ": " + str(np.round(predicted_value, 4)), (0, 50),
+                cv2.FONT_ITALIC, 1, (255, 0, 0))
+
+    cv2.imshow("vis_img", vis_img)
+    cv2.waitKey()
