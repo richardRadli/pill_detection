@@ -180,23 +180,41 @@ def create_timestamp():
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------- F I N D   L A T E S T   F I L E ------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def find_latest_file(directory):
+def find_latest_file(path):
     """
     This function finds the latest file in a directory.
-    :param directory: input directory to search
+    :param path: input directory to search
     :return:
     """
 
+    latest_dir = None
+    latest_dir_time = datetime.fromtimestamp(0)
+
+    # Find the latest directory
+    for dirpath, dirnames, filenames in os.walk(path):
+        for dirname in dirnames:
+            dirpath = os.path.join(dirpath, dirname)
+            modified_time = datetime.fromtimestamp(os.path.getmtime(dirpath))
+            if modified_time > latest_dir_time:
+                latest_dir = dirpath
+                latest_dir_time = modified_time
+
     latest_file = None
-    latest_time = datetime.fromtimestamp(0)
+    if latest_dir is not None:
+        latest_file_time = datetime.fromtimestamp(0)
+        for filename in os.listdir(latest_dir):
+            filepath = os.path.join(latest_dir, filename)
+            if os.path.isfile(filepath):
+                modified_time = datetime.fromtimestamp(os.path.getmtime(filepath))
+                if modified_time > latest_file_time:
+                    latest_file = filepath
+                    latest_file_time = modified_time
 
-    for filename in os.listdir(directory):
-        filepath = os.path.join(directory, filename)
-        if os.path.isfile(filepath):
-            modified_time = datetime.fromtimestamp(os.path.getmtime(filepath))
-            if modified_time > latest_time:
-                latest_file = filepath
-                latest_time = modified_time
+        if latest_file is not None:
+            print(f"The latest file is {latest_file}")
+        else:
+            print("No files found in the latest directory")
+    else:
+        print("No directories found in the path")
 
-    print(f"The latest file is {latest_file}")
     return latest_file
