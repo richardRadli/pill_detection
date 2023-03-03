@@ -204,12 +204,12 @@ def find_latest_file(path):
     latest_dir_time = datetime.fromtimestamp(0)
 
     # Find the latest directory
-    for dirpath, dirnames, filenames in os.walk(path):
-        for dirname in dirnames:
-            dirpath = os.path.join(dirpath, dirname)
-            modified_time = datetime.fromtimestamp(os.path.getmtime(dirpath))
+    for dirpath, dir_names, filenames in os.walk(path):
+        for dirname in dir_names:
+            dir_path = os.path.join(dirpath, dirname)
+            modified_time = datetime.fromtimestamp(os.path.getmtime(dir_path))
             if modified_time > latest_dir_time:
-                latest_dir = dirpath
+                latest_dir = dir_path
                 latest_dir_time = modified_time
 
     latest_file = None

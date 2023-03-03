@@ -6,7 +6,14 @@ import os
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class _Const(object):
     # Root of the project
-    PROJECT_ROOT = "E:/users/ricsi/IVM"
+    user = os.getlogin()
+
+    if user == "keplab":
+        PROJECT_ROOT = "E:/users/ricsi/IVM"
+    elif user == "rrb12":
+        PROJECT_ROOT = "D:/project/IVM"
+    else:
+        raise ValueError("Wrong username!")
 
     # Directories for the images
     dirs_images = ["images/images_aug", "images/masks_aug", "images/bounding_box", "images/contour", "images/texture",

@@ -284,17 +284,20 @@ def main():
           "Current device: ", torch.cuda.current_device())
     model.to(device=device)
 
-    train_model(
-        model=model,
-        timestamp=timestamp,
-        epochs=cfg.epochs,
-        batch_size=cfg.batch_size,
-        learning_rate=cfg.lr,
-        device=device,
-        img_scale=cfg.scale,
-        val_percent=cfg.val / 100,
-        amp=cfg.amp
-    )
+    from torchsummary import summary
+    summary(model, (3, 512, 512))
+
+    # train_model(
+    #     model=model,
+    #     timestamp=timestamp,
+    #     epochs=cfg.epochs,
+    #     batch_size=cfg.batch_size,
+    #     learning_rate=cfg.lr,
+    #     device=device,
+    #     img_scale=cfg.scale,
+    #     val_percent=cfg.val / 100,
+    #     amp=cfg.amp
+    # )
 
 
 if __name__ == '__main__':

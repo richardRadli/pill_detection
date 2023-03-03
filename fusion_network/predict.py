@@ -71,12 +71,12 @@ class PillRecognition:
         """
 
         query_image_path_con = os.path.join(CONST.dir_contour,
-                                            'advilultraforte/015_advilultraforte_s1_5_a_f4_j.png').replace("\\", "/")
+                                            'advilultraforte/contour_015_advilultraforte_s1_5_a_f4_j.png').replace("\\", "/")
         query_image_path_rgb = os.path.join(CONST.dir_bounding_box,
-                                            'advilultraforte/bbox_015_advilultraforte_s1_5_a_f4_j.png').replace("\\",
+                                            'advilultraforte/015_advilultraforte_s1_5_a_f4_j.png').replace("\\",
                                                                                                                 "/")
         query_image_path_tex = os.path.join(CONST.dir_texture,
-                                            'advilultraforte/015_advilultraforte_s1_5_a_f4_j.png').replace("\\", "/")
+                                            'advilultraforte/texture_015_advilultraforte_s1_5_a_f4_j.png').replace("\\", "/")
 
         self.preprocess_rgb = transforms.Compose([transforms.Resize((cfg.img_size, cfg.img_size)),
                                                   transforms.ToTensor(),
