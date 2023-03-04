@@ -4,24 +4,28 @@ import argparse
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++ C O N F I G   T R A I N I N G +++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class ConfigTraining:
+class ConfigTrainingUnet:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument('--epochs', '-e', metavar='E', type=int, default=200, help='Number of epochs')
-        self.parser.add_argument('--batch-size', '-b', dest='batch_size', metavar='B', type=int, default=16,
+        self.parser.add_argument('--batch_size', '-b', dest='batch_size', metavar='B', type=int, default=16,
                                  help='Batch size')
-        self.parser.add_argument('--learning-rate', '-l', metavar='LR', type=float, default=1e-5,
+        self.parser.add_argument('--learning_rate', '-l', metavar='LR', type=float, default=1e-5,
                                  help='Learning rate', dest='lr')
+        self.parser.add_argument('--weight_decay', '-wd', type=float, default=1e-8)
+        self.parser.add_argument('--momentum', type=float, default=0.999)
+        self.parser.add_argument('--gradient_clipping', type=float, default=1.0)
         self.parser.add_argument('--load', '-f', type=str, default=False, help='Load model from a .pth file')
         self.parser.add_argument('--scale', '-s', type=float, default=0.5, help='Downscaling factor of the images')
         self.parser.add_argument('--validation', '-v', dest='val', type=float, default=10.0,
                                  help='Percent of the data that is used as validation (0-100)')
-        self.parser.add_argument('--amp', action='store_true', default=False, help='Use mixed precision')
+        self.parser.add_argument('--amp', type=bool, default=False, help='Use mixed precision')
         self.parser.add_argument('--bilinear', action='store_true', default=False, help='Use bilinear upsampling')
         self.parser.add_argument('--classes', '-c', type=int, default=2, help='Number of classes')
         self.parser.add_argument('--channels', '-ch', type=int, default=3, help="Number of channels")
+        self.parser.add_argument('--save_checkpoint', '-sc', type=bool, default=True)
 
     def parse(self):
         self.opt = self.parser.parse_args()
@@ -31,7 +35,7 @@ class ConfigTraining:
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # +++++++++++++++++++++++++++++++++++++++++++++ C O N F I G   T E S T I N G ++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class ConfigTesting:
+class ConfigTestingUnet:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()

@@ -6,12 +6,12 @@ import torch.nn.functional as fun
 
 from PIL import Image
 
-from config import ConfigTesting
+from config import ConfigTestingUnet
 from unet import UNet
 from unet.data_loading import BasicDataset
 from utils.utils import plot_img_and_mask
 
-cfg = ConfigTesting().parse()
+cfg = ConfigTestingUnet().parse()
 
 
 # ----------------------------------------------------------------------------------------------------------------------

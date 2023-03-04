@@ -71,12 +71,12 @@ class PillRecognition:
         """
 
         query_image_path_con = os.path.join(CONST.dir_contour,
-                                            'advilultraforte/contour_015_advilultraforte_s1_5_a_f4_j.png').replace("\\", "/")
+                                            'algoflex/contour_054_algoflex_s1_5_a_f4.png').replace("\\", "/")
         query_image_path_rgb = os.path.join(CONST.dir_bounding_box,
-                                            'advilultraforte/015_advilultraforte_s1_5_a_f4_j.png').replace("\\",
-                                                                                                                "/")
+                                            'algoflex/054_algoflex_s1_5_a_f4.png').replace("\\",
+                                                                                               "/")
         query_image_path_tex = os.path.join(CONST.dir_texture,
-                                            'advilultraforte/texture_015_advilultraforte_s1_5_a_f4_j.png').replace("\\", "/")
+                                            'algoflex/texture_054_algoflex_s1_5_a_f4.png').replace("\\", "/")
 
         self.preprocess_rgb = transforms.Compose([transforms.Resize((cfg.img_size, cfg.img_size)),
                                                   transforms.ToTensor(),
@@ -97,7 +97,7 @@ class PillRecognition:
 
     def get_query_vector(self):
         """
-        Calculates 
+        Calculates
         :return:
         """
 
@@ -181,8 +181,9 @@ class PillRecognition:
 
     @staticmethod
     def draw_results_on_image(key, value):
-        image = os.path.join(CONST.dir_test_images, '015_advilultraforte_s1_5_a_f4_j.png')
-        mask = os.path.join(CONST.dir_unet_output, ('015_advilultraforte_s1_5_a_f4_j' + '_OUT' + '.png'))
+        image = os.path.join(CONST.dir_test_images, '054_algoflex_s1_5_a_f4.png')
+        mask = os.path.join(CONST.dir_unet_output, '054_algoflex_s1_5_a_f4_OUT.png')
+        print(mask)
         segment_pills(image, mask, key, value)
 
     def main(self):
