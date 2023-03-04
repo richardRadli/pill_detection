@@ -6,17 +6,23 @@ import os
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class _Const(object):
     # Root of the project
-    PROJECT_ROOT = "E:/users/ricsi/IVM"
+    user = os.getlogin()
+
+    if user == "keplab":
+        PROJECT_ROOT = "E:/users/ricsi/IVM"
+    elif user == "rrb12":
+        PROJECT_ROOT = "D:/project/IVM"
+    else:
+        raise ValueError("Wrong username!")
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------- I M A G E   F I L E S ---------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
 
     # Directories for the images
     dirs_images = ["images/images_aug", "images/masks_aug", "images/bounding_box", "images/contour", "images/texture",
                    "images/text_locator", "images/test_images", "images/test_masks", "images/unet_out",
                    "images/unet_out_2"]
-
-    # Directories for the data
-    dirs_data = ["data/checkpoints", "data/stream_contour_model_weights", "data/stream_rgb_model_weights",
-                 "data/stream_texture_model_weights", "data/wandb_logs_checkpoint", "data/wandb_logs_contour",
-                 "data/wandb_logs_rgb", "data/wandb_logs_texture"]
 
     # Directories for the train images. These two directories must exist, it won't be created by the program.
     dir_img = os.path.join(PROJECT_ROOT, 'images/train_images/')
@@ -35,12 +41,23 @@ class _Const(object):
     dir_unet_output_2 = os.path.join(PROJECT_ROOT, dirs_images[9])
 
     # At this part, the program creates the directories.
-    directories_images = [os.path.join("E:/users/ricsi/IVM", d) for d in dirs_images]
+    directories_images = []
+    for d in dirs_images:
+        directories_images.append(os.path.join(PROJECT_ROOT, d))
 
     for d in directories_images:
         if not os.path.exists(d):
             os.makedirs(d)
             print(f"Directory {d} has been created")
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------- D A T A   F I L E S ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+
+    # Directories for the data
+    dirs_data = ["data/checkpoints", "data/stream_contour_model_weights", "data/stream_rgb_model_weights",
+                 "data/stream_texture_model_weights", "data/wandb_logs_checkpoint", "data/wandb_logs_contour",
+                 "data/wandb_logs_rgb", "data/wandb_logs_texture"]
 
     # Aux variables for the other directories. These will be created by the program.
     dir_checkpoint = os.path.join(PROJECT_ROOT, dirs_data[0])
@@ -52,7 +69,10 @@ class _Const(object):
     dir_wandb_rgb_logs = os.path.join(PROJECT_ROOT, dirs_data[6])
     dir_wandb_texture_logs = os.path.join(PROJECT_ROOT, dirs_data[7])
 
-    directories_data = [os.path.join("E:/users/ricsi/IVM", d) for d in dirs_data]
+
+    directories_data = []
+    for d in dirs_data:
+        directories_data.append(os.path.join(PROJECT_ROOT, d))
 
     for d in directories_data:
         if not os.path.exists(d):

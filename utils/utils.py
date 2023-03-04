@@ -242,6 +242,3 @@ def copy_ref_images(source_directory: str, destination_directory: str):
             latest_file_path = os.path.join(subdir_path, file_to_pick)
             destination_file_path = os.path.join(destination_directory, "tex", latest_file_path.split("\\")[2])
             shutil.copy2(latest_file_path, destination_file_path)
-
-
-copy_ref_images("E:/users/ricsi/IVM/images/texture", "E:/users/ricsi/IVM/images/ref_images")
