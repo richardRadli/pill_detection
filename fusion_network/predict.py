@@ -8,8 +8,11 @@ from torchvision import transforms
 from PIL import Image
 
 from const import CONST
+from config import ConfigStreamNetwork
 from stream_network.stream_network import StreamNetwork
-from utils.utils import find_latest_file, BColors
+from utils.utils import BColors, find_latest_file, segment_pills
+
+cfg = ConfigStreamNetwork().parse()
 
 
 class PillRecognition:
@@ -23,6 +26,11 @@ class PillRecognition:
 
     @staticmethod
     def load_networks():
+        """
+        This function loads the pretrained networks, with the latest .pt files
+        :return: The contour, rgb, and texture networks.
+        """
+
         list_of_channels_tex_con = [1, 32, 48, 64, 128, 192, 256]
         list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
 
@@ -47,22 +55,34 @@ class PillRecognition:
 
     @staticmethod
     def euclidean_distance(x, y):
+        """
+        Calculates the Euclidean distance, between two values.
+        :param x:
+        :param y:
+        :return: Euclidian distance.
+        """
+
         return torch.norm(x - y)
 
     def get_query_image(self):
+        """
+        Collects the query image, makes some transformation.
+        :return:
+        """
+
         query_image_path_con = os.path.join(CONST.dir_contour,
-                                            'advilultraforte/011_advilultraforte_s1_4_a_b_j.png').replace("\\", "/")
+                                            'advilultraforte/contour_015_advilultraforte_s1_5_a_f4_j.png').replace("\\", "/")
         query_image_path_rgb = os.path.join(CONST.dir_bounding_box,
-                                            'advilultraforte/bbox_011_advilultraforte_s1_4_a_b_j.png').replace("\\",
+                                            'advilultraforte/015_advilultraforte_s1_5_a_f4_j.png').replace("\\",
                                                                                                                 "/")
         query_image_path_tex = os.path.join(CONST.dir_texture,
-                                            'advilultraforte/011_advilultraforte_s1_4_a_b_j.png').replace("\\", "/")
+                                            'advilultraforte/texture_015_advilultraforte_s1_5_a_f4_j.png').replace("\\", "/")
 
-        self.preprocess_rgb = transforms.Compose([transforms.Resize((128, 128)),
+        self.preprocess_rgb = transforms.Compose([transforms.Resize((cfg.img_size, cfg.img_size)),
                                                   transforms.ToTensor(),
                                                   transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])])
 
-        self.preprocess_con_tex = transforms.Compose([transforms.Resize((128, 128)),
+        self.preprocess_con_tex = transforms.Compose([transforms.Resize((cfg.img_size, cfg.img_size)),
                                                       transforms.Grayscale(),
                                                       transforms.ToTensor()])
 
@@ -76,6 +96,11 @@ class PillRecognition:
         self.query_image_tex = self.preprocess_con_tex(query_image_tex)
 
     def get_query_vector(self):
+        """
+        Calculates 
+        :return:
+        """
+
         with torch.no_grad():
             query_vector1 = self.network_con(self.query_image_con.unsqueeze(0)).squeeze()
             query_vector2 = self.network_rgb(self.query_image_rgb.unsqueeze(0)).squeeze()
@@ -92,7 +117,6 @@ class PillRecognition:
 
         for idx, (con, rgb, tex) in enumerate(zip(reference_image_paths_con, reference_image_paths_rgb,
                                                   reference_image_paths_tex)):
-
             match = re.search(r"\d{3,4}_(.+)_s", con)
             labels.append(match.group(1))
 
@@ -153,6 +177,14 @@ class PillRecognition:
         else:
             raise ValueError("Wrong type!")
 
+        return key, value
+
+    @staticmethod
+    def draw_results_on_image(key, value):
+        image = os.path.join(CONST.dir_test_images, '015_advilultraforte_s1_5_a_f4_j.png')
+        mask = os.path.join(CONST.dir_unet_output, ('015_advilultraforte_s1_5_a_f4_j' + '_OUT' + '.png'))
+        segment_pills(image, mask, key, value)
+
     def main(self):
         self.get_query_image()
         query_vector = self.get_query_vector()
@@ -160,7 +192,8 @@ class PillRecognition:
         labels, sim_euc, sim_cos = self.measure_similarity(labels, ref_vecs, query_vector)
         print("\n")
         self.find_best_match(labels, sim_euc, "euclidian")
-        self.find_best_match(labels, sim_cos, "cosine")
+        key, value = self.find_best_match(labels, sim_cos, "cosine")
+        self.draw_results_on_image(key, value)
 
 
 if __name__ == "__main__":

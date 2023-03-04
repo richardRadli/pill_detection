@@ -3,10 +3,8 @@ import os
 import shutil
 
 from glob import glob
-from utils import numerical_sort
+from utils.utils import numerical_sort
 from tqdm import tqdm
-
-from const import CONST
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -106,21 +104,3 @@ def create_label_dirs(input_path: str) -> None:
                     print(f"Directory {value} has been created!")
                 shutil.move(os.path.join(input_path, file), out_path)
 
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------------------- M A I N ------------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def main() -> None:
-    """
-    Main function, uncomment the function that need to be used.
-
-    :return: None
-    """
-
-    create_label_dirs(CONST.dir_bounding_box)
-    # tf = find_test_files()
-    # find_mask_test_files(tf)
-
-
-if __name__ == "__main__":
-    main()

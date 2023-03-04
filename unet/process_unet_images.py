@@ -3,6 +3,7 @@ import os
 import re
 
 from glob import glob
+from tqdm import tqdm
 
 from const import CONST
 from utils.dataset_operations import create_label_dirs
@@ -25,19 +26,14 @@ def draw_bounding_box(in_img, seg_map, output_path: str):
     :return:None
     """
 
-    # Find the contours in the grayscale image
-    contours, hierarchy = cv2.findContours(seg_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    ret, thresh = cv2.threshold(seg_map, 0, 255, cv2.THRESH_BINARY)
+    n_objects, labels, stats, centroids = cv2.connectedComponentsWithStats(thresh, connectivity=8, ltype=cv2.CV_32S)
 
-    # Sort the contours by area in descending order
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)
-
-    # Draw a bounding box for each contour
-    if len(contours) > 0:
-        x, y, w, h = cv2.boundingRect(contours[0])
-        cropped_img = in_img[y:y + h, x:x + w]
-
-        # Save the segmentation map with bounding boxes
-        cv2.imwrite(output_path, cropped_img)
+    for i in range(1, n_objects):
+        x, y, w, h, area = stats[i]
+        if area > 20000:
+            obj = in_img[y:y + h, x:x + w]
+            cv2.imwrite(output_path, obj)
 
 
 def save_bounding_box_images():
@@ -49,8 +45,9 @@ def save_bounding_box_images():
     color_images = sorted(glob(CONST.dir_test_images + "/*.png"))
     mask_images = sorted(glob(CONST.dir_unet_output + "/*.png"))
 
-    for idx, (color_imgs, mask_imgs) in enumerate(zip(color_images, mask_images)):
-        output_name = "bbox_" + color_imgs.split("\\")[2]
+    for idx, (color_imgs, mask_imgs) in tqdm(enumerate(zip(color_images, mask_images)), total=len(color_images),
+                                             desc="Bounding box"):
+        output_name = color_imgs.split("\\")[2]
         output_file = (os.path.join(CONST.dir_bounding_box, output_name))
         c_imgs = cv2.imread(color_imgs, 1)
         m_imgs = cv2.imread(mask_imgs, 0)
@@ -81,7 +78,7 @@ def save_contour_images():
     """
 
     contour_images = sorted(glob(CONST.dir_bounding_box + "/*.png"), key=numerical_sort)
-    for _, img_path in enumerate(contour_images):
+    for _, img_path in tqdm(enumerate(contour_images), total=len(contour_images), desc="Contour images"):
         output_name = "contour_" + img_path.split("\\")[2]
         output_file = (os.path.join(CONST.dir_contour, output_name))
         bbox_imgs = cv2.imread(img_path, 0)
@@ -109,7 +106,7 @@ def save_texture_images():
     """
 
     bbox_images = sorted(glob(CONST.dir_bounding_box + "/*.png"), key=numerical_sort)
-    for _, img_path in enumerate(bbox_images):
+    for _, img_path in tqdm(enumerate(bbox_images), total=len(bbox_images), desc="Texture images"):
         output_name = "texture_" + img_path.split("\\")[2]
         output_file = (os.path.join(CONST.dir_texture, output_name))
         texture_images = cv2.imread(img_path, 0)
@@ -123,12 +120,15 @@ def main():
     """
 
     save_bounding_box_images()
-    create_label_dirs()
     save_contour_images()
-    create_label_dirs()
     save_texture_images()
-    create_label_dirs()
+    create_label_dirs(CONST.dir_bounding_box)
+    create_label_dirs(CONST.dir_contour)
+    create_label_dirs(CONST.dir_texture)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt as kie:
+        print(kie)
