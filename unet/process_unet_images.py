@@ -1,19 +1,11 @@
 import cv2
 import os
-import re
 
 from glob import glob
 from tqdm import tqdm
 
 from const import CONST
-from utils.dataset_operations import create_label_dirs
-
-
-def numerical_sort(value):
-    numbers = re.compile(r'(\d+)')
-    parts = numbers.split(value)
-    parts[1::2] = map(int, parts[1::2])
-    return parts
+from utils.dataset_operations import create_label_dirs, numerical_sort
 
 
 def draw_bounding_box(in_img, seg_map, output_path: str):
