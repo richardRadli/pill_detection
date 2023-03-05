@@ -3,8 +3,10 @@ import os
 import shutil
 
 from glob import glob
-from utils.utils import numerical_sort
 from tqdm import tqdm
+
+from const import CONST
+from utils import numerical_sort
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -18,11 +20,11 @@ def find_test_files() -> list:
     :return: test_file -> list containing the names of the moved files without their extensions.
     """
 
-    dest_dir = "./test_img"
+    dest_dir = CONST.dir_test_images
     # Define the regular expression pattern to match the file names
     pattern = r'^\d+_[^_]+_[^_]+_[^_]+_[^_]+_(.*)\.png$'
 
-    path = "./imgs_for_mask/"
+    path = CONST.dir_img
     file_names = sorted(glob(path + "/*.png"), key=numerical_sort)
     prev_groups = None
 
@@ -30,7 +32,7 @@ def find_test_files() -> list:
     test_file = []
 
     for file_name in file_names:
-        file_name = (file_name.split("\\")[1])
+        file_name = (file_name.split("\\")[2])
         match = re.match(pattern, file_name)
         if match:
             # Extract the groups from the pattern match
@@ -48,6 +50,8 @@ def find_test_files() -> list:
         else:
             print('No match for:', file_name)
 
+    print(f"{cnt} images were moved")
+
     return test_file
 
 
@@ -62,20 +66,23 @@ def find_mask_test_files(test_file: list) -> None:
     :return: None
     """
 
-    path = "./mask/"
-    dest_dir = "./test_mask"
+    path = CONST.dir_mask
+    dest_dir = CONST.dir_test_mask
 
     files = sorted(glob(path + "/*.png"), key=numerical_sort)
 
+    cnt = 0
+
     for file_name in files:
-        file_name = file_name.split('\\')[1]
+        file_name = file_name.split('\\')[2]
         for test_name in test_file:
             if test_name in file_name:
-                # Do something with the file
-                print('Mask file name:', file_name)
                 dest_file = os.path.join(dest_dir, file_name)
                 src_file = os.path.join(path, file_name)
                 shutil.move(src_file, dest_file)
+                cnt += 1
+
+    print(f"{cnt} mask files were moved")
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -104,3 +111,5 @@ def create_label_dirs(input_path: str) -> None:
                     print(f"Directory {value} has been created!")
                 shutil.move(os.path.join(input_path, file), out_path)
 
+# tf = find_test_files()
+# find_mask_test_files(tf)

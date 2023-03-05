@@ -11,7 +11,10 @@ from PIL import Image
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
+from config import ConfigTrainingUnet
 from utils.utils import load_image, unique_mask_values
+
+cfg = ConfigTrainingUnet().parse()
 
 
 class BasicDataset(Dataset):
@@ -27,16 +30,22 @@ class BasicDataset(Dataset):
         if not self.ids:
             raise RuntimeError(f'No input file found in {images_dir}, make sure you put your images there')
 
-        logging.info(f'Creating dataset with {len(self.ids)} examples')
-        logging.info('Scanning mask files to determine unique values')
-        with Pool() as p:
-            unique = list(tqdm(
-                p.imap(partial(unique_mask_values, mask_dir=self.mask_dir, mask_suffix=self.mask_suffix), self.ids),
-                total=len(self.ids)
-            ))
+        print(f'Creating dataset with {len(self.ids)} examples')
+        print('Scanning mask files to determine unique values')
 
-        self.mask_values = list(sorted(np.unique(np.concatenate(unique), axis=0).tolist()))
-        logging.info(f'Unique mask values: {self.mask_values}')
+        if not cfg.load_mask_values:
+            with Pool() as p:
+                unique = list(tqdm(
+                    p.imap(partial(unique_mask_values, mask_dir=self.mask_dir, mask_suffix=self.mask_suffix), self.ids),
+                    total=len(self.ids)
+                ))
+
+            self.mask_values = list(sorted(np.unique(np.concatenate(unique), axis=0).tolist()))
+            np.save("E:/users/ricsi/IVM/data/mask_values", self.mask_values)
+        else:
+            self.mask_values = np.load("E:/users/ricsi/IVM/data/mask_values.npy", allow_pickle=True)
+
+        print(f'Unique mask values: {self.mask_values}')
 
     def __len__(self):
         return len(self.ids)
