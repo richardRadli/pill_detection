@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+from concurrent.futures import ThreadPoolExecutor
 from glob import glob
 from sklearn.metrics import confusion_matrix, classification_report
 
@@ -10,73 +11,52 @@ from const import CONST
 from utils.utils import plot_diagrams, numerical_sort
 
 
-# ----------------------------------------------------------------------------------------#
-# --------------------------C A L C U L A T E   F P R   T P R-----------------------------#
-# ----------------------------------------------------------------------------------------#
-def calculate_metrics():
-    images_true = sorted(glob(CONST.dir_test_mask + '/*.png'), key=numerical_sort)
-    images_pred = sorted(glob(CONST.dir_unet_output + '/*.png'), key=numerical_sort)
+# ---------------------------------------------------------------------------------------------------------------------#
+# ----------------------------------------- C A L C U L A T E   M E T R I C S -----------------------------------------#
+# ---------------------------------------------------------------------------------------------------------------------#
+def calculate_metrics() -> None:
+    """
 
-    # False Positive Rate
-    fpr_list = []
-    # True Positive Rate - Recall
-    tpr_list = []
-    # Positive Predictive Value - Precision
-    ppv_list = []
-    # IoU
-    iou_list = []
+    :return: None
+    """
 
-    for _, (true_img_idx, pred_img_idx) in enumerate(zip(images_true, images_pred)):
-        print(true_img_idx.split("\\")[2])
-        print(pred_img_idx.split("\\")[2])
+    images_true = sorted(os.listdir(CONST.dir_test_mask))
+    images_pred = sorted(os.listdir(CONST.dir_unet_output))
 
-        y_true = cv2.imread(true_img_idx, 0)
-        y_true_norm = y_true.ravel()
+    with ThreadPoolExecutor() as executor:
+        y_true_list = list(executor.map(lambda img: cv2.imread(os.path.join(CONST.dir_test_mask, img), 0).ravel(),
+                                        images_true))
+        y_pred_list = list(executor.map(lambda img: cv2.imread(os.path.join(CONST.dir_unet_output, img), 0).ravel(),
+                                        images_pred))
+        cm_list = list(executor.map(lambda y_true_norm, y_pred_norm: confusion_matrix(y_true_norm, y_pred_norm),
+                                    y_true_list, y_pred_list))
 
-        y_pred = cv2.imread(pred_img_idx, 0)
-        y_pred_norm = y_pred.ravel()
+    tn_list = [cm[0][0] for cm in cm_list]
+    fp_list = [cm[0][1] for cm in cm_list]
+    fn_list = [cm[1][0] for cm in cm_list]
+    tp_list = [cm[1][1] for cm in cm_list]
 
-        cm = confusion_matrix(y_true_norm, y_pred_norm)
+    fpr_list = [fp / (fp + tn) for fp, tn in zip(fp_list, tn_list)]
+    tpr_list = [tp / (tp + fn) for tp, fn in zip(tp_list, fn_list)]
+    ppv_list = [tp / (tp + fp) if (tp + fp) != 0 else 0 for tp, fp in zip(tp_list, fp_list)]
+    io_u_list = [tp / (tp + fp + fn) if (tp + fp + fn) != 0 else 0 for tp, fp, fn in zip(tp_list, fp_list, fn_list)]
 
-        tn = cm[0][0]
-        fp = cm[0][1]
-        fn = cm[1][0]
-        tp = cm[1][1]
+    print("FPR:", sum(fpr_list) / len(fpr_list))
+    print("TPR:", sum(tpr_list) / len(tpr_list))
+    print("PPV:", sum(ppv_list) / len(ppv_list))
+    print("IoU:", sum(io_u_list) / len(io_u_list))
 
-        # FPR
-        fpr = fp / (fp + tn)
-        fpr_list.append(fpr)
-
-        # TPR
-        tpr = 0
-        if tp != 0 or fn != 0:
-            tpr = tp / (tp + fn)
-        # print("TPR, y: ",y)
-        tpr_list.append(tpr)
-
-        # PPV
-        ppv = 0
-        if tp != 0 or fp != 0:
-            ppv = tp / (tp + fp)
-        ppv_list.append(ppv)
-
-        # IoU
-        iou = tp / (tp + fp + fn)
-        iou_list.append(iou)
-
-        print(classification_report(y_true_norm, y_pred_norm))
-
-    fpr_sorted = sorted(fpr_list)
-    tpr_sorted = sorted(tpr_list)
-    iou_sorted = sorted(iou_list)
-    ppv_sorted = sorted(ppv_list)
-    ppv_sorted = np.nan_to_num(ppv_sorted)
-    ppv_sorted = np.where(ppv_sorted == 0, 1, ppv_sorted)
-
-    return np.mean(fpr_sorted), np.mean(tpr_sorted), np.mean(ppv_sorted), np.mean(iou_sorted)
+    y_true = np.concatenate(y_true_list)
+    y_pred = np.concatenate(y_pred_list)
+    print(classification_report(y_true, y_pred))
 
 
 def plot_results():
+    """
+
+    :return:
+    """
+
     images_input = sorted(glob(CONST.dir_test_images + "/*.png"), key=numerical_sort)
     images_true = sorted(glob(CONST.dir_test_mask + '/*.png'), key=numerical_sort)
     images_pred = sorted(glob(CONST.dir_unet_output + '/*.png'), key=numerical_sort)
@@ -93,7 +73,5 @@ def plot_results():
 
 
 if __name__ == "__main__":
-    # plot_results()
-    fpr_avg, tpr_avg, ppv_avg, iou_avg = calculate_metrics()
-    print(f"Average FPR: {fpr_avg},\nAverage Recall: {tpr_avg},\nAverage Precision: {ppv_avg}, "
-          f"\nAverage IoU: {iou_avg}")
+    calculate_metrics()
+    plot_results()

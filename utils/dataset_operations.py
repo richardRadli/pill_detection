@@ -9,7 +9,6 @@ from const import CONST
 from utils import numerical_sort
 
 
-
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------- F I N D   T E S T   F I L E S -------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -112,5 +111,5 @@ def create_label_dirs(input_path: str) -> None:
                     print(f"Directory {value} has been created!")
                 shutil.move(os.path.join(input_path, file), out_path)
 
-tf = find_test_files()
-find_mask_test_files(tf)
+# tf = find_test_files()
+# find_mask_test_files(tf)
