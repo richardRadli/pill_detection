@@ -7,13 +7,12 @@ import os
 class _Const(object):
     # Root of the project
     user = os.getlogin()
-
     if user == "keplab":
         PROJECT_ROOT = "E:/users/ricsi/IVM"
     elif user == "rrb12":
         PROJECT_ROOT = "D:/project/IVM"
     else:
-        raise ValueError("Wrong username!")
+        raise ValueError("Wrong user!")
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- I M A G E   F I L E S ---------------------------------------------
@@ -68,7 +67,6 @@ class _Const(object):
     dir_wandb_contour_logs = os.path.join(PROJECT_ROOT, dirs_data[5])
     dir_wandb_rgb_logs = os.path.join(PROJECT_ROOT, dirs_data[6])
     dir_wandb_texture_logs = os.path.join(PROJECT_ROOT, dirs_data[7])
-
 
     directories_data = []
     for d in dirs_data:
