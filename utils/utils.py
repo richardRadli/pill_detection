@@ -114,8 +114,8 @@ def unique_mask_values(idx, mask_dir, mask_suffix):
 # ------------------------------------------ R E A D   I M G   A N D   M A S K -----------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def read_image_and_mask():
-    images = sorted(glob(CONST.dir_img + "*.png"))
-    masks = sorted(glob(CONST.dir_mask + "*.png"))
+    images = sorted(glob(CONST.dir_train_images + "*.png"))
+    masks = sorted(glob(CONST.dir_train_masks + "*.png"))
 
     images_list, masks_list = [], []
 
@@ -204,9 +204,9 @@ def find_latest_file(path):
     latest_dir_time = datetime.fromtimestamp(0)
 
     # Find the latest directory
-    for dirpath, dirnames, filenames in os.walk(path):
+    for dir_path, dirnames, filenames in os.walk(path):
         for dirname in dirnames:
-            dirpath = os.path.join(dirpath, dirname)
+            dirpath = os.path.join(dir_path, dirname)
             modified_time = datetime.fromtimestamp(os.path.getmtime(dirpath))
             if modified_time > latest_dir_time:
                 latest_dir = dirpath

@@ -25,9 +25,9 @@ class TrainUNET:
     def __init__(self):
         # 1. Create dataset
         try:
-            self.dataset = CustomDataset(CONST.dir_img, CONST.dir_mask, cfg.scale)
+            self.dataset = CustomDataset(CONST.dir_train_images, CONST.dir_train_masks, cfg.scale)
         except (AssertionError, RuntimeError, IndexError):
-            self.dataset = BasicDataset(CONST.dir_img, CONST.dir_mask, cfg.scale)
+            self.dataset = BasicDataset(CONST.dir_train_images, CONST.dir_train_masks, cfg.scale)
 
         # # 2. Split into train / validation partitions
         # Determine the ratio of the split

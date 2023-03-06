@@ -17,7 +17,7 @@ def predict_multiple_images():
         os.system("python predict_unet.py "
                   f"-i {name} "
                   f"-o {out_path} "
-                  f"-m {latest_model}"
+                  f"-m {latest_model} "
                   )
 
 
@@ -29,4 +29,5 @@ def predict_single_image():
               )
 
 
-# predict_single_image()
+if __name__ == "__main__":
+    predict_multiple_images()

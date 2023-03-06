@@ -24,7 +24,7 @@ def find_test_files() -> list:
     # Define the regular expression pattern to match the file names
     pattern = r'^\d+_[^_]+_[^_]+_[^_]+_[^_]+_(.*)\.png$'
 
-    path = CONST.dir_img
+    path = CONST.dir_train_images
     file_names = sorted(glob(path + "/*.png"), key=numerical_sort)
     prev_groups = None
 
@@ -66,7 +66,7 @@ def find_mask_test_files(test_file: list) -> None:
     :return: None
     """
 
-    path = CONST.dir_mask
+    path = CONST.dir_train_masks
     dest_dir = CONST.dir_test_mask
 
     files = sorted(glob(path + "/*.png"), key=numerical_sort)
@@ -110,6 +110,3 @@ def create_label_dirs(input_path: str) -> None:
                     os.makedirs(out_path)
                     print(f"Directory {value} has been created!")
                 shutil.move(os.path.join(input_path, file), out_path)
-
-# tf = find_test_files()
-# find_mask_test_files(tf)
