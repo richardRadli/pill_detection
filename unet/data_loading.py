@@ -1,4 +1,3 @@
-import logging
 import numpy as np
 import torch
 
@@ -11,10 +10,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from config import ConfigTrainingUnet
 from utils.utils import load_image, unique_mask_values
-
-cfg = ConfigTrainingUnet().parse()
 
 
 class BasicDataset(Dataset):
@@ -33,17 +29,13 @@ class BasicDataset(Dataset):
         print(f'Creating dataset with {len(self.ids)} examples')
         print('Scanning mask files to determine unique values')
 
-        if not cfg.load_mask_values:
-            with Pool() as p:
-                unique = list(tqdm(
-                    p.imap(partial(unique_mask_values, mask_dir=self.mask_dir, mask_suffix=self.mask_suffix), self.ids),
-                    total=len(self.ids)
-                ))
+        with Pool() as p:
+            unique = list(tqdm(
+                p.imap(partial(unique_mask_values, mask_dir=self.mask_dir, mask_suffix=self.mask_suffix), self.ids),
+                total=len(self.ids)
+            ))
 
-            self.mask_values = list(sorted(np.unique(np.concatenate(unique), axis=0).tolist()))
-            np.save("E:/users/ricsi/IVM/data/mask_values", self.mask_values)
-        else:
-            self.mask_values = np.load("E:/users/ricsi/IVM/data/mask_values.npy", allow_pickle=True)
+        self.mask_values = list(sorted(np.unique(np.concatenate(unique), axis=0).tolist()))
 
         print(f'Unique mask values: {self.mask_values}')
 

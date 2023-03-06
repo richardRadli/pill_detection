@@ -24,8 +24,8 @@ class _Const(object):
                    "images/unet_out_2"]
 
     # Directories for the train images. These two directories must exist, it won't be created by the program.
-    dir_img = os.path.join(PROJECT_ROOT, 'images/train_images/')
-    dir_mask = os.path.join(PROJECT_ROOT, 'images/train_masks/')
+    dir_train_images = os.path.join(PROJECT_ROOT, 'images/train_images/')
+    dir_train_masks = os.path.join(PROJECT_ROOT, 'images/train_masks/')
 
     # Aux variables for the other directories. These will be created by the program.
     dir_aug_img = os.path.join(PROJECT_ROOT, dirs_images[0])
