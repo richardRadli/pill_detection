@@ -88,7 +88,7 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_network", type=str, default="RGB", help="RGB | Contour | Texture")
+        self.parser.add_argument("--type_of_network", type=str, default="Texture", help="RGB | Contour | Texture")
         self.parser.add_argument("--margin", type=float, default=1.0)
         self.parser.add_argument("--epochs", type=int, default=200)
         self.parser.add_argument("--batch_size", type=int, default=32)

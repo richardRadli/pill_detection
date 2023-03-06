@@ -12,13 +12,13 @@ from const import CONST
 from utils.utils import plot_diagrams, numerical_sort
 
 
-# ---------------------------------------------------------------------------------------------------------------------#
-# ----------------------------------------- C A L C U L A T E   M E T R I C S -----------------------------------------#
-# ---------------------------------------------------------------------------------------------------------------------#
-def calculate_fpr_tpr():
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------- C A L C U L A T E   M E T R I C S    T H R E A D ----------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def calculate_metrics_thread() -> (float, float, float, float):
     """
-
-    :return: None
+    Calculates the  fpr, tpr, ppv, iou values in a multi-threading way.
+    :return: mean values of fpr, tpr, ppv, iou.
     """
 
     images_true = sorted(glob(CONST.dir_test_mask + "/*.png"))
@@ -32,7 +32,7 @@ def calculate_fpr_tpr():
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []
         for _, (true_img_idx, pred_img_idx) in tqdm(enumerate(zip(images_true, images_pred)), total=len(images_true)):
-            future = executor.submit(calculate_image_metrics, true_img_idx, pred_img_idx)
+            future = executor.submit(calculate_metrics, true_img_idx, pred_img_idx)
             futures.append(future)
 
         for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures)):
@@ -52,10 +52,20 @@ def calculate_fpr_tpr():
     return np.mean(fpr_sorted), np.mean(tpr_sorted), np.mean(ppv_sorted), np.mean(iou_sorted)
 
 
-def calculate_image_metrics(true_img_idx, pred_img_idx):
-    y_true = cv2.imread(true_img_idx, 0)
+# ---------------------------------------------------------------------------------------------------------------------#
+# ----------------------------------------- C A L C U L A T E   M E T R I C S -----------------------------------------#
+# ---------------------------------------------------------------------------------------------------------------------#
+def calculate_metrics(true_img_path: str, pred_img_path: str) -> (float, float, float, float):
+    """
+    This function calculates the fpr, tpr, ppv, iou values in the current thread.
+    :param true_img_path: Path to the actual ground truth image
+    :param pred_img_path: Path to the actual predicted image
+    :return:  fpr, tpr, ppv, iou values
+    """
+
+    y_true = cv2.imread(true_img_path, 0)
     y_true_norm = y_true.ravel()
-    y_pred = cv2.imread(pred_img_idx, 0)
+    y_pred = cv2.imread(pred_img_path, 0)
     y_pred_norm = y_pred.ravel()
 
     cm = confusion_matrix(y_true_norm, y_pred_norm)
@@ -84,10 +94,11 @@ def calculate_image_metrics(true_img_idx, pred_img_idx):
     return fpr, tpr, ppv, iou
 
 
-def plot_results():
+def plot_results() -> None:
     """
+    Plots the ground truth image, mask and the predicted mask on a figure.
 
-    :return:
+    :return: None
     """
 
     images_input = sorted(glob(CONST.dir_test_images + "/*.png"), key=numerical_sort)
@@ -106,6 +117,6 @@ def plot_results():
 
 
 if __name__ == "__main__":
-    fpr_res, tpr_res, ppvc_res, iou_res = calculate_fpr_tpr()
+    fpr_res, tpr_res, ppvc_res, iou_res = calculate_metrics_thread()
     print(f" Fall out: {fpr_res: .4f}\n Recall: {tpr_res: .4f}\n Precision: {ppvc_res: .4f}\n IoU: {iou_res: .4f}\n")
     plot_results()
