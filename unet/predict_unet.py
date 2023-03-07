@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import os
 import torch
-import torch.nn.functional as fun
+import torch.nn.functional as F
 
 from PIL import Image
 
@@ -17,21 +17,7 @@ cfg = ConfigTestingUnet().parse()
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------- P R E D I C T   I M G ------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def predict_img(net, full_img, device, scale_factor: int = 1, out_threshold: float = 0.5):
-    """
-    The function preprocesses the input image by resizing and normalizing it, then passes it through the neural network
-    to obtain a predicted mask. If the network has multiple output classes, the mask is obtained by taking the argmax
-    along the channel dimension. If the network has a single output channel, the mask is obtained by thresholding
-    the output.
-
-    :param net: neural network model
-    :param full_img: input image
-    :param device: computing device
-    :param scale_factor: scale factor for resizing the image
-    :param out_threshold: output threshold for generating the final mask
-    :return: predicted mask as a numpy array with the same size as the input image
-    """
-
+def predict_img(net, full_img, device, scale_factor=1, out_threshold=0.5):
     net.eval()
     img = torch.from_numpy(BasicDataset.preprocess(None, full_img, scale_factor, is_mask=False))
     img = img.unsqueeze(0)
@@ -39,7 +25,7 @@ def predict_img(net, full_img, device, scale_factor: int = 1, out_threshold: flo
 
     with torch.no_grad():
         output = net(img).cpu()
-        output = fun.interpolate(output, (full_img.size[1], full_img.size[0]), mode='bilinear')
+        output = F.interpolate(output, (full_img.size[1], full_img.size[0]), mode='bilinear')
         if net.n_classes > 1:
             mask = output.argmax(dim=1)
         else:
@@ -69,14 +55,6 @@ def get_output_filenames():
 # ---------------------------------------------- M A S K   T O   I M A G E ---------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def mask_to_image(mask: np.ndarray, mask_values):
-    """
-    The purpose of the function is to convert a mask array to a corresponding image.
-
-    :param mask: mask image
-    :param mask_values: list of mask values
-    :return: an Image object created from the output array
-    """
-
     if isinstance(mask_values[0], list):
         out = np.zeros((mask.shape[-2], mask.shape[-1], len(mask_values[0])), dtype=np.uint8)
     elif mask_values == [0, 1]:
@@ -102,7 +80,7 @@ def main():
     in_files = cfg.input
     out_files = get_output_filenames()
 
-    net = UNet(n_channels=cfg.channels, n_classes=cfg.classes, bilinear=cfg.bilinear)
+    net = UNet(cfg.channels, cfg.classes, bilinear=cfg.bilinear)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logging.info(f'Loading model {cfg.model}')
