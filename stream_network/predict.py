@@ -183,7 +183,6 @@ class PillRecognition:
     def draw_results_on_image(key, value):
         image = os.path.join(CONST.dir_test_images, '054_algoflex_s1_5_a_f4.png')
         mask = os.path.join(CONST.dir_unet_output, '054_algoflex_s1_5_a_f4_OUT.png')
-        print(mask)
         segment_pills(image, mask, key, value)
 
     def main(self):

@@ -46,7 +46,6 @@ class TrainUNET:
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- E V A L U A T E ------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -118,7 +117,7 @@ class TrainUNET:
         """
 
         # Initialize logging
-        experiment = wandb.init(project='U-Net', dir=CONST.dir_wandb_checkpoint_logs, resume='allow', anonymous='must')
+        experiment = wandb.init(project='U-Net', dir=CONST.dir_unet_logs, resume='allow', anonymous='must')
         experiment.config.update(
             dict(epochs=cfg.epochs, batch_size=cfg.batch_size, learning_rate=cfg.lr,
                  val_percent=cfg.valid, save_checkpoint=cfg.save_checkpoint, img_scale=cfg.scale, amp=cfg.amp)
@@ -210,7 +209,7 @@ class TrainUNET:
                                 print(e)
 
             if cfg.save_checkpoint:
-                path_to_save = os.path.join(CONST.dir_checkpoint, timestamp)
+                path_to_save = os.path.join(CONST.dir_unet_checkpoint, timestamp)
                 Path(path_to_save).mkdir(parents=True, exist_ok=True)
                 state_dict = model.state_dict()
                 state_dict['mask_values'] = self.dataset.mask_values

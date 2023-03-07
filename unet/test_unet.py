@@ -9,7 +9,7 @@ from utils.utils import find_latest_file
 
 def predict_multiple_images():
     png_files = glob.glob(CONST.dir_test_images + "/*.png")
-    latest_model = find_latest_file(CONST.dir_checkpoint)
+    latest_model = find_latest_file(CONST.dir_unet_checkpoint)
 
     for name in tqdm(png_files):
         file_name = name[:-4] + "_OUT.png"

@@ -1,9 +1,9 @@
 import os
 import torch
-import wandb
 
 from tqdm import tqdm
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config import ConfigStreamNetwork
@@ -11,7 +11,6 @@ from const import CONST
 from stream_dataset_loader import StreamDataset
 from stream_network import StreamNetwork
 from utils.utils import create_timestamp
-from utils.triplet_loss import TripletLoss
 
 cfg = ConfigStreamNetwork().parse()
 
@@ -43,7 +42,7 @@ class TrainModel:
             list_of_channels = [3, 64, 96, 128, 256, 384, 512]
             dataset = StreamDataset(CONST.dir_bounding_box, cfg.type_of_network)
             self.save_path = os.path.join(CONST.dir_stream_rgb_model_weights, self.timestamp)
-            self.wandb_dir = CONST.dir_wandb_rgb_logs
+            tensorboard_log_dir = CONST.dir_rgb_logs
         elif cfg.type_of_network in ["Texture", "Contour"]:
             list_of_channels = [1, 32, 48, 64, 128, 192, 256]
             dataset = StreamDataset(CONST.dir_texture, cfg.type_of_network) if cfg.type_of_network == "Texture" else \
@@ -51,8 +50,8 @@ class TrainModel:
             self.save_path = os.path.join(CONST.dir_stream_texture_model_weights, self.timestamp) \
                 if cfg.type_of_network == "Texture" \
                 else os.path.join(CONST.dir_stream_contour_model_weights, self.timestamp)
-            self.wandb_dir = CONST.dir_wandb_texture_logs if cfg.type_of_network == "Texture" \
-                else CONST.dir_wandb_contour_logs
+            tensorboard_log_dir = CONST.dir_texture_logs if cfg.type_of_network == "Texture" \
+                else CONST.dir_contour_logs
         else:
             raise ValueError("Wrong type was given!")
 
@@ -70,10 +69,16 @@ class TrainModel:
         summary(self.model, (list_of_channels[0], 128, 128))
 
         # Specify loss function
-        self.criterion = TripletLoss().cuda(self.device)
+        self.criterion = torch.nn.TripletMarginLoss(margin=1.0, p=2).cuda(self.device)
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
+
+        tensorboard_log_dir = os.path.join(tensorboard_log_dir, self.timestamp)
+        if not os.path.exists(tensorboard_log_dir):
+            os.makedirs(tensorboard_log_dir)
+
+        self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------------ F I T -----------------------------------------------------
@@ -83,13 +88,6 @@ class TrainModel:
         This function is responsible for the training of the network.
         :return:
         """
-
-        # (Initialize logging)y
-        experiment = wandb.init(project='U-Net', dir=self.wandb_dir, resume='allow', anonymous='must')
-        experiment.config.update(
-            dict(epochs=cfg.epochs, batch_size=cfg.batch_size, learning_rate=cfg.learning_rate)
-        )
-        global_step = 0
 
         for epoch in tqdm(range(cfg.epochs), desc="Training epochs"):
             running_loss = 0.0
@@ -108,25 +106,22 @@ class TrainModel:
 
                 # Compute triplet loss
                 loss = self.criterion(anchor_emb, positive_emb, negative_emb)
+                self.writer.add_scalar("Loss/train", loss, epoch)
 
                 # Backward pass and optimize
                 loss.backward()
                 self.optimizer.step()
 
                 # Display loss
-                global_step += 1
                 running_loss += loss.item()
-                experiment.log({
-                    'train loss': loss.item(),
-                    'step': global_step,
-                    'epoch': epoch
-                })
 
             # Print average loss for epoch
             print('\nEpoch %d, loss: %.4f' % (epoch + 1, running_loss / len(self.train_data_loader)))
 
             if cfg.save and epoch % cfg.save_freq == 0:
                 torch.save(self.model.state_dict(), self.save_path + "/" + "epoch_" + (str(epoch) + ".pt"))
+
+        self.writer.flush()
 
 
 if __name__ == "__main__":

@@ -54,19 +54,19 @@ class _Const(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     # Directories for the data
-    dirs_data = ["data/checkpoints", "data/stream_contour_model_weights", "data/stream_rgb_model_weights",
-                 "data/stream_texture_model_weights", "data/wandb_logs_checkpoint", "data/wandb_logs_contour",
-                 "data/wandb_logs_rgb", "data/wandb_logs_texture"]
+    dirs_data = ["data/unet_checkpoints", "data/stream_contour_model_weights", "data/stream_rgb_model_weights",
+                 "data/stream_texture_model_weights", "data/logs_checkpoint", "data/logs_contour",
+                 "data/logs_rgb", "data/logs_texture"]
 
     # Aux variables for the other directories. These will be created by the program.
-    dir_checkpoint = os.path.join(PROJECT_ROOT, dirs_data[0])
+    dir_unet_checkpoint = os.path.join(PROJECT_ROOT, dirs_data[0])
     dir_stream_contour_model_weights = os.path.join(PROJECT_ROOT, dirs_data[1])
     dir_stream_rgb_model_weights = os.path.join(PROJECT_ROOT, dirs_data[2])
     dir_stream_texture_model_weights = os.path.join(PROJECT_ROOT, dirs_data[3])
-    dir_wandb_checkpoint_logs = os.path.join(PROJECT_ROOT, dirs_data[4])
-    dir_wandb_contour_logs = os.path.join(PROJECT_ROOT, dirs_data[5])
-    dir_wandb_rgb_logs = os.path.join(PROJECT_ROOT, dirs_data[6])
-    dir_wandb_texture_logs = os.path.join(PROJECT_ROOT, dirs_data[7])
+    dir_unet_logs = os.path.join(PROJECT_ROOT, dirs_data[4])
+    dir_contour_logs = os.path.join(PROJECT_ROOT, dirs_data[5])
+    dir_rgb_logs = os.path.join(PROJECT_ROOT, dirs_data[6])
+    dir_texture_logs = os.path.join(PROJECT_ROOT, dirs_data[7])
 
     directories_data = []
     for d in dirs_data:
