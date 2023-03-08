@@ -1,18 +1,17 @@
 import os
 
-import numpy as np
 import pandas as pd
-import re
 import torch
 import torch.nn.functional as func
 
 from torchvision import transforms
+from tqdm import tqdm
 from PIL import Image
 
 from const import CONST
 from config import ConfigStreamNetwork
 from stream_network import StreamNetwork
-from utils.utils import BColors, find_latest_file, segment_pills
+from utils.utils import find_latest_file, segment_pills
 
 cfg = ConfigStreamNetwork().parse()
 
@@ -43,14 +42,9 @@ class PillRecognition:
         list_of_channels_tex_con = [1, 32, 48, 64, 128, 192, 256]
         list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
 
-        network_con_path = CONST.dir_stream_contour_model_weights
-        latest_con_pt_file = find_latest_file(network_con_path)
-
-        network_rgb_path = CONST.dir_stream_rgb_model_weights
-        latest_rgb_pt_file = find_latest_file(network_rgb_path)
-
-        network_tex_path = CONST.dir_stream_texture_model_weights
-        latest_tex_pt_file = find_latest_file(network_tex_path)
+        latest_con_pt_file = find_latest_file(CONST.dir_stream_contour_model_weights)
+        latest_rgb_pt_file = find_latest_file(CONST.dir_stream_rgb_model_weights)
+        latest_tex_pt_file = find_latest_file(CONST.dir_stream_texture_model_weights)
 
         network_con = StreamNetwork(loc=list_of_channels_tex_con)
         network_rgb = StreamNetwork(loc=list_of_channels_rgb)
@@ -76,32 +70,34 @@ class PillRecognition:
     def get_query_vector(self):
         medicine_classes = os.listdir(CONST.dir_query_rgb)
         query_vectors = []
+        labels = []
 
-        for med_class in medicine_classes:
+        for med_class in tqdm(medicine_classes, desc="Process query images"):
             query_image_paths_con = os.listdir(os.path.join(CONST.dir_query_contour, med_class))
             query_image_paths_rgb = os.listdir(os.path.join(CONST.dir_query_rgb, med_class))
             query_image_paths_tex = os.listdir(os.path.join(CONST.dir_query_texture, med_class))
 
             for idx, (con, rgb, tex) in enumerate(zip(query_image_paths_con, query_image_paths_rgb,
                                                       query_image_paths_tex)):
-                if idx == 0:
-                    con_query_image = Image.open(os.path.join(CONST.dir_query_contour, med_class, con))
-                    con_query_image = self.preprocess_con_tex(con_query_image)
 
-                    rgb_query_image = Image.open(os.path.join(CONST.dir_query_rgb, med_class, rgb))
-                    rgb_query_image = self.preprocess_rgb(rgb_query_image)
+                con_query_image = Image.open(os.path.join(CONST.dir_query_contour, med_class, con))
+                con_query_image = self.preprocess_con_tex(con_query_image)
 
-                    tex_query_image = Image.open(os.path.join(CONST.dir_query_texture, med_class, tex))
-                    tex_query_image = self.preprocess_con_tex(tex_query_image)
+                rgb_query_image = Image.open(os.path.join(CONST.dir_query_rgb, med_class, rgb))
+                rgb_query_image = self.preprocess_rgb(rgb_query_image)
 
-                    with torch.no_grad():
-                        query_vector1 = self.network_con(con_query_image.unsqueeze(0)).squeeze()
-                        query_vector2 = self.network_rgb(rgb_query_image.unsqueeze(0)).squeeze()
-                        query_vector3 = self.network_tex(tex_query_image.unsqueeze(0)).squeeze()
-                    query_vector = torch.cat((query_vector1, query_vector2, query_vector3), dim=0)
-                    query_vectors.append(query_vector)
+                tex_query_image = Image.open(os.path.join(CONST.dir_query_texture, med_class, tex))
+                tex_query_image = self.preprocess_con_tex(tex_query_image)
 
-        return query_vectors, medicine_classes
+                with torch.no_grad():
+                    query_vector1 = self.network_con(con_query_image.unsqueeze(0)).squeeze()
+                    query_vector2 = self.network_rgb(rgb_query_image.unsqueeze(0)).squeeze()
+                    query_vector3 = self.network_tex(tex_query_image.unsqueeze(0)).squeeze()
+                query_vector = torch.cat((query_vector1, query_vector2, query_vector3), dim=0)
+                query_vectors.append(query_vector)
+                labels.append(med_class)
+
+        return query_vectors, labels
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------- G E T   R E F   V E C ------------------------------------------------
@@ -109,39 +105,41 @@ class PillRecognition:
     def get_ref_vectors(self):
         medicine_classes = os.listdir(CONST.dir_bounding_box)
         reference_vectors = []
+        label = []
 
-        for med_class in medicine_classes:
+        for med_class in tqdm(medicine_classes, desc="Process reference images"):
             reference_image_paths_con = os.listdir(os.path.join(CONST.dir_contour, med_class))
             reference_image_paths_rgb = os.listdir(os.path.join(CONST.dir_bounding_box, med_class))
             reference_image_paths_tex = os.listdir(os.path.join(CONST.dir_texture, med_class))
 
             for idx, (con, rgb, tex) in enumerate(zip(reference_image_paths_con, reference_image_paths_rgb,
                                                       reference_image_paths_tex)):
-                if idx == 0:
-                    con_ref_image = Image.open(os.path.join(CONST.dir_contour, med_class, con))
-                    con_ref_image = self.preprocess_con_tex(con_ref_image)
+                con_ref_image = Image.open(os.path.join(CONST.dir_contour, med_class, con))
+                con_ref_image = self.preprocess_con_tex(con_ref_image)
 
-                    rgb_ref_image = Image.open(os.path.join(CONST.dir_bounding_box, med_class, rgb))
-                    rgb_ref_image = self.preprocess_rgb(rgb_ref_image)
+                rgb_ref_image = Image.open(os.path.join(CONST.dir_bounding_box, med_class, rgb))
+                rgb_ref_image = self.preprocess_rgb(rgb_ref_image)
 
-                    tex_ref_image = Image.open(os.path.join(CONST.dir_texture, med_class, tex))
-                    tex_ref_image = self.preprocess_con_tex(tex_ref_image)
+                tex_ref_image = Image.open(os.path.join(CONST.dir_texture, med_class, tex))
+                tex_ref_image = self.preprocess_con_tex(tex_ref_image)
 
-                    with torch.no_grad():
-                        reference_vector1 = self.network_con(con_ref_image.unsqueeze(0)).squeeze()
-                        reference_vector2 = self.network_rgb(rgb_ref_image.unsqueeze(0)).squeeze()
-                        reference_vector3 = self.network_tex(tex_ref_image.unsqueeze(0)).squeeze()
-                    reference_vector = torch.cat((reference_vector1, reference_vector2, reference_vector3), dim=0)
-                    reference_vectors.append(reference_vector)
+                with torch.no_grad():
+                    reference_vector1 = self.network_con(con_ref_image.unsqueeze(0)).squeeze()
+                    reference_vector2 = self.network_rgb(rgb_ref_image.unsqueeze(0)).squeeze()
+                    reference_vector3 = self.network_tex(tex_ref_image.unsqueeze(0)).squeeze()
+                reference_vector = torch.cat((reference_vector1, reference_vector2, reference_vector3), dim=0)
+                reference_vectors.append(reference_vector)
+                label.append(med_class)
 
-        return reference_vectors, medicine_classes
+        return reference_vectors, label
 
-    def measure_similarity(self, labels, reference_vectors, query_vectors):
+    @staticmethod
+    def measure_similarity_cos_sim(q_labels, r_labels, reference_vectors, query_vectors):
         similarity_scores_cosine = []
         predicted_medicine = []
         corresp_sim = []
 
-        for idx_query, query_vector in enumerate(query_vectors):
+        for idx_query, query_vector in tqdm(enumerate(query_vectors), total=len(query_vectors), desc="Query vectors"):
             scores = []
             for idx_ref, reference_vector in enumerate(reference_vectors):
                 score = torch.nn.functional.cosine_similarity(query_vector, reference_vector, dim=0).item()
@@ -153,20 +151,53 @@ class PillRecognition:
             most_similar_indices_and_scores = [(i, max(scores)) for i, scores in
                                                enumerate(similarity_scores_cosine)]
 
-            predicted_medicine.append(labels[most_similar_indices[idx_query]])
+            predicted_medicine.append(r_labels[most_similar_indices[idx_query]])
             corresp_sim.append(most_similar_indices_and_scores[idx_query][1])
 
-        # df = pd.DataFrame(list(zip(labels, predicted_medicine, corresp_sim)),
-        #                   columns=['GT Medicine Name', 'Predicted Medicine Name', 'Cosine similarity'])
-        #
-        # pd.set_option('display.max_rows', None)
-        # pd.set_option('display.max_columns', None)
-        # pd.set_option('display.width', None)
-        # pd.set_option('display.max_colwidth', None)
-        #
-        # print(df)
+        df = pd.DataFrame(list(zip(q_labels, predicted_medicine, corresp_sim)),
+                          columns=['GT Medicine Name', 'Predicted Medicine Name', 'Cosine similarity'])
 
-        return labels, predicted_medicine
+        pd.set_option('display.max_rows', None)
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.width', None)
+        pd.set_option('display.max_colwidth', None)
+
+        print(df)
+
+        return q_labels, predicted_medicine
+
+    def measure_similarity_euc_dist(self, q_labels, r_labels, reference_vectors, query_vectors):
+        similarity_scores_euclidean = []
+        predicted_medicine = []
+        corresp_sim = []
+
+        for idx_query, query_vector in tqdm(enumerate(query_vectors), total=len(query_vectors), desc="Query vectors"):
+            scores = []
+            for idx_ref, reference_vector in enumerate(reference_vectors):
+                score = self.euclidean_distance(query_vector, reference_vector)
+                scores.append(score)
+
+            similarity_scores_euclidean.append(scores)
+
+            most_similar_indices = [scores.index(min(scores)) for scores in similarity_scores_euclidean]
+            most_similar_indices_and_scores = [(i, min(scores)) for i, scores in
+                                               enumerate(similarity_scores_euclidean)]
+
+            predicted_medicine.append(r_labels[most_similar_indices[idx_query]])
+            corresp_sim.append(most_similar_indices_and_scores[idx_query][1])
+
+        df = pd.DataFrame(list(zip(q_labels, predicted_medicine, corresp_sim)),
+                          columns=['GT Medicine Name', 'Predicted Medicine Name', 'Euclidean distance'])
+
+        pd.set_option('display.max_rows', None)
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.width', None)
+        pd.set_option('display.max_colwidth', None)
+
+        print(df)
+
+        return q_labels, predicted_medicine
+
 
     @staticmethod
     def draw_results_on_image(key, value):
@@ -183,14 +214,21 @@ class PillRecognition:
         print(f"Accuracy: {count / len(gt)}")
 
     def main(self):
-        query_vecs, _ = self.get_query_vector()
-        ref_vecs, labels = self.get_ref_vectors()
+        query_vecs, q_labels = self.get_query_vector()
+        ref_vecs, r_labels = self.get_ref_vectors()
 
-        gt, pred = self.measure_similarity(labels, ref_vecs, query_vecs) #labels, sim_euc, sim_cos = s
-        # self.measure_accuracy(gt, pred)
+        gt, pred = self.measure_similarity_cos_sim(q_labels, r_labels, ref_vecs, query_vecs)
+        self.measure_accuracy(gt, pred)
+
+        gt, pred = self.measure_similarity_euc_dist(q_labels, r_labels, ref_vecs, query_vecs)
+        self.measure_accuracy(gt, pred)
+
         # self.draw_results_on_image(key, value)
 
 
 if __name__ == "__main__":
-    pill_rec = PillRecognition()
-    pill_rec.main()
+    try:
+        pill_rec = PillRecognition()
+        pill_rec.main()
+    except KeyboardInterrupt as kie:
+        print(kie)

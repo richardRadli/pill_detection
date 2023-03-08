@@ -10,6 +10,7 @@ from config import ConfigStreamNetwork
 from const import CONST
 from stream_dataset_loader import StreamDataset
 from stream_network import StreamNetwork
+from triplet_loss import TripletLossWithHardMining
 from utils.utils import create_timestamp
 
 cfg = ConfigStreamNetwork().parse()
@@ -66,10 +67,11 @@ class TrainModel:
 
         # Load model and upload it to the GPU
         self.model.to(self.device)
-        summary(self.model, (list_of_channels[0], 128, 128))
+        # summary(self.model, (list_of_channels[0], 128, 128))
 
         # Specify loss function
-        self.criterion = torch.nn.TripletMarginLoss(margin=1.0, p=2).cuda(self.device)
+        # self.criterion = torch.nn.TripletMarginLoss(margin=1.0, p=2).cuda(self.device)
+        self.criterion = TripletLossWithHardMining(1.0).to(self.device)
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
@@ -105,7 +107,7 @@ class TrainModel:
                 negative_emb = self.model(negative)
 
                 # Compute triplet loss
-                loss = self.criterion(anchor_emb, positive_emb, negative_emb)
+                loss = self.criterion(anchor_emb, positive_emb, negative_emb).to(self.device)
                 self.writer.add_scalar("Loss/train", loss, epoch)
 
                 # Backward pass and optimize
