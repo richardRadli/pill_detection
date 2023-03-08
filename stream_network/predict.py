@@ -30,7 +30,8 @@ class PillRecognition:
         self.network_tex.eval()
 
         self.preprocess_rgb = transforms.Compose([transforms.Resize((cfg.img_size, cfg.img_size)),
-                                                  transforms.ToTensor()])
+                                                  transforms.ToTensor(),
+                                                  transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
 
         self.preprocess_con_tex = transforms.Compose([transforms.Resize((cfg.img_size, cfg.img_size)),
                                                       transforms.Grayscale(),
@@ -49,9 +50,9 @@ class PillRecognition:
         list_of_channels_tex_con = [1, 32, 48, 64, 128, 192, 256]
         list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
 
-        latest_con_pt_file = find_latest_file(CONST.dir_stream_contour_model_weights)
-        latest_rgb_pt_file = find_latest_file(CONST.dir_stream_rgb_model_weights)
-        latest_tex_pt_file = find_latest_file(CONST.dir_stream_texture_model_weights)
+        latest_con_pt_file = "D:/project/IVM/data/stream_contour_model_weights/2023-02-28_14-34-30/epoch_195.pt" # find_latest_file(CONST.dir_stream_contour_model_weights)
+        latest_rgb_pt_file = find_latest_file(CONST.dir_stream_rgb_model_weights) # "D:/project/IVM/data/stream_rgb_model_weights/2023-02-28_13-57-01/epoch_190.pt"
+        latest_tex_pt_file = "D:/project/IVM/data/stream_texture_model_weights/2023-02-28_14-50-28/epoch_195.pt" # find_latest_file(CONST.dir_stream_texture_model_weights)
 
         network_con = StreamNetwork(loc=list_of_channels_tex_con)
         network_rgb = StreamNetwork(loc=list_of_channels_rgb)
@@ -123,18 +124,18 @@ class PillRecognition:
             similarity_scores_euc_dist.append(scores_e)
 
             most_similar_indices = [scores.index(max(scores)) for scores in similarity_scores_cos_sim]
-            most_similar_indices_and_scores = [(i, max(scores)) for i, scores in
-                                               enumerate(similarity_scores_cos_sim)]
-
             predicted_medicine_cos_sim.append(r_labels[most_similar_indices[idx_query]])
-            corresp_sim_cos_sim.append(most_similar_indices_and_scores[idx_query][1])
+
+            # most_similar_indices_and_scores = [(i, max(scores)) for i, scores in
+            #                                    enumerate(similarity_scores_cos_sim)]
+            # corresp_sim_cos_sim.append(most_similar_indices_and_scores[idx_query][1])
 
             most_similar_indices_e = [scores.index(min(scores)) for scores in similarity_scores_euc_dist]
-            most_similar_indices_and_scores_e = [(i, min(scores)) for i, scores in
-                                               enumerate(similarity_scores_euc_dist)]
-
             predicted_medicine_euc_dist.append(r_labels[most_similar_indices_e[idx_query]])
-            corresp_sim_euc_dist.append(most_similar_indices_and_scores_e[idx_query][1])
+
+            # most_similar_indices_and_scores_e = [(i, min(scores)) for i, scores in
+            #                                    enumerate(similarity_scores_euc_dist)]
+            # corresp_sim_euc_dist.append(most_similar_indices_and_scores_e[idx_query][1])
 
         df = pd.DataFrame(list(zip(q_labels, predicted_medicine_cos_sim, predicted_medicine_euc_dist)),
                           columns=['GT Medicine Name', 'Predicted Medicine Name (CS)', 'Predicted Medicine Name (ED)'])

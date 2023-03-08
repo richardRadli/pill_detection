@@ -67,10 +67,9 @@ class TrainModel:
 
         # Load model and upload it to the GPU
         self.model.to(self.device)
-        # summary(self.model, (list_of_channels[0], 128, 128))
+        summary(self.model, (list_of_channels[0], cfg.img_size, cfg.img_size))
 
         # Specify loss function
-        # self.criterion = torch.nn.TripletMarginLoss(margin=1.0, p=2).cuda(self.device)
         self.criterion = TripletLossWithHardMining(1.0).to(self.device)
 
         # Specify optimizer
@@ -108,6 +107,8 @@ class TrainModel:
 
                 # Compute triplet loss
                 loss = self.criterion(anchor_emb, positive_emb, negative_emb).to(self.device)
+
+                # Write loss to SummaryWriter
                 self.writer.add_scalar("Loss/train", loss, epoch)
 
                 # Backward pass and optimize

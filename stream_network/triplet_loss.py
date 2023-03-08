@@ -24,7 +24,6 @@ class TripletLossWithHardMining(torch.nn.Module):
             dists = dists.to(self.device)
             if (dists < F.pairwise_distance(anchor_embedding.unsqueeze(0), positive_embedding.unsqueeze(0),
                                             2)).sum() == 0:
-                # No negative examples farther from the anchor than the positive example
                 d_an.append(torch.tensor(0.0).to(self.device))
             else:
                 d_an.append(torch.max(dists[dists < F.pairwise_distance(anchor_embedding.unsqueeze(0),
@@ -40,7 +39,6 @@ class TripletLossWithHardMining(torch.nn.Module):
             dists = dists.to(self.device)
             if (dists > F.pairwise_distance(anchor_embedding.unsqueeze(0), negative_embedding.unsqueeze(0),
                                             2)).sum() == 0:
-                # No positive examples closer to the anchor than the negative example
                 d_pp.append(torch.tensor(0.0).to(self.device))
             else:
                 d_pp.append(torch.min(dists[dists > F.pairwise_distance(anchor_embedding.unsqueeze(0),
