@@ -21,7 +21,8 @@ class _Const(object):
     # Directories for the images
     dirs_images = ["images/images_aug", "images/masks_aug", "images/bounding_box", "images/contour", "images/texture",
                    "images/text_locator", "images/test_images", "images/test_masks", "images/unet_out",
-                   "images/unet_out_2", "images/query/rgb", "images/query/contour", "images/query/texture"]
+                   "images/unet_out_2", "images/query/rgb", "images/query/contour", "images/query/texture",
+                   "images/query_ref_prediction"]
 
     # Directories for the train images. These two directories must exist, it won't be created by the program.
     dir_train_images = os.path.join(PROJECT_ROOT, 'images/train_images/')
@@ -41,6 +42,7 @@ class _Const(object):
     dir_query_rgb = os.path.join(PROJECT_ROOT, dirs_images[10])
     dir_query_contour = os.path.join(PROJECT_ROOT, dirs_images[11])
     dir_query_texture = os.path.join(PROJECT_ROOT, dirs_images[12])
+    dir_query_ref_pred = os.path.join(PROJECT_ROOT, dirs_images[13])
 
     # At this part, the program creates the directories.
     directories_images = []

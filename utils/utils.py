@@ -260,3 +260,29 @@ def segment_pills(img_path, img_gray_path, label, predicted_value):
 
     cv2.imshow("vis_img", vis_img)
     cv2.waitKey()
+
+
+def plot_ref_query_imgs(indecies, q_images_path, r_images_path):
+    new_list = [i for i in range(len(indecies))]
+
+    for idx, (i, j) in enumerate(zip(indecies, new_list)):
+        img_path_query = q_images_path[j]
+        img_query = Image.open(img_path_query)
+
+        img_path_ref = r_images_path[i]
+        img_ref = Image.open(img_path_ref)
+
+        plt.figure()
+        f, axarr = plt.subplots(1, 2)
+        axarr[0].imshow(img_query)
+        axarr[0].set_title("img_query")
+        axarr[1].imshow(img_ref)
+        axarr[1].set_title("img_ref")
+
+        output_path = (CONST.dir_query_ref_pred + "_" + str(i) + ".png")
+        plt.savefig(output_path)
+        plt.close()
+
+        plt.close("all")
+        plt.close()
+        gc.collect()

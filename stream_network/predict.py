@@ -1,4 +1,5 @@
 import os
+
 import pandas as pd
 import torch
 import torch.nn.functional as func
@@ -10,7 +11,7 @@ from PIL import Image
 from const import CONST
 from config import ConfigStreamNetwork
 from stream_network import StreamNetwork
-from utils.utils import find_latest_file
+from utils.utils import find_latest_file, plot_ref_query_imgs
 
 cfg = ConfigStreamNetwork().parse()
 
@@ -51,8 +52,8 @@ class PillRecognition:
         list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
 
         latest_con_pt_file = "D:/project/IVM/data/stream_contour_model_weights/2023-02-28_14-34-30/epoch_195.pt" # find_latest_file(CONST.dir_stream_contour_model_weights)
-        latest_rgb_pt_file = find_latest_file(CONST.dir_stream_rgb_model_weights) # "D:/project/IVM/data/stream_rgb_model_weights/2023-02-28_13-57-01/epoch_190.pt"
-        latest_tex_pt_file = "D:/project/IVM/data/stream_texture_model_weights/2023-02-28_14-50-28/epoch_195.pt" # find_latest_file(CONST.dir_stream_texture_model_weights)
+        latest_rgb_pt_file = "D:/project/IVM/data/stream_rgb_model_weights/2023-03-08_08-51-11/epoch_195.pt"  # find_latest_file(CONST.dir_stream_rgb_model_weights)
+        latest_tex_pt_file = find_latest_file(CONST.dir_stream_texture_model_weights) # "D:/project/IVM/data/stream_texture_model_weights/2023-02-28_14-50-28/epoch_195.pt"
 
         network_con = StreamNetwork(loc=list_of_channels_tex_con)
         network_rgb = StreamNetwork(loc=list_of_channels_rgb)
@@ -71,6 +72,7 @@ class PillRecognition:
         medicine_classes = os.listdir(rgb_dir)
         vectors = []
         labels = []
+        images_path = []
 
         for med_class in tqdm(medicine_classes, desc="Process %s images" % operation):
             image_paths_con = os.listdir(os.path.join(contour_dir, med_class))
@@ -82,6 +84,7 @@ class PillRecognition:
                 con_image = self.preprocess_con_tex(con_image)
 
                 rgb_image = Image.open(os.path.join(rgb_dir, med_class, rgb))
+                images_path.append(os.path.join(rgb_dir, med_class, rgb))
                 rgb_image = self.preprocess_rgb(rgb_image)
 
                 tex_image = Image.open(os.path.join(texture_dir, med_class, tex))
@@ -95,7 +98,7 @@ class PillRecognition:
                 vectors.append(vector)
                 labels.append(med_class)
 
-        return vectors, labels
+        return vectors, labels, images_path
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------- M E A S U R E   C O S S I M   A N D   E U C D I S T ------------------------------
@@ -108,6 +111,7 @@ class PillRecognition:
         corresp_sim_cos_sim = []
         predicted_medicine_euc_dist = []
         corresp_sim_euc_dist = []
+        most_similar_indices_cos_sim = []
 
         for idx_query, query_vector in tqdm(enumerate(query_vectors), total=len(query_vectors),
                                             desc="Cosine similarity processing"):
@@ -123,15 +127,15 @@ class PillRecognition:
             similarity_scores_cos_sim.append(scores)
             similarity_scores_euc_dist.append(scores_e)
 
-            most_similar_indices = [scores.index(max(scores)) for scores in similarity_scores_cos_sim]
-            predicted_medicine_cos_sim.append(r_labels[most_similar_indices[idx_query]])
+            most_similar_indices_cos_sim = [scores.index(max(scores)) for scores in similarity_scores_cos_sim]
+            predicted_medicine_cos_sim.append(r_labels[most_similar_indices_cos_sim[idx_query]])
 
             # most_similar_indices_and_scores = [(i, max(scores)) for i, scores in
             #                                    enumerate(similarity_scores_cos_sim)]
             # corresp_sim_cos_sim.append(most_similar_indices_and_scores[idx_query][1])
 
-            most_similar_indices_e = [scores.index(min(scores)) for scores in similarity_scores_euc_dist]
-            predicted_medicine_euc_dist.append(r_labels[most_similar_indices_e[idx_query]])
+            most_similar_indices_euc_dist = [scores.index(min(scores)) for scores in similarity_scores_euc_dist]
+            predicted_medicine_euc_dist.append(r_labels[most_similar_indices_euc_dist[idx_query]])
 
             # most_similar_indices_and_scores_e = [(i, min(scores)) for i, scores in
             #                                    enumerate(similarity_scores_euc_dist)]
@@ -147,7 +151,7 @@ class PillRecognition:
 
         print(df)
 
-        return q_labels, predicted_medicine_cos_sim, predicted_medicine_euc_dist
+        return q_labels, predicted_medicine_cos_sim, predicted_medicine_euc_dist, most_similar_indices_cos_sim
 
     @staticmethod
     def measure_accuracy(gt, pred):
@@ -158,17 +162,20 @@ class PillRecognition:
         print(f"Accuracy: {count / len(gt)}")
 
     def main(self):
-        query_vecs, q_labels = self.get_vectors(contour_dir=CONST.dir_query_contour,
+        query_vecs, q_labels, q_images_path = self.get_vectors(contour_dir=CONST.dir_query_contour,
                                                 rgb_dir=CONST.dir_query_rgb,
                                                 texture_dir=CONST.dir_query_texture,
                                                 operation="query")
 
-        ref_vecs, r_labels = self.get_vectors(contour_dir=CONST.dir_contour,
+        ref_vecs, r_labels, r_images_path = self.get_vectors(contour_dir=CONST.dir_contour,
                                               rgb_dir=CONST.dir_bounding_box,
                                               texture_dir=CONST.dir_texture,
                                               operation="reference")
 
-        gt, pred_cs, pred_ed = self.measure_similarity_and_distance(q_labels, r_labels, ref_vecs, query_vecs)
+        gt, pred_cs, pred_ed, indecies = self.measure_similarity_and_distance(q_labels, r_labels, ref_vecs, query_vecs)
+
+        plot_ref_query_imgs(indecies, q_images_path, r_images_path)
+
         self.measure_accuracy(gt, pred_cs)
         self.measure_accuracy(gt, pred_ed)
 

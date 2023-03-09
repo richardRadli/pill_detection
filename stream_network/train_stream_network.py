@@ -2,7 +2,7 @@ import os
 import torch
 
 from tqdm import tqdm
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
@@ -60,7 +60,13 @@ class TrainModel:
             os.makedirs(self.save_path)
 
         # Load dataset
-        self.train_data_loader = DataLoader(dataset, batch_size=cfg.batch_size, shuffle=True)
+        train_size = int(0.8 * len(dataset))
+        valid_size = len(dataset) - train_size
+        train_dataset, valid_dataset = random_split(dataset, [train_size, valid_size])
+
+        # self.train_data_loader = DataLoader(dataset, batch_size=cfg.batch_size, shuffle=True)
+        self.train_data_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True)
+        self.valid_data_loader = DataLoader(valid_dataset, batch_size=cfg.batch_size, shuffle=True)
 
         # Load model
         self.model = StreamNetwork(list_of_channels)
@@ -92,6 +98,8 @@ class TrainModel:
 
         for epoch in tqdm(range(cfg.epochs), desc="Training epochs"):
             running_loss = 0.0
+            running_val_loss = 0.0
+
             for idx, (anchor, positive, negative) in tqdm(enumerate(self.train_data_loader),
                                                           total=len(self.train_data_loader), desc="Batch processing"):
                 anchor = anchor.to(self.device)
@@ -108,9 +116,6 @@ class TrainModel:
                 # Compute triplet loss
                 loss = self.criterion(anchor_emb, positive_emb, negative_emb).to(self.device)
 
-                # Write loss to SummaryWriter
-                self.writer.add_scalar("Loss/train", loss, epoch)
-
                 # Backward pass and optimize
                 loss.backward()
                 self.optimizer.step()
@@ -118,12 +123,34 @@ class TrainModel:
                 # Display loss
                 running_loss += loss.item()
 
-            # Print average loss for epoch
-            print('\nEpoch %d, loss: %.4f' % (epoch + 1, running_loss / len(self.train_data_loader)))
+            with torch.no_grad():
+                for idx, (anchor, positive, negative) in tqdm(enumerate(self.valid_data_loader),
+                                                              total=len(self.valid_data_loader), desc="Validation"):
+                    anchor = anchor.to(self.device)
+                    positive = positive.to(self.device)
+                    negative = negative.to(self.device)
+
+                    # Forward pass
+                    anchor_emb = self.model(anchor)
+                    positive_emb = self.model(positive)
+                    negative_emb = self.model(negative)
+
+                    # Compute triplet loss
+                    val_loss = self.criterion(anchor_emb, positive_emb, negative_emb).to(self.device)
+
+                    # Display loss
+                    running_val_loss  += val_loss.item()
+
+                self.writer.add_scalars("Loss", {"train": loss, "validation": val_loss}, epoch)
+
+            # Print loss for epoch
+            print('\nEpoch %d, train loss: %.4f, validation loss: %.4f' % (
+            epoch + 1, running_loss / len(self.train_data_loader), running_val_loss / len(self.valid_data_loader)))
 
             if cfg.save and epoch % cfg.save_freq == 0:
                 torch.save(self.model.state_dict(), self.save_path + "/" + "epoch_" + (str(epoch) + ".pt"))
 
+        self.writer.close()
         self.writer.flush()
 
 
