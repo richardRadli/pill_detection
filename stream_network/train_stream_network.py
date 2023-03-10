@@ -62,6 +62,7 @@ class TrainModel:
         # Load dataset
         train_size = int(0.8 * len(dataset))
         valid_size = len(dataset) - train_size
+        print(f"Size of the train set: {train_size}, size of the validation set: {valid_size}")
         train_dataset, valid_dataset = random_split(dataset, [train_size, valid_size])
 
         # self.train_data_loader = DataLoader(dataset, batch_size=cfg.batch_size, shuffle=True)
@@ -96,12 +97,12 @@ class TrainModel:
         :return:
         """
 
-        for epoch in tqdm(range(cfg.epochs), desc="Training epochs"):
+        for epoch in tqdm(range(cfg.epochs), desc="Epochs"):
             running_loss = 0.0
             running_val_loss = 0.0
 
             for idx, (anchor, positive, negative) in tqdm(enumerate(self.train_data_loader),
-                                                          total=len(self.train_data_loader), desc="Batch processing"):
+                                                          total=len(self.train_data_loader), desc="Train"):
                 anchor = anchor.to(self.device)
                 positive = positive.to(self.device)
                 negative = negative.to(self.device)

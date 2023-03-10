@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 class TripletLossWithHardMining(torch.nn.Module):
-    def __init__(self, margin=1.0):
+    def __init__(self, margin=0.5):
         super(TripletLossWithHardMining, self).__init__()
         self.margin = margin
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

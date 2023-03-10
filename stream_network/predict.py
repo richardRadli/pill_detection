@@ -1,3 +1,4 @@
+import numpy as np
 import os
 
 import pandas as pd
@@ -51,8 +52,8 @@ class PillRecognition:
         list_of_channels_tex_con = [1, 32, 48, 64, 128, 192, 256]
         list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
 
-        latest_con_pt_file = "D:/project/IVM/data/stream_contour_model_weights/2023-02-28_14-34-30/epoch_195.pt" # find_latest_file(CONST.dir_stream_contour_model_weights)
-        latest_rgb_pt_file = "D:/project/IVM/data/stream_rgb_model_weights/2023-03-08_08-51-11/epoch_195.pt"  # find_latest_file(CONST.dir_stream_rgb_model_weights)
+        latest_con_pt_file = find_latest_file(CONST.dir_stream_contour_model_weights) # "D:/project/IVM/data/stream_contour_model_weights/2023-02-28_14-34-30/epoch_195.pt" #
+        latest_rgb_pt_file = find_latest_file(CONST.dir_stream_rgb_model_weights) # "D:/project/IVM/data/stream_rgb_model_weights/2023-03-08_08-51-11/epoch_195.pt"
         latest_tex_pt_file = find_latest_file(CONST.dir_stream_texture_model_weights) # "D:/project/IVM/data/stream_texture_model_weights/2023-02-28_14-50-28/epoch_195.pt"
 
         network_con = StreamNetwork(loc=list_of_channels_tex_con)
@@ -114,7 +115,7 @@ class PillRecognition:
         most_similar_indices_cos_sim = []
 
         for idx_query, query_vector in tqdm(enumerate(query_vectors), total=len(query_vectors),
-                                            desc="Cosine similarity processing"):
+                                            desc="Comparing process"):
             scores = []
             scores_e = []
             for idx_ref, reference_vector in enumerate(reference_vectors):
@@ -130,16 +131,16 @@ class PillRecognition:
             most_similar_indices_cos_sim = [scores.index(max(scores)) for scores in similarity_scores_cos_sim]
             predicted_medicine_cos_sim.append(r_labels[most_similar_indices_cos_sim[idx_query]])
 
-            # most_similar_indices_and_scores = [(i, max(scores)) for i, scores in
-            #                                    enumerate(similarity_scores_cos_sim)]
-            # corresp_sim_cos_sim.append(most_similar_indices_and_scores[idx_query][1])
+            most_similar_indices_and_scores = [(i, max(scores)) for i, scores in
+                                               enumerate(similarity_scores_cos_sim)]
+            corresp_sim_cos_sim.append(most_similar_indices_and_scores[idx_query][1])
 
             most_similar_indices_euc_dist = [scores.index(min(scores)) for scores in similarity_scores_euc_dist]
             predicted_medicine_euc_dist.append(r_labels[most_similar_indices_euc_dist[idx_query]])
 
-            # most_similar_indices_and_scores_e = [(i, min(scores)) for i, scores in
-            #                                    enumerate(similarity_scores_euc_dist)]
-            # corresp_sim_euc_dist.append(most_similar_indices_and_scores_e[idx_query][1])
+            most_similar_indices_and_scores_e = [(i, min(scores)) for i, scores in
+                                               enumerate(similarity_scores_euc_dist)]
+            corresp_sim_euc_dist.append(most_similar_indices_and_scores_e[idx_query][1])
 
         df = pd.DataFrame(list(zip(q_labels, predicted_medicine_cos_sim, predicted_medicine_euc_dist)),
                           columns=['GT Medicine Name', 'Predicted Medicine Name (CS)', 'Predicted Medicine Name (ED)'])
@@ -153,6 +154,9 @@ class PillRecognition:
 
         return q_labels, predicted_medicine_cos_sim, predicted_medicine_euc_dist, most_similar_indices_cos_sim
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------- M E A S U R E   A C C U R A C Y ----------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def measure_accuracy(gt, pred):
         count = 0
@@ -161,6 +165,9 @@ class PillRecognition:
                 count += 1
         print(f"Accuracy: {count / len(gt)}")
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------- M A I N ----------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def main(self):
         query_vecs, q_labels, q_images_path = self.get_vectors(contour_dir=CONST.dir_query_contour,
                                                 rgb_dir=CONST.dir_query_rgb,
@@ -174,9 +181,9 @@ class PillRecognition:
 
         gt, pred_cs, pred_ed, indecies = self.measure_similarity_and_distance(q_labels, r_labels, ref_vecs, query_vecs)
 
-        plot_ref_query_imgs(indecies, q_images_path, r_images_path)
+        plot_ref_query_imgs(indecies, q_images_path, r_images_path, gt, pred_ed)
 
-        self.measure_accuracy(gt, pred_cs)
+        # self.measure_accuracy(gt, pred_cs)
         self.measure_accuracy(gt, pred_ed)
 
 

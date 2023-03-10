@@ -56,7 +56,7 @@ def process_image(image_paths: Tuple[str, str]) -> None:
 
     color_path, mask_path = image_paths
     output_name = os.path.basename(color_path)
-    output_file = os.path.join(CONST.dir_query_rgb, output_name)
+    output_file = os.path.join(CONST.dir_bounding_box, output_name)
     c_imgs = cv2.imread(color_path, 1)
     m_imgs = cv2.imread(mask_path, 0)
     draw_bounding_box(c_imgs, m_imgs, output_file)
@@ -71,12 +71,9 @@ def save_bounding_box_images() -> None:
     :return: None
     """
 
-    # Make sure the output directory exists
-    os.makedirs(CONST.dir_bounding_box, exist_ok=True)
-
     # Read in all color and mask image paths
-    color_images = sorted(glob(CONST.dir_test_images + "/*.png"))
-    mask_images = sorted(glob(CONST.dir_unet_output + "/*.png"))
+    color_images = sorted(glob(CONST.dir_train_images + "/*.png"))
+    mask_images = sorted(glob(CONST.dir_train_masks + "/*.png"))
 
     # Process the images in parallel using ThreadPoolExecutor
     with ThreadPoolExecutor() as executor:
@@ -88,14 +85,8 @@ def save_bounding_box_images() -> None:
 # -------------------------------------- C R E A T E   C O N T O U R   I M A G E S -------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def create_contour_images(args):
-    """
-
-    :param args:
-    :return:
-    """
-
     cropped_image, output_path, kernel_size, canny_low_thr, canny_high_thr = args
-    blured_images = cv2.GaussianBlur(cropped_image, kernel_size, 0)
+    blured_images = cv2.medianBlur(cropped_image, kernel_size, 0)
     edges = cv2.Canny(blured_images, canny_low_thr, canny_high_thr)
     cv2.imwrite(output_path, edges)
 
@@ -104,19 +95,14 @@ def create_contour_images(args):
 # ------------------------------------------ S A V E   C O N T O U R   I M G S -----------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def save_contour_images():
-    """
-
-    :return:
-    """
-
-    contour_images = sorted(glob(CONST.dir_query_rgb + "/*.png"), key=numerical_sort)
+    contour_images = sorted(glob(CONST.dir_bounding_box + "/*.png"), key=numerical_sort)
     args_list = []
 
-    for img_path in tqdm(contour_images, desc="Texture images"):
+    for img_path in tqdm(contour_images, desc="Contour images"):
         output_name = "contour_" + img_path.split("\\")[2]
-        output_file = (os.path.join(CONST.dir_query_contour, output_name))
+        output_file = (os.path.join(CONST.dir_contour, output_name))
         bbox_imgs = cv2.imread(img_path, 0)
-        args_list.append((bbox_imgs, output_file, (5, 5), 15, 40))
+        args_list.append((bbox_imgs, output_file, 7, 10, 50))
 
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(create_contour_images, args) for args in args_list]
@@ -132,18 +118,22 @@ def create_texture_images(args):
     """
 
     cropped_image, output_path, kernel_size = args
-    blured_images = cv2.GaussianBlur(cropped_image, kernel_size, 0)
-    sub_img = cropped_image - blured_images
+    blured_image = cv2.GaussianBlur(cropped_image, kernel_size, 0)
+    sub_img = cv2.subtract(cropped_image, blured_image)
+    min_val = sub_img.min()
+    max_val = sub_img.max()
+    sub_img = (sub_img - min_val) * (255.0 / (max_val - min_val))
+    sub_img = sub_img.astype(np.uint8)
     cv2.imwrite(output_path, sub_img)
 
 
 def save_texture_images():
-    bbox_images = sorted(glob(CONST.dir_query_rgb + "/*.png"), key=numerical_sort)
+    bbox_images = sorted(glob(CONST.dir_bounding_box + "/*.png"), key=numerical_sort)
     args_list = []
 
     for img_path in tqdm(bbox_images, desc="Texture images"):
         output_name = "texture_" + img_path.split("\\")[2]
-        output_file = (os.path.join(CONST.dir_query_texture, output_name))
+        output_file = (os.path.join(CONST.dir_texture, output_name))
         bbox_imgs = cv2.imread(img_path, 0)
         args_list.append((bbox_imgs, output_file, (7, 7)))
 
@@ -156,9 +146,7 @@ def main():
     save_bounding_box_images()
     save_contour_images()
     save_texture_images()
-    # create_label_dirs(CONST.dir_bounding_box)
-    # create_label_dirs(CONST.dir_contour)
-    # create_label_dirs(CONST.dir_texture)
+
 
 
 if __name__ == "__main__":
