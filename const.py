@@ -22,7 +22,7 @@ class _Const(object):
     dirs_images = ["images/images_aug", "images/masks_aug", "images/bounding_box", "images/contour", "images/texture",
                    "images/text_locator", "images/test_images", "images/test_masks", "images/unet_out",
                    "images/unet_out_2", "images/query/rgb", "images/query/contour", "images/query/texture",
-                   "images/query_ref_prediction"]
+                   "images/query_ref_prediction", "images/texture_hardest"]
 
     # Directories for the train images. These two directories must exist, it won't be created by the program.
     dir_train_images = os.path.join(PROJECT_ROOT, 'images/train_images/')
@@ -43,6 +43,7 @@ class _Const(object):
     dir_query_contour = os.path.join(PROJECT_ROOT, dirs_images[11])
     dir_query_texture = os.path.join(PROJECT_ROOT, dirs_images[12])
     dir_query_ref_pred = os.path.join(PROJECT_ROOT, dirs_images[13])
+    dir_texture_hardest = os.path.join(PROJECT_ROOT, dirs_images[14])
 
     # At this part, the program creates the directories.
     directories_images = []
@@ -61,7 +62,8 @@ class _Const(object):
     # Directories for the data
     dirs_data = ["data/unet_checkpoints", "data/stream_contour_model_weights", "data/stream_rgb_model_weights",
                  "data/stream_texture_model_weights", "data/logs_checkpoint", "data/logs_contour",
-                 "data/logs_rgb", "data/logs_texture"]
+                 "data/logs_rgb", "data/logs_texture", "data/hardest_negative_samples", "data/hardest_positive_samples",
+                 "data/hardest_anchor_samples", "data/stream_contour_model_weights_hardest"]
 
     # Aux variables for the other directories. These will be created by the program.
     dir_unet_checkpoint = os.path.join(PROJECT_ROOT, dirs_data[0])
@@ -72,6 +74,10 @@ class _Const(object):
     dir_contour_logs = os.path.join(PROJECT_ROOT, dirs_data[5])
     dir_rgb_logs = os.path.join(PROJECT_ROOT, dirs_data[6])
     dir_texture_logs = os.path.join(PROJECT_ROOT, dirs_data[7])
+    dir_hardest_neg_samples = os.path.join(PROJECT_ROOT, dirs_data[8])
+    dir_hardest_pos_samples = os.path.join(PROJECT_ROOT, dirs_data[9])
+    dir_hardest_anc_samples = os.path.join(PROJECT_ROOT, dirs_data[10])
+    dir_stream_contour_model_weights_hardest = os.path.join(PROJECT_ROOT, dirs_data[11])
 
     directories_data = []
     for d in dirs_data:

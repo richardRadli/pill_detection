@@ -286,3 +286,36 @@ def plot_ref_query_imgs(indecies, q_images_path, r_images_path, gt, pred_cs):
         plt.close("all")
         plt.close()
         gc.collect()
+
+
+def hardest_samples(directory):
+    paths = []
+
+    for filename in os.listdir(directory):
+        if filename.endswith('.txt'):
+            with open(os.path.join(directory, filename), 'r') as f:
+                data = eval(f.read())
+
+            for key in data:
+                paths.append(data[key])
+
+    print(paths)
+    print(len(sorted(set(paths))))
+
+    return paths
+
+
+def copy_hardest_samples(new_dir, hardest_sample_images):
+    for src_paths in hardest_sample_images:
+        source_path = os.path.join(CONST.dir_texture, src_paths.split("\\")[2])
+
+        dest_path = src_paths.split("\\")[2]
+        dest_path = os.path.join(new_dir, dest_path)
+
+        if not os.path.exists(dest_path):
+            os.makedirs(dest_path)
+
+        src_file = os.path.join(source_path, src_paths.split("\\")[-1])
+        dst_file = os.path.join(dest_path, src_paths.split("\\")[-1])
+        print(src_file, dst_file)
+        shutil.copy(src_file, dst_file)

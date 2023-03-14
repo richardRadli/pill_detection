@@ -110,3 +110,52 @@ def create_label_dirs(input_path: str) -> None:
                     os.makedirs(out_path)
                     print(f"Directory {value} has been created!")
                 shutil.move(os.path.join(input_path, file), out_path)
+
+
+def create_cure_dataset():
+    root_dir = "D:/project/IVM/images/Pill_Images"
+    new_root_dir = "D:/project/IVM/images/Pill_Images_new"
+
+    # create new root directory
+    if not os.path.exists(new_root_dir):
+        os.mkdir(new_root_dir)
+
+    # loop through label class directories
+    for label_dir in os.listdir(root_dir):
+        label_dir_path = os.path.join(root_dir, label_dir)
+
+        # loop through bottom and top directories
+        for sub_dir in os.listdir(label_dir_path):
+            sub_dir_path = os.path.join(label_dir_path, sub_dir)
+
+            # loop through customer and ref directories
+            for sub_sub_dir in os.listdir(sub_dir_path):
+                sub_sub_dir_path = os.path.join(sub_dir_path, sub_sub_dir)
+
+                # copy image from ref directory to new directory
+                if sub_sub_dir == "Reference":
+                    image_name = os.listdir(sub_sub_dir_path)[0]
+                    image_path = os.path.join(sub_sub_dir_path, image_name)
+
+                    new_label_dir_path = os.path.join(new_root_dir, label_dir)
+
+                    if not os.path.exists(new_label_dir_path):
+                        os.mkdir(new_label_dir_path)
+
+                    new_image_path = os.path.join(new_label_dir_path, image_name)
+                    shutil.copy(image_path, new_image_path)
+
+                # copy images from customer directory to new directory
+                elif sub_sub_dir == "Customer":
+                    customer_dir_path = os.path.join(sub_dir_path, sub_sub_dir)
+                    for idx, image_name in tqdm(enumerate(os.listdir(customer_dir_path)),
+                                                total=len(os.listdir(customer_dir_path)),
+                                                desc="Copying images"):
+                        image_path = os.path.join(customer_dir_path, image_name)
+                        new_label_dir_path = os.path.join(new_root_dir, label_dir)
+                        if not os.path.exists(new_label_dir_path):
+                            os.mkdir(new_label_dir_path)
+                        new_image_path = os.path.join(new_label_dir_path, image_name)
+                        shutil.copy(image_path, new_image_path)
+
+create_cure_dataset()

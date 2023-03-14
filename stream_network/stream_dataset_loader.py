@@ -81,7 +81,7 @@ class StreamDataset(Dataset):
         positive = self._load_image(positive_path)
         negative = self._load_image(negative_path)
 
-        return anchor, positive, negative
+        return anchor, positive, negative, anchor_path, positive_path, negative_path
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------------- _ L E N _ ---------------------------------------------------
