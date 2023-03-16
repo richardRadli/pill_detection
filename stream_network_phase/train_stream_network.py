@@ -3,7 +3,6 @@ import os
 import torch
 
 from tqdm import tqdm
-from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
@@ -13,7 +12,7 @@ from const import CONST
 from stream_dataset_loader import StreamDataset
 from stream_network import StreamNetwork
 from triplet_loss import TripletLossWithHardMining
-from utils.utils import create_timestamp, hardest_samples, copy_hardest_samples
+from utils.utils import create_timestamp
 
 cfg = ConfigStreamNetwork().parse()
 
@@ -48,8 +47,8 @@ class TrainModel:
             tensorboard_log_dir = CONST.dir_rgb_logs
         elif cfg.type_of_network in ["Texture", "Contour"]:
             list_of_channels = [1, 32, 48, 64, 128, 192, 256]
-            self.dataset = StreamDataset(CONST.dir_texture, cfg.type_of_network) if cfg.type_of_network == "Texture" \
-                else StreamDataset(CONST.dir_contour, cfg.type_of_network)
+            self.dataset = StreamDataset(CONST.dir_texture, cfg.type_of_network) if cfg.type_of_network == "Texture" else \
+                StreamDataset(CONST.dir_contour, cfg.type_of_network)
             self.save_path = os.path.join(CONST.dir_stream_texture_model_weights, self.timestamp) \
                 if cfg.type_of_network == "Texture" \
                 else os.path.join(CONST.dir_stream_contour_model_weights, self.timestamp)
@@ -79,13 +78,10 @@ class TrainModel:
         summary(self.model, (list_of_channels[0], cfg.img_size, cfg.img_size))
 
         # Specify loss function
-        self.criterion = TripletLossWithHardMining(1.0).to(self.device)
+        self.criterion = TripletLossWithHardMining(margin=0.5).to(self.device)
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
-
-        # Specify scheduler
-        self.scheduler = StepLR(self.optimizer, step_size=5, gamma=1 / 3)
 
         tensorboard_log_dir = os.path.join(tensorboard_log_dir, self.timestamp)
         if not os.path.exists(tensorboard_log_dir):
@@ -93,6 +89,9 @@ class TrainModel:
 
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------- G E T   H A R D  S A M P L E S -----------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def get_hardest_samples(self, hardest_indices, epoch, operation):
         if operation == "anchor":
             index = 3
@@ -119,7 +118,7 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------------ F I T -----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def fit_first_stage(self):
+    def fit(self):
         """
         This function is responsible for the training of the network.
         :return:
@@ -129,7 +128,6 @@ class TrainModel:
             running_loss = 0.0
             running_val_loss = 0.0
 
-            # Training
             for idx, (anchor, positive, negative, _, _, _) in tqdm(enumerate(self.train_data_loader),
                                                           total=len(self.train_data_loader), desc="Train"):
                 anchor = anchor.to(self.device)
@@ -169,10 +167,12 @@ class TrainModel:
                     # Compute triplet loss
                     val_loss = self.criterion(anchor_emb, positive_emb, negative_emb).to(self.device)
 
-                    # Display loss
-                    running_val_loss  += val_loss.item()
+                    # Accumulate loss
+                    running_val_loss += val_loss.item()
 
-                self.writer.add_scalars("Loss", {"train": running_loss, "validation": running_val_loss}, epoch)
+            self.writer.add_scalars("Loss", {"train": running_loss, "validation": running_val_loss}, epoch)
+            self.writer.add_scalars("Loss", {"train_avg": running_loss / len(self.train_data_loader),
+                                     "val_avg": running_val_loss / len(self.valid_data_loader)}, epoch)
 
             # Get the hardest positive images
             self.get_hardest_samples(hardest_indices=self.criterion.hardest_positive_indices, epoch=epoch,
@@ -187,14 +187,9 @@ class TrainModel:
                                      operation="anchor")
 
             # Print loss for epoch
-            print('\nEpoch %d, train loss: %.4f, validation loss: %.4f' % (
-            epoch + 1, running_loss / len(self.train_data_loader), running_val_loss / len(self.valid_data_loader)))
+            print('\nEpoch %d, train loss avg: %.4f, validation loss avg: %.4f' % (
+                epoch + 1, running_loss / len(self.train_data_loader), running_val_loss / len(self.valid_data_loader)))
 
-            # update the learning rate using the scheduler
-            self.scheduler.step()
-            print('Epoch:', epoch, 'LR:', self.scheduler.get_last_lr())
-
-            # Save the model
             if cfg.save and epoch % cfg.save_freq == 0:
                 torch.save(self.model.state_dict(), self.save_path + "/" + "epoch_" + (str(epoch) + ".pt"))
 
@@ -202,10 +197,9 @@ class TrainModel:
         self.writer.flush()
 
 
-
 if __name__ == "__main__":
     try:
         tm = TrainModel()
-        tm.fit_first_stage()
+        tm.fit()
     except KeyboardInterrupt as kbe:
         print(kbe)
