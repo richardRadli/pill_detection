@@ -72,7 +72,7 @@ class StreamDataset(Dataset):
             anchor_img = self.transform(anchor_img)
             positive_img = self.transform(positive_img)
             negative_img = self.transform(negative_img)
-        return anchor_img, positive_img, negative_img, anchor_img_path, positive_img_path, negative_img_path
+        return anchor_img, positive_img, negative_img #, anchor_img_path, positive_img_path, negative_img_path
 
     def __len__(self):
         return len(self.dataset)

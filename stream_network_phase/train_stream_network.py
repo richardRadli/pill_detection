@@ -1,6 +1,7 @@
 import json
 import os
 import torch
+import torch.optim.lr_scheduler as lr_scheduler
 
 from tqdm import tqdm
 from torch.utils.data import DataLoader, random_split
@@ -25,13 +26,6 @@ class TrainModel:
     # --------------------------------------------------- _ I N I T _ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
-        """
-        This function is the constructor of a class. The function initializes the utilized devices, if cuda is available
-        it will use the GPU. Next it defines which network it will use (RGB or Texture/Contour). By that definition, it
-        set up the corresponding dataloader and network architecture. Finally, it uploads the model to the GPU (if
-        available), and set the loss function and optimizer.
-        """
-
         print(f"The selected network is {cfg.type_of_network}")
 
         # Create time stamp
@@ -40,22 +34,37 @@ class TrainModel:
         # Select the GPU if possibly
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        if cfg.type_of_network == "RGB":
-            list_of_channels = [3, 64, 96, 128, 256, 384, 512]
-            self.dataset = StreamDataset(CONST.dir_bounding_box, cfg.type_of_network)
-            self.save_path = os.path.join(CONST.dir_stream_rgb_model_weights, self.timestamp)
-            tensorboard_log_dir = CONST.dir_rgb_logs
-        elif cfg.type_of_network in ["Texture", "Contour"]:
-            list_of_channels = [1, 32, 48, 64, 128, 192, 256]
-            self.dataset = StreamDataset(CONST.dir_texture, cfg.type_of_network) if cfg.type_of_network == "Texture" else \
-                StreamDataset(CONST.dir_contour, cfg.type_of_network)
-            self.save_path = os.path.join(CONST.dir_stream_texture_model_weights, self.timestamp) \
-                if cfg.type_of_network == "Texture" \
-                else os.path.join(CONST.dir_stream_contour_model_weights, self.timestamp)
-            tensorboard_log_dir = CONST.dir_texture_logs if cfg.type_of_network == "Texture" \
-                else CONST.dir_contour_logs
-        else:
+        # Setup network config
+        if cfg.type_of_network not in ["RGB", "Texture", "Contour"]:
             raise ValueError("Wrong type was given!")
+
+        network_config = {
+            "RGB": {
+                "channels": [3, 64, 96, 128, 256, 384, 512],
+                "dataset_dir": CONST.dir_bounding_box,
+                "model_weights_dir": CONST.dir_stream_rgb_model_weights,
+                "logs_dir": CONST.dir_rgb_logs
+            },
+            "Texture": {
+                "channels": [1, 32, 48, 64, 128, 192, 256],
+                "dataset_dir": CONST.dir_texture,
+                "model_weights_dir": CONST.dir_stream_texture_model_weights,
+                "logs_dir": CONST.dir_texture_logs
+            },
+            "Contour": {
+                "channels": [1, 32, 48, 64, 128, 192, 256],
+                "dataset_dir": CONST.dir_contour,
+                "model_weights_dir": CONST.dir_stream_contour_model_weights,
+                "logs_dir": CONST.dir_contour_logs
+            }
+        }
+
+        network_cfg = network_config.get(cfg.type_of_network)
+        if not network_cfg:
+            raise ValueError("Wrong type was given!")
+
+        self.dataset = StreamDataset(network_cfg.get('dataset_dir'), cfg.type_of_network)
+        self.save_path = os.path.join(network_cfg.get('model_weights_dir'), self.timestamp)
 
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
@@ -65,25 +74,25 @@ class TrainModel:
         valid_size = len(self.dataset) - train_size
         print(f"Size of the train set: {train_size}, size of the validation set: {valid_size}")
         train_dataset, valid_dataset = random_split(self.dataset, [train_size, valid_size])
-
-        # self.train_data_loader = DataLoader(dataset, batch_size=cfg.batch_size, shuffle=True)
         self.train_data_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True)
         self.valid_data_loader = DataLoader(valid_dataset, batch_size=cfg.batch_size, shuffle=True)
 
-        # Load model
-        self.model = StreamNetwork(list_of_channels)
-
         # Load model and upload it to the GPU
+        self.model = StreamNetwork(network_cfg.get('channels'))
         self.model.to(self.device)
-        summary(self.model, (list_of_channels[0], cfg.img_size, cfg.img_size))
+        summary(self.model, (network_cfg.get('channels')[0], cfg.img_size, cfg.img_size))
 
         # Specify loss function
-        self.criterion = TripletLossWithHardMining(margin=0.5).to(self.device)
+        self.criterion = TripletLossWithHardMining(margin=cfg.margin).to(self.device)
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
 
-        tensorboard_log_dir = os.path.join(tensorboard_log_dir, self.timestamp)
+        # Scheduler
+        self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=1 / 3)
+
+        # Tensorboard
+        tensorboard_log_dir = os.path.join(network_cfg.get('logs_dir'), self.timestamp)
         if not os.path.exists(tensorboard_log_dir):
             os.makedirs(tensorboard_log_dir)
 
@@ -93,26 +102,36 @@ class TrainModel:
     # ----------------------------------------- G E T   H A R D  S A M P L E S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def get_hardest_samples(self, hardest_indices, epoch, operation):
+        """
+
+        :param hardest_indices:
+        :param epoch:
+        :param operation:
+        :return:
+        """
+
         if operation == "anchor":
             index = 3
-            dict_name = os.path.join(CONST.dir_hardest_anc_samples, self.timestamp + "_epoch_" + str(epoch) +
-                                     "_hardest_anc.txt")
+            dict_name = os.path.join(CONST.dir_hardest_anc_samples, self.timestamp, cfg.type_of_network)
+            os.makedirs(dict_name, exist_ok=True)
+            file_name = os.path.join(dict_name, self.timestamp + "_epoch_" + str(epoch) + "_hardest_anc.txt")
         elif operation == "positive":
             index = 4
-            dict_name = os.path.join(CONST.dir_hardest_pos_samples, self.timestamp + "_epoch_" + str(epoch) +
-                                     "_hardest_pos.txt")
+            dict_name = os.path.join(CONST.dir_hardest_pos_samples, self.timestamp, cfg.type_of_network)
+            os.makedirs(dict_name, exist_ok=True)
+            file_name = os.path.join(dict_name, self.timestamp + "_epoch_" + str(epoch) + "_hardest_pos.txt")
         elif operation == "negative":
             index = 5
-            dict_name = os.path.join(CONST.dir_hardest_neg_samples, self.timestamp + "_epoch_" + str(epoch) +
-                                     "_hardest_neg.txt")
+            dict_name = os.path.join(CONST.dir_hardest_neg_samples, self.timestamp, cfg.type_of_network)
+            os.makedirs(dict_name, exist_ok=True)
+            file_name = os.path.join(dict_name, self.timestamp + "_epoch_" + str(epoch) + "_hardest_neg.txt")
         else:
             raise ValueError("Wrong type!")
-
 
         hardest_images = [self.dataset[idx][index] for idx in hardest_indices]
         dict_imgs = {hardest_indices[i]: hardest_images[i] for i in range(len(hardest_indices))}
 
-        with open(dict_name, "w") as fp:
+        with open(file_name, "w") as fp:
             json.dump(dict_imgs, fp)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -130,10 +149,12 @@ class TrainModel:
 
             for idx, (anchor, positive, negative, _, _, _) in tqdm(enumerate(self.train_data_loader),
                                                           total=len(self.train_data_loader), desc="Train"):
+                # Upload data to the GPU
                 anchor = anchor.to(self.device)
                 positive = positive.to(self.device)
                 negative = negative.to(self.device)
 
+                # Set the gradients to zero
                 self.optimizer.zero_grad()
 
                 # Forward pass
@@ -144,17 +165,19 @@ class TrainModel:
                 # Compute triplet loss
                 loss = self.criterion(anchor_emb, positive_emb, negative_emb).to(self.device)
 
-                # Backward pass and optimize
+                # Backward pass, optimize and scheduler
                 loss.backward()
                 self.optimizer.step()
+                self.scheduler.step()
 
-                # Display loss
+                # Accumulate loss
                 running_loss += loss.item()
 
             # Validation
             with torch.no_grad():
                 for idx, (anchor, positive, negative, _, _, _) in tqdm(enumerate(self.valid_data_loader),
                                                               total=len(self.valid_data_loader), desc="Validation"):
+                    # Upload data to GPU
                     anchor = anchor.to(self.device)
                     positive = positive.to(self.device)
                     negative = negative.to(self.device)
@@ -189,7 +212,9 @@ class TrainModel:
             # Print loss for epoch
             print('\nEpoch %d, train loss avg: %.4f, validation loss avg: %.4f' % (
                 epoch + 1, running_loss / len(self.train_data_loader), running_val_loss / len(self.valid_data_loader)))
+            print('Learning rate: %e' % self.optimizer.param_groups[0]['lr'])
 
+            # Save the model and weights
             if cfg.save and epoch % cfg.save_freq == 0:
                 torch.save(self.model.state_dict(), self.save_path + "/" + "epoch_" + (str(epoch) + ".pt"))
 

@@ -158,4 +158,26 @@ def create_cure_dataset():
                         new_image_path = os.path.join(new_label_dir_path, image_name)
                         shutil.copy(image_path, new_image_path)
 
-create_cure_dataset()
+
+def erase_images():
+    bounding_box_files = set()
+    for root, dirs, files in os.walk(CONST.dir_bounding_box):
+        for file in files:
+            bounding_box_files.add(file)
+
+    # Get list of files to be deleted
+    files_to_delete = []
+    for root, dirs, files in os.walk(CONST.dir_texture):
+        for file in files:
+            file = file.replace("texture_", "")
+            if file not in bounding_box_files:
+                files_to_delete.append(os.path.join(root, file))
+
+    # Delete the files
+    print(len(files_to_delete))
+    for file in files_to_delete:
+        filename = os.path.basename(file)
+        new_filename = "texture_" + filename
+        new_path = os.path.join(os.path.dirname(file), new_filename)
+        print(new_path)
+        os.remove(new_path)
