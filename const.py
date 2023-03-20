@@ -73,7 +73,7 @@ class _Const(object):
     dirs_data = ["data/unet_checkpoints", "data/stream_contour_model_weights", "data/stream_rgb_model_weights",
                  "data/stream_texture_model_weights", "data/unet_logs", "data/logs_contour", "data/logs_rgb",
                  "data/logs_texture", "data/hardest_negative_samples", "data/hardest_positive_samples",
-                 "data/hardest_anchor_samples"]
+                 "data/hardest_anchor_samples", "data/hardest_samples_weights"]
 
     # Aux variables for the other directories. These will be created by the program.
     # Directories for UNET
@@ -94,6 +94,9 @@ class _Const(object):
     dir_hardest_neg_samples = os.path.join(PROJECT_ROOT, dirs_data[8])
     dir_hardest_pos_samples = os.path.join(PROJECT_ROOT, dirs_data[9])
     dir_hardest_anc_samples = os.path.join(PROJECT_ROOT, dirs_data[10])
+
+    # Directory for the hard samples (pt files)
+    dir_hardest_samples_weights = os.path.join(PROJECT_ROOT, dirs_data[11])
 
     directories_data = []
     for d in dirs_data:

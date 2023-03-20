@@ -1,4 +1,5 @@
 import json
+import numpy as np
 import os
 import torch
 import torch.optim.lr_scheduler as lr_scheduler
@@ -143,10 +144,12 @@ class TrainModel:
         :return:
         """
 
-        for epoch in tqdm(range(cfg.epochs), desc="Epochs"):
-            running_loss = 0.0
-            running_val_loss = 0.0
+        # to track the training loss as the model trains
+        train_losses = []
+        # to track the validation loss as the model trains
+        valid_losses = []
 
+        for epoch in tqdm(range(cfg.epochs), desc="Epochs"):
             for idx, (anchor, positive, negative, _, _, _) in tqdm(enumerate(self.train_data_loader),
                                                           total=len(self.train_data_loader), desc="Train"):
                 # Upload data to the GPU
@@ -171,7 +174,7 @@ class TrainModel:
                 self.scheduler.step()
 
                 # Accumulate loss
-                running_loss += loss.item()
+                train_losses.append(loss.item())
 
             # Validation
             with torch.no_grad():
@@ -191,11 +194,19 @@ class TrainModel:
                     val_loss = self.criterion(anchor_emb, positive_emb, negative_emb).to(self.device)
 
                     # Accumulate loss
-                    running_val_loss += val_loss.item()
+                    valid_losses.append(val_loss.item())
 
-            self.writer.add_scalars("Loss", {"train": running_loss, "validation": running_val_loss}, epoch)
-            self.writer.add_scalars("Loss", {"train_avg": running_loss / len(self.train_data_loader),
-                                     "val_avg": running_val_loss / len(self.valid_data_loader)}, epoch)
+            train_loss = np.average(train_losses)
+            valid_loss = np.average(valid_losses)
+            self.writer.add_scalars("Loss", {"train": train_loss, "validation": valid_loss}, epoch)
+
+            # Print loss for epoch
+            print(f'train_loss: {train_loss:.5f} ' + f'valid_loss: {valid_loss:.5f}')
+            print('Learning rate: %e' % self.optimizer.param_groups[0]['lr'])
+
+            # clear lists to track next epoch
+            train_losses.clear()
+            valid_losses.clear()
 
             # Get the hardest positive images
             self.get_hardest_samples(hardest_indices=self.criterion.hardest_positive_indices, epoch=epoch,
@@ -208,11 +219,6 @@ class TrainModel:
             # Get the hardest anchor images
             self.get_hardest_samples(hardest_indices=self.criterion.hardest_anchor_indices, epoch=epoch,
                                      operation="anchor")
-
-            # Print loss for epoch
-            print('\nEpoch %d, train loss avg: %.4f, validation loss avg: %.4f' % (
-                epoch + 1, running_loss / len(self.train_data_loader), running_val_loss / len(self.valid_data_loader)))
-            print('Learning rate: %e' % self.optimizer.param_groups[0]['lr'])
 
             # Save the model and weights
             if cfg.save and epoch % cfg.save_freq == 0:

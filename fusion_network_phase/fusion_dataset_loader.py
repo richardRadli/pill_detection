@@ -9,7 +9,7 @@ from torchvision.transforms import transforms
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # +++++++++++++++++++++++++++++++++++++++++++++ S T R E A M   D A T A S E T ++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class StreamDataset(Dataset):
+class FusionDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- _ I N I T _ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -73,7 +73,6 @@ class StreamDataset(Dataset):
             positive_img = self.transform(positive_img)
             negative_img = self.transform(negative_img)
 
-        return anchor_img, positive_img, negative_img, anchor_img_path, positive_img_path, negative_img_path
-
+        return anchor_img, positive_img, negative_img
     def __len__(self):
         return len(self.dataset)

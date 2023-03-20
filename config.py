@@ -101,3 +101,25 @@ class ConfigStreamNetwork:
     def parse(self):
         self.opt = self.parser.parse_args()
         return self.opt
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++ C O N F I G   S T R E A M   N E T W O R K +++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+class ConfigFusionNetwork:
+    def __init__(self):
+        self.opt = None
+        self.parser = argparse.ArgumentParser()
+
+        self.parser.add_argument("--margin", type=float, default=0.5)
+        self.parser.add_argument("--epochs", type=int, default=20)
+        self.parser.add_argument("--batch_size", type=int, default=64)
+        self.parser.add_argument("--learning_rate", type=float, default=10**-4)
+        # self.parser.add_argument("--weight_decay", type=float, default=1e-5)
+        self.parser.add_argument("--save", type=bool, default=True)
+        self.parser.add_argument("--save_freq", type=int, default=1)
+        self.parser.add_argument("--img_size", type=int, default=128)
+
+    def parse(self):
+        self.opt = self.parser.parse_args()
+        return self.opt
