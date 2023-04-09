@@ -74,5 +74,6 @@ class FusionDataset(Dataset):
             negative_img = self.transform(negative_img)
 
         return anchor_img, positive_img, negative_img
+
     def __len__(self):
         return len(self.dataset)

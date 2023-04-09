@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as func
 
+
 class TripletLossWithHardMining(torch.nn.Module):
     def __init__(self, margin=0.5):
         super(TripletLossWithHardMining, self).__init__()
