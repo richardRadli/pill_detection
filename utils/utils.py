@@ -12,6 +12,7 @@ from glob import glob
 from os.path import splitext
 from PIL import Image
 from torch import Tensor
+from tqdm import tqdm
 
 
 from const import CONST
@@ -286,3 +287,30 @@ def plot_ref_query_imgs(indecies, q_images_path, r_images_path, gt, pred_cs):
         plt.close("all")
         plt.close()
         gc.collect()
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------ C R E A T E   L A B E L   D I R S -----------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def create_label_dirs(input_path: str) -> None:
+    """
+    Function create labels. Goes through a directory, yield the name of the medicine(s) from the file name, and create
+    a corresponding directory, if that certain directory does not exist. Finally, it copies every image with the same
+    label to the corresponding directory.
+
+    :param input_path: string, path to the directory.
+    :return: None
+    """
+
+    files = os.listdir(input_path)
+
+    for file in tqdm(files):
+        if file.endswith(".png"):
+            match = re.search(r"\d{3,4}_(.+)_s", file)
+            if match:
+                value = match.group(1)
+                out_path = (os.path.join(input_path, value))
+                if not os.path.exists(out_path):
+                    os.makedirs(out_path)
+                    print(f"Directory {value} has been created!")
+                shutil.move(os.path.join(input_path, file), out_path)

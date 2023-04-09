@@ -9,8 +9,8 @@ class _Const(object):
     user = os.getlogin()
     if user == "keplab":
         PROJECT_ROOT = "E:/users/ricsi/IVM"
-    elif user == "rrb12":
-        PROJECT_ROOT = "D:/project/IVM"
+    elif user == "ricsi":
+        PROJECT_ROOT = "C:/Users/ricsi/Documents/project/storage/IVM"
     else:
         raise ValueError("Wrong user!")
 
@@ -71,9 +71,9 @@ class _Const(object):
     # ------------------------------------------------------------------------------------------------------------------
     # Directories for the data
     dirs_data = ["data/unet_checkpoints", "data/stream_contour_model_weights", "data/stream_rgb_model_weights",
-                 "data/stream_texture_model_weights", "data/unet_logs", "data/logs_contour", "data/logs_rgb",
+                 "data/stream_texture_model_weights", "data/logs_unet", "data/logs_contour", "data/logs_rgb",
                  "data/logs_texture", "data/hardest_negative_samples", "data/hardest_positive_samples",
-                 "data/hardest_anchor_samples", "data/hardest_samples_weights"]
+                 "data/hardest_anchor_samples", "data/hardest_samples_weights", "data/cam_data", "data/train_labels"]
 
     # Aux variables for the other directories. These will be created by the program.
     # Directories for UNET
@@ -97,6 +97,9 @@ class _Const(object):
 
     # Directory for the hard samples (pt files)
     dir_hardest_samples_weights = os.path.join(PROJECT_ROOT, dirs_data[11])
+
+    dir_cam_data = os.path.join(PROJECT_ROOT, dirs_data[12])
+    dir_labels_data = os.path.join(PROJECT_ROOT, dirs_data[13])
 
     directories_data = []
     for d in dirs_data:

@@ -148,6 +148,5 @@ def main():
     save_texture_images()
 
 
-
 if __name__ == "__main__":
     main()
