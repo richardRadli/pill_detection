@@ -89,7 +89,7 @@ def process_data(img_files: str, txt_files: str):
 # ------------------------------------------------------------------------------------------------------------------- #
 def save_masks(mask: np.ndarray, img_file: str):
     name = img_file.split("\\")[-1]
-    save_path = (os.path.join(CONST.dir_train_masks, name))
+    save_path = (os.path.join(CONST.dir_test_mask, name))
     mask_pil = Image.fromarray(mask)
     mask_pil.save(save_path)
 
