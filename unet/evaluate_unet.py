@@ -1,6 +1,5 @@
 import concurrent.futures
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 
@@ -110,9 +109,9 @@ def plot_results() -> None:
         file_name = save_path.split("\\")[2]
         output_path = (os.path.join(CONST.dir_unet_output_2, file_name))
 
-        in_img = plt.imread(input_img_val)
-        gt_img = plt.imread(true_img_val)
-        pred_img = plt.imread(pred_img_val)
+        in_img = cv2.imread(input_img_val)
+        gt_img = cv2.imread(true_img_val)
+        pred_img = cv2.imread(pred_img_val)
         plot_diagrams(in_img, gt_img, pred_img, output_path)
 
 

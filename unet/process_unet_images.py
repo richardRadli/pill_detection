@@ -6,8 +6,7 @@ from glob import glob
 from tqdm import tqdm
 
 from const import CONST
-# from utils.dataset_operations import create_label_dirs
-from utils.utils import numerical_sort
+from utils.utils import numerical_sort, create_label_dirs
 
 from concurrent.futures import ThreadPoolExecutor, wait
 from typing import Tuple
@@ -35,7 +34,7 @@ def draw_bounding_box(in_img: np.ndarray, seg_map: np.ndarray, output_path: str)
 
     for i in range(1, n_objects):
         x, y, w, h, area = stats[i]
-        if area > 20000 and area > max_area:
+        if area > 200 and area > max_area:
             max_x, max_y, max_w, max_h = x, y, w, h
             max_area = area
 
@@ -146,6 +145,10 @@ def main():
     save_bounding_box_images()
     save_contour_images()
     save_texture_images()
+
+    create_label_dirs(CONST.dir_bounding_box)
+    create_label_dirs(CONST.dir_contour)
+    create_label_dirs(CONST.dir_texture)
 
 
 if __name__ == "__main__":

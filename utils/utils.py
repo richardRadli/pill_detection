@@ -304,13 +304,14 @@ def create_label_dirs(input_path: str) -> None:
 
     files = os.listdir(input_path)
 
+    classes = set()
+
     for file in tqdm(files):
         if file.endswith(".png"):
-            match = re.search(r"\d{3,4}_(.+)_s", file)
-            if match:
-                value = match.group(1)
-                out_path = (os.path.join(input_path, value))
-                if not os.path.exists(out_path):
-                    os.makedirs(out_path)
-                    print(f"Directory {value} has been created!")
-                shutil.move(os.path.join(input_path, file), out_path)
+            class_name = file.split('_')[2:-1]
+            class_name = ('_'.join(class_name))
+            out_path = (os.path.join(input_path, class_name))
+            if not os.path.exists(out_path):
+                os.makedirs(out_path)
+                print(f"Directory {class_name} has been created!")
+            shutil.move(os.path.join(input_path, file), out_path)

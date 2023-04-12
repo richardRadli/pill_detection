@@ -9,8 +9,8 @@ class ConfigTrainingUnet:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument('--epochs', '-e', metavar='E', type=int, default=200, help='Number of epochs')
-        self.parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
+        self.parser.add_argument('--epochs', '-e', metavar='E', type=int, default=5, help='Number of epochs')
+        self.parser.add_argument('--batch_size', type=int, default=8, help='Batch size')
         self.parser.add_argument('--lr', type=float, default=1e-5, help='Learning rate')
         self.parser.add_argument('--weight_decay', '-wd', type=float, default=1e-8)
         self.parser.add_argument('--momentum', type=float, default=0.999)
@@ -88,10 +88,10 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_network", type=str, default="Texture", help="RGB | Contour | Texture")
+        self.parser.add_argument("--type_of_network", type=str, default="Contour", help="RGB | Contour | Texture")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=20)
-        self.parser.add_argument("--batch_size", type=int, default=64)
+        self.parser.add_argument("--batch_size", type=int, default=32)
         self.parser.add_argument("--learning_rate", type=float, default=3e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)
         self.parser.add_argument("--save", type=bool, default=True)

@@ -1,1 +1,1 @@
-from .unet_model import UNet, StackedUNet
+from .unet_model import UNet
