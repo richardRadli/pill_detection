@@ -292,26 +292,35 @@ def plot_ref_query_imgs(indecies, q_images_path, r_images_path, gt, pred_cs):
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------ C R E A T E   L A B E L   D I R S -----------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def create_label_dirs(input_path: str) -> None:
+def create_label_dirs(rgb_path: str, contour_path: str, texture_path: str) -> None:
     """
     Function create labels. Goes through a directory, yield the name of the medicine(s) from the file name, and create
     a corresponding directory, if that certain directory does not exist. Finally, it copies every image with the same
     label to the corresponding directory.
 
-    :param input_path: string, path to the directory.
+    :param rgb_path: string, path to the directory.
+    :param texture_path:
+    :param contour_path:
     :return: None
     """
 
-    files = os.listdir(input_path)
+    files_rgb = os.listdir(rgb_path)
+    files_contour = os.listdir(contour_path)
+    files_texture = os.listdir(texture_path)
 
-    classes = set()
+    for idx, (file_rgb, file_contour, file_texture) in tqdm(enumerate(zip(files_rgb, files_contour, files_texture))):
+        if file_rgb.endswith(".png"):
+            match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
+            if match:
+                value = match.group(1)
+                out_path_rgb = os.path.join(rgb_path, value)
+                out_path_contour = os.path.join(contour_path, value)
+                out_path_texture = os.path.join(texture_path, value)
 
-    for file in tqdm(files):
-        if file.endswith(".png"):
-            class_name = file.split('_')[2:-1]
-            class_name = ('_'.join(class_name))
-            out_path = (os.path.join(input_path, class_name))
-            if not os.path.exists(out_path):
-                os.makedirs(out_path)
-                print(f"Directory {class_name} has been created!")
-            shutil.move(os.path.join(input_path, file), out_path)
+                os.makedirs(out_path_rgb, exist_ok=True)
+                os.makedirs(out_path_contour, exist_ok=True)
+                os.makedirs(out_path_texture, exist_ok=True)
+
+                shutil.move(os.path.join(rgb_path, file_rgb), out_path_rgb)
+                shutil.move(os.path.join(contour_path, file_contour), out_path_contour)
+                shutil.move(os.path.join(texture_path, file_texture), out_path_texture)

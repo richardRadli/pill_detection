@@ -13,7 +13,6 @@ from config import ConfigStreamNetwork
 from const import CONST
 from stream_dataset_loader import StreamDataset
 from stream_network import StreamNetwork
-from triplet_loss import TripletLossWithHardMining
 from utils.utils import create_timestamp
 
 cfg = ConfigStreamNetwork().parse()
@@ -84,7 +83,7 @@ class TrainModel:
         summary(self.model, (network_cfg.get('channels')[0], cfg.img_size, cfg.img_size))
 
         # Specify loss function
-        self.criterion = TripletLossWithHardMining(margin=cfg.margin).to(self.device)
+        self.criterion = torch.nn.TripletMarginLoss(margin=cfg.margin, p=2).to(self.device)
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
@@ -151,7 +150,7 @@ class TrainModel:
 
         for epoch in tqdm(range(cfg.epochs), desc="Epochs"):
             for idx, (anchor, positive, negative, _, _, _) in tqdm(enumerate(self.train_data_loader),
-                                                          total=len(self.train_data_loader), desc="Train"):
+                                                                   total=len(self.train_data_loader), desc="Train"):
                 # Upload data to the GPU
                 anchor = anchor.to(self.device)
                 positive = positive.to(self.device)
@@ -179,7 +178,8 @@ class TrainModel:
             # Validation
             with torch.no_grad():
                 for idx, (anchor, positive, negative, _, _, _) in tqdm(enumerate(self.valid_data_loader),
-                                                              total=len(self.valid_data_loader), desc="Validation"):
+                                                                       total=len(self.valid_data_loader),
+                                                                       desc="Validation"):
                     # Upload data to GPU
                     anchor = anchor.to(self.device)
                     positive = positive.to(self.device)
@@ -208,17 +208,17 @@ class TrainModel:
             train_losses.clear()
             valid_losses.clear()
 
-            # Get the hardest positive images
-            self.get_hardest_samples(hardest_indices=self.criterion.hardest_positive_indices, epoch=epoch,
-                                     operation="positive")
-
-            # Get the hardest negative images
-            self.get_hardest_samples(hardest_indices=self.criterion.hardest_negative_indices, epoch=epoch,
-                                     operation="negative")
-
-            # Get the hardest anchor images
-            self.get_hardest_samples(hardest_indices=self.criterion.hardest_anchor_indices, epoch=epoch,
-                                     operation="anchor")
+            # # Get the hardest positive images
+            # self.get_hardest_samples(hardest_indices=self.criterion.hardest_positive_indices, epoch=epoch,
+            #                          operation="positive")
+            #
+            # # Get the hardest negative images
+            # self.get_hardest_samples(hardest_indices=self.criterion.hardest_negative_indices, epoch=epoch,
+            #                          operation="negative")
+            #
+            # # Get the hardest anchor images
+            # self.get_hardest_samples(hardest_indices=self.criterion.hardest_anchor_indices, epoch=epoch,
+            #                          operation="anchor")
 
             # Save the model and weights
             if cfg.save and epoch % cfg.save_freq == 0:

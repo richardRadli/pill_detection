@@ -146,9 +146,7 @@ def main():
     save_contour_images()
     save_texture_images()
 
-    create_label_dirs(CONST.dir_bounding_box)
-    create_label_dirs(CONST.dir_contour)
-    create_label_dirs(CONST.dir_texture)
+    create_label_dirs(CONST.dir_bounding_box, CONST.dir_contour, CONST.dir_texture)
 
 
 if __name__ == "__main__":
