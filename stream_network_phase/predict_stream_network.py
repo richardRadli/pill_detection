@@ -50,12 +50,9 @@ class PillRecognition:
         list_of_channels_tex_con = [1, 32, 48, 64, 128, 192, 256]
         list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
 
-        latest_con_pt_file = find_latest_file(
-            CONST.dir_stream_contour_model_weights)  # "D:/project/IVM/data/stream_contour_model_weights/2023-02-28_14-34-30/epoch_195.pt" #
-        latest_rgb_pt_file = find_latest_file(
-            CONST.dir_stream_rgb_model_weights)  # "D:/project/IVM/data/stream_rgb_model_weights/2023-03-08_08-51-11/epoch_195.pt"
-        latest_tex_pt_file = find_latest_file(
-            CONST.dir_stream_texture_model_weights)  # "D:/project/IVM/data/stream_texture_model_weights/2023-02-28_14-50-28/epoch_195.pt"
+        latest_con_pt_file = find_latest_file(CONST.dir_stream_contour_model_weights)
+        latest_rgb_pt_file = find_latest_file(CONST.dir_stream_rgb_model_weights)
+        latest_tex_pt_file = find_latest_file(CONST.dir_stream_texture_model_weights)
 
         network_con = StreamNetwork(loc=list_of_channels_tex_con)
         network_rgb = StreamNetwork(loc=list_of_channels_rgb)
@@ -132,8 +129,7 @@ class PillRecognition:
             most_similar_indices_cos_sim = [scores.index(max(scores)) for scores in similarity_scores_cos_sim]
             predicted_medicine_cos_sim.append(r_labels[most_similar_indices_cos_sim[idx_query]])
 
-            most_similar_indices_and_scores = [(i, max(scores)) for i, scores in
-                                               enumerate(similarity_scores_cos_sim)]
+            most_similar_indices_and_scores = [(i, max(scores)) for i, scores in enumerate(similarity_scores_cos_sim)]
             corresp_sim_cos_sim.append(most_similar_indices_and_scores[idx_query][1])
 
             most_similar_indices_euc_dist = [scores.index(min(scores)) for scores in similarity_scores_euc_dist]
@@ -162,7 +158,15 @@ class PillRecognition:
     def measure_accuracy(gt, pred):
         count = 0
         for i in range(len(gt)):
-            if gt[i] == pred[i]:
+            if gt[i] == pred[i] or gt[i] == pred[i]:
+                count += 1
+        print(f"Accuracy: {count / len(gt)}")
+
+    @staticmethod
+    def measure_accuracy_comb(gt, pred_cs, pred_ed):
+        count = 0
+        for i in range(len(gt)):
+            if gt[i] == pred_cs[i] or gt[i] == pred_ed[i]:
                 count += 1
         print(f"Accuracy: {count / len(gt)}")
 
@@ -182,10 +186,11 @@ class PillRecognition:
 
         gt, pred_cs, pred_ed, indecies = self.measure_similarity_and_distance(q_labels, r_labels, ref_vecs, query_vecs)
 
-        plot_ref_query_imgs(indecies, q_images_path, r_images_path, gt, pred_ed)
-
-        # self.measure_accuracy(gt, pred_cs)
+        self.measure_accuracy(gt, pred_cs)
         self.measure_accuracy(gt, pred_ed)
+        self.measure_accuracy_comb(gt, pred_cs, pred_ed)
+
+        # plot_ref_query_imgs(indecies, q_images_path, r_images_path, gt, pred_ed)
 
 
 if __name__ == "__main__":

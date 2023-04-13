@@ -2,7 +2,7 @@ import json
 import numpy as np
 import os
 import torch
-import torch.optim.lr_scheduler as lr_scheduler
+# import torch.optim.lr_scheduler as lr_scheduler
 
 from tqdm import tqdm
 from torch.utils.data import DataLoader, random_split
@@ -11,6 +11,7 @@ from torchsummary import summary
 
 from config import ConfigStreamNetwork
 from const import CONST
+from triplet_loss import TripletLoss
 from stream_dataset_loader import StreamDataset
 from stream_network import StreamNetwork
 from utils.utils import create_timestamp
@@ -89,7 +90,7 @@ class TrainModel:
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
 
         # Scheduler
-        self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=1 / 3)
+        # self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=1 / 3)
 
         # Tensorboard
         tensorboard_log_dir = os.path.join(network_cfg.get('logs_dir'), self.timestamp)
@@ -170,7 +171,7 @@ class TrainModel:
                 # Backward pass, optimize and scheduler
                 loss.backward()
                 self.optimizer.step()
-                self.scheduler.step()
+                # self.scheduler.step()
 
                 # Accumulate loss
                 train_losses.append(loss.item())
