@@ -23,11 +23,12 @@ def predict_multiple_images():
 
 def predict_single_image():
     os.system("python predict_unet.py "
-              "-i C:/Users/keplab/Desktop/clahe.png "
-              "-o C:/Users/keplab/Desktop/out.png "
-              "-m D:/project/IVM/data/checkpoints/2023-02-12_04-47-10/checkpoint_epoch200.pth "
+              "-i C:/Users/ricsi/Desktop/in_osszeer.png "
+              "-o C:/Users/ricsi/Desktop/out_osszeer.png "
+              "-m C:/Users/ricsi/Documents/project/storage/IVM/data/unet_checkpoints/"
+              "2023-04-14_15-09-16/checkpoint_epoch5.pth "
               )
 
 
 if __name__ == "__main__":
-    predict_multiple_images()
+    predict_single_image()

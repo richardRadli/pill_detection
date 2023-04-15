@@ -39,7 +39,12 @@ def draw_bounding_box(in_img: np.ndarray, seg_map: np.ndarray, output_path: str)
             max_area = area
 
     if max_area > 0:
-        obj = in_img[max_y:max_y + max_h, max_x:max_x + max_w]
+        center_x = max_x + max_w / 2
+        center_y = max_y + max_h / 2
+        side_length = max(max_w, max_h)
+        square_x = int(center_x - side_length / 2)
+        square_y = int(center_y - side_length / 2)
+        obj = in_img[square_y:square_y + side_length, square_x:square_x + side_length]
         cv2.imwrite(output_path, obj)
 
 
@@ -55,7 +60,7 @@ def process_image(image_paths: Tuple[str, str]) -> None:
 
     color_path, mask_path = image_paths
     output_name = os.path.basename(color_path)
-    output_file = os.path.join(CONST.dir_bounding_box, output_name)
+    output_file = os.path.join(CONST.dir_query_rgb, output_name)
     c_imgs = cv2.imread(color_path, 1)
     m_imgs = cv2.imread(mask_path, 0)
     draw_bounding_box(c_imgs, m_imgs, output_file)
@@ -71,8 +76,8 @@ def save_bounding_box_images() -> None:
     """
 
     # Read in all color and mask image paths
-    color_images = sorted(glob(CONST.dir_train_images + "/*.png"))
-    mask_images = sorted(glob(CONST.dir_train_masks + "/*.png"))
+    color_images = sorted(glob(CONST.dir_test_images + "/*.png"))
+    mask_images = sorted(glob(CONST.dir_test_mask + "/*.png"))
 
     # Process the images in parallel using ThreadPoolExecutor
     with ThreadPoolExecutor() as executor:
@@ -94,12 +99,12 @@ def create_contour_images(args):
 # ------------------------------------------ S A V E   C O N T O U R   I M G S -----------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def save_contour_images():
-    contour_images = sorted(glob(CONST.dir_bounding_box + "/*.png"), key=numerical_sort)
+    contour_images = sorted(glob(CONST.dir_query_rgb + "/*.png"), key=numerical_sort)
     args_list = []
 
     for img_path in tqdm(contour_images, desc="Contour images"):
         output_name = "contour_" + img_path.split("\\")[2]
-        output_file = (os.path.join(CONST.dir_contour, output_name))
+        output_file = (os.path.join(CONST.dir_query_contour, output_name))
         bbox_imgs = cv2.imread(img_path, 0)
         args_list.append((bbox_imgs, output_file, 7, 10, 50))
 
@@ -127,12 +132,12 @@ def create_texture_images(args):
 
 
 def save_texture_images():
-    bbox_images = sorted(glob(CONST.dir_bounding_box + "/*.png"), key=numerical_sort)
+    bbox_images = sorted(glob(CONST.dir_query_rgb + "/*.png"), key=numerical_sort)
     args_list = []
 
     for img_path in tqdm(bbox_images, desc="Texture images"):
         output_name = "texture_" + img_path.split("\\")[2]
-        output_file = (os.path.join(CONST.dir_texture, output_name))
+        output_file = (os.path.join(CONST.dir_query_texture, output_name))
         bbox_imgs = cv2.imread(img_path, 0)
         args_list.append((bbox_imgs, output_file, (7, 7)))
 
@@ -146,7 +151,9 @@ def main():
     save_contour_images()
     save_texture_images()
 
-    create_label_dirs(CONST.dir_bounding_box, CONST.dir_contour, CONST.dir_texture)
+    create_label_dirs(CONST.dir_query_rgb, CONST.dir_query_contour, CONST.dir_query_texture)
+
+    # TODO: split the program to train and test mode
 
 
 if __name__ == "__main__":

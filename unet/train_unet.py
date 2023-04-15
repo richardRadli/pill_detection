@@ -55,6 +55,7 @@ def evaluate(net, dataloader, device, amp):
     net.train()
     return dice_score / max(num_val_batches, 1)
 
+
 def train_model(
         model,
         device,

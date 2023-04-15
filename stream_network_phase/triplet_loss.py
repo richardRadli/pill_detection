@@ -1,103 +1,36 @@
 import torch
 import torch.nn.functional as F
 
-import torch.nn.functional as F
 
-import torch.nn.functional as F
-
-import torch.nn.functional as F
-
-
-class TripletLoss(torch.nn.Module):
-    def __init__(self, margin=1.0):
-        super(TripletLoss, self).__init__()
+class TripletLossWithHardMining(torch.nn.Module):
+    def __init__(self, margin=0.5):
+        super(TripletLossWithHardMining, self).__init__()
         self.margin = margin
 
-    def forward(self, anchor_emb, positive_emb, negative_emb):
-        # Compute pairwise distances between all embeddings
-        pairwise_distances = F.pairwise_distance(anchor_emb.unsqueeze(1),
-                                                 torch.cat((positive_emb, negative_emb), dim=0).unsqueeze(0))
+    def forward(self, anchor, positive, negative):
+        # Compute the Euclidean distances between the embeddings
+        dist_pos = F.pairwise_distance(anchor, positive, 2)
+        dist_neg = F.pairwise_distance(anchor, negative, 2)
 
-        # Split the pairwise distances into positive and negative distances
-        positive_distances, negative_distances = pairwise_distances.split(positive_emb.size(0), dim=1)
+        # Select the hardest negative sample for each anchor
+        hard_neg = []
+        for i in range(dist_pos.size(0)):
+            # Get the indices of the negative samples that violate the margin
+            dist_diff = dist_pos[i] - dist_neg[i] + self.margin
+            candidate_idxs = torch.where(dist_diff > 0)[0]
+            if len(candidate_idxs) == 0:
+                # If there are no negative samples that violate the margin, skip
+                hard_neg.append(None)
+                continue
+            # Select the hardest negative sample (i.e., the one with the largest distance to the anchor)
+            if len(candidate_idxs) == 1:
+                hard_neg_idx = candidate_idxs[0]
+            else:
+                hard_neg_idx = torch.argmax(dist_neg[i, candidate_idxs])
+            hard_neg.append(negative[candidate_idxs[hard_neg_idx]].unsqueeze(0))
+        hard_neg = torch.cat([x for x in hard_neg if x is not None], dim=0)
 
-        # Find the hardest positive and negative examples for each anchor
-        hardest_positive = positive_distances.max(dim=0)[1]
-        hardest_negative = negative_distances.min(dim=0)[1]
+        # Compute the loss
+        loss = F.relu(self.margin + dist_pos - dist_neg).mean()
 
-        # Compute triplet loss
-        distance_positive = pairwise_distances[0, hardest_positive]
-        distance_negative = pairwise_distances[0, hardest_negative]
-        loss_triplet = F.relu(distance_positive - distance_negative + self.margin).mean()
-
-        return loss_triplet, hardest_positive, hardest_negative
-
-# class TripletLossWithHardMining(torch.nn.Module):
-#     def __init__(self, margin=0.5):
-#         super(TripletLossWithHardMining, self).__init__()
-#         self.margin = margin
-#         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-#         self.hardest_positive_indices = None
-#         self.hardest_negative_indices = None
-#         self.hardest_anchor_indices = None
-#
-#     def forward(self, anchor_embeddings, positive_embeddings, negative_embeddings):
-#         d_ap = func.pairwise_distance(anchor_embeddings, positive_embeddings, 2)
-#         d_an, self.hardest_negative_indices = self.hardest_negative(anchor_embeddings, positive_embeddings,
-#                                                                     negative_embeddings)
-#         d_pp, self.hardest_positive_indices = self.hardest_positive(anchor_embeddings, positive_embeddings,
-#                                                                     negative_embeddings)
-#         d_aa, self.hardest_anchor_indices = self.hardest_anchor(anchor_embeddings, positive_embeddings,
-#                                                                 negative_embeddings)
-#         loss = torch.mean(torch.clamp(d_ap - self.margin * d_pp - self.margin * d_an + self.margin, min=0))
-#
-#         return loss
-#
-#     def hardest_negative(self, anchor_embeddings, positive_embeddings, negative_embeddings):
-#         d_an = []
-#         hardest_negative_indices = []
-#         for i, (anchor_embedding, positive_embedding) in enumerate(zip(anchor_embeddings, positive_embeddings)):
-#             dists = func.pairwise_distance(anchor_embedding.unsqueeze(0), negative_embeddings, 2)
-#             dists = dists.to(self.device)
-#             if (dists < func.pairwise_distance(anchor_embedding.unsqueeze(0), positive_embedding.unsqueeze(0),
-#                                                2)).sum() == 0:
-#                 d_an.append(torch.tensor(0.0).to(self.device))
-#                 hardest_negative_indices.append(i)
-#             else:
-#                 hard_neg_idx = torch.argmax(dists[dists < func.pairwise_distance(anchor_embedding.unsqueeze(0),
-#                                                                                  positive_embedding.unsqueeze(0), 2)])
-#                 d_an.append(dists[hard_neg_idx].to(self.device))
-#                 hardest_negative_indices.append(hard_neg_idx.item())
-#
-#         return torch.mean(torch.stack(d_an)), hardest_negative_indices
-#
-#     def hardest_positive(self, anchor_embeddings, positive_embeddings, negative_embeddings):
-#         d_pp = []
-#         hardest_positive_indices = []
-#         for i, (anchor_embedding, negative_embedding) in enumerate(zip(anchor_embeddings, negative_embeddings)):
-#             dists = func.pairwise_distance(anchor_embedding.unsqueeze(0), positive_embeddings, 2)
-#             dists = dists.to(self.device)
-#             if (dists > func.pairwise_distance(anchor_embedding.unsqueeze(0), negative_embedding.unsqueeze(0),
-#                                                2)).sum() == 0:
-#                 d_pp.append(torch.tensor(0.0).to(self.device))
-#                 hardest_positive_indices.append(i)
-#             else:
-#                 hard_pos_idx = torch.argmin(dists[dists > func.pairwise_distance(anchor_embedding.unsqueeze(0),
-#                                                                                  negative_embedding.unsqueeze(0), 2)])
-#                 d_pp.append(dists[hard_pos_idx].to(self.device))
-#                 hardest_positive_indices.append(hard_pos_idx.item())
-#
-#         return torch.mean(torch.stack(d_pp)), hardest_positive_indices
-#
-#     def hardest_anchor(self, anchor_embeddings, positive_embeddings, negative_embeddings):
-#         d_aa = []
-#         hardest_anchor_indices = []
-#         for i, (positive_embedding, negative_embedding) in enumerate(zip(positive_embeddings, negative_embeddings)):
-#             dists = func.pairwise_distance(anchor_embeddings, positive_embedding.unsqueeze(0), 2) \
-#                   - func.pairwise_distance(anchor_embeddings, negative_embedding.unsqueeze(0), 2)
-#             dists = dists.to(self.device)
-#             hard_anchor_idx = torch.argmax(dists)
-#             d_aa.append(dists[hard_anchor_idx].to(self.device))
-#             hardest_anchor_indices.append(hard_anchor_idx.item())
-#
-#         return torch.mean(torch.stack(d_aa)), hardest_anchor_indices
+        return loss, hard_neg
