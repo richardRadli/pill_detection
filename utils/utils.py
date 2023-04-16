@@ -18,22 +18,17 @@ from tqdm import tqdm
 from const import CONST
 
 
-class BColors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------- P L O T   I M G   &   M A S K -------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def plot_img_and_mask(img, mask):
+    """
+
+    :param img:
+    :param mask:
+    :return:
+    """
+
     classes = mask.max() + 1
     fig, ax = plt.subplots(1, classes + 1)
     ax[0].set_title('Input image')
@@ -49,7 +44,16 @@ def plot_img_and_mask(img, mask):
 # ------------------------------------------------  D I C E   C O E F F ------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_batch_first: bool = False, epsilon: float = 1e-6):
-    # Average of Dice coefficient for all batches, or for a single mask
+    """
+    Average of Dice coefficient for all batches, or for a single mask
+
+    :param input_tensor:
+    :param target:
+    :param reduce_batch_first:
+    :param epsilon:
+    :return:
+    """
+
     assert input_tensor.size() == target.size()
     assert input_tensor.dim() == 3 or not reduce_batch_first
 
@@ -68,7 +72,16 @@ def dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_batch_first: b
 # ----------------------------------------------------------------------------------------------------------------------
 def multiclass_dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_batch_first: bool = False,
                                 epsilon: float = 1e-6):
-    # Average of Dice coefficient for all classes
+    """
+    Average of Dice coefficient for all classes
+
+    :param input_tensor:
+    :param target:
+    :param reduce_batch_first:
+    :param epsilon:
+    :return:
+    """
+
     return dice_coefficient(input_tensor.flatten(0, 1), target.flatten(0, 1), reduce_batch_first, epsilon)
 
 
@@ -78,7 +91,13 @@ def multiclass_dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_bat
 def dice_loss(input_tensor: Tensor, target: Tensor, multiclass: bool = False):
     """
     Dice loss (objective to minimize) between 0 and 1
+
+    :param input_tensor:
+    :param target:
+    :param multiclass:
+    :return:
     """
+
     fn = multiclass_dice_coefficient if multiclass else dice_coefficient
     return 1 - fn(input_tensor, target, reduce_batch_first=True)
 
@@ -87,6 +106,12 @@ def dice_loss(input_tensor: Tensor, target: Tensor, multiclass: bool = False):
 # ------------------------------------------------ L O A D   I M A G E -------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def load_image(filename):
+    """
+
+    :param filename:
+    :return:
+    """
+
     ext = splitext(filename)[1]
     if ext == '.npy':
         return Image.fromarray(np.load(filename))
@@ -100,6 +125,14 @@ def load_image(filename):
 # ------------------------------------------ U N I Q U E   M A S K   V A L U E S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def unique_mask_values(idx, mask_dir, mask_suffix):
+    """
+
+    :param idx:
+    :param mask_dir:
+    :param mask_suffix:
+    :return:
+    """
+
     mask_file = list(mask_dir.glob(idx + mask_suffix + '.*'))[0]
     mask = np.asarray(load_image(mask_file))
     if mask.ndim == 2:
@@ -115,6 +148,11 @@ def unique_mask_values(idx, mask_dir, mask_suffix):
 # ------------------------------------------ R E A D   I M G   A N D   M A S K -----------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def read_image_and_mask():
+    """
+
+    :return:
+    """
+
     images = sorted(glob(CONST.dir_train_images + "*.png"))
     masks = sorted(glob(CONST.dir_train_masks + "*.png"))
 
@@ -145,15 +183,15 @@ def plot_diagrams(input_image, gt_image, pred_image, save_path):
     plt.figure()
 
     # subplot(r,c) provide the no. of rows and columns
-    f, axarr = plt.subplots(1, 3)
+    f, ax = plt.subplots(1, 3)
 
     # use the created array to output your multiple images. In this case I have stacked 4 images vertically
-    axarr[0].imshow(input_image)
-    axarr[0].set_title("Input")
-    axarr[1].imshow(gt_image)
-    axarr[1].set_title("Ground truth")
-    axarr[2].imshow(pred_image)
-    axarr[2].set_title("Predicted")
+    ax[0].imshow(input_image)
+    ax[0].set_title("Input")
+    ax[1].imshow(gt_image)
+    ax[1].set_title("Ground truth")
+    ax[2].imshow(pred_image)
+    ax[2].set_title("Predicted")
 
     plt.savefig(save_path)
     plt.close()
@@ -196,77 +234,61 @@ def create_timestamp():
 # ----------------------------------------------------------------------------------------------------------------------
 def find_latest_file(path):
     """
-    This function finds the latest file in a directory.
-    :param path: input directory to search
-    :return:
+    Finds the latest file in the latest directory within the given path.
+    :param path: str, the path to the directory where we should look for the latest file
+    :return: str, the path to the latest file
     """
 
-    latest_dir = None
-    latest_dir_time = datetime.fromtimestamp(0)
+    # Get a list of all directories in the given path
+    dirs = [os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
 
-    # Find the latest directory
-    for dir_path, dirnames, filenames in os.walk(path):
-        for dirname in dirnames:
-            dirpath = os.path.join(dir_path, dirname)
-            modified_time = datetime.fromtimestamp(os.path.getmtime(dirpath))
-            if modified_time > latest_dir_time:
-                latest_dir = dirpath
-                latest_dir_time = modified_time
+    if not dirs:
+        print(f"No directories found in {path}")
+        return None
 
-    latest_file = None
-    if latest_dir is not None:
-        latest_file_time = datetime.fromtimestamp(0)
-        for filename in os.listdir(latest_dir):
-            filepath = os.path.join(latest_dir, filename)
-            if os.path.isfile(filepath):
-                modified_time = datetime.fromtimestamp(os.path.getmtime(filepath))
-                if modified_time > latest_file_time:
-                    latest_file = filepath
-                    latest_file_time = modified_time
+    # Sort directories by creation time (newest first)
+    dirs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
 
-        if latest_file is not None:
-            print(f"The latest file is {latest_file}")
-        else:
-            print("No files found in the latest directory")
-    else:
-        print("No directories found in the path")
+    # Get the latest directory
+    latest_dir = dirs[0]
 
+    # Get a list of all files in the latest directory
+    files = [os.path.join(latest_dir, f) for f in os.listdir(latest_dir) if
+             os.path.isfile(os.path.join(latest_dir, f))]
+
+    if not files:
+        print(f"No files found in {latest_dir}")
+        return None
+
+    # Sort files by creation time (newest first)
+    files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+
+    # Get the latest file
+    latest_file = files[0]
+
+    print(f"The latest file is {latest_file}")
     return latest_file
 
 
-def copy_ref_images(source_directory: str, destination_directory: str):
-    for subdir_name in os.listdir(source_directory):
-        subdir_path = os.path.join(source_directory, subdir_name)
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------- P L O T   R E F   Q U E R Y   I M G S ---------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images_path: list[str], gt: list[str],
+                          pred_cs: list[str]):
+    """
+    Plots the reference and query images with their corresponding ground truth and predicted class labels.
 
-        if os.path.isdir(subdir_path):
-            file_to_pick = os.listdir(subdir_path)[0]
-            latest_file_path = os.path.join(subdir_path, file_to_pick)
-            destination_file_path = os.path.join(destination_directory, "tex", latest_file_path.split("\\")[2])
-            shutil.copy2(latest_file_path, destination_file_path)
+    :param indices: list of indices representing the matched reference images for each query image
+    :param q_images_path: list of file paths to query images
+    :param r_images_path: list of file paths to reference images
+    :param gt: list of ground truth class labels for each query image
+    :param pred_cs: list of predicted class labels for each query image
+    """
 
+    new_list = [i for i in range(len(indices))]
 
-def segment_pills(img_path, img_gray_path, label, predicted_value):
-    img = cv2.imread(img_path, 1)
-    img_gray = cv2.imread(img_gray_path, 0)
-
-    # Create a blank 3 channel image with zeros
-    img_color = np.zeros((img_gray.shape[0], img_gray.shape[1], 3), dtype=np.uint8)
-
-    # Merge the gray image with the blank color image to get a 3 channel image
-    img_color = cv2.merge((img_gray, img_color[:, :, 1], img_color[:, :, 2]))
-    vis_img = cv2.addWeighted(img, 1.0, img_color, 0.3, 0)
-
-    cv2.putText(vis_img, str(label) + ": " + str(np.round(predicted_value, 4)), (0, 50),
-                cv2.FONT_ITALIC, 1, (255, 0, 0))
-
-    cv2.imshow("vis_img", vis_img)
-    cv2.waitKey()
-
-
-def plot_ref_query_imgs(indecies, q_images_path, r_images_path, gt, pred_cs):
-    new_list = [i for i in range(len(indecies))]
-
-    for idx, (i, j, k, l) in enumerate(zip(indecies, new_list, gt, pred_cs)):
+    for idx, (i, j, k, l) in tqdm(enumerate(zip(indices, new_list, gt, pred_cs)), total=len(new_list),
+                                  desc="Plotting ref and query images"):
         img_path_query = q_images_path[j]
         img_query = Image.open(img_path_query)
 
@@ -274,11 +296,11 @@ def plot_ref_query_imgs(indecies, q_images_path, r_images_path, gt, pred_cs):
         img_ref = Image.open(img_path_ref)
 
         plt.figure()
-        f, axarr = plt.subplots(1, 2)
-        axarr[0].imshow(img_query)
-        axarr[0].set_title(k + "_query")
-        axarr[1].imshow(img_ref)
-        axarr[1].set_title(l + "_ref")
+        f, ax = plt.subplots(1, 2)
+        ax[0].imshow(img_query)
+        ax[0].set_title(k + "_query")
+        ax[1].imshow(img_ref)
+        ax[1].set_title(l + "_ref")
 
         output_path = (CONST.dir_query_ref_pred + "/" + str(idx) + ".png")
         plt.savefig(output_path)

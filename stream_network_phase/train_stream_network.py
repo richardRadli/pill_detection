@@ -1,4 +1,3 @@
-import imageio
 import json
 import numpy as np
 import os
@@ -71,7 +70,7 @@ class TrainModel:
             os.makedirs(self.save_path)
 
         # Load dataset
-        train_size = int(0.8 * len(self.dataset))
+        train_size = int(cfg.train_rate * len(self.dataset))
         valid_size = len(self.dataset) - train_size
         print(f"Size of the train set: {train_size}, size of the validation set: {valid_size}")
         train_dataset, valid_dataset = random_split(self.dataset, [train_size, valid_size])
@@ -84,14 +83,10 @@ class TrainModel:
         summary(self.model, (network_cfg.get('channels')[0], cfg.img_size, cfg.img_size))
 
         # Specify loss function
-        self.criterion = torch.nn.TripletMarginLoss(margin=cfg.margin, p=2).to(self.device)
-        # self.criterion = TripletLossWithHardMining(margin=cfg.margin)
+        self.criterion = TripletLossWithHardMining(margin=cfg.margin)
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
-
-        # Scheduler
-        # self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=1 / 3)
 
         # Tensorboard
         tensorboard_log_dir = os.path.join(network_cfg.get('logs_dir'), self.timestamp)
@@ -103,38 +98,24 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- G E T   H A R D  S A M P L E S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def get_hardest_samples(self, hardest_indices, epoch, operation):
+    def get_hardest_samples(self, epoch, hard_neg_images):
         """
 
-        :param hardest_indices:
         :param epoch:
-        :param operation:
+        :param hard_neg_images:
         :return:
         """
 
-        if operation == "anchor":
-            index = 3
-            dict_name = os.path.join(CONST.dir_hardest_anc_samples, self.timestamp, cfg.type_of_network)
-            os.makedirs(dict_name, exist_ok=True)
-            file_name = os.path.join(dict_name, self.timestamp + "_epoch_" + str(epoch) + "_hardest_anc.txt")
-        elif operation == "positive":
-            index = 4
-            dict_name = os.path.join(CONST.dir_hardest_pos_samples, self.timestamp, cfg.type_of_network)
-            os.makedirs(dict_name, exist_ok=True)
-            file_name = os.path.join(dict_name, self.timestamp + "_epoch_" + str(epoch) + "_hardest_pos.txt")
-        elif operation == "negative":
-            index = 5
-            dict_name = os.path.join(CONST.dir_hardest_neg_samples, self.timestamp, cfg.type_of_network)
-            os.makedirs(dict_name, exist_ok=True)
-            file_name = os.path.join(dict_name, self.timestamp + "_epoch_" + str(epoch) + "_hardest_neg.txt")
-        else:
-            raise ValueError("Wrong type!")
+        dict_name = os.path.join(CONST.dir_hardest_neg_samples, self.timestamp, cfg.type_of_network)
+        os.makedirs(dict_name, exist_ok=True)
+        file_name = os.path.join(dict_name, self.timestamp + "_epoch_" + str(epoch) + "_hardest_neg.txt")
 
-        hardest_images = [self.dataset[idx][index] for idx in hardest_indices]
-        dict_imgs = {hardest_indices[i]: hardest_images[i] for i in range(len(hardest_indices))}
+        hardest_samples = []
+        for i, hard_neg_tensor in enumerate(hard_neg_images):
+            hardest_samples.append(hard_neg_tensor)
 
         with open(file_name, "w") as fp:
-            json.dump(dict_imgs, fp)
+            json.dump(hardest_samples, fp)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------------ F I T -----------------------------------------------------
@@ -149,12 +130,14 @@ class TrainModel:
         train_losses = []
         # to track the validation loss as the model trains
         valid_losses = []
-
+        # to mine the hard samples
         hard_neg_images = []
 
         for epoch in tqdm(range(cfg.epochs), desc="Epochs"):
-            for idx, (anchor, positive, negative, _, _, _) in tqdm(enumerate(self.train_data_loader),
-                                                                   total=len(self.train_data_loader), desc="Train"):
+            # Train loop
+            for idx, (anchor, positive, negative, negative_img_path) in tqdm(enumerate(self.train_data_loader),
+                                                                             total=len(self.train_data_loader),
+                                                                             desc="Train"):
                 # Upload data to the GPU
                 anchor = anchor.to(self.device)
                 positive = positive.to(self.device)
@@ -169,26 +152,26 @@ class TrainModel:
                 negative_emb = self.model(negative)
 
                 # Compute triplet loss
-                loss = self.criterion(anchor_emb, positive_emb, negative_emb)
+                loss, hard_neg = self.criterion(anchor_emb, positive_emb, negative_emb)
 
                 # Backward pass, optimize and scheduler
                 loss.backward()
                 self.optimizer.step()
-                # self.scheduler.step()
 
                 # Accumulate loss
                 train_losses.append(loss.item())
 
-                # # Collect hard negative examples
-                # if hard_neg is not None:
-                #     hard_neg_idx = torch.nonzero(torch.all(hard_neg.unsqueeze(1) == negative_emb, dim=2)).squeeze(1)
-                #     hard_neg_images.append(negative[hard_neg_idx])
+                # Record filenames of hardest negative samples
+                if hard_neg is not None:
+                    for filename, sample in zip(negative_img_path, hard_neg):
+                        if sample is not None:
+                            hard_neg_images.append(filename)
 
-            # Validation
+            # Validation loop
             with torch.no_grad():
-                for idx, (anchor, positive, negative, _, _, _) in tqdm(enumerate(self.valid_data_loader),
-                                                                       total=len(self.valid_data_loader),
-                                                                       desc="Validation"):
+                for idx, (anchor, positive, negative, _) in tqdm(enumerate(self.valid_data_loader),
+                                                                 total=len(self.valid_data_loader),
+                                                                 desc="Validation"):
                     # Upload data to GPU
                     anchor = anchor.to(self.device)
                     positive = positive.to(self.device)
@@ -200,7 +183,7 @@ class TrainModel:
                     negative_emb = self.model(negative)
 
                     # Compute triplet loss
-                    val_loss = self.criterion(anchor_emb, positive_emb, negative_emb)
+                    val_loss, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
 
                     # Accumulate loss
                     valid_losses.append(val_loss.item())
@@ -213,27 +196,27 @@ class TrainModel:
             print(f'train_loss: {train_loss:.5f} ' + f'valid_loss: {valid_loss:.5f}')
             print('Learning rate: %e' % self.optimizer.param_groups[0]['lr'])
 
-            # clear lists to track next epoch
+            # Loop over the hard negative tensors
+            self.get_hardest_samples(epoch, hard_neg_images)
+
+            # Clear lists to track next epoch
             train_losses.clear()
             valid_losses.clear()
-
-            # # Loop over the hard negative tensors
-            # for i, hard_neg_tensor in enumerate(hard_neg_images):
-            #     hard_neg_array = (hard_neg_tensor.detach().cpu().numpy() + 1) / 2.0 * 255.0
-            #     hard_neg_array = hard_neg_array.astype(np.uint8)
-            #     hard_neg_array = hard_neg_array.transpose((0, 3, 4, 2, 1))
-            #     for j, image in enumerate(hard_neg_array):
-            #         image = image[:, :, :, 0]
-            #         imageio.imwrite(f"{CONST.dir_rgb_hardest}/{i}_{j}.png", image)
+            hard_neg_images.clear()
 
             # Save the model and weights
             if cfg.save and epoch % cfg.save_freq == 0:
-                torch.save(self.model.state_dict(), self.save_path + "/" + "epoch_" + (str(epoch) + ".pt"))
+                filename = os.path.join(self.save_path, "epoch_" + str(epoch) + ".pt")
+                torch.save(self.model.state_dict(), filename)
 
+        # Close and flush SummaryWriter
         self.writer.close()
         self.writer.flush()
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------- __M A I N__ ----------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
         tm = TrainModel()

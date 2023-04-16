@@ -10,7 +10,7 @@ from PIL import Image
 from const import CONST
 from config import ConfigStreamNetwork
 from stream_network import StreamNetwork
-from utils.utils import find_latest_file, plot_ref_query_imgs
+from utils.utils import find_latest_file, plot_ref_query_images
 
 cfg = ConfigStreamNetwork().parse()
 
@@ -68,6 +68,14 @@ class PillRecognition:
     # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def get_vectors(self, contour_dir, rgb_dir, texture_dir, operation):
+        """
+        :param contour_dir: path to the directory containing contour images
+        :param rgb_dir: path to the directory containing rgb images
+        :param texture_dir: path to the directory containing texture images
+        :param operation: name of the operation being performed
+        :return: tuple containing three lists - vectors, labels, and images_path
+        """
+
         medicine_classes = os.listdir(rgb_dir)
         vectors = []
         labels = []
@@ -104,6 +112,15 @@ class PillRecognition:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def measure_similarity_and_distance(q_labels, r_labels, reference_vectors, query_vectors):
+        """
+
+        :param q_labels:
+        :param r_labels:
+        :param reference_vectors:
+        :param query_vectors:
+        :return:
+        """
+
         similarity_scores_cos_sim = []
         similarity_scores_euc_dist = []
         predicted_medicine_cos_sim = []
@@ -155,25 +172,46 @@ class PillRecognition:
     # ----------------------------------------- M E A S U R E   A C C U R A C Y ----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def measure_accuracy(gt, pred):
+    def measure_accuracy(gt, pred, op):
+        """
+
+        :param gt:
+        :param pred:
+        :param op:
+        :return:
+        """
+
         count = 0
         for i in range(len(gt)):
             if gt[i] == pred[i] or gt[i] == pred[i]:
                 count += 1
-        print(f"Accuracy: {count / len(gt)}")
+        print("Accuracy {}: {:.2%}".format(op, count / len(gt)))
 
     @staticmethod
     def measure_accuracy_comb(gt, pred_cs, pred_ed):
+        """
+
+        :param gt:
+        :param pred_cs:
+        :param pred_ed:
+        :return:
+        """
+
         count = 0
         for i in range(len(gt)):
             if gt[i] == pred_cs[i] or gt[i] == pred_ed[i]:
                 count += 1
-        print(f"Accuracy: {count / len(gt)}")
+        print("Accuracy [Union of CS and ED]: {:.2%}".format(count / len(gt)))
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------- M A I N ----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def main(self):
+        """
+
+        :return:
+        """
+
         query_vecs, q_labels, q_images_path = self.get_vectors(contour_dir=CONST.dir_query_contour,
                                                                rgb_dir=CONST.dir_query_rgb,
                                                                texture_dir=CONST.dir_query_texture,
@@ -186,11 +224,11 @@ class PillRecognition:
 
         gt, pred_cs, pred_ed, indecies = self.measure_similarity_and_distance(q_labels, r_labels, ref_vecs, query_vecs)
 
-        self.measure_accuracy(gt, pred_cs)
-        self.measure_accuracy(gt, pred_ed)
+        self.measure_accuracy(gt, pred_cs, "cos. sim.")
+        self.measure_accuracy(gt, pred_ed, "euc. dist.")
         self.measure_accuracy_comb(gt, pred_cs, pred_ed)
 
-        # plot_ref_query_imgs(indecies, q_images_path, r_images_path, gt, pred_ed)
+        plot_ref_query_images(indecies, q_images_path, r_images_path, gt, pred_ed)
 
 
 if __name__ == "__main__":
