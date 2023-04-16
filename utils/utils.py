@@ -3,6 +3,7 @@ import gc
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import pandas as pd
 import re
 import shutil
 import torch
@@ -346,3 +347,8 @@ def create_label_dirs(rgb_path: str, contour_path: str, texture_path: str) -> No
                 shutil.move(os.path.join(rgb_path, file_rgb), out_path_rgb)
                 shutil.move(os.path.join(contour_path, file_contour), out_path_contour)
                 shutil.move(os.path.join(texture_path, file_texture), out_path_texture)
+
+
+def print_network_config(cfg):
+    df = pd.DataFrame.from_dict(vars(cfg), orient='index', columns=['value'])
+    print("Parameters of the selected StreamNetwork\n", df)

@@ -13,7 +13,7 @@ from const import CONST
 from stream_dataset_loader import StreamDataset
 from stream_network import StreamNetwork
 from triplet_loss import TripletLossWithHardMining
-from utils.utils import create_timestamp
+from utils.utils import create_timestamp, print_network_config
 
 cfg = ConfigStreamNetwork().parse()
 
@@ -26,7 +26,7 @@ class TrainModel:
     # --------------------------------------------------- _ I N I T _ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
-        print(f"The selected network is {cfg.type_of_network}")
+        print_network_config(cfg)
 
         # Create time stamp
         self.timestamp = create_timestamp()
@@ -43,19 +43,22 @@ class TrainModel:
                 "channels": [3, 64, 96, 128, 256, 384, 512],
                 "dataset_dir": CONST.dir_bounding_box,
                 "model_weights_dir": CONST.dir_stream_rgb_model_weights,
-                "logs_dir": CONST.dir_rgb_logs
+                "logs_dir": CONST.dir_rgb_logs,
+                "learning_rate": cfg.learning_rate_rgb
             },
             "Texture": {
                 "channels": [1, 32, 48, 64, 128, 192, 256],
                 "dataset_dir": CONST.dir_texture,
                 "model_weights_dir": CONST.dir_stream_texture_model_weights,
-                "logs_dir": CONST.dir_texture_logs
+                "logs_dir": CONST.dir_texture_logs,
+                "learning_rate": cfg.learning_rate_con_tex
             },
             "Contour": {
                 "channels": [1, 32, 48, 64, 128, 192, 256],
                 "dataset_dir": CONST.dir_contour,
                 "model_weights_dir": CONST.dir_stream_contour_model_weights,
-                "logs_dir": CONST.dir_contour_logs
+                "logs_dir": CONST.dir_contour_logs,
+                "learning_rate": cfg.learning_rate_con_tex
             }
         }
 
@@ -72,7 +75,7 @@ class TrainModel:
         # Load dataset
         train_size = int(cfg.train_rate * len(self.dataset))
         valid_size = len(self.dataset) - train_size
-        print(f"Size of the train set: {train_size}, size of the validation set: {valid_size}")
+        print(f"\nSize of the train set: {train_size}\nSize of the validation set: {valid_size}\n")
         train_dataset, valid_dataset = random_split(self.dataset, [train_size, valid_size])
         self.train_data_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True)
         self.valid_data_loader = DataLoader(valid_dataset, batch_size=cfg.batch_size, shuffle=True)
@@ -86,7 +89,8 @@ class TrainModel:
         self.criterion = TripletLossWithHardMining(margin=cfg.margin)
 
         # Specify optimizer
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=network_cfg.get("learning_rate"),
+                                          weight_decay=cfg.weight_decay)
 
         # Tensorboard
         tensorboard_log_dir = os.path.join(network_cfg.get('logs_dir'), self.timestamp)

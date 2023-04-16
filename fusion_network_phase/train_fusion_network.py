@@ -37,7 +37,7 @@ class TrainModel:
         # Load dataset
         self.train_data_loader_rgb, self.valid_data_loader_rgb = self.dataset_load(CONST.dir_bounding_box, "RGB")
         self.train_data_loader_contour, self.valid_data_loader_contour = self.dataset_load(CONST.dir_contour, "Contour")
-        self.train_data_loader_texture ,self.valid_data_loader_texture = self.dataset_load(CONST.dir_texture, "Texture")
+        self.train_data_loader_texture, self.valid_data_loader_texture = self.dataset_load(CONST.dir_texture, "Texture")
 
         # Initialize the fusion network
         self.model = FusionNet()
