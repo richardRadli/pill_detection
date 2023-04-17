@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 
 from tqdm import tqdm
-from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader, random_split
 from torchsummary import summary
 
@@ -35,9 +34,11 @@ class TrainModel:
         list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
 
         # Load dataset
-        self.train_data_loader_rgb, self.valid_data_loader_rgb = self.dataset_load(CONST.dir_bounding_box, "RGB")
-        self.train_data_loader_contour, self.valid_data_loader_contour = self.dataset_load(CONST.dir_contour, "Contour")
-        self.train_data_loader_texture, self.valid_data_loader_texture = self.dataset_load(CONST.dir_texture, "Texture")
+        self.train_data_loader_rgb, self.valid_data_loader_rgb = self.dataset_load(CONST.dir_rgb_hardest, "RGB")
+        self.train_data_loader_contour, self.valid_data_loader_contour = self.dataset_load(CONST.dir_contour_hardest,
+                                                                                           "Contour")
+        self.train_data_loader_texture, self.valid_data_loader_texture = self.dataset_load(CONST.dir_texture_hardest,
+                                                                                           "Texture")
 
         # Initialize the fusion network
         self.model = FusionNet()
@@ -72,9 +73,6 @@ class TrainModel:
         # Specify optimizer
         self.optimizer = torch.optim.Adam(list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
                                           lr=cfg.learning_rate)
-
-        # Specify scheduler
-        self.scheduler = StepLR(self.optimizer, step_size=2, gamma=1 / 3)
 
         # Create save path
         self.save_path = os.path.join(CONST.dir_hardest_samples_weights, self.timestamp)
@@ -138,7 +136,6 @@ class TrainModel:
                     # Backward pass
                     loss.backward()
                     self.optimizer.step()
-                    self.scheduler.step()
 
                     train_losses.append(loss.item())
 

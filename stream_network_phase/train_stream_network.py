@@ -102,17 +102,18 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- G E T   H A R D  S A M P L E S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def get_hardest_samples(self, epoch, hard_neg_images):
+    def get_hardest_samples(self, epoch, hard_neg_images, output_dir, op):
         """
-
         :param epoch:
         :param hard_neg_images:
+        :param output_dir:
+        :param op:
         :return:
         """
 
-        dict_name = os.path.join(CONST.dir_hardest_neg_samples, self.timestamp, cfg.type_of_network)
+        dict_name = os.path.join(output_dir, self.timestamp, cfg.type_of_network)
         os.makedirs(dict_name, exist_ok=True)
-        file_name = os.path.join(dict_name, self.timestamp + "_epoch_" + str(epoch) + "_hardest_neg.txt")
+        file_name = os.path.join(dict_name, self.timestamp + "_epoch_" + str(epoch) + "_%s.txt" % op)
 
         hardest_samples = []
         for i, hard_neg_tensor in enumerate(hard_neg_images):
@@ -134,14 +135,15 @@ class TrainModel:
         train_losses = []
         # to track the validation loss as the model trains
         valid_losses = []
-        # to mine the hard samples
+        # to mine the hard negative samples
         hard_neg_images = []
+        # to mine the hard positive samples
+        hard_pos_images = []
 
         for epoch in tqdm(range(cfg.epochs), desc="Epochs"):
             # Train loop
-            for idx, (anchor, positive, negative, negative_img_path) in tqdm(enumerate(self.train_data_loader),
-                                                                             total=len(self.train_data_loader),
-                                                                             desc="Train"):
+            for idx, (anchor, positive, negative, negative_img_path, positive_img_path) in \
+                    tqdm(enumerate(self.train_data_loader), total=len(self.train_data_loader), desc="Train"):
                 # Upload data to the GPU
                 anchor = anchor.to(self.device)
                 positive = positive.to(self.device)
@@ -156,7 +158,7 @@ class TrainModel:
                 negative_emb = self.model(negative)
 
                 # Compute triplet loss
-                loss, hard_neg = self.criterion(anchor_emb, positive_emb, negative_emb)
+                loss, hard_neg, hard_pos = self.criterion(anchor_emb, positive_emb, negative_emb)
 
                 # Backward pass, optimize and scheduler
                 loss.backward()
@@ -171,11 +173,17 @@ class TrainModel:
                         if sample is not None:
                             hard_neg_images.append(filename)
 
+                # Record filenames of hardest negative samples
+                if hard_pos is not None:
+                    for filename, sample in zip(positive_img_path, hard_pos):
+                        if sample is not None:
+                            hard_pos_images.append(filename)
+
             # Validation loop
             with torch.no_grad():
-                for idx, (anchor, positive, negative, _) in tqdm(enumerate(self.valid_data_loader),
-                                                                 total=len(self.valid_data_loader),
-                                                                 desc="Validation"):
+                for idx, (anchor, positive, negative, _, _) in tqdm(enumerate(self.valid_data_loader),
+                                                                    total=len(self.valid_data_loader),
+                                                                    desc="Validation"):
                     # Upload data to GPU
                     anchor = anchor.to(self.device)
                     positive = positive.to(self.device)
@@ -187,7 +195,7 @@ class TrainModel:
                     negative_emb = self.model(negative)
 
                     # Compute triplet loss
-                    val_loss, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
+                    val_loss, _, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
 
                     # Accumulate loss
                     valid_losses.append(val_loss.item())
@@ -201,12 +209,14 @@ class TrainModel:
             print('Learning rate: %e' % self.optimizer.param_groups[0]['lr'])
 
             # Loop over the hard negative tensors
-            self.get_hardest_samples(epoch, hard_neg_images)
+            self.get_hardest_samples(epoch, hard_neg_images, CONST.dir_hardest_neg_samples, "negative")
+            self.get_hardest_samples(epoch, hard_pos_images, CONST.dir_hardest_pos_samples, "positive")
 
             # Clear lists to track next epoch
             train_losses.clear()
             valid_losses.clear()
             hard_neg_images.clear()
+            hard_pos_images.clear()
 
             # Save the model and weights
             if cfg.save and epoch % cfg.save_freq == 0:

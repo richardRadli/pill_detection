@@ -93,7 +93,8 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=30)
         self.parser.add_argument("--batch_size", type=int, default=128)
-        self.parser.add_argument("--learning_rate", type=float, default=1e-4)  # 3e-4 for tex and con 1e-4 for rgb
+        self.parser.add_argument("--learning_rate_rgb", type=float, default=1e-4)
+        self.parser.add_argument("--learning_rate_con_tex", type=float, default=3e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)
         self.parser.add_argument("--save", type=bool, default=True)
         self.parser.add_argument("--save_freq", type=int, default=1)
@@ -114,8 +115,8 @@ class ConfigFusionNetwork:
 
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=20)
-        self.parser.add_argument("--batch_size", type=int, default=64)
-        self.parser.add_argument("--learning_rate", type=float, default=10**-4)
+        self.parser.add_argument("--batch_size", type=int, default=32)
+        self.parser.add_argument("--learning_rate", type=float, default=1e-4)
         self.parser.add_argument("--save", type=bool, default=True)
         self.parser.add_argument("--save_freq", type=int, default=1)
         self.parser.add_argument("--img_size", type=int, default=128)

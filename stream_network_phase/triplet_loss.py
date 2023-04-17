@@ -30,7 +30,27 @@ class TripletLossWithHardMining(torch.nn.Module):
             hard_neg.append(negative[candidate_idxs[hard_neg_idx]].unsqueeze(0))
         hard_neg = torch.cat([x for x in hard_neg if x is not None], dim=0)
 
+        # Select the hardest positive sample for each anchor
+        hard_pos = []
+        for i in range(dist_pos.size(0)):
+            # Get the indices of the positive samples that violate the margin
+            dist_diff = dist_neg[i] - dist_pos[i] + self.margin
+            candidate_idxs = torch.where(dist_diff > 0)[0]
+            if len(candidate_idxs) == 0:
+                # If there are no positive samples that violate the margin, skip
+                hard_pos.append(None)
+            else:
+                # Select the hardest positive sample (i.e., the one with the smallest distance to the anchor)
+                if len(candidate_idxs) == 1:
+                    hard_pos_idx = candidate_idxs[0]
+                else:
+                    hard_pos_idx = torch.argmin(dist_pos[i, candidate_idxs])
+                hard_pos.append(positive[candidate_idxs[hard_pos_idx]].unsqueeze(0))
+
+        # Combine the hardest negative and hardest positive samples into a single tensor
+        hard_pos = torch.cat([x for x in hard_pos if x is not None], dim=0)
+
         # Compute the loss
         loss = F.relu(self.margin + dist_pos - dist_neg).mean()
 
-        return loss, hard_neg
+        return loss, hard_neg, hard_pos
