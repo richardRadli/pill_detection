@@ -96,7 +96,8 @@ class _Const(object):
                  "data/fusion_net_weights",                 # 11
                  "data/fusion_net_logs",                    # 12
                  "data/cam_data",                           # 13
-                 "data/train_labels"                        # 14
+                 "data/train_labels",                       # 14
+                 "data/fusion_network_predictions"          # 15
              ]
 
     # Aux variables for the other directories. These will be created by the program.
@@ -128,6 +129,7 @@ class _Const(object):
     dir_cam_data = os.path.join(PROJECT_ROOT, dirs_data[13])
     dir_labels_data = os.path.join(PROJECT_ROOT, dirs_data[14])
     dir_stream_network_predictions = os.path.join(PROJECT_ROOT, dirs_data[5])
+    dir_fusion_network_predictions = os.path.join(PROJECT_ROOT, dirs_data[15])
 
     directories_data = []
     for d in dirs_data:

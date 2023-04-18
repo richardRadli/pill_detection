@@ -9,13 +9,13 @@ from PIL import Image
 
 from const import CONST
 from config import ConfigStreamNetwork
-from stream_network import StreamNetwork
+from fusion_network import FusionNet
 from utils.utils import create_timestamp, find_latest_file, plot_ref_query_images
 
 cfg = ConfigStreamNetwork().parse()
 
 
-class PillRecognition:
+class PredictFusionNetwork:
     def __init__(self):
         # Create time stamp
         self.timestamp = create_timestamp()
@@ -26,11 +26,8 @@ class PillRecognition:
         self.query_image_rgb = None
         self.query_image_con = None
 
-        self.network_con, self.network_rgb, self.network_tex = self.load_networks()
-
-        self.network_con.eval()
-        self.network_rgb.eval()
-        self.network_tex.eval()
+        self.network = self.load_networks()
+        self.network.eval()
 
         self.preprocess_rgb = transforms.Compose([transforms.Resize((cfg.img_size, cfg.img_size)),
                                                   transforms.ToTensor(),
@@ -45,31 +42,12 @@ class PillRecognition:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def load_networks():
-        """
-        This function loads the pretrained networks, with the latest .pt files
-        :return: The contour, rgb, and texture networks.
-        """
+        latest_con_pt_file = find_latest_file(CONST.dir_fusion_net_weights)
+        network_fusion = FusionNet()
+        network_fusion.load_state_dict(torch.load(latest_con_pt_file))
 
-        list_of_channels_tex_con = [1, 32, 48, 64, 128, 192, 256]
-        list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
+        return network_fusion
 
-        latest_con_pt_file = find_latest_file(CONST.dir_stream_contour_model_weights)
-        latest_rgb_pt_file = find_latest_file(CONST.dir_stream_rgb_model_weights)
-        latest_tex_pt_file = find_latest_file(CONST.dir_stream_texture_model_weights)
-
-        network_con = StreamNetwork(loc=list_of_channels_tex_con)
-        network_rgb = StreamNetwork(loc=list_of_channels_rgb)
-        network_tex = StreamNetwork(loc=list_of_channels_tex_con)
-
-        network_con.load_state_dict(torch.load(latest_con_pt_file))
-        network_rgb.load_state_dict(torch.load(latest_rgb_pt_file))
-        network_tex.load_state_dict(torch.load(latest_tex_pt_file))
-
-        return network_con, network_rgb, network_tex
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     def get_vectors(self, contour_dir: str, rgb_dir: str, texture_dir: str, operation: str):
         """
         :param contour_dir: path to the directory containing contour images
@@ -101,18 +79,13 @@ class PillRecognition:
                 tex_image = self.preprocess_con_tex(tex_image)
 
                 with torch.no_grad():
-                    vector1 = self.network_con(con_image.unsqueeze(0)).squeeze()
-                    vector2 = self.network_rgb(rgb_image.unsqueeze(0)).squeeze()
-                    vector3 = self.network_tex(tex_image.unsqueeze(0)).squeeze()
-                vector = torch.cat((vector1, vector2, vector3), dim=0)
+                    vector = \
+                        self.network(con_image.unsqueeze(0), rgb_image.unsqueeze(0), tex_image.unsqueeze(0)).squeeze()
                 vectors.append(vector)
                 labels.append(med_class)
 
         return vectors, labels, images_path
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------- M E A S U R E   C O S S I M   A N D   E U C D I S T ------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     def measure_similarity_and_distance(self, q_labels, r_labels, reference_vectors, query_vectors):
         """
 
@@ -162,20 +135,13 @@ class PillRecognition:
         pd.set_option('display.max_colwidth', None)
 
         print(df)
-        df.to_csv(os.path.join(CONST.dir_stream_network_predictions, self.timestamp + "_stream_network_prediction.txt"),
+
+        df.to_csv(os.path.join(CONST.dir_fusion_network_predictions, self.timestamp + "_fusion_network_prediction.txt"),
                   sep='\t', index=True)
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ----------------------------------------------------- M A I N ----------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     def main(self):
-        """
-
-        :return:
-        """
-
         query_vecs, q_labels, q_images_path = self.get_vectors(contour_dir=CONST.dir_query_contour,
                                                                rgb_dir=CONST.dir_query_rgb,
                                                                texture_dir=CONST.dir_query_texture,
@@ -186,14 +152,9 @@ class PillRecognition:
                                                              texture_dir=CONST.dir_texture,
                                                              operation="reference")
 
-        gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vecs, query_vecs)
-
-        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed)
+        self.measure_similarity_and_distance(q_labels, r_labels, ref_vecs, query_vecs)
 
 
 if __name__ == "__main__":
-    try:
-        pill_rec = PillRecognition()
-        pill_rec.main()
-    except KeyboardInterrupt as kie:
-        print(kie)
+    pfn = PredictFusionNetwork()
+    pfn.main()

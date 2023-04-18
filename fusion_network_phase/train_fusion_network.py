@@ -71,9 +71,8 @@ class TrainFusionNet:
         self.criterion = nn.TripletMarginLoss(margin=cfg.margin)
 
         # Specify optimizer
-        self.optimizer = torch.optim.Adam(list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
-                                          lr=cfg.learning_rate)
-
+        self.optimizer = torch.optim.SGD(list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
+                                         lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
         # Tensorboard
         tensorboard_log_dir = os.path.join(CONST.dir_fusion_net_logs, self.timestamp)
         if not os.path.exists(tensorboard_log_dir):
