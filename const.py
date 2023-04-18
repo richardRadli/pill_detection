@@ -18,7 +18,7 @@ class _Const(object):
     # ---------------------------------------------- I M A G E   F I L E S ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     # Directories for the images
-    dirs_images = ["images/images_aug", "images/masks_aug", "images/bounding_box", "images/contour", "images/texture",
+    dirs_images = ["images/images_aug", "images/masks_aug", "images/rgb", "images/contour", "images/texture",
                    "images/test_images", "images/test_masks", "images/unet_out", "images/unet_out_2",
                    "images/query/rgb", "images/query/contour", "images/query/texture", "images/query_ref_prediction",
                    "images/contour_hardest", "images/rgb_hardest", "images/texture_hardest"]
@@ -33,7 +33,7 @@ class _Const(object):
     dir_aug_mask = os.path.join(PROJECT_ROOT, dirs_images[1])
 
     # Directories for stream networks, stage 1
-    dir_bounding_box = os.path.join(PROJECT_ROOT, dirs_images[2])
+    dir_rgb = os.path.join(PROJECT_ROOT, dirs_images[2])
     dir_contour = os.path.join(PROJECT_ROOT, dirs_images[3])
     dir_texture = os.path.join(PROJECT_ROOT, dirs_images[4])
 

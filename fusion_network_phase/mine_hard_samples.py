@@ -2,6 +2,7 @@ import os
 import shutil
 
 from glob import glob
+from tqdm import tqdm
 
 from const import CONST
 
@@ -45,7 +46,7 @@ def files_to_move(hardest_sample_images, src_dir):
 
 
 def copy_hardest_samples(new_dir, src_dir, hardest_sample_images):
-    for src_paths in hardest_sample_images:
+    for src_paths in tqdm(hardest_sample_images):
         source_path = os.path.join(src_dir, src_paths.split("\\")[2])
 
         dest_path = src_paths.split("\\")[2]
@@ -60,22 +61,33 @@ def copy_hardest_samples(new_dir, src_dir, hardest_sample_images):
 
 
 def main():
-    latest_contour_txt = get_hardest_samples(CONST.dir_hardest_neg_samples, "2023-04-16_15-37-26/Contour")
-    latest_rgb_txt = get_hardest_samples(CONST.dir_hardest_neg_samples, "2023-04-16_15-17-19/RGB")
-    latex_texture_txt = get_hardest_samples(CONST.dir_hardest_neg_samples, "2023-04-16_15-49-20/Texture")
+    latest_neg_contour_txt = get_hardest_samples(CONST.dir_hardest_neg_samples, "2023-04-17_15-32-47/Contour")
+    latest_neg_rgb_txt = get_hardest_samples(CONST.dir_hardest_neg_samples,     "2023-04-17_15-36-07/RGB")
+    latex_neg_texture_txt = get_hardest_samples(CONST.dir_hardest_neg_samples,  "2023-04-17_15-29-05/Texture")
 
-    hardest_samples_contour = process_txt(latest_contour_txt)
-    hardest_samples_rgb = process_txt(latest_rgb_txt)
-    hardest_samples_texture = process_txt(latex_texture_txt)
+    latest_pos_contour_txt = get_hardest_samples(CONST.dir_hardest_pos_samples, "2023-04-17_15-32-47/Contour")
+    latest_pos_rgb_txt = get_hardest_samples(CONST.dir_hardest_pos_samples,     "2023-04-17_15-36-07/RGB")
+    latex_pos_texture_txt = get_hardest_samples(CONST.dir_hardest_pos_samples,  "2023-04-17_15-29-05/Texture")
 
-    hardest_samples_union = hardest_samples_contour | hardest_samples_rgb | hardest_samples_texture
+    hardest_neg_samples_contour = process_txt(latest_neg_contour_txt)
+    hardest_neg_samples_rgb = process_txt(latest_neg_rgb_txt)
+    hardest_neg_samples_texture = process_txt(latex_neg_texture_txt)
+
+    hardest_pos_samples_contour = process_txt(latest_pos_contour_txt)
+    hardest_pos_samples_rgb = process_txt(latest_pos_rgb_txt)
+    hardest_pos_samples_texture = process_txt(latex_pos_texture_txt)
+
+    hardest_neg_samples_union = hardest_neg_samples_contour | hardest_neg_samples_rgb | hardest_neg_samples_texture
+    hardest_pos_samples_union = hardest_pos_samples_contour | hardest_pos_samples_rgb | hardest_pos_samples_texture
+    hardest_samples_union = hardest_pos_samples_union | hardest_neg_samples_union
 
     result = {x.split('\\')[-1] for x in hardest_samples_union}
+
     files_to_move_contour = files_to_move(result, CONST.dir_contour)
     copy_hardest_samples(CONST.dir_contour_hardest, CONST.dir_contour, files_to_move_contour)
 
-    files_to_move_rgb = files_to_move(result, CONST.dir_bounding_box)
-    copy_hardest_samples(CONST.dir_rgb_hardest, CONST.dir_bounding_box, files_to_move_rgb)
+    files_to_move_rgb = files_to_move(result, CONST.dir_rgb)
+    copy_hardest_samples(CONST.dir_rgb_hardest, CONST.dir_rgb, files_to_move_rgb)
 
     files_to_move_texture = files_to_move(result, CONST.dir_texture)
     copy_hardest_samples(CONST.dir_texture_hardest, CONST.dir_texture, files_to_move_texture)

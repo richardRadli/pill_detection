@@ -29,7 +29,7 @@ class ProcessUnetImages:
             path_to_images = {
                 "images": CONST.dir_train_images,
                 "masks": CONST.dir_train_masks,
-                "rgb": CONST.dir_bounding_box,
+                "rgb": CONST.dir_rgb,
                 "contour": CONST.dir_contour,
                 "texture": CONST.dir_texture
             }
@@ -158,7 +158,7 @@ class ProcessUnetImages:
             output_name = "contour_" + img_path.split("\\")[2]
             output_file = (os.path.join(self.path_to_images.get("contour"), output_name))
             bbox_imgs = cv2.imread(img_path, 0)
-            args_list.append((bbox_imgs, output_file, 7, 10, 50))
+            args_list.append((bbox_imgs, output_file, 7, 10, 40))
 
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(self.create_contour_images, args) for args in args_list]

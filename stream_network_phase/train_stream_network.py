@@ -41,7 +41,7 @@ class TrainModel:
         network_config = {
             "RGB": {
                 "channels": [3, 64, 96, 128, 256, 384, 512],
-                "dataset_dir": CONST.dir_bounding_box,
+                "dataset_dir": CONST.dir_rgb,
                 "model_weights_dir": CONST.dir_stream_rgb_model_weights,
                 "logs_dir": CONST.dir_rgb_logs,
                 "learning_rate": cfg.learning_rate_rgb
