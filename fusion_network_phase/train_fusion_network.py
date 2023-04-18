@@ -5,6 +5,7 @@ import torch.nn as nn
 
 from tqdm import tqdm
 from torch.utils.data import DataLoader, random_split
+from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config import ConfigFusionNetwork
@@ -19,10 +20,7 @@ cfg = ConfigFusionNetwork().parse()
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++ T R A I N   M O D E L +++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class TrainModel:
-    # ------------------------------------------------------------------------------------------------------------------
-    # --------------------------------------------------- _ I N I T _ --------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
+class TrainFusionNet:
     def __init__(self):
         # Create time stamp
         self.timestamp = create_timestamp()
@@ -33,14 +31,16 @@ class TrainModel:
         list_of_channels_con_tex = [1, 32, 48, 64, 128, 192, 256]
         list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
 
-        # Load dataset
-        self.train_data_loader_rgb, self.valid_data_loader_rgb = self.dataset_load(CONST.dir_rgb_hardest, "RGB")
-        self.train_data_loader_contour, self.valid_data_loader_contour = self.dataset_load(CONST.dir_contour_hardest,
-                                                                                           "Contour")
-        self.train_data_loader_texture, self.valid_data_loader_texture = self.dataset_load(CONST.dir_texture_hardest,
-                                                                                           "Texture")
+        # Load datasets using FusionDataset
+        dataset = FusionDataset("C:/Users/ricsi/Documents/project/storage/IVM/images")
+        train_size = int(cfg.train_split * len(dataset))
+        valid_size = len(dataset) - train_size
+        print(f"Size of the train set: {train_size}, size of the validation set: {valid_size}")
+        train_dataset, valid_dataset = random_split(dataset, [train_size, valid_size])
+        self.train_data_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True)
+        self.valid_data_loader = DataLoader(valid_dataset, batch_size=cfg.batch_size, shuffle=True)
 
-        # Initialize the fusion network
+        # # Initialize the fusion network
         self.model = FusionNet()
 
         # Load the saved state dictionaries of the stream networks
@@ -64,8 +64,8 @@ class TrainModel:
         # Load model and upload it to the GPU
         self.model.to(self.device)
         summary(self.model, input_size=[(list_of_channels_con_tex[0], cfg.img_size, cfg.img_size),
-                (list_of_channels_rgb[0], cfg.img_size, cfg.img_size),
-                (list_of_channels_con_tex[0], cfg.img_size, cfg.img_size)])
+                                        (list_of_channels_rgb[0], cfg.img_size, cfg.img_size),
+                                        (list_of_channels_con_tex[0], cfg.img_size, cfg.img_size)])
 
         # Specify loss function
         self.criterion = nn.TripletMarginLoss(margin=cfg.margin)
@@ -74,54 +74,75 @@ class TrainModel:
         self.optimizer = torch.optim.Adam(list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
                                           lr=cfg.learning_rate)
 
+        # Tensorboard
+        tensorboard_log_dir = os.path.join(CONST.dir_fusion_net_logs, self.timestamp)
+        if not os.path.exists(tensorboard_log_dir):
+            os.makedirs(tensorboard_log_dir)
+
+        self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
+
         # Create save path
-        self.save_path = os.path.join(CONST.dir_hardest_samples_weights, self.timestamp)
+        self.save_path = os.path.join(CONST.dir_fusion_net_weights, self.timestamp)
         os.makedirs(self.save_path, exist_ok=True)
 
-    @staticmethod
-    def dataset_load(src_dir, operation):
-        dataset = FusionDataset(src_dir, operation)
-        train_size = int(0.8 * len(dataset))
-        valid_size = len(dataset) - train_size
-        print(f"Size of the train set: {train_size}, size of the validation set: {valid_size}")
-        train_dataset, valid_dataset = random_split(dataset, [train_size, valid_size])
-        train_data_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True)
-        valid_data_loader = DataLoader(valid_dataset, batch_size=cfg.batch_size, shuffle=True)
-
-        return train_data_loader, valid_data_loader
-
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------------ F I T -----------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def fit(self):
         # to track the training loss as the model trains
         train_losses = []
+
         # to track the validation loss as the model trains
         valid_losses = []
-        # to track the average training loss per epoch as the model trains
-        avg_train_losses = []
-        # to track the average validation loss per epoch as the model trains
-        avg_valid_losses = []
 
         for epoch in tqdm(range(cfg.epochs), desc="Epochs"):
-            for loader_rgb, loader_contour, loader_texture in tqdm(zip(self.train_data_loader_rgb,
-                                                                  self.train_data_loader_contour,
-                                                                  self.train_data_loader_texture),
-                                                                   total=len(self.train_data_loader_rgb),
-                                                                   desc="Training"):
-                for batch_rgb, batch_contour, batch_texture in zip(loader_rgb, loader_contour, loader_texture):
-                    anchor_rgb, positive_rgb, negative_rgb, *_ = batch_rgb
-                    anchor_contour, positive_contour, negative_contour, *_ = batch_contour
-                    anchor_texture, positive_texture, negative_texture, *_ = batch_texture
+            for a_rgb, a_con, a_tex, p_rgb, p_con, p_tex, n_rgb, n_con, n_tex in tqdm(self.train_data_loader,
+                                                                                      total=len(self.train_data_loader),
+                                                                                      desc="Training"):
+                anchor_rgb = a_rgb.to(self.device)
+                positive_rgb = p_rgb.to(self.device)
+                negative_rgb = n_rgb.to(self.device)
 
-                    anchor_rgb = anchor_rgb.to(self.device)
-                    positive_rgb = positive_rgb.to(self.device)
-                    negative_rgb = negative_rgb.to(self.device)
+                anchor_contour = a_con.to(self.device)
+                positive_contour = p_con.to(self.device)
+                negative_contour = n_con.to(self.device)
 
-                    anchor_contour = anchor_contour.to(self.device)
-                    positive_contour = positive_contour.to(self.device)
-                    negative_contour = negative_contour.to(self.device)
+                anchor_texture = a_tex.to(self.device)
+                positive_texture = p_tex.to(self.device)
+                negative_texture = n_tex.to(self.device)
 
-                    anchor_texture = anchor_texture.to(self.device)
-                    positive_texture = positive_texture.to(self.device)
-                    negative_texture = negative_texture.to(self.device)
+                self.optimizer.zero_grad()
+
+                # Forward pass
+                anchor_out = self.model(anchor_contour, anchor_rgb, anchor_texture)
+                positive_out = self.model(positive_contour, positive_rgb, positive_texture)
+                negative_out = self.model(negative_contour, negative_rgb, negative_texture)
+
+                # Compute triplet loss
+                t_loss = self.criterion(anchor_out, positive_out, negative_out)
+
+                # Backward pass
+                t_loss.backward()
+                self.optimizer.step()
+
+                # Accumulate loss
+                train_losses.append(t_loss.item())
+
+            # Validation loop
+            with torch.no_grad():
+                for a_rgb, a_con, a_tex, p_rgb, p_con, p_tex, n_rgb, n_con, n_tex in \
+                        tqdm(self.valid_data_loader, total=len(self.valid_data_loader), desc="Validation"):
+                    anchor_rgb = a_rgb.to(self.device)
+                    positive_rgb = p_rgb.to(self.device)
+                    negative_rgb = n_rgb.to(self.device)
+
+                    anchor_contour = a_con.to(self.device)
+                    positive_contour = p_con.to(self.device)
+                    negative_contour = n_con.to(self.device)
+
+                    anchor_texture = a_tex.to(self.device)
+                    positive_texture = p_tex.to(self.device)
+                    negative_texture = n_tex.to(self.device)
 
                     self.optimizer.zero_grad()
 
@@ -131,64 +152,34 @@ class TrainModel:
                     negative_out = self.model(negative_contour, negative_rgb, negative_texture)
 
                     # Compute triplet loss
-                    loss = self.criterion(anchor_out, positive_out, negative_out)
+                    v_loss = self.criterion(anchor_out, positive_out, negative_out)
+                    valid_losses.append(v_loss.item())
 
-                    # Backward pass
-                    loss.backward()
-                    self.optimizer.step()
-
-                    train_losses.append(loss.item())
-
-            # Validation
-            with torch.no_grad():
-                for loader_rgb, loader_contour, loader_texture in tqdm(zip(self.valid_data_loader_rgb,
-                                                                           self.valid_data_loader_contour,
-                                                                           self.valid_data_loader_texture),
-                                                                       total=len(self.valid_data_loader_rgb),
-                                                                       desc="Validation"):
-                    for batch_rgb, batch_contour, batch_texture in zip(loader_rgb, loader_contour, loader_texture):
-                        anchor_rgb, positive_rgb, negative_rgb, *_ = batch_rgb
-                        anchor_contour, positive_contour, negative_contour, *_ = batch_contour
-                        anchor_texture, positive_texture, negative_texture, *_ = batch_texture
-
-                        anchor_rgb = anchor_rgb.to(self.device)
-                        positive_rgb = positive_rgb.to(self.device)
-                        negative_rgb = negative_rgb.to(self.device)
-
-                        anchor_contour = anchor_contour.to(self.device)
-                        positive_contour = positive_contour.to(self.device)
-                        negative_contour = negative_contour.to(self.device)
-
-                        anchor_texture = anchor_texture.to(self.device)
-                        positive_texture = positive_texture.to(self.device)
-                        negative_texture = negative_texture.to(self.device)
-
-                        anchor_out = self.model(anchor_contour, anchor_rgb, anchor_texture)
-                        positive_out = self.model(positive_contour, positive_rgb, positive_texture)
-                        negative_out = self.model(negative_contour, negative_rgb, negative_texture)
-
-                        val_loss = self.criterion(anchor_out, positive_out, negative_out)
-                        valid_losses .append(val_loss.item())
-
+            # Print loss for epoch
             train_loss = np.average(train_losses)
             valid_loss = np.average(valid_losses)
-            avg_train_losses.append(train_loss)
-            avg_valid_losses.append(valid_loss)
-
             print(f'train_loss: {train_loss:.5f} ' + f'valid_loss: {valid_loss:.5f}')
-            print('Learning rate: %e' % self.optimizer.param_groups[0]['lr'])
 
-            # clear lists to track next epoch
+            # Record to tensorboard
+            self.writer.add_scalars("Loss", {"train": train_loss, "validation": valid_loss}, epoch)
+
+            # Clear lists to track next epoch
             train_losses.clear()
             valid_losses.clear()
 
+            # Save the model and weights
             if cfg.save and epoch % cfg.save_freq == 0:
-                torch.save(self.model.state_dict(), self.save_path + "/" + "epoch_" + (str(epoch) + ".pt"))
+                filename = os.path.join(self.save_path, "epoch_" + (str(epoch) + ".pt"))
+                torch.save(self.model.state_dict(), filename)
+
+        # Close and flush SummaryWriter
+        self.writer.close()
+        self.writer.flush()
 
 
 if __name__ == "__main__":
     try:
-        tm = TrainModel()
+        tm = TrainFusionNet()
         tm.fit()
     except KeyboardInterrupt as kbe:
         print(kbe)

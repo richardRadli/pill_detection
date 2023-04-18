@@ -12,6 +12,11 @@ from const import CONST
 # ---------------------------------------------- G E T   C L A S S E S ---------------------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
 def get_classes():
+    """
+
+    :return:
+    """
+
     classes = set()
 
     for filename in os.listdir(CONST.dir_train_images):
@@ -37,6 +42,14 @@ def get_classes():
 # -------------------------------------------- S P L I T   D A T A S E T -------------------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
 def split_dataset(class_counts: dict, train_images: dict, test_images: dict):
+    """
+
+    :param class_counts:
+    :param train_images:
+    :param test_images:
+    :return:
+    """
+
     for filename in os.listdir(CONST.dir_train_images):
         if filename.endswith('.png'):
             class_name = '_'.join(filename.split('_')[2:-1])
@@ -53,6 +66,14 @@ def split_dataset(class_counts: dict, train_images: dict, test_images: dict):
 # ------------------------------------------ S T A T   O F   D A T A S E T ------------------------------------------ #
 # ------------------------------------------------------------------------------------------------------------------- #
 def statistics_of_dataset(class_counts: dict, train_images: dict, test_images: dict):
+    """
+
+    :param class_counts:
+    :param train_images:
+    :param test_images:
+    :return:
+    """
+
     print('Image counts per class:')
     results = []
     for class_name, count in class_counts.items():

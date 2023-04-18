@@ -18,10 +18,22 @@ class _Const(object):
     # ---------------------------------------------- I M A G E   F I L E S ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     # Directories for the images
-    dirs_images = ["images/images_aug", "images/masks_aug", "images/rgb", "images/contour", "images/texture",
-                   "images/test_images", "images/test_masks", "images/unet_out", "images/unet_out_2",
-                   "images/query/rgb", "images/query/contour", "images/query/texture", "images/query_ref_prediction",
-                   "images/contour_hardest", "images/rgb_hardest", "images/texture_hardest"]
+    dirs_images = ["images/images_aug",
+                   "images/masks_aug",
+                   "images/rgb",
+                   "images/contour",
+                   "images/texture",
+                   "images/test_images",
+                   "images/test_masks",
+                   "images/unet_out",
+                   "images/unet_out_2",
+                   "images/query/rgb",
+                   "images/query/contour",
+                   "images/query/texture",
+                   "images/query_ref_prediction",
+                   "images/contour_hardest",
+                   "images/rgb_hardest",
+                   "images/texture_hardest"]
 
     # Directories for the train images. These two directories must exist, it won't be created by the program.
     dir_train_images = os.path.join(PROJECT_ROOT, 'images/train_images/')
@@ -70,38 +82,52 @@ class _Const(object):
     # ----------------------------------------------- D A T A   F I L E S ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     # Directories for the data
-    dirs_data = ["data/unet_checkpoints", "data/stream_contour_model_weights", "data/stream_rgb_model_weights",
-                 "data/stream_texture_model_weights", "data/logs_unet", "data/logs_contour", "data/logs_rgb",
-                 "data/logs_texture", "data/hardest_samples/negative", "data/hardest_samples/positive",
-                 "data/hardest_samples_weights", "data/cam_data", "data/train_labels",
-                 "data/stream_network_predictions"]
+    dirs_data = ["data/unet_checkpoints",                   # 0
+                 "data/logs_unet",                          # 1
+                 "data/stream_contour_model_weights",       # 2
+                 "data/stream_rgb_model_weights",           # 3
+                 "data/stream_texture_model_weights",       # 4
+                 "data/stream_network_predictions",         # 5
+                 "data/logs_contour",                       # 6
+                 "data/logs_rgb",                           # 7
+                 "data/logs_texture",                       # 8
+                 "data/hardest_samples/negative",           # 9
+                 "data/hardest_samples/positive",           # 10
+                 "data/fusion_net_weights",                 # 11
+                 "data/fusion_net_logs",                    # 12
+                 "data/cam_data",                           # 13
+                 "data/train_labels"                        # 14
+             ]
 
     # Aux variables for the other directories. These will be created by the program.
     # Directories for UNET
     dir_unet_checkpoint = os.path.join(PROJECT_ROOT, dirs_data[0])
-    dir_unet_logs = os.path.join(PROJECT_ROOT, dirs_data[4])
+    dir_unet_logs = os.path.join(PROJECT_ROOT, dirs_data[1])
 
     # Directories for stream networks, for saving the weights
-    dir_stream_contour_model_weights = os.path.join(PROJECT_ROOT, dirs_data[1])
-    dir_stream_rgb_model_weights = os.path.join(PROJECT_ROOT, dirs_data[2])
-    dir_stream_texture_model_weights = os.path.join(PROJECT_ROOT, dirs_data[3])
+    dir_stream_contour_model_weights = os.path.join(PROJECT_ROOT, dirs_data[2])
+    dir_stream_rgb_model_weights = os.path.join(PROJECT_ROOT, dirs_data[3])
+    dir_stream_texture_model_weights = os.path.join(PROJECT_ROOT, dirs_data[4])
 
     # Directories for stream networks, for saving the logs
-    dir_contour_logs = os.path.join(PROJECT_ROOT, dirs_data[5])
-    dir_rgb_logs = os.path.join(PROJECT_ROOT, dirs_data[6])
-    dir_texture_logs = os.path.join(PROJECT_ROOT, dirs_data[7])
+    dir_contour_logs = os.path.join(PROJECT_ROOT, dirs_data[6])
+    dir_rgb_logs = os.path.join(PROJECT_ROOT, dirs_data[7])
+    dir_texture_logs = os.path.join(PROJECT_ROOT, dirs_data[8])
 
     # Directories for the hard samples (txt files)
-    dir_hardest_neg_samples = os.path.join(PROJECT_ROOT, dirs_data[8])
-    dir_hardest_pos_samples = os.path.join(PROJECT_ROOT, dirs_data[9])
+    dir_hardest_neg_samples = os.path.join(PROJECT_ROOT, dirs_data[9])
+    dir_hardest_pos_samples = os.path.join(PROJECT_ROOT, dirs_data[10])
 
     # Directory for the hard samples (pt files)
-    dir_hardest_samples_weights = os.path.join(PROJECT_ROOT, dirs_data[10])
+    dir_fusion_net_weights = os.path.join(PROJECT_ROOT, dirs_data[11])
+
+    # Directory for logging the fusion network
+    dir_fusion_net_logs = os.path.join(PROJECT_ROOT, dirs_data[12])
 
     # Other
-    dir_cam_data = os.path.join(PROJECT_ROOT, dirs_data[11])
-    dir_labels_data = os.path.join(PROJECT_ROOT, dirs_data[12])
-    dir_stream_network_predictions = os.path.join(PROJECT_ROOT, dirs_data[13])
+    dir_cam_data = os.path.join(PROJECT_ROOT, dirs_data[13])
+    dir_labels_data = os.path.join(PROJECT_ROOT, dirs_data[14])
+    dir_stream_network_predictions = os.path.join(PROJECT_ROOT, dirs_data[5])
 
     directories_data = []
     for d in dirs_data:

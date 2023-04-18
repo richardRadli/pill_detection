@@ -6,6 +6,7 @@ import re
 from PIL import Image, ImageDraw
 from pathlib import Path
 from tqdm import tqdm
+from typing import Tuple, List
 
 from const import CONST
 
@@ -13,23 +14,30 @@ from const import CONST
 # ------------------------------------------------------------------------------------------------------------------- #
 # ----------------------------------------------- L O A D   F I L E S ----------------------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
-def load_files():
-    if not os.path.isdir(CONST.dir_train_images):
-        raise ValueError(f"Invalid path: {CONST.dir_train_images} is not a directory")
+def load_files(train_dir: str, labels_dir: str) -> Tuple[List[str], List[str]]:
+    """
+    This function loads the image and label files from two directories: train_dir and labels_dir.
+    :param train_dir: it is the path to the directory containing the image files.
+    :param labels_dir: it is the path to the directory containing the corresponding label files for each image
+    :return: two lists of file paths: image_files and text_files.
+    """
+
+    if not os.path.isdir(train_dir):
+        raise ValueError(f"Invalid path: {train_dir} is not a directory")
 
     if not os.path.isdir(CONST.dir_labels_data):
-        raise ValueError(f"Invalid path: {CONST.dir_labels_data} is not a directory")
+        raise ValueError(f"Invalid path: {labels_dir} is not a directory")
 
-    image_files = sorted([str(file) for file in Path(CONST.dir_train_images).glob("*.jpg")] +
-                         [str(file) for file in Path(CONST.dir_train_images).glob("*.png")])
+    image_files = sorted([str(file) for file in Path(train_dir).glob("*.jpg")] +
+                         [str(file) for file in Path(train_dir).glob("*.png")])
 
-    text_files = sorted([str(file) for file in Path(CONST.dir_labels_data).glob("*.txt")])
+    text_files = sorted([str(file) for file in Path(labels_dir).glob("*.txt")])
 
     if not image_files:
-        raise ValueError(f"No image files found in {CONST.dir_train_images}")
+        raise ValueError(f"No image files found in {train_dir}")
 
     if not text_files:
-        raise ValueError(f"No text files found in {CONST.dir_labels_data}")
+        raise ValueError(f"No text files found in {labels_dir}")
 
     return image_files, text_files
 
@@ -37,7 +45,13 @@ def load_files():
 # ------------------------------------------------------------------------------------------------------------------- #
 # --------------------------------------- R E M O V E   R O B O F L O W   S U F F I X ------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
-def remove_roboflow_suffix(file_name):
+def remove_roboflow_suffix(file_name: str) -> str:
+    """
+    This function removes the suffix that roboflow adds to the filename.
+    :param file_name: input filename
+    :return: new filename
+    """
+
     new_name = None
 
     if file_name.endswith(".jpg"):
@@ -58,6 +72,18 @@ def remove_roboflow_suffix(file_name):
 # --------------------------------------------- P R O C E S S   D A T A --------------------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
 def process_data(img_files: str, txt_files: str):
+    """
+    Given the file paths to an image file and a corresponding text file with object coordinates in YOLO format,
+    loads the image, extracts the object coordinates, and creates a binary mask indicating where the object is.
+
+    :param img_files: A string specifying the path to an image file.
+    :param txt_files: A string specifying the path to a text file with YOLO object coordinates.
+
+    :return: A tuple of (img, mask), where img is a PIL Image object representing the loaded image,
+             and mask is a numpy array representing a binary mask indicating the object location.
+             Returns (None, None) if either file path is invalid.
+    """
+
     try:
         img = Image.open(img_files)
         img_width, img_height = img.size
@@ -87,8 +113,15 @@ def process_data(img_files: str, txt_files: str):
 # ------------------------------------------------------------------------------------------------------------------- #
 # ----------------------------------------------- S A V E   M A S K S ----------------------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
-def save_masks(mask: np.ndarray, img_file: str):
-    name = img_file.split("\\")[-1]
+def save_masks(mask: np.ndarray, img_file: str) -> None:
+    """
+    This function saves the mask to a given path.
+    :param mask: Mask image.
+    :param img_file: path of the image file
+    :return: None
+    """
+
+    name = os.path.basename(img_file)
     save_path = (os.path.join(CONST.dir_train_masks, name))
     mask_pil = Image.fromarray(mask)
     mask_pil.save(save_path)
@@ -97,8 +130,16 @@ def save_masks(mask: np.ndarray, img_file: str):
 # ------------------------------------------------------------------------------------------------------------------- #
 # ----------------------------------------------------- M A I N ----------------------------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
-def main(ditch_suffix: bool = True, save: bool = True):
-    img_files, txt_files = load_files()
+def main(ditch_suffix: bool = True, save: bool = True) -> None:
+    """
+    Runs the main processing pipeline.
+
+    :param ditch_suffix: If True, removes suffix from filenames.
+    :param save: If True, saves masks.
+    :return: None
+    """
+
+    img_files, txt_files = load_files(train_dir=CONST.dir_train_images, labels_dir=CONST.dir_labels_data)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []

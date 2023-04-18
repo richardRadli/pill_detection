@@ -114,7 +114,8 @@ class ConfigFusionNetwork:
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument("--margin", type=float, default=0.5)
-        self.parser.add_argument("--epochs", type=int, default=20)
+        self.parser.add_argument("--train_split", type=float, default=0.8)
+        self.parser.add_argument("--epochs", type=int, default=10)
         self.parser.add_argument("--batch_size", type=int, default=32)
         self.parser.add_argument("--learning_rate", type=float, default=1e-4)
         self.parser.add_argument("--save", type=bool, default=True)

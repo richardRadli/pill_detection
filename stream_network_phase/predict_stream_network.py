@@ -153,8 +153,8 @@ class PillRecognition:
 
         df = pd.DataFrame(list(zip(q_labels, predicted_medicine_euc_dist)),
                           columns=['GT Medicine Name', 'Predicted Medicine Name (ED)'])
-        df.loc[len(df)] = ["Correctly predicted: ", f'{num_correct}']
-        df.loc[len(df)] = ["Miss predicted: ", f'{len(query_vectors) - num_correct}']
+        df.loc[len(df)] = ["Correctly predicted:", f'{num_correct}']
+        df.loc[len(df)] = ["Miss predicted:", f'{len(query_vectors) - num_correct}']
         df.loc[len(df)] = ['Accuracy:', f'{accuracy:.4%}']
         pd.set_option('display.max_rows', None)
         pd.set_option('display.max_columns', None)
@@ -182,13 +182,13 @@ class PillRecognition:
                                                                operation="query")
 
         ref_vecs, r_labels, r_images_path = self.get_vectors(contour_dir=CONST.dir_contour,
-                                                             rgb_dir=CONST.dir_bounding_box,
+                                                             rgb_dir=CONST.dir_rgb,
                                                              texture_dir=CONST.dir_texture,
                                                              operation="reference")
 
         gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vecs, query_vecs)
 
-        # plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed)
+        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed)
 
 
 if __name__ == "__main__":

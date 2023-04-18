@@ -206,7 +206,6 @@ class TrainModel:
 
             # Print loss for epoch
             print(f'train_loss: {train_loss:.5f} ' + f'valid_loss: {valid_loss:.5f}')
-            print('Learning rate: %e' % self.optimizer.param_groups[0]['lr'])
 
             # Loop over the hard negative tensors
             self.get_hardest_samples(epoch, hard_neg_images, CONST.dir_hardest_neg_samples, "negative")
