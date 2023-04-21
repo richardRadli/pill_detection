@@ -152,9 +152,13 @@ class PredictFusionNetwork:
                                                              texture_dir=CONST.dir_texture,
                                                              operation="reference")
 
-        self.measure_similarity_and_distance(q_labels, r_labels, ref_vecs, query_vecs)
+        gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vecs, query_vecs)
+        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, operation="fuse")
 
 
 if __name__ == "__main__":
-    pfn = PredictFusionNetwork()
-    pfn.main()
+    try:
+        pfn = PredictFusionNetwork()
+        pfn.main()
+    except KeyboardInterrupt as kie:
+        print(kie)

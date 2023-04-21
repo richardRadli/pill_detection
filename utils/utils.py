@@ -148,24 +148,21 @@ def unique_mask_values(idx, mask_dir, mask_suffix):
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------ R E A D   I M G   A N D   M A S K -----------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def read_image_and_mask():
+def read_image():
     """
 
     :return:
     """
 
     images = sorted(glob(CONST.dir_train_images + "*.png"))
-    masks = sorted(glob(CONST.dir_train_masks + "*.png"))
+    file_names = []
+    images_list = []
 
-    images_list, masks_list = [], []
-
-    for idx, (img_path, mask_path) in enumerate(zip(images, masks)):
+    for idx, img_path in tqdm(enumerate(images), desc="Reading images", total=len(images)):
+        file_names.append(os.path.basename(img_path))
         train_img = cv2.imread(img_path, 1)
         images_list.append(train_img)
-        mask_img = cv2.imread(mask_path, 1)
-        masks_list.append(mask_img)
-
-    return np.array(images_list), np.array(masks_list)
+    return np.array(images_list), file_names
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -275,7 +272,7 @@ def find_latest_file(path):
 # ---------------------------------------- P L O T   R E F   Q U E R Y   I M G S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images_path: list[str], gt: list[str],
-                          pred_cs: list[str]):
+                          pred_cs: list[str], operation: str):
     """
     Plots the reference and query images with their corresponding ground truth and predicted class labels.
 
@@ -284,8 +281,11 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
     :param r_images_path: list of file paths to reference images
     :param gt: list of ground truth class labels for each query image
     :param pred_cs: list of predicted class labels for each query image
+    :param operation: stream or fusion network
+    :return: None
     """
 
+    out_path = CONST.dir_query_ref_pred if operation == "stream" else CONST.dir_fusion_net_pred
     new_list = [i for i in range(len(indices))]
 
     for idx, (i, j, k, l) in tqdm(enumerate(zip(indices, new_list, gt, pred_cs)), total=len(new_list),
@@ -303,7 +303,8 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
         ax[1].imshow(img_ref)
         ax[1].set_title(l + "_ref")
 
-        output_path = (CONST.dir_query_ref_pred + "/" + str(idx) + ".png")
+        output_path = os.path.join(out_path, str(idx) + ".png")
+        print(output_path)
         plt.savefig(output_path)
         plt.close()
 
@@ -350,5 +351,97 @@ def create_label_dirs(rgb_path: str, contour_path: str, texture_path: str) -> No
 
 
 def print_network_config(cfg):
+    """
+
+    :param cfg:
+    :return:
+    """
+
     df = pd.DataFrame.from_dict(vars(cfg), orient='index', columns=['value'])
     print("Parameters of the selected StreamNetwork\n", df)
+
+
+def find_stream_folders(path):
+    """
+
+    :param path:
+    :return:
+    """
+    found_paths = []
+
+    dirs = sorted(glob(os.path.join(path, '????-??-??_??-??-??')), reverse=True)
+    subdir_dict = {'RGB': [], 'Contour': [], 'Texture': []}
+
+    for d in dirs:
+        subdirs = ['RGB', 'Contour', 'Texture']
+        for subdir in subdirs:
+            if os.path.isdir(os.path.join(d, subdir)):
+                subdir_dict[subdir].append(d)
+                break
+
+        if all(subdir_dict.values()):
+            break
+
+    for subdir, dirs in subdir_dict.items():
+        print(f"{subdir} directories:")
+        for d in dirs:
+            print(f"  {d}")
+            found_paths.append(d)
+
+    return found_paths
+
+
+def prediction_statistics(stream_network_prediction_file: str, fusion_network_prediction_file: str):
+    with open(stream_network_prediction_file, 'r') as f1, open(fusion_network_prediction_file, 'r') as f2:
+        f1_lines = f1.readlines()[1:-3]
+        f2_lines = f2.readlines()[1:-3]
+
+        same_count = 0
+        diff_count = 0
+
+        differ_list = []
+
+        for line1, line2 in zip(f1_lines, f2_lines):
+            cols1 = line1.strip().split('\t')
+            cols2 = line2.strip().split('\t')
+
+            if cols1[2] == cols2[2]:
+                same_count += 1
+            else:
+                differ_list.append([cols1[1], cols1[2], cols2[2]])
+                diff_count += 1
+
+    print("Number of times predicted medicine names were the same:", same_count)
+    print("Number of times predicted medicine names differed:", diff_count)
+
+    df = pd.DataFrame(differ_list, columns=['GT', 'SN', 'FN'])
+
+    sn_cnt = 0
+    sn_list = []
+    fn_cnt = 0
+    fn_list = []
+    n_count = 0
+    n_list = []
+
+    print(df)
+
+    for _, (gt, sn, fn) in enumerate(differ_list):
+        if gt == sn and gt != fn:
+            sn_cnt += 1
+            sn_list.append([gt, sn, fn])
+
+        if gt == fn and gt != sn:
+            fn_cnt += 1
+            fn_list.append([gt, sn, fn])
+
+        if gt != sn and gt != fn:
+            n_count += 1
+            n_list.append([gt, sn, fn])
+
+    df_sn = pd.DataFrame(sn_list, columns=['GT', 'SN', 'FN'])
+    df_fn = pd.DataFrame(fn_list, columns=['GT', 'SN', 'FN'])
+    df_n = pd.DataFrame(n_list, columns=['GT', 'SN', 'FN'])
+
+    print(df_sn)
+    print(df_fn)
+    print(df_n)

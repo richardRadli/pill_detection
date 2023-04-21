@@ -94,6 +94,9 @@ class TrainFusionNet:
         # to track the validation loss as the model trains
         valid_losses = []
 
+        best_valid_loss = float('inf')
+        best_model_path = None
+
         for epoch in tqdm(range(cfg.epochs), desc="Epochs"):
             for a_rgb, a_con, a_tex, p_rgb, p_con, p_tex, n_rgb, n_con, n_tex in tqdm(self.train_data_loader,
                                                                                       total=len(self.train_data_loader),
@@ -167,9 +170,13 @@ class TrainFusionNet:
             valid_losses.clear()
 
             # Save the model and weights
-            if cfg.save and epoch % cfg.save_freq == 0:
-                filename = os.path.join(self.save_path, "epoch_" + (str(epoch) + ".pt"))
-                torch.save(self.model.state_dict(), filename)
+            if valid_loss < best_valid_loss:
+                # Save the best model
+                best_valid_loss = valid_loss
+                if best_model_path is not None:
+                    os.remove(best_model_path)
+                best_model_path = os.path.join(self.save_path, "epoch_" + (str(epoch) + ".pt"))
+                torch.save(self.model.state_dict(), best_model_path)
 
         # Close and flush SummaryWriter
         self.writer.close()

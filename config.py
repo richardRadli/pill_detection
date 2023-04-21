@@ -71,9 +71,11 @@ class ConfigAugment:
 
         # Testing
         self.parser.add_argument("--augmentation_factor", type=int, default=1)
-        self.parser.add_argument("--use_original", type=bool, default=False)
-        self.parser.add_argument("--use_random_rotation", type=bool, default=True)
-        self.parser.add_argument("--rotation_angle", type=int, default=30)
+        self.parser.add_argument("--use_original", type=bool, default=True)
+        self.parser.add_argument("--use_gaussian_noise", type=bool, default=True)
+        self.parser.add_argument("--use_horizontal_flip", type=bool, default=True)
+        self.parser.add_argument("--use_vertical_flip", type=bool, default=True)
+        self.parser.add_argument("--kernel_size", type=int, default=5)
 
     def parse(self):
         self.opt = self.parser.parse_args()
@@ -88,7 +90,7 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_network", type=str, default="RGB", help="RGB | Contour | Texture")
+        self.parser.add_argument("--type_of_network", type=str, default="Texture", help="RGB | Contour | Texture")
         self.parser.add_argument("--train_rate", type=float, default=0.8)
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=30)
@@ -96,8 +98,6 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--learning_rate_rgb", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_con_tex", type=float, default=3e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)
-        self.parser.add_argument("--save", type=bool, default=True)
-        self.parser.add_argument("--save_freq", type=int, default=1)
         self.parser.add_argument("--img_size", type=int, default=128)
 
     def parse(self):

@@ -5,14 +5,30 @@ from glob import glob
 from tqdm import tqdm
 
 from const import CONST
+from utils.utils import find_stream_folders
 
 
-def get_hardest_samples(samples_dir, sub_dir):
+def get_hardest_samples(samples_dir: str, sub_dir: str) -> str:
+    """
+    Returns the path of the .txt file with the latest created timestamp in a subdirectory of the samples' directory.
+
+    :param samples_dir: The path to the samples' directory.
+    :param sub_dir: The name of the subdirectory to search for the .txt file.
+    :return: The path of the .txt file with the latest created timestamp in the subdirectory.
+    """
+
     directory = os.path.join(samples_dir, sub_dir)
     return max(glob(os.path.join(directory, "*.txt")), key=os.path.getctime)
 
 
-def process_txt(txt_file):
+def process_txt(txt_file: str) -> set:
+    """
+    Reads a .txt file and extracts a set of paths from its contents.
+
+    :param txt_file: The path to the .txt file.
+    :return: A set of paths extracted from the .txt file.
+    """
+
     paths = []
 
     with open(txt_file, 'r') as f:
@@ -24,16 +40,16 @@ def process_txt(txt_file):
     return set(paths)
 
 
-def get_unique_values(hardest_sample):
-    samples = []
-    for name in hardest_sample:
-        file_name = name.split("\\")[-1]
-        file_name = file_name.replace("contour_", "").replace("texture_", "")
-        samples.append(file_name)
-    return samples
+def files_to_move(hardest_sample_images: set, src_dir: str) -> list:
+    """
+    Returns a list of paths to files in a source directory that have a matching name to those in a set of hardest sample
+     images.
 
+    :param hardest_sample_images: A set of hardest sample image names to match against.
+    :param src_dir: The path to the source directory.
+    :return: A list of paths to files in the source directory that match the hardest sample image names.
+    """
 
-def files_to_move(hardest_sample_images, src_dir):
     list_of_files_to_move = []
     for root, dirs, files in os.walk(src_dir):
         for file in files:
@@ -45,7 +61,16 @@ def files_to_move(hardest_sample_images, src_dir):
     return list_of_files_to_move
 
 
-def copy_hardest_samples(new_dir, src_dir, hardest_sample_images):
+def copy_hardest_samples(new_dir: str, src_dir: str, hardest_sample_images: list) -> None:
+    """
+    Copies the hardest sample images from the source directory to a new directory.
+
+    :param new_dir: The path to the new directory.
+    :param src_dir: The path to the source directory.
+    :param hardest_sample_images: A list of hardest sample image paths to copy.
+    :return: None
+    """
+
     for src_paths in tqdm(hardest_sample_images):
         source_path = os.path.join(src_dir, src_paths.split("\\")[2])
 
@@ -55,27 +80,50 @@ def copy_hardest_samples(new_dir, src_dir, hardest_sample_images):
         if not os.path.exists(dest_path):
             os.makedirs(dest_path)
 
-        src_file = os.path.join(source_path, src_paths.split("\\")[-1])
-        dst_file = os.path.join(dest_path, src_paths.split("\\")[-1])
+        src_file = os.path.join(source_path, os.path.basename(src_paths))
+        dst_file = os.path.join(dest_path, os.path.basename(src_paths))
         shutil.copy(src_file, dst_file)
 
 
-def main():
-    latest_neg_contour_txt = get_hardest_samples(CONST.dir_hardest_neg_samples, "2023-04-17_15-32-47/Contour")
-    latest_neg_rgb_txt = get_hardest_samples(CONST.dir_hardest_neg_samples,     "2023-04-17_15-36-07/RGB")
-    latex_neg_texture_txt = get_hardest_samples(CONST.dir_hardest_neg_samples,  "2023-04-17_15-29-05/Texture")
+def get_latest_txt_files(operation: str):
+    """
+    Retrieves the latest .txt files for contour, RGB, and texture data in the specified directories
+    for either positive or negative operations.
 
-    latest_pos_contour_txt = get_hardest_samples(CONST.dir_hardest_pos_samples, "2023-04-17_15-32-47/Contour")
-    latest_pos_rgb_txt = get_hardest_samples(CONST.dir_hardest_pos_samples,     "2023-04-17_15-36-07/RGB")
-    latex_pos_texture_txt = get_hardest_samples(CONST.dir_hardest_pos_samples,  "2023-04-17_15-29-05/Texture")
+    :param operation: The type of operation to perform, either "positive" or "negative".
+    :return: A tuple of the paths to the latest contour, RGB, and texture .txt files, respectively.
+    :raises ValueError: If the specified operation is neither "positive" nor "negative".
+    """
+
+    if operation not in ["positive", "negative"]:
+        raise ValueError("Wrong operation!")
+
+    path = CONST.dir_hardest_neg_samples if operation == "negative" else CONST.dir_hardest_pos_samples
+    d = find_stream_folders(path)
+
+    latest_contour_txt = get_hardest_samples(path, os.path.join(d[1].split("\\")[-1], "Contour"))
+    latest_rgb_txt = get_hardest_samples(path, os.path.join(d[0].split("\\")[-1], "RGB"))
+    latest_texture_txt = get_hardest_samples(path, os.path.join(d[2].split("\\")[-1], "Texture"))
+
+    return latest_contour_txt, latest_rgb_txt, latest_texture_txt
+
+
+def main() -> None:
+    """
+
+    :return:
+    """
+
+    latest_neg_contour_txt, latest_neg_rgb_txt, latest_neg_texture_txt = get_latest_txt_files("negative")
+    latest_pos_contour_txt, latest_pos_rgb_txt, latest_pos_texture_txt = get_latest_txt_files("positive")
 
     hardest_neg_samples_contour = process_txt(latest_neg_contour_txt)
     hardest_neg_samples_rgb = process_txt(latest_neg_rgb_txt)
-    hardest_neg_samples_texture = process_txt(latex_neg_texture_txt)
+    hardest_neg_samples_texture = process_txt(latest_neg_texture_txt)
 
     hardest_pos_samples_contour = process_txt(latest_pos_contour_txt)
     hardest_pos_samples_rgb = process_txt(latest_pos_rgb_txt)
-    hardest_pos_samples_texture = process_txt(latex_pos_texture_txt)
+    hardest_pos_samples_texture = process_txt(latest_pos_texture_txt)
 
     hardest_neg_samples_union = hardest_neg_samples_contour | hardest_neg_samples_rgb | hardest_neg_samples_texture
     hardest_pos_samples_union = hardest_pos_samples_contour | hardest_pos_samples_rgb | hardest_pos_samples_texture
@@ -94,4 +142,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt as kie:
+        print(kie)

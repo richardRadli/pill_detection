@@ -32,11 +32,10 @@ def predict_single_image(input_image_path: str, output_image_path: str, model_pa
 
 def main(operation: str = "multi"):
     if operation.lower() == "multi":
-        # CONST.dir_test_images CONST.dir_unet_output
-        predict_multiple_images(input_dir="C:/Users/ricsi/Desktop/unet_multi_cropped_2/",
-                                output_dir="C:/Users/ricsi/Desktop/unet_multi_cropped_2_out/")
+        predict_multiple_images(input_dir=CONST.dir_test_images,
+                                output_dir=CONST.dir_unet_output)
     elif operation.lower() == "single":
-        predict_single_image(input_image_path="C:/Users/ricsi/Desktop/in_osszeer.png",
+        predict_single_image(input_image_path="C:/Users/ricsi/Desktop/id_mul_001_002_003_ambroxol_egis-dorithricin_mentol-cataflam_v_009.png",
                              output_image_path="C:/Users/ricsi/Desktop/out_osszeer.png",
                              model_path=None)
     else:
