@@ -4,12 +4,12 @@ import glob
 from tqdm import tqdm
 
 from const import CONST
-from utils.utils import find_latest_file
+from utils.utils import find_latest_file_in_latest_directory
 
 
 def predict_multiple_images(input_dir: str, output_dir: str):
     png_files = glob.glob(input_dir + "/*.png")
-    latest_model = find_latest_file(CONST.dir_unet_checkpoint)
+    latest_model = find_latest_file_in_latest_directory(CONST.dir_unet_checkpoint)
 
     for name in tqdm(png_files):
         file_name = name[:-4] + "_OUT.png"
@@ -22,7 +22,7 @@ def predict_multiple_images(input_dir: str, output_dir: str):
 
 
 def predict_single_image(input_image_path: str, output_image_path: str, model_path: str = None):
-    model_path = find_latest_file(CONST.dir_unet_checkpoint)
+    model_path = find_latest_file_in_latest_directory(CONST.dir_unet_checkpoint)
     os.system("python predict_unet.py "
               f"-i {input_image_path} "
               f"-o {output_image_path} "

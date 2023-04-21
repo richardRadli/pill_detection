@@ -8,6 +8,9 @@ from const import CONST
 from utils.utils import find_stream_folders
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------- G E T   H A R D E S T   S A M P L E S ---------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def get_hardest_samples(samples_dir: str, sub_dir: str) -> str:
     """
     Returns the path of the .txt file with the latest created timestamp in a subdirectory of the samples' directory.
@@ -21,6 +24,9 @@ def get_hardest_samples(samples_dir: str, sub_dir: str) -> str:
     return max(glob(os.path.join(directory, "*.txt")), key=os.path.getctime)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------ P R O C E S S   T X T -----------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def process_txt(txt_file: str) -> set:
     """
     Reads a .txt file and extracts a set of paths from its contents.
@@ -40,6 +46,9 @@ def process_txt(txt_file: str) -> set:
     return set(paths)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------- F I L E S   T O   M O V E ---------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def files_to_move(hardest_sample_images: set, src_dir: str) -> list:
     """
     Returns a list of paths to files in a source directory that have a matching name to those in a set of hardest sample
@@ -61,6 +70,9 @@ def files_to_move(hardest_sample_images: set, src_dir: str) -> list:
     return list_of_files_to_move
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------- C O P Y   H A R D E S T   S A M P L E S ---------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def copy_hardest_samples(new_dir: str, src_dir: str, hardest_sample_images: list) -> None:
     """
     Copies the hardest sample images from the source directory to a new directory.
@@ -85,6 +97,9 @@ def copy_hardest_samples(new_dir: str, src_dir: str, hardest_sample_images: list
         shutil.copy(src_file, dst_file)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------- G E T   L A T E S T   T X T   F I L E S ---------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def get_latest_txt_files(operation: str):
     """
     Retrieves the latest .txt files for contour, RGB, and texture data in the specified directories
@@ -108,6 +123,9 @@ def get_latest_txt_files(operation: str):
     return latest_contour_txt, latest_rgb_txt, latest_texture_txt
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------ M A I N -------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def main() -> None:
     """
 

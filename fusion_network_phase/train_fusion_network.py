@@ -12,41 +12,48 @@ from config import ConfigFusionNetwork
 from const import CONST
 from fusion_network import FusionNet
 from fusion_dataset_loader import FusionDataset
-from utils.utils import create_timestamp, find_latest_file
-
-cfg = ConfigFusionNetwork().parse()
+from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++ T R A I N   M O D E L +++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class TrainFusionNet:
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------- __I N I T__ --------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
+        # Set up configuration
+        self.cfg = ConfigFusionNetwork().parse()
+
+        # Print network configurations
+        print_network_config(self.cfg)
+
         # Create time stamp
         self.timestamp = create_timestamp()
 
-        # Select the GPU if possibly
+        # Select the GPU if possible
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-        list_of_channels_con_tex = [1, 32, 48, 64, 128, 192, 256]
-        list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
 
         # Load datasets using FusionDataset
         dataset = FusionDataset("C:/Users/ricsi/Documents/project/storage/IVM/images")
-        train_size = int(cfg.train_split * len(dataset))
+        train_size = int(self.cfg.train_split * len(dataset))
         valid_size = len(dataset) - train_size
         print(f"Size of the train set: {train_size}, size of the validation set: {valid_size}")
         train_dataset, valid_dataset = random_split(dataset, [train_size, valid_size])
-        self.train_data_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True)
-        self.valid_data_loader = DataLoader(valid_dataset, batch_size=cfg.batch_size, shuffle=True)
+        self.train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
+        self.valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
 
         # # Initialize the fusion network
         self.model = FusionNet()
 
         # Load the saved state dictionaries of the stream networks
-        stream_con_state_dict = (torch.load(find_latest_file(CONST.dir_stream_contour_model_weights)))
-        stream_rgb_state_dict = (torch.load(find_latest_file(CONST.dir_stream_rgb_model_weights)))
-        stream_tex_state_dict = (torch.load(find_latest_file(CONST.dir_stream_texture_model_weights)))
+        stream_con_state_dict = \
+            (torch.load(find_latest_file_in_latest_directory(CONST.dir_stream_contour_model_weights)))
+        stream_rgb_state_dict = \
+            (torch.load(find_latest_file_in_latest_directory(CONST.dir_stream_rgb_model_weights)))
+        stream_tex_state_dict = \
+            (torch.load(find_latest_file_in_latest_directory(CONST.dir_stream_texture_model_weights)))
 
         # Update the state dictionaries of the fusion network's stream networks
         self.model.contour_network.load_state_dict(stream_con_state_dict)
@@ -63,21 +70,23 @@ class TrainFusionNet:
 
         # Load model and upload it to the GPU
         self.model.to(self.device)
-        summary(self.model, input_size=[(list_of_channels_con_tex[0], cfg.img_size, cfg.img_size),
-                                        (list_of_channels_rgb[0], cfg.img_size, cfg.img_size),
-                                        (list_of_channels_con_tex[0], cfg.img_size, cfg.img_size)])
+
+        list_of_channels_con_tex = [1, 32, 48, 64, 128, 192, 256]
+        list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
+        summary(self.model, input_size=[(list_of_channels_con_tex[0], self.cfg.img_size, self.cfg.img_size),
+                                        (list_of_channels_rgb[0], self.cfg.img_size, self.cfg.img_size),
+                                        (list_of_channels_con_tex[0], self.cfg.img_size, self.cfg.img_size)])
 
         # Specify loss function
-        self.criterion = nn.TripletMarginLoss(margin=cfg.margin)
+        self.criterion = nn.TripletMarginLoss(margin=self.cfg.margin)
 
         # Specify optimizer
         self.optimizer = torch.optim.SGD(list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
-                                         lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
+                                         lr=self.cfg.learning_rate, weight_decay=self.cfg.weight_decay)
         # Tensorboard
         tensorboard_log_dir = os.path.join(CONST.dir_fusion_net_logs, self.timestamp)
         if not os.path.exists(tensorboard_log_dir):
             os.makedirs(tensorboard_log_dir)
-
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
 
         # Create save path
@@ -88,19 +97,21 @@ class TrainFusionNet:
     # ------------------------------------------------------ F I T -----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def fit(self):
-        # to track the training loss as the model trains
+        # To track the training loss as the model trains
         train_losses = []
 
-        # to track the validation loss as the model trains
+        # To track the validation loss as the model trains
         valid_losses = []
 
+        # Variables to save only the best epoch
         best_valid_loss = float('inf')
         best_model_path = None
 
-        for epoch in tqdm(range(cfg.epochs), desc="Epochs"):
-            for a_rgb, a_con, a_tex, p_rgb, p_con, p_tex, n_rgb, n_con, n_tex in tqdm(self.train_data_loader,
-                                                                                      total=len(self.train_data_loader),
-                                                                                      desc="Training"):
+        for epoch in tqdm(range(self.cfg.epochs), desc="Epochs"):
+            # Train loop
+            for a_rgb, a_con, a_tex, p_rgb, p_con, p_tex, n_rgb, n_con, n_tex in \
+                    tqdm(self.train_data_loader, total=len(self.train_data_loader), desc="Training"):
+                # Uploading data to the GPU
                 anchor_rgb = a_rgb.to(self.device)
                 positive_rgb = p_rgb.to(self.device)
                 negative_rgb = n_rgb.to(self.device)
@@ -134,6 +145,7 @@ class TrainFusionNet:
             with torch.no_grad():
                 for a_rgb, a_con, a_tex, p_rgb, p_con, p_tex, n_rgb, n_con, n_tex in \
                         tqdm(self.valid_data_loader, total=len(self.valid_data_loader), desc="Validation"):
+                    # Uploading data to the GPU
                     anchor_rgb = a_rgb.to(self.device)
                     positive_rgb = p_rgb.to(self.device)
                     negative_rgb = n_rgb.to(self.device)
@@ -155,6 +167,8 @@ class TrainFusionNet:
 
                     # Compute triplet loss
                     v_loss = self.criterion(anchor_out, positive_out, negative_out)
+
+                    # Accumulate loss
                     valid_losses.append(v_loss.item())
 
             # Print loss for epoch
@@ -169,9 +183,8 @@ class TrainFusionNet:
             train_losses.clear()
             valid_losses.clear()
 
-            # Save the model and weights
+            # Save the best model and weights
             if valid_loss < best_valid_loss:
-                # Save the best model
                 best_valid_loss = valid_loss
                 if best_model_path is not None:
                     os.remove(best_model_path)
@@ -188,4 +201,4 @@ if __name__ == "__main__":
         tm = TrainFusionNet()
         tm.fit()
     except KeyboardInterrupt as kbe:
-        print(kbe)
+        print(f'{kbe}')

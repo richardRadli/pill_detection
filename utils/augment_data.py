@@ -5,7 +5,7 @@ import os
 from tqdm import tqdm
 from config import ConfigAugment
 from const import CONST
-from utils import read_image
+from utils import read_image_to_list
 
 cfg = ConfigAugment().parse()
 
@@ -39,7 +39,7 @@ def do_augmentation():
     :return:
     """
 
-    train_imgs, file_names = read_image()
+    train_imgs, file_names = read_image_to_list()
     aug_imgs, f_names = augment_data(train_imgs, file_names)
 
     print(f'\nNumber of images: {aug_imgs.shape[0]}')

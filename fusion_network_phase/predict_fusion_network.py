@@ -1,22 +1,30 @@
 import os
-
 import pandas as pd
 import torch
 
 from torchvision import transforms
 from tqdm import tqdm
+from typing import List, Tuple
 from PIL import Image
 
 from const import CONST
 from config import ConfigStreamNetwork
 from fusion_network import FusionNet
-from utils.utils import create_timestamp, find_latest_file, plot_ref_query_images
+from utils.utils import create_timestamp, find_latest_file_in_latest_directory, plot_ref_query_images, \
+    find_latest_file_in_directory, prediction_statistics
 
-cfg = ConfigStreamNetwork().parse()
 
-
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++++++++ P R E D I C T   F U S I O N   N E T W O R K ++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class PredictFusionNetwork:
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------- __I N I T__ --------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
+        # Load config
+        self.cfg = ConfigStreamNetwork().parse()
+
         # Create time stamp
         self.timestamp = create_timestamp()
 
@@ -29,11 +37,11 @@ class PredictFusionNetwork:
         self.network = self.load_networks()
         self.network.eval()
 
-        self.preprocess_rgb = transforms.Compose([transforms.Resize((cfg.img_size, cfg.img_size)),
+        self.preprocess_rgb = transforms.Compose([transforms.Resize((self.cfg.img_size, self.cfg.img_size)),
                                                   transforms.ToTensor(),
                                                   transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
 
-        self.preprocess_con_tex = transforms.Compose([transforms.Resize((cfg.img_size, cfg.img_size)),
+        self.preprocess_con_tex = transforms.Compose([transforms.Resize((self.cfg.img_size, self.cfg.img_size)),
                                                       transforms.Grayscale(),
                                                       transforms.ToTensor()])
 
@@ -42,14 +50,25 @@ class PredictFusionNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def load_networks():
-        latest_con_pt_file = find_latest_file(CONST.dir_fusion_net_weights)
+        """
+        This function finds and loads the latest FusionNetwork.
+
+        :return: <class 'fusion_network.FusionNet'>
+        """
+
+        latest_con_pt_file = find_latest_file_in_latest_directory(CONST.dir_fusion_net_weights)
         network_fusion = FusionNet()
         network_fusion.load_state_dict(torch.load(latest_con_pt_file))
 
         return network_fusion
 
-    def get_vectors(self, contour_dir: str, rgb_dir: str, texture_dir: str, operation: str):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def get_vectors(self, contour_dir: str, rgb_dir: str, texture_dir: str, operation: str) -> Tuple[List, List, List]:
         """
+        Get feature vectors for images.
+
         :param contour_dir: path to the directory containing contour images
         :param rgb_dir: path to the directory containing rgb images
         :param texture_dir: path to the directory containing texture images
@@ -86,14 +105,23 @@ class PredictFusionNetwork:
 
         return vectors, labels, images_path
 
-    def measure_similarity_and_distance(self, q_labels, r_labels, reference_vectors, query_vectors):
+    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------- M E A S U R E   S I M I L A R I T Y   A N D   D I S T A N C E -------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def measure_similarity_and_distance(self, q_labels: list, r_labels: list, reference_vectors: list,
+                                        query_vectors: list) -> Tuple[List[str], List[str], List[int]]:
         """
+        This method measures the similarity and distance between two sets of labels (q_labels and r_labels) and their
+        corresponding embedded vectors (query_vectors and reference_vectors) using Euclidean distance.
+        It returns the original query labels, predicted medicine labels, and the indices of the most similar medicines
+        in the reference set.
 
-        :param q_labels:
-        :param r_labels:
-        :param reference_vectors:
-        :param query_vectors:
-        :return:
+        :param q_labels: a list of ground truth medicine names
+        :param r_labels: a list of reference medicine names
+        :param reference_vectors: a numpy array of embedded vectors for the reference set
+        :param query_vectors: a numpy array of embedded vectors for the query set
+        :return: the original query labels, predicted medicine labels, and indices of the most similar medicines in the
+        reference set
         """
 
         similarity_scores_euc_dist = []
@@ -141,18 +169,31 @@ class PredictFusionNetwork:
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
 
-    def main(self):
-        query_vecs, q_labels, q_images_path = self.get_vectors(contour_dir=CONST.dir_query_contour,
-                                                               rgb_dir=CONST.dir_query_rgb,
-                                                               texture_dir=CONST.dir_query_texture,
-                                                               operation="query")
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------- M A I N ----------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def main(self) -> None:
+        """
 
-        ref_vecs, r_labels, r_images_path = self.get_vectors(contour_dir=CONST.dir_contour,
-                                                             rgb_dir=CONST.dir_rgb,
-                                                             texture_dir=CONST.dir_texture,
-                                                             operation="reference")
+        :return: None
+        """
 
-        gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vecs, query_vecs)
+        query_vectors, q_labels, q_images_path = self.get_vectors(contour_dir=CONST.dir_query_contour,
+                                                                  rgb_dir=CONST.dir_query_rgb,
+                                                                  texture_dir=CONST.dir_query_texture,
+                                                                  operation="query")
+
+        ref_vectors, r_labels, r_images_path = self.get_vectors(contour_dir=CONST.dir_contour,
+                                                                rgb_dir=CONST.dir_rgb,
+                                                                texture_dir=CONST.dir_texture,
+                                                                operation="reference")
+
+        gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vectors, query_vectors)
+
+        stream_net_pred = find_latest_file_in_directory(CONST.dir_stream_network_predictions, "txt")
+        fusion_net_pred = find_latest_file_in_directory(CONST.dir_fusion_network_predictions, "txt")
+        prediction_statistics(stream_net_pred, fusion_net_pred)
+
         plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, operation="fuse")
 
 

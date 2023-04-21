@@ -146,9 +146,9 @@ def unique_mask_values(idx, mask_dir, mask_suffix):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------ R E A D   I M G   A N D   M A S K -----------------------------------------
+# ----------------------------------------- R E A D   I M A G E   T O   L I S T ----------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def read_image():
+def read_image_to_list():
     """
 
     :return:
@@ -228,21 +228,22 @@ def create_timestamp():
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------- F I N D   L A T E S T   F I L E ------------------------------------------
+# ----------------------- F I N D   L A T E S T   F I L E   I N   L A T E S T   D I R E C T O R Y ----------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def find_latest_file(path):
+def find_latest_file_in_latest_directory(path: str) -> str:
     """
     Finds the latest file in the latest directory within the given path.
+
     :param path: str, the path to the directory where we should look for the latest file
     :return: str, the path to the latest file
+    :raise: when no directories or files found
     """
 
     # Get a list of all directories in the given path
     dirs = [os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
 
     if not dirs:
-        print(f"No directories found in {path}")
-        return None
+        raise ValueError(f"No directories found in {path}")
 
     # Sort directories by creation time (newest first)
     dirs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
@@ -255,8 +256,7 @@ def find_latest_file(path):
              os.path.isfile(os.path.join(latest_dir, f))]
 
     if not files:
-        print(f"No files found in {latest_dir}")
-        return None
+        raise ValueError(f"No files found in {latest_dir}")
 
     # Sort files by creation time (newest first)
     files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
@@ -269,10 +269,27 @@ def find_latest_file(path):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------- F I N D   L A T E S T   F I L E ------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def find_latest_file_in_directory(path: str, extension: str) -> str:
+    """
+    Finds the latest file in a directory with a given extension.
+
+    :param path: The path to the directory to search for files.
+    :param extension: The file extension to look for (e.g. "txt").
+    :return: The full path of the latest file with the given extension in the directory.
+    """
+
+    files = glob(os.path.join(path, "*.%s" % extension))
+    latest_file = max(files, key=os.path.getctime)
+    return latest_file
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------- P L O T   R E F   Q U E R Y   I M G S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images_path: list[str], gt: list[str],
-                          pred_cs: list[str], operation: str):
+                          pred_cs: list[str], operation: str) -> None:
     """
     Plots the reference and query images with their corresponding ground truth and predicted class labels.
 
@@ -304,7 +321,6 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
         ax[1].set_title(l + "_ref")
 
         output_path = os.path.join(out_path, str(idx) + ".png")
-        print(output_path)
         plt.savefig(output_path)
         plt.close()
 
@@ -350,6 +366,9 @@ def create_label_dirs(rgb_path: str, contour_path: str, texture_path: str) -> No
                 shutil.move(os.path.join(texture_path, file_texture), out_path_texture)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------- P R I N T   N E T W O R K   C O N F I G --------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def print_network_config(cfg):
     """
 
@@ -361,6 +380,9 @@ def print_network_config(cfg):
     print("Parameters of the selected StreamNetwork\n", df)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------- F I N D   S T R E A M   F O L D E R S ---------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def find_stream_folders(path):
     """
 
@@ -391,13 +413,20 @@ def find_stream_folders(path):
     return found_paths
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------- P R E D I C T I O N   S T A T I S T I C S -------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def prediction_statistics(stream_network_prediction_file: str, fusion_network_prediction_file: str):
+    """
+
+    :param stream_network_prediction_file:
+    :param fusion_network_prediction_file:
+    :return:
+    """
+
     with open(stream_network_prediction_file, 'r') as f1, open(fusion_network_prediction_file, 'r') as f2:
         f1_lines = f1.readlines()[1:-3]
         f2_lines = f2.readlines()[1:-3]
-
-        same_count = 0
-        diff_count = 0
 
         differ_list = []
 
@@ -405,25 +434,11 @@ def prediction_statistics(stream_network_prediction_file: str, fusion_network_pr
             cols1 = line1.strip().split('\t')
             cols2 = line2.strip().split('\t')
 
-            if cols1[2] == cols2[2]:
-                same_count += 1
-            else:
+            if cols1[1] != cols1[2] or cols2[1] != cols2[2]:
                 differ_list.append([cols1[1], cols1[2], cols2[2]])
-                diff_count += 1
 
-    print("Number of times predicted medicine names were the same:", same_count)
-    print("Number of times predicted medicine names differed:", diff_count)
-
-    df = pd.DataFrame(differ_list, columns=['GT', 'SN', 'FN'])
-
-    sn_cnt = 0
-    sn_list = []
-    fn_cnt = 0
-    fn_list = []
-    n_count = 0
-    n_list = []
-
-    print(df)
+    sn_cnt, fn_cnt, n_count = 0, 0, 0
+    sn_list, fn_list, n_list = [], [], []
 
     for _, (gt, sn, fn) in enumerate(differ_list):
         if gt == sn and gt != fn:
@@ -438,10 +453,17 @@ def prediction_statistics(stream_network_prediction_file: str, fusion_network_pr
             n_count += 1
             n_list.append([gt, sn, fn])
 
-    df_sn = pd.DataFrame(sn_list, columns=['GT', 'SN', 'FN'])
-    df_fn = pd.DataFrame(fn_list, columns=['GT', 'SN', 'FN'])
-    df_n = pd.DataFrame(n_list, columns=['GT', 'SN', 'FN'])
+    df = pd.DataFrame(differ_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
+    df_sn = pd.DataFrame(sn_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
+    df_fn = pd.DataFrame(fn_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
+    df_n = pd.DataFrame(n_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
 
-    print(df_sn)
-    print(df_fn)
-    print(df_n)
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', None)
+    pd.set_option('display.max_colwidth', None)
+
+    print("\nMedicines where either StreamNetwork or FusionNetwork predicted well\n", df)
+    print("\nMedicines where FusionNetwork predicted wrong and StreamNetwork predicted well\n", df_sn)
+    print("\nMedicines where StreamNetwork predicted wrong and FusionNetwork predicted well\n", df_fn)
+    print("\nMedicines where neither StreamNetwork nor FusionNetwork predicted well\n", df_n)

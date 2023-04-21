@@ -1,13 +1,28 @@
 import numpy as np
 import os
+import torch
 
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
+from typing import Tuple
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++ F U S I O N D A T A S E T +++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class FusionDataset(Dataset):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------- __ I N I T __ --------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def __init__(self, dataset_dir: str) -> None:
+        """
+        This is the __init__ function of the dataset loader class.
+
+        :param dataset_dir: Path to the dataset.
+        :return: None
+        """
+
         self.label_to_indices = None
         self.labels = None
         self.dataset_path = dataset_dir
@@ -40,7 +55,21 @@ class FusionDataset(Dataset):
         self.contour_dataset = self.load_dataset('contour_hardest')
         self.prepare_labels()
 
-    def __getitem__(self, index):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------- __ G E T I T E M __ ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor,
+                                               torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+
+        """
+        This is the __getitem__ method of a dataset loader class. Given an index, it loads the corresponding images from
+        three different datasets (rgb, texture, and contour), and applies some data augmentation (transforms) to each
+        image. It then returns a tuple of nine images.
+
+        :param index: An integer representing the index of the sample to retrieve from the dataset.
+        :return: A tuple of 9 elements, where each element corresponds to an image with a specific transformation.
+        """
+
         # Load corresponding images from all datasets
         rgb_anchor_img_path, anchor_label = self.rgb_dataset[index]
         texture_anchor_img_path, _ = self.texture_dataset[index]
@@ -90,10 +119,31 @@ class FusionDataset(Dataset):
                 rgb_positive_img, texture_positive_img, contour_positive_img,
                 rgb_negative_img, texture_negative_img, contour_negative_img)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------- __ L E N __ --------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def __len__(self):
+        """
+        This is the __len__ method of a dataset loader class.
+
+        :return:
+        """
+
         return len(self.rgb_dataset)
 
-    def load_dataset(self, dataset_name: str):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------- L O A D   T H E   D A T A S E T -----------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def load_dataset(self, dataset_name: str) -> list:
+        """
+        Loads a dataset with the specified name from the dataset directory and returns a list of image paths and their
+        corresponding labels, as well as storing the labels separately in the 'labels' attribute of the class instance.
+
+        :param dataset_name: name of the dataset to be loaded
+        :return: a list of tuples containing image paths and their corresponding labels, extracted from the specified
+        dataset directory. The labels are also stored separately in the class attribute 'labels'.
+        """
+
         dataset = []
         labels = []
         dataset_path = os.path.join(self.dataset_path, dataset_name)
@@ -109,12 +159,17 @@ class FusionDataset(Dataset):
         self.labels = labels
         return dataset
 
-    def prepare_labels(self):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------- P R E P A R E   L A B E L S ------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def prepare_labels(self) -> None:
+        """
         # Initialize dictionary that maps each label to corresponding indices in dataset
+
+        :return: None
+        """
+
         self.label_to_indices = {label: [] for label in self.labels_set}
         for i in range(len(self.labels)):
             label = self.labels[i]
             self.label_to_indices[label].append(i)
-
-
-# dt = FusionDataset('C:/Users/ricsi/Documents/project/storage/IVM/images')

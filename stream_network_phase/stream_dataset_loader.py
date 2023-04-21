@@ -39,7 +39,15 @@ class StreamDataset(Dataset):
 
         self.dataset = self.load_dataset()
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------- L O A D   T H E   D A T A S E T -----------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def load_dataset(self):
+        """
+
+        :return:
+        """
+
         dataset = []
         labels = set()
         for label_name in os.listdir(self.dataset_path):
@@ -56,6 +64,9 @@ class StreamDataset(Dataset):
         self.label_to_indices = {label: np.where(self.labels == label)[0] for label in self.labels_set}
         return dataset
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------- __ G E T I T E M __ ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def __getitem__(self, index):
         anchor_img_path, anchor_label = self.dataset[index]
         positive_index = index
@@ -75,5 +86,13 @@ class StreamDataset(Dataset):
 
         return anchor_img, positive_img, negative_img, negative_img_path, positive_img_path
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------- __ L E N __ --------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def __len__(self):
+        """
+        This is the __len__ method of a dataset loader class.
+
+        :return:
+        """
         return len(self.dataset)

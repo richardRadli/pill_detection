@@ -10,13 +10,20 @@ from PIL import Image
 from const import CONST
 from config import ConfigStreamNetwork
 from stream_network import StreamNetwork
-from utils.utils import create_timestamp, find_latest_file, plot_ref_query_images
-
-cfg = ConfigStreamNetwork().parse()
+from utils.utils import create_timestamp, find_latest_file_in_latest_directory, plot_ref_query_images
 
 
-class PillRecognition:
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++++++++ P R E D I C T   S T R E A M   N E T W O R K ++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+class PredictStreamNetwork:
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------- __I N I T__ --------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
+        # Load config
+        self.cfg = ConfigStreamNetwork().parse()
+
         # Create time stamp
         self.timestamp = create_timestamp()
 
@@ -32,11 +39,11 @@ class PillRecognition:
         self.network_rgb.eval()
         self.network_tex.eval()
 
-        self.preprocess_rgb = transforms.Compose([transforms.Resize((cfg.img_size, cfg.img_size)),
+        self.preprocess_rgb = transforms.Compose([transforms.Resize((self.cfg.img_size, self.cfg.img_size)),
                                                   transforms.ToTensor(),
                                                   transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
 
-        self.preprocess_con_tex = transforms.Compose([transforms.Resize((cfg.img_size, cfg.img_size)),
+        self.preprocess_con_tex = transforms.Compose([transforms.Resize((self.cfg.img_size, self.cfg.img_size)),
                                                       transforms.Grayscale(),
                                                       transforms.ToTensor()])
 
@@ -47,15 +54,16 @@ class PillRecognition:
     def load_networks():
         """
         This function loads the pretrained networks, with the latest .pt files
+
         :return: The contour, rgb, and texture networks.
         """
 
         list_of_channels_tex_con = [1, 32, 48, 64, 128, 192, 256]
         list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
 
-        latest_con_pt_file = find_latest_file(CONST.dir_stream_contour_model_weights)
-        latest_rgb_pt_file = find_latest_file(CONST.dir_stream_rgb_model_weights)
-        latest_tex_pt_file = find_latest_file(CONST.dir_stream_texture_model_weights)
+        latest_con_pt_file = find_latest_file_in_latest_directory(CONST.dir_stream_contour_model_weights)
+        latest_rgb_pt_file = find_latest_file_in_latest_directory(CONST.dir_stream_rgb_model_weights)
+        latest_tex_pt_file = find_latest_file_in_latest_directory(CONST.dir_stream_texture_model_weights)
 
         network_con = StreamNetwork(loc=list_of_channels_tex_con)
         network_rgb = StreamNetwork(loc=list_of_channels_rgb)
@@ -113,14 +121,20 @@ class PillRecognition:
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------- M E A S U R E   C O S S I M   A N D   E U C D I S T ------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def measure_similarity_and_distance(self, q_labels, r_labels, reference_vectors, query_vectors):
+    def measure_similarity_and_distance(self, q_labels: list[str], r_labels: list[str], reference_vectors: list,
+                                        query_vectors: list):
         """
+        This method measures the similarity and distance between two sets of labels (q_labels and r_labels) and their
+        corresponding embedded vectors (query_vectors and reference_vectors) using Euclidean distance.
+        It returns the original query labels, predicted medicine labels, and the indices of the most similar medicines
+        in the reference set.
 
-        :param q_labels:
-        :param r_labels:
-        :param reference_vectors:
-        :param query_vectors:
-        :return:
+        :param q_labels: a list of ground truth medicine names
+        :param r_labels: a list of reference medicine names
+        :param reference_vectors: a numpy array of embedded vectors for the reference set
+        :param query_vectors: a numpy array of embedded vectors for the query set
+        :return: the original query labels, predicted medicine labels, and indices of the most similar medicines in the
+        reference set
         """
 
         similarity_scores_euc_dist = []
@@ -193,7 +207,7 @@ class PillRecognition:
 
 if __name__ == "__main__":
     try:
-        pill_rec = PillRecognition()
+        pill_rec = PredictStreamNetwork()
         pill_rec.main()
     except KeyboardInterrupt as kie:
         print(kie)
