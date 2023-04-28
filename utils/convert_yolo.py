@@ -1,3 +1,4 @@
+import concurrent.futures
 import cv2
 import os
 
@@ -76,6 +77,30 @@ def save_text_to_file(data_list, file_path):
             file.write(str(item) + "\n")
 
 
+def process_image(main_dir, ori, cropped, yolo_annotation):
+    cropped_img = cv2.imread(cropped)
+    original_img = cv2.imread(ori)
+    with open(yolo_annotation, "r") as file:
+        annotation_text = file.readline().strip()
+
+    annotation_list = list(map(float, annotation_text.split()))
+    class_id = int(annotation_list[0])
+    annotation_list = annotation_list[1:]
+    original_pixel_coordinates = []
+
+    annotation_points = convert_yolo_format_to_pixels(image=cropped_img, annotation=annotation_list)
+    for c in annotation_points:
+        original_x, original_y = convert_coordinates_to_original(c, cropped_img.shape[1], cropped_img.shape[0],
+                                                                 original_img.shape[1], original_img.shape[0])
+        original_pixel_coordinates.append((original_x, original_y))
+
+    yolo_coordinates = convert_pixels_to_yolo_format(original_img.shape[1], original_img.shape[0],
+                                                     original_pixel_coordinates, class_id)
+
+    save_text_to_file(data_list=yolo_coordinates,
+                      file_path=os.path.join(main_dir, "train_labels_ori", os.path.basename(yolo_annotation)))
+
+
 def main():
     main_dir = "D:/project/IVM"
     original_imgs_file_names = \
@@ -84,31 +109,9 @@ def main():
         read_image_to_list(os.path.join(main_dir, "captured_OGYEI_pill_photos_undistorted_cropped"))
     yolo_annotations = read_yolo_annotations_to_list(os.path.join(main_dir, "train_labels"))
 
-    for idx, (ori, cropped, yolo_annotation) in tqdm(enumerate(zip(original_imgs_file_names, cropped_imgs_file_names,
-                                                                   yolo_annotations)),
-                                                     total=len(original_imgs_file_names), desc="Processing images"):
-        cropped_img = cv2.imread(cropped)
-        original_img = cv2.imread(ori)
-        with open(yolo_annotation, "r") as file:
-            annotation_text = file.readline().strip()
-
-        annotation_list = list(map(float, annotation_text.split()))
-        class_id = int(annotation_list[0])
-        annotation_list = annotation_list[1:]
-
-        original_pixel_coordinates = []
-
-        annotation_points = convert_yolo_format_to_pixels(image=cropped_img, annotation=annotation_list)
-        for c in annotation_points:
-            original_x, original_y = convert_coordinates_to_original(c, cropped_img.shape[1], cropped_img.shape[0],
-                                                                     original_img.shape[1], original_img.shape[0])
-            original_pixel_coordinates.append((original_x, original_y))
-
-        yolo_coordinates = convert_pixels_to_yolo_format(original_img.shape[1], original_img.shape[0],
-                                                         original_pixel_coordinates, class_id)
-
-        save_text_to_file(data_list=yolo_coordinates,
-                          file_path=os.path.join(main_dir, "train_labels_ori", os.path.basename(yolo_annotation)))
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        executor.map(process_image, [main_dir]*len(original_imgs_file_names),
+                     original_imgs_file_names, cropped_imgs_file_names, yolo_annotations)
 
 
 if __name__ == "__main__":
