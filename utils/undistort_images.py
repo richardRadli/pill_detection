@@ -1,16 +1,13 @@
 import os
 import cv2
 import numpy as np
-
-from glob import glob
+from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 
 
 class UnDistortTestImages:
     def __init__(self):
-        self.loc_to_save = "C:/Users/ricsi/Desktop/undistorted_images"
-        self.loc_of_undis_test_imgs = "C:/Users/ricsi/Desktop/images"
-        cam_mtx_np_file = os.path.join("2023-03-27_12-45-45_undistorted_cam_mtx.npy")
+        cam_mtx_np_file = "2023-03-27_12-45-45_undistorted_cam_mtx.npy"
         data = np.load(cam_mtx_np_file, allow_pickle=True)
 
         self.matrix = data.item()['matrix']
@@ -18,37 +15,39 @@ class UnDistortTestImages:
         self.undst_matrix = data.item()['undst_matrix']
         self.roi = data.item()['roi']
 
-        self.crop_size = 800
+    def process_image(self, img_path, output_path):
+        src_img = cv2.imread(img_path)
 
-        os.makedirs(self.loc_to_save, exist_ok=True)
+        # Undistort the image
+        undistorted_image = cv2.undistort(src_img, self.matrix, self.dist_coeff, None, self.undst_matrix)
+        x, y, w, h = self.roi
+        undistorted_image = undistorted_image[y:y + h, x:x + w]
 
-    @staticmethod
-    def crop_image(height, width, crop_size):
-        x_min = int(width / 2 - (crop_size / 2))
-        y_min = int(height / 2 - (crop_size / 2))
-        x_max = int(width / 2 + (crop_size / 2))
-        y_max = int(height / 2 + (crop_size / 2))
-
-        return x_min, y_min, x_max, y_max
+        # Save the undistorted image
+        cv2.imwrite(output_path, undistorted_image)
 
     def undistort_images(self):
-        images = sorted(glob(self.loc_of_undis_test_imgs + "/*.png"))
+        input_dir = "D:/project/IVM/captured_OGYEI_pill_photos"
+        output_dir = "D:/project/IVM/captured_OGYEI_pill_photos_undistorted"
 
-        for idx, name in tqdm(enumerate(images), total=len(images)):
-            src_img = cv2.imread(name)
-            file_name = os.path.basename(name)
-            save_path = os.path.join(self.loc_to_save, file_name)
+        # Create the output directory if it doesn't exist
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
 
-            undistorted_image = cv2.undistort(src_img, self.matrix, self.dist_coeff, None, self.undst_matrix)
-            x, y, w, h = self.roi
-            undistorted_image = undistorted_image[y:y + h, x:x + w]
+        # Iterate through subdirectories
+        with ThreadPoolExecutor() as executor:
+            for subdir in tqdm(os.listdir(input_dir)):
+                sub_input_dir = os.path.join(input_dir, subdir)
+                sub_output_dir = os.path.join(output_dir, subdir)
 
-            x_min, y_min, x_max, y_max = self.crop_image(height=undistorted_image.shape[0],
-                                                         width=undistorted_image.shape[1],
-                                                         crop_size=self.crop_size)
-            crop_img = undistorted_image[y_min:y_max, x_min:x_max]
+                # Create the output subdirectory if it doesn't exist
+                if not os.path.exists(sub_output_dir):
+                    os.makedirs(sub_output_dir)
 
-            cv2.imwrite(save_path, crop_img)
+                # Iterate through images in the subdirectory
+                image_paths = [os.path.join(sub_input_dir, filename) for filename in os.listdir(sub_input_dir)]
+                output_paths = [os.path.join(sub_output_dir, os.path.basename(path)) for path in image_paths]
+                executor.map(self.process_image, image_paths, output_paths)
 
 
 if __name__ == "__main__":
