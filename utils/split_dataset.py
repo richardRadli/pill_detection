@@ -127,12 +127,12 @@ def main(replace_files: bool = False, rollback: bool = False):
     class_counts, train_images, test_images = split_dataset(class_counts, train_images, test_images)
     statistics_of_dataset(class_counts, train_images, test_images)
 
-    if replace_files:
-        move_files(test_images)
-
-    if rollback:
-        rollback_files(CONST.dir_train_images, CONST.dir_test_images)
-        rollback_files(CONST.dir_train_masks, CONST.dir_test_mask)
+    # if replace_files:
+    #     move_files(test_images)
+    #
+    # if rollback:
+    #     rollback_files(CONST.dir_train_images, CONST.dir_test_images)
+    #     rollback_files(CONST.dir_train_masks, CONST.dir_test_mask)
 
 
 if __name__ == "__main__":

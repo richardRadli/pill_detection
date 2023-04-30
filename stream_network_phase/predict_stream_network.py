@@ -1,3 +1,4 @@
+import numpy as np
 import os
 
 import pandas as pd
@@ -121,6 +122,8 @@ class PredictStreamNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------- M E A S U R E   C O S S I M   A N D   E U C D I S T ------------------------------
     # ------------------------------------------------------------------------------------------------------------------
+    import numpy as np
+
     def measure_similarity_and_distance(self, q_labels: list[str], r_labels: list[str], reference_vectors: list,
                                         query_vectors: list):
         """
@@ -141,13 +144,14 @@ class PredictStreamNetwork:
         predicted_medicine_euc_dist = []
         corresp_sim_euc_dist = []
         most_similar_indices_euc_dist = []
-        num_correct = 0
+        num_correct_top1 = 0
+        num_correct_top5 = 0
 
         for idx_query, query_vector in tqdm(enumerate(query_vectors), total=len(query_vectors),
                                             desc="Comparing process"):
             scores_e = []
             for idx_ref, reference_vector in enumerate(reference_vectors):
-                score_e = torch.pairwise_distance(query_vector, reference_vector).item()
+                score_e = np.linalg.norm(query_vector - reference_vector)
                 scores_e.append(score_e)
 
             similarity_scores_euc_dist.append(scores_e)
@@ -160,16 +164,25 @@ class PredictStreamNetwork:
                                                  enumerate(similarity_scores_euc_dist)]
             corresp_sim_euc_dist.append(most_similar_indices_and_scores_e[idx_query][1])
 
+            # Calculate top-1 accuracy
             if predicted_medicine == q_labels[idx_query]:
-                num_correct += 1
+                num_correct_top1 += 1
 
-        accuracy = num_correct / len(query_vectors)
+            # Calculate top-5 accuracy
+            top5_predicted_medicines = [r_labels[i] for i in np.argsort(scores_e)[:5]]
+            if q_labels[idx_query] in top5_predicted_medicines:
+                num_correct_top5 += 1
+
+        accuracy_top1 = num_correct_top1 / len(query_vectors)
+        accuracy_top5 = num_correct_top5 / len(query_vectors)
 
         df = pd.DataFrame(list(zip(q_labels, predicted_medicine_euc_dist)),
                           columns=['GT Medicine Name', 'Predicted Medicine Name (ED)'])
-        df.loc[len(df)] = ["Correctly predicted:", f'{num_correct}']
-        df.loc[len(df)] = ["Miss predicted:", f'{len(query_vectors) - num_correct}']
-        df.loc[len(df)] = ['Accuracy:', f'{accuracy:.4%}']
+        df.loc[len(df)] = ["Correctly predicted (Top-1):", f'{num_correct_top1}']
+        df.loc[len(df)] = ["Correctly predicted (Top-5):", f'{num_correct_top5}']
+        df.loc[len(df)] = ["Miss predicted:", f'{len(query_vectors) - num_correct_top1}']
+        df.loc[len(df)] = ['Accuracy (Top-1):', f'{accuracy_top1:.4%}']
+        df.loc[len(df)] = ['Accuracy (Top-5):', f'{accuracy_top5:.4%}']
         pd.set_option('display.max_rows', None)
         pd.set_option('display.max_columns', None)
         pd.set_option('display.width', None)
