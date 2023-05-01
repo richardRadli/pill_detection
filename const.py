@@ -100,7 +100,7 @@ class _Const(object):
                  "data/cam_data",                           # 13
                  "data/train_labels",                       # 14
                  "data/fusion_network_predictions"          # 15
-             ]
+                 ]
 
     # Aux variables for the other directories. These will be created by the program.
     # Directories for UNET

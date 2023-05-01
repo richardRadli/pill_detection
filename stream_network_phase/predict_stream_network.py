@@ -122,8 +122,6 @@ class PredictStreamNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------- M E A S U R E   C O S S I M   A N D   E U C D I S T ------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    import numpy as np
-
     def measure_similarity_and_distance(self, q_labels: list[str], r_labels: list[str], reference_vectors: list,
                                         query_vectors: list):
         """
@@ -176,13 +174,32 @@ class PredictStreamNetwork:
         accuracy_top1 = num_correct_top1 / len(query_vectors)
         accuracy_top5 = num_correct_top5 / len(query_vectors)
 
+        confidence_percentages = [1 - (score / max(scores)) for score, scores in
+                                  zip(corresp_sim_euc_dist, similarity_scores_euc_dist)]
+
+        confidence_percentages = [cp * 100 for cp in confidence_percentages]
+
         df = pd.DataFrame(list(zip(q_labels, predicted_medicine_euc_dist)),
                           columns=['GT Medicine Name', 'Predicted Medicine Name (ED)'])
-        df.loc[len(df)] = ["Correctly predicted (Top-1):", f'{num_correct_top1}']
-        df.loc[len(df)] = ["Correctly predicted (Top-5):", f'{num_correct_top5}']
-        df.loc[len(df)] = ["Miss predicted:", f'{len(query_vectors) - num_correct_top1}']
-        df.loc[len(df)] = ['Accuracy (Top-1):', f'{accuracy_top1:.4%}']
-        df.loc[len(df)] = ['Accuracy (Top-5):', f'{accuracy_top5:.4%}']
+        df['Confidence Percentage'] = confidence_percentages
+
+        top5_indices = []
+        for idx_query, query_label in enumerate(q_labels):
+            top5_predicted_medicines = [r_labels[i] for i in np.argsort(similarity_scores_euc_dist[idx_query])[:5]]
+            if query_label in top5_predicted_medicines:
+                index = top5_predicted_medicines.index(query_label)
+            else:
+                index = -1
+            top5_indices.append(index)
+
+        df['Position of the correct label in the list'] = top5_indices
+
+        # Add empty columns for the last four rows
+        df.loc[len(df)] = ["Correctly predicted (Top-1):", f'{num_correct_top1}', '', '']
+        df.loc[len(df)] = ["Correctly predicted (Top-5):", f'{num_correct_top5}', '', '']
+        df.loc[len(df)] = ["Miss predicted:", f'{len(query_vectors) - num_correct_top1}', '', '']
+        df.loc[len(df)] = ['Accuracy (Top-1):', f'{accuracy_top1:.4%}', '', '']
+        df.loc[len(df)] = ['Accuracy (Top-5):', f'{accuracy_top5:.4%}', '', '']
         pd.set_option('display.max_rows', None)
         pd.set_option('display.max_columns', None)
         pd.set_option('display.width', None)
