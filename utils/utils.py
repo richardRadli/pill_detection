@@ -467,3 +467,25 @@ def prediction_statistics(stream_network_prediction_file: str, fusion_network_pr
     print("\nMedicines where FusionNetwork predicted wrong and StreamNetwork predicted well\n", df_sn)
     print("\nMedicines where StreamNetwork predicted wrong and FusionNetwork predicted well\n", df_fn)
     print("\nMedicines where neither StreamNetwork nor FusionNetwork predicted well\n", df_n)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------- C U D A   I N F O R M A T I O N ------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def use_gpu_if_available():
+    """
+    This function provides information about the currently available GPUs.
+    :return: device
+    """
+
+    cuda_info = {
+        'CUDA Available': [torch.cuda.is_available()],
+        'CUDA Device Count': [torch.cuda.device_count()],
+        'Current CUDA Device': [torch.cuda.current_device()],
+        'CUDA Device Name': [torch.cuda.get_device_name(0)]
+    }
+
+    df = pd.DataFrame(cuda_info)
+    print("\n", df, "\n")
+
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")

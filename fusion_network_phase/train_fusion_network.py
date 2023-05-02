@@ -12,7 +12,8 @@ from config import ConfigFusionNetwork
 from const import CONST
 from fusion_network import FusionNet
 from fusion_dataset_loader import FusionDataset
-from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config
+from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
+    use_gpu_if_available
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -33,7 +34,7 @@ class TrainFusionNet:
         self.timestamp = create_timestamp()
 
         # Select the GPU if possible
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = use_gpu_if_available()
 
         # Load datasets using FusionDataset
         dataset = FusionDataset("C:/Users/ricsi/Documents/project/storage/IVM/images")

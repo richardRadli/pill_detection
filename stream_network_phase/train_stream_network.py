@@ -13,7 +13,7 @@ from const import CONST
 from stream_dataset_loader import StreamDataset
 from stream_network import StreamNetwork
 from triplet_loss import TripletLossWithHardMining
-from utils.utils import create_timestamp, print_network_config
+from utils.utils import create_timestamp, print_network_config, use_gpu_if_available
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -34,7 +34,7 @@ class TrainModel:
         self.timestamp = create_timestamp()
 
         # Select the GPU if possibly
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = use_gpu_if_available()
 
         # Setup network config
         if self.cfg.type_of_network not in ["RGB", "Texture", "Contour"]:

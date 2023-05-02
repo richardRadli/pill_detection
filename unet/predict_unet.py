@@ -9,7 +9,7 @@ from PIL import Image
 from config import ConfigTestingUnet
 from unet import UNet
 from unet.data_loading import BasicDataset
-from utils.utils import plot_img_and_mask
+from utils.utils import plot_img_and_mask, use_gpu_if_available
 
 cfg = ConfigTestingUnet().parse()
 
@@ -82,7 +82,7 @@ def main():
 
     net = UNet(cfg.channels, cfg.classes, bilinear=cfg.bilinear)
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = use_gpu_if_available()
     logging.info(f'Loading model {cfg.model}')
     logging.info(f'Using device {device}')
 

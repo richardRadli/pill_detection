@@ -12,7 +12,8 @@ from PIL import Image
 from const import CONST
 from config import ConfigStreamNetwork
 from stream_network import StreamNetwork
-from utils.utils import create_timestamp, find_latest_file_in_latest_directory, plot_ref_query_images
+from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory, \
+    plot_ref_query_images
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -49,7 +50,7 @@ class PredictStreamNetwork:
                                                       transforms.Grayscale(),
                                                       transforms.ToTensor()])
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = use_gpu_if_available()
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
@@ -96,16 +97,19 @@ class PredictStreamNetwork:
         labels = []
         images_path = []
 
-        self.network_con = self.network_con.to(self.device)  # Move the model to the GPU
+        # Move the model to the GPU
+        self.network_con = self.network_con.to(self.device)
         self.network_rgb = self.network_rgb.to(self.device)
         self.network_tex = self.network_tex.to(self.device)
 
-        for med_class in tqdm(medicine_classes, desc="Process %s images" % operation):
+        for med_class in tqdm(medicine_classes, desc="\nProcess %s images" % operation):
+            # Collecting the images
             image_paths_con = os.listdir(os.path.join(contour_dir, med_class))
             image_paths_rgb = os.listdir(os.path.join(rgb_dir, med_class))
             image_paths_tex = os.listdir(os.path.join(texture_dir, med_class))
 
             for idx, (con, rgb, tex) in enumerate(zip(image_paths_con, image_paths_rgb, image_paths_tex)):
+                # Open images and convert them to tensors
                 con_image = Image.open(os.path.join(contour_dir, med_class, con))
                 con_image = self.preprocess_con_tex(con_image)
 
@@ -116,6 +120,7 @@ class PredictStreamNetwork:
                 tex_image = Image.open(os.path.join(texture_dir, med_class, tex))
                 tex_image = self.preprocess_con_tex(tex_image)
 
+                # Make prediction
                 with torch.no_grad():
                     # Move input to GPU
                     con_image = con_image.unsqueeze(0).to(self.device)
@@ -136,8 +141,8 @@ class PredictStreamNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------- M E A S U R E   C O S S I M   A N D   E U C D I S T ------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def measure_similarity_and_distance(self, q_labels: list[str], r_labels: list[str], reference_vectors: list,
-                                        query_vectors: list) -> Tuple[List[str], List[str], List[int]]:
+    def compare_query_and_reference_vectors(self, q_labels: list[str], r_labels: list[str], reference_vectors: list,
+                                            query_vectors: list) -> Tuple[List[str], List[str], List[int]]:
         """
         This method measures the similarity and distance between two sets of labels (q_labels and r_labels) and their
         corresponding embedded vectors (query_vectors and reference_vectors) using Euclidean distance.
@@ -170,7 +175,8 @@ class PredictStreamNetwork:
             # Move scores to CPU for further processing
             similarity_scores_euc_dist.append(scores_e.cpu().tolist())
 
-            # Find most similar indices and values
+            # Calculate and store the most similar reference vector, predicted medicine label, and corresponding
+            # minimum Euclidean distance for each query vector
             most_similar_indices_euc_dist = [scores.index(min(scores)) for scores in similarity_scores_euc_dist]
             predicted_medicine = r_labels[most_similar_indices_euc_dist[idx_query]]
             predicted_medicine_euc_dist.append(predicted_medicine)
@@ -250,7 +256,7 @@ class PredictStreamNetwork:
                                                              operation="reference")
 
         # Compare query and reference vectors
-        gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vecs, query_vecs)
+        gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
 
         # Plot query and reference medicines
         plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, operation="stream")

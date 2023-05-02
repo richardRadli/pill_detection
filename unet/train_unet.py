@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 from unet import UNet
 from unet.data_loading import CustomDataset, BasicDataset
-from utils.utils import dice_loss, multiclass_dice_coefficient, dice_coefficient, create_timestamp
+from utils.utils import create_timestamp, dice_coefficient, dice_loss, multiclass_dice_coefficient, use_gpu_if_available
 from config import ConfigTrainingUnet
 from const import CONST
 
@@ -206,51 +206,56 @@ def train_model(
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    logging.info(f'Using device {device}')
-
-    # Change here to adapt to your data
-    # n_channels=3 for RGB images
-    # n_classes is the number of probabilities you want to get per pixel
-    model = UNet(n_channels=3, n_classes=cfg.classes, bilinear=cfg.bilinear)
-
-    logging.info(f'Network:\n'
-                 f'\t{model.n_channels} input channels\n'
-                 f'\t{model.n_classes} output channels (classes)\n'
-                 f'\t{"Bilinear" if model.bilinear else "Transposed conv"} upscaling')
-
-    if cfg.load:
-        state_dict = torch.load(cfg.load, map_location=device)
-        del state_dict['mask_values']
-        model.load_state_dict(state_dict)
-        logging.info(f'Model loaded from {cfg.load}')
-
-    model.to(device=device)
     try:
-        train_model(
-            model=model,
-            epochs=cfg.epochs,
-            batch_size=cfg.batch_size,
-            learning_rate=cfg.lr,
-            device=device,
-            img_scale=cfg.scale,
-            val_percent=cfg.valid / 100,
-            amp=cfg.amp
-        )
-    except torch.cuda.OutOfMemoryError:
-        logging.error('Detected OutOfMemoryError! '
-                      'Enabling checkpointing to reduce memory usage, but this slows down training. '
-                      'Consider enabling AMP (--amp) for fast and memory efficient training')
-        torch.cuda.empty_cache()
-        model.use_checkpointing()
-        train_model(
-            model=model,
-            epochs=cfg.epochs,
-            batch_size=cfg.batch_size,
-            learning_rate=cfg.lr,
-            device=device,
-            img_scale=cfg.scale,
-            val_percent=cfg.valid / 100,
-            amp=cfg.amp
-        )
+        logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+        device = use_gpu_if_available()
+        logging.info(f'Using device {device}')
+
+        # Change here to adapt to your data
+        # n_channels=3 for RGB images
+        # n_classes is the number of probabilities you want to get per pixel
+        model = UNet(n_channels=3, n_classes=cfg.classes, bilinear=cfg.bilinear)
+
+        logging.info(f'Network:\n'
+                     f'\t{model.n_channels} input channels\n'
+                     f'\t{model.n_classes} output channels (classes)\n'
+                     f'\t{"Bilinear" if model.bilinear else "Transposed conv"} upscaling')
+
+        if cfg.load:
+            state_dict = torch.load(cfg.load, map_location=device)
+            del state_dict['mask_values']
+            model.load_state_dict(state_dict)
+            logging.info(f'Model loaded from {cfg.load}')
+
+        model.to(device=device)
+        summary(model, (3, 400, 400))
+
+        try:
+            train_model(
+                model=model,
+                epochs=cfg.epochs,
+                batch_size=cfg.batch_size,
+                learning_rate=cfg.lr,
+                device=device,
+                img_scale=cfg.scale,
+                val_percent=cfg.valid / 100,
+                amp=cfg.amp
+            )
+        except torch.cuda.OutOfMemoryError:
+            logging.error('Detected OutOfMemoryError! '
+                          'Enabling checkpointing to reduce memory usage, but this slows down training. '
+                          'Consider enabling AMP (--amp) for fast and memory efficient training')
+            torch.cuda.empty_cache()
+            model.use_checkpointing()
+            train_model(
+                model=model,
+                epochs=cfg.epochs,
+                batch_size=cfg.batch_size,
+                learning_rate=cfg.lr,
+                device=device,
+                img_scale=cfg.scale,
+                val_percent=cfg.valid / 100,
+                amp=cfg.amp
+            )
+    except KeyboardInterrupt as kie:
+        print(kie)
