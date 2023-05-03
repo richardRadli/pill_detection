@@ -196,19 +196,29 @@ class PredictFusionNetwork:
                           columns=['GT Medicine Name', 'Predicted Medicine Name (ED)'])
         df['Confidence Percentage'] = confidence_percentages
         df['Position of the correct label in the list'] = top5_indices
-        df.loc[len(df)] = ["Correctly predicted (Top-1):", f'{num_correct_top1}', '', '']
-        df.loc[len(df)] = ["Correctly predicted (Top-5):", f'{num_correct_top5}', '', '']
-        df.loc[len(df)] = ["Miss predicted:", f'{len(query_vectors) - num_correct_top1}', '', '']
-        df.loc[len(df)] = ['Accuracy (Top-1):', f'{accuracy_top1:.4%}', '', '']
-        df.loc[len(df)] = ['Accuracy (Top-5):', f'{accuracy_top5:.4%}', '', '']
+
+        df_stat = [
+            ["Correctly predicted (Top-1): " f'{num_correct_top1}'],
+            ["Correctly predicted (Top-5): " f'{num_correct_top5}'],
+            ["Miss predicted: " f'{len(query_vectors) - num_correct_top1}'],
+            ["Accuracy (Top-1): ", f'{accuracy_top1:.4%}'],
+            ["Accuracy (Top-5): ", f'{accuracy_top5:.4%}']
+        ]
+        df_stat = pd.DataFrame(df_stat, columns=["Metric", "Value"])
+
         pd.set_option('display.max_rows', None)
         pd.set_option('display.max_columns', None)
         pd.set_option('display.width', None)
         pd.set_option('display.max_colwidth', None)
 
         print(df)
-        df.to_csv(os.path.join(CONST.dir_fusion_network_predictions, self.timestamp + "_fusion_network_prediction.txt"),
-                  sep='\t', index=True)
+        print(df_stat)
+
+        df_combined = pd.concat([df, df_stat], ignore_index=True)
+
+        df_combined.to_csv(
+            os.path.join(CONST.dir_fusion_network_predictions, self.timestamp + "_fusion_network_prediction.txt"),
+            sep='\t', index=True)
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
 

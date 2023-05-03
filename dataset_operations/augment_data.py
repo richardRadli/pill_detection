@@ -5,7 +5,7 @@ import os
 from tqdm import tqdm
 from config import ConfigAugment
 from const import CONST
-from utils import read_image_to_list
+from utils.utils import read_image_to_list
 
 cfg = ConfigAugment().parse()
 

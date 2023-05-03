@@ -110,7 +110,7 @@ def read_yolo_annotations_to_list(yolo_dir: str) -> List[str]:
     txt_files = sorted(glob(os.path.join(yolo_dir, "*.txt")))
     file_names = []
 
-    for idx, txt_file in tqdm(enumerate(txt_files), total=len(txt_files)):
+    for _, txt_file in tqdm(enumerate(txt_files), total=len(txt_files), desc="Yolo files"):
         file_names.append(txt_file)
 
     return file_names
