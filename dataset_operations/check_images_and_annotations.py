@@ -6,6 +6,7 @@ from glob import glob
 from tqdm import tqdm
 from typing import List
 
+from const import CONST
 from convert_yolo import convert_yolo_format_to_pixels, read_yolo_annotations_to_list
 
 
@@ -20,19 +21,20 @@ def read_image_to_list(dir_train_images: str) -> List[str]:
     img_files = sorted(glob(os.path.join(dir_train_images, "*.png")))
     file_names = []
 
-    for _, img_file in tqdm(enumerate(img_files), total=len(img_files), desc="Image files"):
+    for _, img_file in tqdm(enumerate(img_files), total=len(img_files), desc="Collecting image file names"):
         file_names.append(img_file)
 
     return file_names
 
 
 def main():
-    main_dir = os.path.join("C:/Users/ricsi/Documents/project/storage/IVM/datasets/ogyi/cropped_img_size/unsplitted")
+    main_dir = os.path.join(CONST.PROJECT_ROOT, "datasets/ogyi/full_img_size/splitted/test")
     original_imgs_file_names = read_image_to_list(main_dir + "/images")
     yolo_annotations = read_yolo_annotations_to_list(main_dir + "/labels")
 
     for _, (img, txt) in tqdm(enumerate(zip(original_imgs_file_names, yolo_annotations)),
                               total=len(original_imgs_file_names)):
+        print("\n", f'Image name: {os.path.basename(img)}\ntxt name: {os.path.basename(txt)}')
         image = cv2.imread(img)
 
         with open(txt, "r") as file:
@@ -51,4 +53,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt as kie:
+        print(kie)

@@ -93,7 +93,8 @@ def read_image_to_list(dir_train_images: str) -> List[str]:
 
     for subdir in subdirs:
         images = sorted(glob(os.path.join(subdir, "*.png")))
-        for idx, img_path in tqdm(enumerate(images), total=len(images)):
+        for idx, img_path in tqdm(enumerate(images), total=len(images), desc="Collecting image file names from subdir "
+                                                                             f"{subdir}"):
             file_names.append(img_path)
 
     return file_names
@@ -110,7 +111,7 @@ def read_yolo_annotations_to_list(yolo_dir: str) -> List[str]:
     txt_files = sorted(glob(os.path.join(yolo_dir, "*.txt")))
     file_names = []
 
-    for _, txt_file in tqdm(enumerate(txt_files), total=len(txt_files), desc="Yolo files"):
+    for _, txt_file in tqdm(enumerate(txt_files), total=len(txt_files), desc="Collecting txt file names"):
         file_names.append(txt_file)
 
     return file_names
@@ -212,8 +213,13 @@ def main():
 
     # Threaded execution of the processing of images
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.map(process_image, [main_dir] * len(original_imgs_file_names),
-                     original_imgs_file_names, cropped_imgs_file_names, yolo_annotations)
+        futures = [executor.submit(process_image, main_dir, ori, cropped, yolo_annotation)
+                   for ori, cropped, yolo_annotation in zip(original_imgs_file_names,
+                                                            cropped_imgs_file_names,
+                                                            yolo_annotations)]
+
+        for _ in tqdm(concurrent.futures.as_completed(futures), total=len(futures)):
+            pass
 
     # Creating directories and moving files there
     labels_dir = os.path.join(main_dir, original_images_labels_dir_name)

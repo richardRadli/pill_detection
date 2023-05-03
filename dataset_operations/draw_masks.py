@@ -1,7 +1,6 @@
 import concurrent.futures
 import numpy as np
 import os
-import re
 
 from PIL import Image, ImageDraw
 from pathlib import Path
@@ -40,32 +39,6 @@ def load_files(train_dir: str, labels_dir: str) -> Tuple[List[str], List[str]]:
         raise ValueError(f"No text files found in {labels_dir}")
 
     return image_files, text_files
-
-
-# ------------------------------------------------------------------------------------------------------------------- #
-# --------------------------------------- R E M O V E   R O B O F L O W   S U F F I X ------------------------------- #
-# ------------------------------------------------------------------------------------------------------------------- #
-def remove_roboflow_suffix(file_name: str) -> str:
-    """
-    This function removes the suffix that roboflow adds to the filename.
-    :param file_name: input filename
-    :return: new filename
-    """
-
-    new_name = None
-
-    if file_name.endswith(".jpg"):
-        new_name = re.sub("\\.rf\\..+\\.jpg$", "", file_name)
-        new_name = new_name.replace("_png", ".png")
-        os.rename(file_name, new_name)
-    elif file_name.endswith(".txt"):
-        new_name = re.sub("\\.rf\\..+\\.txt$", "", file_name)
-        new_name = new_name.replace("_png", ".txt")
-        os.rename(file_name, new_name)
-    else:
-        pass
-
-    return new_name
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -130,11 +103,10 @@ def save_masks(mask: np.ndarray, img_file: str) -> None:
 # ------------------------------------------------------------------------------------------------------------------- #
 # ----------------------------------------------------- M A I N ----------------------------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
-def main(ditch_suffix: bool = True, save: bool = True) -> None:
+def main(save: bool = True) -> None:
     """
     Runs the main processing pipeline.
 
-    :param ditch_suffix: If True, removes suffix from filenames.
     :param save: If True, saves masks.
     :return: None
     """
@@ -144,9 +116,6 @@ def main(ditch_suffix: bool = True, save: bool = True) -> None:
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []
         for img_file, txt_file in zip(img_files, txt_files):
-            if ditch_suffix:
-                img_file = remove_roboflow_suffix(img_file)
-                txt_file = remove_roboflow_suffix(txt_file)
             futures.append(executor.submit(process_data, img_file, txt_file))
 
         for future, (img_file, _) in tqdm(zip(futures, zip(img_files, txt_files)), total=len(img_files),
@@ -160,4 +129,4 @@ def main(ditch_suffix: bool = True, save: bool = True) -> None:
 
 
 if __name__ == "__main__":
-    main(ditch_suffix=False, save=True)
+    main(save=True)
