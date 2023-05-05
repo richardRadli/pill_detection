@@ -227,6 +227,7 @@ class PredictStreamNetwork:
             ['Accuracy (Top-5):', f'{accuracy_top5:.4%}']
         ]
         df_stat = pd.DataFrame(df_stat, columns=['Metric', 'Value'])
+
         pd.set_option('display.max_rows', None)
         pd.set_option('display.max_columns', None)
         pd.set_option('display.width', None)

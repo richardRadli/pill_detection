@@ -26,17 +26,11 @@ def get_classes() -> Tuple[Dict[str, int], Dict[str, List[str]], Dict[str, List[
             class_name = filename.split('_')[2:-1]
             classes.add('_'.join(class_name))
 
-    for filename in os.listdir(CONST.dir_labels_data):
-        if filename.endswith('.txt'):
-            class_name = filename.split('_')[2:-1]
-            classes.add('_'.join(class_name))
-
     classes = sorted(classes)
 
     class_counts = {class_name: 0 for class_name in classes}
     train_images = {class_name: [] for class_name in classes}
     test_images = {class_name: [] for class_name in classes}
-
     return class_counts, train_images, test_images
 
 
@@ -153,16 +147,16 @@ def main(replace_files: bool = False, rollback: bool = False) -> None:
     """
 
     class_counts, train_images, test_images = get_classes()
-    class_counts, train_images, test_images = split_dataset(class_counts, train_images, test_images)
-
-    statistics_of_dataset(class_counts, train_images, test_images)
-
-    if replace_files:
-        move_files(test_images)
-
-    if rollback:
-        rollback_files(CONST.dir_train_images, CONST.dir_test_images)
-        rollback_files(CONST.dir_train_masks, CONST.dir_test_mask)
+    # class_counts, train_images, test_images = split_dataset(class_counts, train_images, test_images)
+    #
+    # statistics_of_dataset(class_counts, train_images, test_images)
+    #
+    # if replace_files:
+    #     move_files(test_images)
+    #
+    # if rollback:
+    #     rollback_files(CONST.dir_train_images, CONST.dir_test_images)
+    #     rollback_files(CONST.dir_train_masks, CONST.dir_test_mask)
 
 
 if __name__ == "__main__":

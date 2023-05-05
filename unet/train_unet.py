@@ -56,27 +56,16 @@ def evaluate(net, dataloader, device, amp):
     return dice_score / max(num_val_batches, 1)
 
 
-def train_model(
-        model,
-        device,
-        epochs: int = 5,
-        batch_size: int = 1,
-        learning_rate: float = 1e-5,
-        val_percent: float = 0.1,
-        save_checkpoint: bool = True,
-        img_scale: float = 0.5,
-        amp: bool = False,
-        weight_decay: float = 1e-8,
-        momentum: float = 0.999,
-        gradient_clipping: float = 1.0,
-):
+def train_model(model, device, epochs: int = 5, batch_size: int = 1, learning_rate: float = 1e-5,
+                val_percent: float = 0.1, save_checkpoint: bool = True, img_scale: float = 0.5, amp: bool = False,
+                weight_decay: float = 1e-8, momentum: float = 0.999, gradient_clipping: float = 1.0):
     # 1. Create dataset
     try:
         dataset = CustomDataset(CONST.dir_train_images, CONST.dir_train_masks, cfg.scale)
     except (AssertionError, RuntimeError, IndexError):
         dataset = BasicDataset(CONST.dir_train_images, CONST.dir_train_masks, cfg.scale)
 
-    # # 2. Split into train / validation partitions
+    # 2. Split into train / validation partitions
     # Determine the ratio of the split
     train_ratio = 0.8
 
@@ -111,8 +100,7 @@ def train_model(
     ''')
 
     # 4. Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
-    optimizer = optim.RMSprop(model.parameters(),
-                              lr=learning_rate, weight_decay=weight_decay, momentum=momentum)
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate, weight_decay=weight_decay, momentum=momentum)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=5)  # goal: maximize Dice score
     grad_scaler = torch.cuda.amp.GradScaler(enabled=amp)
     criterion = nn.CrossEntropyLoss() if model.n_classes > 1 else nn.BCEWithLogitsLoss()

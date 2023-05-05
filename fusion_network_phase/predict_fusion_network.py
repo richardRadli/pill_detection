@@ -198,13 +198,13 @@ class PredictFusionNetwork:
         df['Position of the correct label in the list'] = top5_indices
 
         df_stat = [
-            ["Correctly predicted (Top-1): " f'{num_correct_top1}'],
-            ["Correctly predicted (Top-5): " f'{num_correct_top5}'],
-            ["Miss predicted: " f'{len(query_vectors) - num_correct_top1}'],
-            ["Accuracy (Top-1): ", f'{accuracy_top1:.4%}'],
-            ["Accuracy (Top-5): ", f'{accuracy_top5:.4%}']
+            ["Correctly predicted (Top-1):", f'{num_correct_top1}'],
+            ["Correctly predicted (Top-5):", f'{num_correct_top5}'],
+            ["Miss predicted:", f'{len(query_vectors) - num_correct_top1}'],
+            ['Accuracy (Top-1):', f'{accuracy_top1:.4%}'],
+            ['Accuracy (Top-5):', f'{accuracy_top5:.4%}']
         ]
-        df_stat = pd.DataFrame(df_stat, columns=["Metric", "Value"])
+        df_stat = pd.DataFrame(df_stat, columns=['Metric', 'Value'])
 
         pd.set_option('display.max_rows', None)
         pd.set_option('display.max_columns', None)
