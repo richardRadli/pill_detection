@@ -30,11 +30,12 @@ def calculate_metrics_thread() -> (float, float, float, float):
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []
-        for _, (true_img_idx, pred_img_idx) in tqdm(enumerate(zip(images_true, images_pred)), total=len(images_true)):
+        for _, (true_img_idx, pred_img_idx) in tqdm(enumerate(zip(images_true, images_pred)), total=len(images_true),
+                                                    desc="Collect images"):
             future = executor.submit(calculate_metrics, true_img_idx, pred_img_idx)
             futures.append(future)
 
-        for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures)):
+        for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="Processing"):
             fpr, tpr, ppv, iou = future.result()
             fpr_list.append(fpr)
             tpr_list.append(tpr)
@@ -104,10 +105,11 @@ def plot_results() -> None:
     images_true = sorted(glob(CONST.dir_test_mask + '/*.png'), key=numerical_sort)
     images_pred = sorted(glob(CONST.dir_unet_output + '/*.png'), key=numerical_sort)
 
-    for idx, (input_img_val, true_img_val, pred_img_val) in enumerate(zip(images_input, images_true, images_pred)):
+    for idx, (input_img_val, true_img_val, pred_img_val) in tqdm(enumerate(zip(images_input, images_true, images_pred)),
+                                                                 total=len(images_input), desc="Plotting images"):
         save_path = input_img_val
         file_name = save_path.split("\\")[2]
-        output_path = (os.path.join(CONST.dir_unet_output_2, file_name))
+        output_path = (os.path.join(CONST.dir_unet_compare, file_name))
 
         in_img = cv2.imread(input_img_val)
         gt_img = cv2.imread(true_img_val)
@@ -116,6 +118,9 @@ def plot_results() -> None:
 
 
 if __name__ == "__main__":
-    fpr_res, tpr_res, ppvc_res, iou_res = calculate_metrics_thread()
-    print(f" Fall out: {fpr_res: .4f}\n Recall: {tpr_res: .4f}\n Precision: {ppvc_res: .4f}\n IoU: {iou_res: .4f}\n")
-    plot_results()
+    try:
+        fpr_res, tpr_res, ppvc_res, iou_res = calculate_metrics_thread()
+        print(f" Fall out: {fpr_res: .4f}\n Recall: {tpr_res: .4f}\n Precision: {ppvc_res: .4f}\n IoU: {iou_res: .4f}\n")
+        plot_results()
+    except KeyboardInterrupt as kie:
+        print(kie)

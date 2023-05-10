@@ -185,7 +185,7 @@ def plot_diagrams(input_image, gt_image, pred_image, save_path):
     f, ax = plt.subplots(1, 3)
 
     # use the created array to output your multiple images. In this case I have stacked 4 images vertically
-    ax[0].imshow(input_image)
+    ax[0].imshow(cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB))
     ax[0].set_title("Input")
     ax[1].imshow(gt_image)
     ax[1].set_title("Ground truth")
@@ -290,7 +290,7 @@ def find_latest_file_in_directory(path: str, extension: str) -> str:
 # ---------------------------------------- P L O T   R E F   Q U E R Y   I M G S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images_path: list[str], gt: list[str],
-                          pred_cs: list[str], operation: str) -> None:
+                          pred_cs: list[str], out_path: str) -> None:
     """
     Plots the reference and query images with their corresponding ground truth and predicted class labels.
 
@@ -299,11 +299,10 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
     :param r_images_path: list of file paths to reference images
     :param gt: list of ground truth class labels for each query image
     :param pred_cs: list of predicted class labels for each query image
-    :param operation: stream or fusion network
+    :param out_path: stream or fusion network path
     :return: None
     """
 
-    out_path = CONST.dir_query_ref_pred if operation == "stream" else CONST.dir_fusion_net_pred
     new_list = [i for i in range(len(indices))]
 
     for idx, (i, j, k, l) in tqdm(enumerate(zip(indices, new_list, gt, pred_cs)), total=len(new_list),

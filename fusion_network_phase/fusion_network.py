@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from stream_network_phase.CNN import StreamNetwork
+from stream_network_phase.CNN import CNN
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -21,9 +21,9 @@ class FusionNet(nn.Module):
         super(FusionNet, self).__init__()
         list_of_channels_con_tex = [1, 32, 48, 64, 128, 192, 256]
         list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
-        self.contour_network = StreamNetwork(list_of_channels_con_tex)
-        self.rgb_network = StreamNetwork(list_of_channels_rgb)
-        self.texture_network = StreamNetwork(list_of_channels_con_tex)
+        self.contour_network = CNN(list_of_channels_con_tex)
+        self.rgb_network = CNN(list_of_channels_rgb)
+        self.texture_network = CNN(list_of_channels_con_tex)
         self.fc1 = nn.Linear(512, 512)
         self.fc2 = nn.Linear(512, 512)
 

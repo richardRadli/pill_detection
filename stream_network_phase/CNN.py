@@ -4,13 +4,13 @@ import torch.nn as nn
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++ S T R E A M   N E T +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class StreamNetwork(nn.Module):
+class CNN(nn.Module):
     def __init__(self, loc):
         """
         :param loc: list of number of channels 
         """
         
-        super(StreamNetwork, self).__init__()
+        super(CNN, self).__init__()
         self.loc = loc
         self.conv1 = nn.Conv2d(loc[0], loc[1], kernel_size=7, stride=2, padding=3)
         self.conv2 = nn.Conv2d(loc[1], loc[1], kernel_size=3, stride=1, padding=1)

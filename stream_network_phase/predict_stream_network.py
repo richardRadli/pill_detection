@@ -11,7 +11,7 @@ from PIL import Image
 
 from const import CONST
 from config import ConfigStreamNetwork
-from CNN import StreamNetwork
+from network_selector import NetworkFactory
 from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory, \
     plot_ref_query_images
 
@@ -36,6 +36,9 @@ class PredictStreamNetwork:
         self.query_image_rgb = None
         self.query_image_con = None
 
+        self.main_network_config = self.get_main_network_config()
+        self.sub_network_config = self.get_subnetwork_config()
+
         self.network_con, self.network_rgb, self.network_tex = self.load_networks()
 
         self.network_con.eval()
@@ -53,26 +56,87 @@ class PredictStreamNetwork:
         self.device = use_gpu_if_available()
 
     # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------- G E T   M A I N   N E T W O R K   C O N F I G ---------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def get_main_network_config(self):
+        network_type = self.cfg.type_of_net
+        print(network_type)
+        network_configs = {
+            'StreamNetwork': {
+                'prediction_folder': CONST.dir_stream_network_predictions,
+                'plotting_folder': CONST.dir_stream_network_pred
+            },
+            'EfficientNet': {
+                'prediction_folder': CONST.dir_efficient_net_predictions,
+                'plotting_folder': CONST.dir_efficient_net_prediction
+            }
+        }
+        if network_type not in network_configs:
+            raise ValueError(f'Invalid network type: {network_type}')
+
+        return network_configs[network_type]
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------- G E T   S U B   N E T W O R K   C O N F I G ----------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def get_subnetwork_config(self):
+        """
+
+        :return:
+        """
+
+        network_config = {
+            "RGB": {
+                "channels": [3, 64, 96, 128, 256, 384, 512],
+                "model_weights_dir": {
+                    "StreamNetwork": CONST.dir_stream_rgb_model_weights,
+                    "EfficientNet": CONST.dir_efficient_net_rgb_model_weights
+                }.get(self.cfg.type_of_net, CONST.dir_stream_rgb_model_weights),
+                "grayscale": False
+            },
+
+            "Texture": {
+                "channels": [1, 32, 48, 64, 128, 192, 256],
+                "model_weights_dir": {
+                    "StreamNetwork": CONST.dir_stream_texture_model_weights,
+                    "EfficientNet": CONST.dir_efficient_net_texture_model_weights
+                }.get(self.cfg.type_of_net, CONST.dir_stream_texture_model_weights),
+                "grayscale": True
+            },
+
+            "Contour": {
+                "channels": [1, 32, 48, 64, 128, 192, 256],
+                "model_weights_dir": {
+                    "StreamNetwork": CONST.dir_stream_contour_model_weights,
+                    "EfficientNet": CONST.dir_efficient_net_contour_model_weights
+                }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
+                "grayscale": True
+            }
+        }
+
+        return network_config
+
+    # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def load_networks():
+    def load_networks(self):
         """
         This function loads the pretrained networks, with the latest .pt files
 
         :return: The contour, rgb, and texture networks.
         """
 
-        list_of_channels_tex_con = [1, 32, 48, 64, 128, 192, 256]
-        list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
+        rgb_config = self.sub_network_config.get("RGB")
+        con_config = self.sub_network_config.get("Contour")
+        tex_config = self.sub_network_config.get("Texture")
 
-        latest_con_pt_file = find_latest_file_in_latest_directory(CONST.dir_stream_contour_model_weights)
-        latest_rgb_pt_file = find_latest_file_in_latest_directory(CONST.dir_stream_rgb_model_weights)
-        latest_tex_pt_file = find_latest_file_in_latest_directory(CONST.dir_stream_texture_model_weights)
+        latest_con_pt_file = find_latest_file_in_latest_directory(con_config.get("model_weights_dir"))
+        latest_rgb_pt_file = find_latest_file_in_latest_directory(rgb_config.get("model_weights_dir"))
+        latest_tex_pt_file = find_latest_file_in_latest_directory(tex_config.get("model_weights_dir"))
 
-        network_con = StreamNetwork(loc=list_of_channels_tex_con)
-        network_rgb = StreamNetwork(loc=list_of_channels_rgb)
-        network_tex = StreamNetwork(loc=list_of_channels_tex_con)
+        network_con = NetworkFactory.create_network(self.cfg.type_of_net, con_config)
+        network_rgb = NetworkFactory.create_network(self.cfg.type_of_net, rgb_config)
+        network_tex = NetworkFactory.create_network(self.cfg.type_of_net, tex_config)
 
         network_con.load_state_dict(torch.load(latest_con_pt_file))
         network_rgb.load_state_dict(torch.load(latest_rgb_pt_file))
@@ -238,9 +302,8 @@ class PredictStreamNetwork:
 
         df_combined = pd.concat([df, df_stat], ignore_index=True)
 
-        df_combined.to_csv(
-            os.path.join(CONST.dir_stream_network_predictions, self.timestamp + "_stream_network_prediction.txt"),
-            sep='\t', index=True)
+        df_combined.to_csv(os.path.join(self.main_network_config['prediction_folder'],
+                                        self.timestamp + "_stream_network_prediction.txt"), sep='\t', index=True)
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
 
@@ -269,7 +332,8 @@ class PredictStreamNetwork:
         gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
 
         # Plot query and reference medicines
-        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, operation="stream")
+        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed,
+                              self.main_network_config['plotting_folder'])
 
 
 if __name__ == "__main__":

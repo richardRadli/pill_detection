@@ -3,7 +3,7 @@ import torch
 from abc import ABC, abstractmethod
 
 from efficient_net_b0 import EfficientNet
-from CNN import StreamNetwork
+from CNN import CNN
 
 
 class BaseNetwork(ABC):
@@ -27,7 +27,7 @@ class EfficientNetWrapper(BaseNetwork):
 
 class StreamNetworkWrapper(BaseNetwork):
     def __init__(self, network_cfg):
-        self.model = StreamNetwork(network_cfg.get('channels'))
+        self.model = CNN(network_cfg.get('channels'))
 
     def forward(self, x):
         return self.model(x)

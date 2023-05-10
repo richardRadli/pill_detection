@@ -18,24 +18,24 @@ class _Const(object):
     # ---------------------------------------------- I M A G E   F I L E S ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     # Directories for the images
-    dirs_images = ["images/images_aug",                     # 0
-                   "images/masks_aug",                      # 1
-                   "images/rgb",                            # 2
-                   "images/contour",                        # 2
-                   "images/texture",                        # 3
-                   "images/test_images",                    # 4
-                   "images/test_masks",                     # 5
-                   "images/unet_out",                       # 6
-                   "images/unet_out_2",                     # 7
-                   "images/query/rgb",                      # 8
-                   "images/query/contour",                  # 9
-                   "images/query/texture",                  # 10
-                   "images/stream_network_prediction",      # 11
-                   "images/contour_hardest",                # 12
-                   "images/rgb_hardest",                    # 13
-                   "images/texture_hardest",                # 14
-                   "images/fusion_network_prediction",      # 15
-                   "images/efficient_net_prediction"]       # 16
+    dirs_images = ["images/test_images",                # 0
+                   "images/test_masks",                 # 1
+                   "images/rgb",                        # 2
+                   "images/contour",                    # 3
+                   "images/texture",                    # 4
+                   "images/unet_out",                   # 5
+                   "images/unet_compare",               # 6
+                   "images/query/rgb",                  # 7
+                   "images/query/contour",              # 8
+                   "images/query/texture",              # 9
+                   "images/contour_hardest",            # 10
+                   "images/rgb_hardest",                # 11
+                   "images/texture_hardest",            # 12
+                   "images/stream_network_prediction",  # 13
+                   "images/efficient_net_prediction",   # 14
+                   "images/fusion_network_prediction",  # 15
+                   "images/images_aug",                 # 16
+                   "images/masks_aug"]                 # 17
 
     # Directories for the train images. These two directories must exist, it won't be created by the program.
     dir_train_images = os.path.join(PROJECT_ROOT, 'images/train_images/')
@@ -43,8 +43,8 @@ class _Const(object):
 
     # Aux variables for the other directories. These will be created by the program.
     # Directories for augmentation
-    dir_aug_img = os.path.join(PROJECT_ROOT, dirs_images[0])
-    dir_aug_mask = os.path.join(PROJECT_ROOT, dirs_images[1])
+    dir_aug_img = os.path.join(PROJECT_ROOT, dirs_images[16])
+    dir_aug_mask = os.path.join(PROJECT_ROOT, dirs_images[17])
 
     # Directories for stream networks, stage 1
     dir_rgb = os.path.join(PROJECT_ROOT, dirs_images[2])
@@ -52,26 +52,27 @@ class _Const(object):
     dir_texture = os.path.join(PROJECT_ROOT, dirs_images[4])
 
     # Directories for test images
-    dir_test_images = os.path.join(PROJECT_ROOT, dirs_images[5])
-    dir_test_mask = os.path.join(PROJECT_ROOT, dirs_images[6])
+    dir_test_images = os.path.join(PROJECT_ROOT, dirs_images[0])
+    dir_test_mask = os.path.join(PROJECT_ROOT, dirs_images[1])
 
     # Directories for the UNET
-    dir_unet_output = os.path.join(PROJECT_ROOT, dirs_images[7])
-    dir_unet_output_2 = os.path.join(PROJECT_ROOT, dirs_images[8])
+    dir_unet_output = os.path.join(PROJECT_ROOT, dirs_images[5])
+    dir_unet_compare = os.path.join(PROJECT_ROOT, dirs_images[6])
 
     # Directories for the query images
-    dir_query_rgb = os.path.join(PROJECT_ROOT, dirs_images[9])
-    dir_query_contour = os.path.join(PROJECT_ROOT, dirs_images[10])
-    dir_query_texture = os.path.join(PROJECT_ROOT, dirs_images[11])
-    dir_query_ref_pred = os.path.join(PROJECT_ROOT, dirs_images[12])
+    dir_query_rgb = os.path.join(PROJECT_ROOT, dirs_images[7])
+    dir_query_contour = os.path.join(PROJECT_ROOT, dirs_images[8])
+    dir_query_texture = os.path.join(PROJECT_ROOT, dirs_images[9])
 
     # Directories for the hard samples, steam networks, stage 2
-    dir_contour_hardest = os.path.join(PROJECT_ROOT, dirs_images[13])
-    dir_rgb_hardest = os.path.join(PROJECT_ROOT, dirs_images[14])
-    dir_texture_hardest = os.path.join(PROJECT_ROOT, dirs_images[15])
-    dir_fusion_net_pred = os.path.join(PROJECT_ROOT, dirs_images[16])
+    dir_contour_hardest = os.path.join(PROJECT_ROOT, dirs_images[10])
+    dir_rgb_hardest = os.path.join(PROJECT_ROOT, dirs_images[11])
+    dir_texture_hardest = os.path.join(PROJECT_ROOT, dirs_images[12])
 
-    dir_efficient_net_prediction = os.path.join(PROJECT_ROOT, dirs_images[17])
+    # Directories for plotting the comparison of the query and the reference images
+    dir_stream_network_pred = os.path.join(PROJECT_ROOT, dirs_images[13])
+    dir_efficient_net_prediction = os.path.join(PROJECT_ROOT, dirs_images[14])
+    dir_fusion_net_pred = os.path.join(PROJECT_ROOT, dirs_images[15])
 
     # At this part, the program creates the directories.
     directories_images = []
