@@ -11,7 +11,7 @@ from PIL import Image
 
 from const import CONST
 from config import ConfigStreamNetwork
-from stream_network import StreamNetwork
+from CNN import StreamNetwork
 from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory, \
     plot_ref_query_images
 

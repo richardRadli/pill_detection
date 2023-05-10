@@ -28,7 +28,12 @@ class TripletLossWithHardMining(torch.nn.Module):
             else:
                 hard_neg_idx = torch.argmax(dist_neg[i, candidate_idxs])
             hard_neg.append(negative[candidate_idxs[hard_neg_idx]].unsqueeze(0))
-        hard_neg = torch.cat([x for x in hard_neg if x is not None], dim=0)
+        # hard_neg = torch.cat([x for x in hard_neg if x is not None], dim=0)
+        hard_neg = [x for x in hard_neg if x is not None and x.shape[0] != 0]
+        if hard_neg:
+            hard_neg = torch.cat(hard_neg, dim=0)
+        else:
+            hard_neg = torch.tensor([])
 
         # Select the hardest positive sample for each anchor
         hard_pos = []

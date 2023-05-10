@@ -13,21 +13,21 @@ class StreamDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- _ I N I T _ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self, dataset_dir: str, type_of_network: str) -> None:
+    def __init__(self, dataset_dir: str, type_of_stream: str) -> None:
         self.labels_set = None
         self.label_to_indices = None
         self.labels = None
         self.dataset_path = dataset_dir
-        self.type_of_network = type_of_network
+        self.type_of_stream = type_of_stream
 
-        if self.type_of_network == "RGB":
+        if self.type_of_stream == "RGB":
             self.transform = transforms.Compose([
                 transforms.Resize(128),
                 transforms.CenterCrop(128),
                 transforms.ToTensor(),
                 transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
             ])
-        elif self.type_of_network in ["Contour", "Texture"]:
+        elif self.type_of_stream in ["Contour", "Texture"]:
             self.transform = transforms.Compose([
                 transforms.Resize(128),
                 transforms.CenterCrop(128),

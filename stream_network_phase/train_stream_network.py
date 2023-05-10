@@ -10,8 +10,9 @@ from torchsummary import summary
 
 from config import ConfigStreamNetwork
 from const import CONST
-from stream_dataset_loader import StreamDataset
-from stream_network import StreamNetwork
+from network_selector import NetworkFactory
+from stream_network_dataset_loader import StreamDataset
+
 from triplet_loss import TripletLossWithHardMining
 from utils.utils import create_timestamp, print_network_config, use_gpu_if_available
 
@@ -37,40 +38,13 @@ class TrainModel:
         self.device = use_gpu_if_available()
 
         # Setup network config
-        if self.cfg.type_of_network not in ["RGB", "Texture", "Contour"]:
+        if self.cfg.type_of_stream not in ["RGB", "Texture", "Contour"]:
             raise ValueError("Wrong type was given!")
-
-        network_config = {
-            "RGB": {
-                "channels": [3, 64, 96, 128, 256, 384, 512],
-                "dataset_dir": CONST.dir_rgb,
-                "model_weights_dir": CONST.dir_stream_rgb_model_weights,
-                "logs_dir": CONST.dir_rgb_logs,
-                "learning_rate": self.cfg.learning_rate_rgb
-            },
-            "Texture": {
-                "channels": [1, 32, 48, 64, 128, 192, 256],
-                "dataset_dir": CONST.dir_texture,
-                "model_weights_dir": CONST.dir_stream_texture_model_weights,
-                "logs_dir": CONST.dir_texture_logs,
-                "learning_rate": self.cfg.learning_rate_con_tex
-            },
-            "Contour": {
-                "channels": [1, 32, 48, 64, 128, 192, 256],
-                "dataset_dir": CONST.dir_contour,
-                "model_weights_dir": CONST.dir_stream_contour_model_weights,
-                "logs_dir": CONST.dir_contour_logs,
-                "learning_rate": self.cfg.learning_rate_con_tex
-            }
-        }
-
-        # Set up network configuration
-        network_cfg = network_config.get(self.cfg.type_of_network)
-        if not network_cfg:
-            raise ValueError("Wrong type was given!")
+        network_config = self.subnetwork_configs()
+        network_cfg = network_config.get(self.cfg.type_of_stream)
 
         # Load dataset
-        self.dataset = StreamDataset(network_cfg.get('dataset_dir'), self.cfg.type_of_network)
+        self.dataset = StreamDataset(network_cfg.get('dataset_dir'), self.cfg.type_of_stream)
         train_size = int(self.cfg.train_rate * len(self.dataset))
         valid_size = len(self.dataset) - train_size
         print(f"\nSize of the train set: {train_size}\nSize of the validation set: {valid_size}\n")
@@ -79,7 +53,7 @@ class TrainModel:
         self.valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
 
         # Load model and upload it to the GPU
-        self.model = StreamNetwork(network_cfg.get('channels'))
+        self.model = NetworkFactory.create_network(self.cfg.type_of_net, network_cfg)
         self.model.to(self.device)
 
         # Print model configuration
@@ -103,6 +77,70 @@ class TrainModel:
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 
+    def subnetwork_configs(self):
+        """
+
+        :return:
+        """
+
+        network_config = {
+            "RGB": {
+                "channels": [3, 64, 96, 128, 256, 384, 512],
+                "dataset_dir": CONST.dir_rgb,
+                "model_weights_dir": {
+                    "StreamNetwork": CONST.dir_stream_rgb_model_weights,
+                    "EfficientNet": CONST.dir_efficient_net_rgb_model_weights
+                }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
+                "logs_dir": {
+                    "StreamNetwork": CONST.dir_logs_stream_net_rgb,
+                    "EfficientNet": CONST.dir_logs_efficient_net_rgb
+                }.get(self.cfg.type_of_net, CONST.dir_logs_stream_net_contour),
+                "learning_rate": {
+                    "StreamNetwork": self.cfg.learning_rate_cnn_rgb,
+                    "EfficientNet": self.cfg.learning_rate_en_rgb
+                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_rgb),
+                "grayscale": False
+            },
+
+            "Texture": {
+                "channels": [1, 32, 48, 64, 128, 192, 256],
+                "dataset_dir": CONST.dir_texture,
+                "model_weights_dir": {
+                    "StreamNetwork": CONST.dir_stream_texture_model_weights,
+                    "EfficientNet": CONST.dir_efficient_net_texture_model_weights
+                }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
+                "logs_dir": {
+                    "StreamNetwork": CONST.dir_logs_stream_net_texture,
+                    "EfficientNet": CONST.dir_logs_efficient_net_texture
+                }.get(self.cfg.type_of_net, CONST.dir_logs_stream_net_contour),
+                "learning_rate": {
+                    "StreamNetwork": self.cfg.learning_rate_cnn_con_tex,
+                    "EfficientNet": self.cfg.learning_rate_en_con_tex
+                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex),
+                "grayscale": True
+            },
+
+            "Contour": {
+                "channels": [1, 32, 48, 64, 128, 192, 256],
+                "dataset_dir": CONST.dir_contour,
+                "model_weights_dir": {
+                    "StreamNetwork": CONST.dir_stream_contour_model_weights,
+                    "EfficientNet": CONST.dir_efficient_net_contour_model_weights
+                }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
+                "logs_dir": {
+                    "StreamNetwork": CONST.dir_logs_stream_net_contour,
+                    "EfficientNet": CONST.dir_logs_efficient_net_contour
+                }.get(self.cfg.type_of_net, CONST.dir_logs_stream_net_contour),
+                "learning_rate": {
+                    "StreamNetwork": self.cfg.learning_rate_cnn_con_tex,
+                    "EfficientNet": self.cfg.learning_rate_en_con_tex
+                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex),
+                "grayscale": True
+            }
+        }
+
+        return network_config
+
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- G E T   H A R D  S A M P L E S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -115,7 +153,7 @@ class TrainModel:
         :return:
         """
 
-        dict_name = os.path.join(output_dir, self.timestamp, self.cfg.type_of_network)
+        dict_name = os.path.join(output_dir, self.timestamp, self.cfg.type_of_stream)
         os.makedirs(dict_name, exist_ok=True)
         file_name = os.path.join(dict_name, self.timestamp + "_epoch_" + str(epoch) + "_%s.txt" % op)
 

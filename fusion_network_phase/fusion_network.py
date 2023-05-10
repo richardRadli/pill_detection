@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from stream_network_phase.stream_network import StreamNetwork
+from stream_network_phase.CNN import StreamNetwork
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

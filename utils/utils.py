@@ -1,5 +1,6 @@
 import cv2
 import gc
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -377,7 +378,7 @@ def print_network_config(cfg):
     """
 
     df = pd.DataFrame.from_dict(vars(cfg), orient='index', columns=['value'])
-    print("Parameters of the selected StreamNetwork\n", df)
+    print("Parameters of the selected %s\n" % cfg.type_of_net, df)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -489,3 +490,21 @@ def use_gpu_if_available():
     print("\n", df, "\n")
 
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def print_json_structure(json_file: str) -> None:
+    # Load the JSON file
+    with open(json_file, 'r') as file:
+        data = json.load(file)
+
+    # Print the keys of each nested dictionary or element in a list
+    for key in data.keys():
+        if isinstance(data[key], dict):
+            print(f"Keys in '{key}':", data[key].keys())
+        elif isinstance(data[key], list):
+            print(f"Elements in '{key}':")
+            for element in data[key]:
+                if isinstance(element, dict):
+                    print(element.keys())
+        else:
+            print(f"Unknown type for '{key}'")
