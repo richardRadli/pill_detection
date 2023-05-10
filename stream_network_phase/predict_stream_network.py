@@ -126,8 +126,8 @@ class PredictStreamNetwork:
         :return: The contour, rgb, and texture networks.
         """
 
-        rgb_config = self.sub_network_config.get("RGB")
         con_config = self.sub_network_config.get("Contour")
+        rgb_config = self.sub_network_config.get("RGB")
         tex_config = self.sub_network_config.get("Texture")
 
         latest_con_pt_file = find_latest_file_in_latest_directory(con_config.get("model_weights_dir"))
