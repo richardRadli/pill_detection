@@ -1,19 +1,21 @@
 import json
+import logging
 import numpy as np
 import os
 import torch
 
+from typing import Dict
 from tqdm import tqdm
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
-from config import ConfigStreamNetwork
-from const import CONST
+from config.config import ConfigStreamNetwork
+from config.const import CONST
 from network_selector import NetworkFactory
 from stream_network_dataset_loader import StreamDataset
-
 from triplet_loss import TripletLossWithHardMining
+from config.logger_setup import setup_logger
 from utils.utils import create_timestamp, print_network_config, use_gpu_if_available
 
 
@@ -25,6 +27,9 @@ class TrainModel:
     # --------------------------------------------------- _ I N I T _ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
+        # Set up logger
+        self.logger = setup_logger()
+
         # Set up configuration
         self.cfg = ConfigStreamNetwork().parse()
 
@@ -47,7 +52,8 @@ class TrainModel:
         self.dataset = StreamDataset(network_cfg.get('dataset_dir'), self.cfg.type_of_stream)
         train_size = int(self.cfg.train_rate * len(self.dataset))
         valid_size = len(self.dataset) - train_size
-        print(f"\nSize of the train set: {train_size}\nSize of the validation set: {valid_size}\n")
+        logging.info(f"Size of the train set: {train_size}")
+        logging.info(f"Size of the validation set: {valid_size}")
         train_dataset, valid_dataset = random_split(self.dataset, [train_size, valid_size])
         self.train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
         self.valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
@@ -80,7 +86,14 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------- S U B N E T W O R K   C O N F I G S  --------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def subnetwork_configs(self):
+    def subnetwork_configs(self) -> Dict:
+        """
+        Returns the dictionary containing the configuration details for the three different subnetworks
+        (RGB, Texture, and Contour) used in the TripletLossModel.
+
+        :return: A dictionary containing the configuration details for the three subnetworks.
+        """
+
         network_config = {
             "RGB": {
                 "channels": [3, 64, 96, 128, 256, 384, 512],
@@ -144,11 +157,12 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     def get_hardest_samples(self, epoch: int, hard_neg_images: list, output_dir: str, op: str) -> None:
         """
-        :param epoch:
-        :param hard_neg_images:
-        :param output_dir:
-        :param op:
-        :return:
+        Saves the hardest negative images to a file in JSON format.
+        :param epoch: The epoch number.
+        :param hard_neg_images: A list of tensors of the hardest negative images.
+        :param output_dir: The directory where the output file will be saved.
+        :param op: A string representing the type of operation.
+        :return: None
         """
 
         dict_name = os.path.join(output_dir, self.timestamp, self.cfg.type_of_stream)
@@ -162,15 +176,18 @@ class TrainModel:
         with open(file_name, "w") as fp:
             json.dump(hardest_samples, fp)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------- R E C O R D   H A R D   S A M P L E S -------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def record_hard_samples(hard_samples: torch.Tensor, img_path: tuple, hard_images: list) -> list:
         """
-        Record filenames of hardest negative samples
+        Records filenames of the hardest negative samples.
 
-        :param hard_samples:
-        :param img_path:
-        :param hard_images:
-        :return:
+        :param hard_samples: A tensor containing the hardest negative samples.
+        :param img_path: A tuple of image file paths.
+        :param hard_images: A list to store the filenames of the hardest negative samples.
+        :return: The updated list of hardest negative sample filenames.
         """
 
         if hard_samples is not None:
@@ -259,8 +276,8 @@ class TrainModel:
             valid_loss = np.average(valid_losses)
             self.writer.add_scalars("Loss", {"train": train_loss, "validation": valid_loss}, epoch)
 
-            # Print loss for epoch
-            print(f'train_loss: {train_loss:.5f} ' + f'valid_loss: {valid_loss:.5f}')
+            # Log loss for epoch
+            logging.info(f'train_loss: {train_loss:.5f} valid_loss: {valid_loss:.5f}')
 
             # Loop over the hard negative tensors
             self.get_hardest_samples(epoch, hard_neg_images, CONST.dir_hardest_neg_samples, "negative")
@@ -294,4 +311,4 @@ if __name__ == "__main__":
         tm = TrainModel()
         tm.fit()
     except KeyboardInterrupt as kbe:
-        print(f'{kbe}')
+        logging.error("Keyboard interrupt, program has been shut down!")

@@ -14,8 +14,8 @@ from tqdm import tqdm
 from unet import UNet
 from unet.data_loading import CustomDataset, BasicDataset
 from utils.utils import create_timestamp, dice_coefficient, dice_loss, multiclass_dice_coefficient, use_gpu_if_available
-from config import ConfigTrainingUnet
-from const import CONST
+from config.config import ConfigTrainingUnet
+from config.const import CONST
 
 cfg = ConfigTrainingUnet().parse()
 

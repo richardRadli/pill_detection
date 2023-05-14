@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 from PIL import Image
 
-from config import ConfigTestingUnet
+from config.config import ConfigTestingUnet
 from unet import UNet
 from unet.data_loading import BasicDataset
 from utils.utils import plot_img_and_mask, use_gpu_if_available

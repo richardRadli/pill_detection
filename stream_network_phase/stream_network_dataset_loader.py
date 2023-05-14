@@ -2,6 +2,7 @@ import numpy as np
 import os
 
 from PIL import Image
+from typing import List, Tuple
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 
@@ -42,10 +43,11 @@ class StreamDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- L O A D   T H E   D A T A S E T -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def load_dataset(self):
+    def load_dataset(self) -> List[Tuple[str, str]]:
         """
+        Load the dataset.
 
-        :return:
+        :return: A list of tuples, where each tuple contains the path to an image and its corresponding label.
         """
 
         dataset = []
@@ -67,7 +69,14 @@ class StreamDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- __ G E T I T E M __ ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Tuple[Image.Image, Image.Image, Image.Image, str, str]:
+        """
+        Retrieve a triplet of images (anchor, positive, negative) and their paths for a given index.
+
+        :param index: The index of the anchor image.
+        :return: A tuple of three images (anchor, positive, negative) and their paths.
+        """
+
         anchor_img_path, anchor_label = self.dataset[index]
         positive_index = index
         while positive_index == index:
@@ -89,10 +98,11 @@ class StreamDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- __ L E N __ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def __len__(self):
+    def __len__(self) -> int:
         """
         This is the __len__ method of a dataset loader class.
 
-        :return:
+        :return: The length of the dataset
         """
+
         return len(self.dataset)

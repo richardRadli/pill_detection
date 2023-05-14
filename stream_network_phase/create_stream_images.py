@@ -7,11 +7,14 @@ from glob import glob
 from tqdm import tqdm
 from typing import Tuple
 
-from const import CONST
+from config.const import CONST
 from utils.utils import numerical_sort, create_label_dirs
 
 
-class ProcessUnetImages:
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++ C R E A T E   S T R E A M   I M A G E S +++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+class CreateStreamImages:
     def __init__(self, operation: str = "test"):
         self.path_to_images = self.path_selector(operation)
 
@@ -116,7 +119,7 @@ class ProcessUnetImages:
         # Process the images in parallel using ThreadPoolExecutor
         with ThreadPoolExecutor() as executor:
             list(tqdm(executor.map(self.process_image, zip(color_images, mask_images)), total=len(color_images),
-                      desc="Bounding box"))
+                      desc="RGB images"))
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------ C R E A T E   C O N T O U R   I M A G E S -----------------------------------
@@ -231,5 +234,5 @@ class ProcessUnetImages:
 
 
 if __name__ == "__main__":
-    proc_unet_imgs = ProcessUnetImages(operation="Test")
+    proc_unet_imgs = CreateStreamImages(operation="Test")
     proc_unet_imgs.main()

@@ -6,11 +6,11 @@ import torch
 
 from torchvision import transforms
 from tqdm import tqdm
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from PIL import Image
 
-from const import CONST
-from config import ConfigStreamNetwork
+from config.const import CONST
+from config.config import ConfigStreamNetwork
 from network_selector import NetworkFactory
 from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory, \
     plot_ref_query_images
@@ -58,7 +58,13 @@ class PredictStreamNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------- G E T   M A I N   N E T W O R K   C O N F I G ---------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def get_main_network_config(self):
+    def get_main_network_config(self) -> Dict:
+        """
+        Returns a dictionary containing the prediction and plotting folder paths for different types of networks
+        based on the type_of_net parameter in self.cfg.
+        :return: Dictionary containing the prediction and plotting folder paths.
+        """
+
         network_type = self.cfg.type_of_net
         print(network_type)
         network_configs = {
@@ -79,10 +85,11 @@ class PredictStreamNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------- G E T   S U B   N E T W O R K   C O N F I G ----------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def get_subnetwork_config(self):
+    def get_subnetwork_config(self) -> Dict:
         """
+        Returns the configuration of subnetworks
 
-        :return:
+        :return: dictionary containing subnetwork configuration
         """
 
         network_config = {

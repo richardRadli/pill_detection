@@ -1,5 +1,7 @@
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as functional
+
+from typing import Tuple
 
 
 class TripletLossWithHardMining(torch.nn.Module):
@@ -7,10 +9,24 @@ class TripletLossWithHardMining(torch.nn.Module):
         super(TripletLossWithHardMining, self).__init__()
         self.margin = margin
 
-    def forward(self, anchor, positive, negative):
+    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------------- F O R W A R D -------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def forward(self, anchor: torch.Tensor, positive: torch.Tensor, negative: torch.Tensor) -> \
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        This function calculates the loss and selects the hardest positive and negative samples for each anchor.
+
+        :param anchor: tensor of anchor images
+        :param positive: tensor of positive images
+        :param negative: tensor of negative images
+        :return: a tuple containing the loss tensor, tensor of hardest negative samples and tensor of hardest positive
+        samples
+        """
+
         # Compute the Euclidean distances between the embeddings
-        dist_pos = F.pairwise_distance(anchor, positive, 2)
-        dist_neg = F.pairwise_distance(anchor, negative, 2)
+        dist_pos = functional.pairwise_distance(anchor, positive, 2)
+        dist_neg = functional.pairwise_distance(anchor, negative, 2)
 
         # Select the hardest negative sample for each anchor
         hard_neg = []
@@ -53,9 +69,14 @@ class TripletLossWithHardMining(torch.nn.Module):
                 hard_pos.append(positive[candidate_idxs[hard_pos_idx]].unsqueeze(0))
 
         # Combine the hardest negative and hardest positive samples into a single tensor
-        hard_pos = torch.cat([x for x in hard_pos if x is not None], dim=0)
+        # hard_pos = torch.cat([x for x in hard_pos if x is not None], dim=0)
+        hard_pos = [x for x in hard_pos if x is not None and x.shape[0] != 0]
+        if hard_pos:
+            hard_pos = torch.cat(hard_pos, dim=0)
+        else:
+            hard_pos = torch.tensor([])
 
         # Compute the loss
-        loss = F.relu(self.margin + dist_pos - dist_neg).mean()
+        loss = functional.relu(self.margin + dist_pos - dist_neg).mean()
 
         return loss, hard_neg, hard_pos

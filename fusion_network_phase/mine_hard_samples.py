@@ -4,7 +4,7 @@ import shutil
 from glob import glob
 from tqdm import tqdm
 
-from const import CONST
+from config.const import CONST
 from utils.utils import find_stream_folders
 
 

@@ -6,7 +6,7 @@ from glob import glob
 from tqdm import tqdm
 from typing import List
 
-from const import CONST
+from config.const import CONST
 from convert_yolo import convert_yolo_format_to_pixels, read_yolo_annotations_to_list
 
 

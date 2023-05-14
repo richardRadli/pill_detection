@@ -3,7 +3,7 @@ import glob
 
 from tqdm import tqdm
 
-from const import CONST
+from config.const import CONST
 from utils.utils import find_latest_file_in_latest_directory
 
 

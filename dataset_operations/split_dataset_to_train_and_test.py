@@ -6,7 +6,7 @@ import shutil
 from tqdm import tqdm
 from typing import Dict, List, Tuple
 
-from const import CONST
+from config.const import CONST
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -147,17 +147,17 @@ def main(replace_files: bool = False, rollback: bool = False) -> None:
     """
 
     class_counts, train_images, test_images = get_classes()
-    # class_counts, train_images, test_images = split_dataset(class_counts, train_images, test_images)
-    #
-    # statistics_of_dataset(class_counts, train_images, test_images)
-    #
-    # if replace_files:
-    #     move_files(test_images)
-    #
-    # if rollback:
-    #     rollback_files(CONST.dir_train_images, CONST.dir_test_images)
-    #     rollback_files(CONST.dir_train_masks, CONST.dir_test_mask)
+    class_counts, train_images, test_images = split_dataset(class_counts, train_images, test_images)
+
+    statistics_of_dataset(class_counts, train_images, test_images)
+
+    if replace_files:
+        move_files(test_images)
+
+    if rollback:
+        rollback_files(CONST.dir_train_images, CONST.dir_test_images)
+        rollback_files(CONST.dir_train_masks, CONST.dir_test_mask)
 
 
 if __name__ == "__main__":
-    main(replace_files=False, rollback=False)
+    main(replace_files=True, rollback=False)

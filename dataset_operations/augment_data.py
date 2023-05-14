@@ -3,8 +3,8 @@ import numpy as np
 import os
 
 from tqdm import tqdm
-from config import ConfigAugment
-from const import CONST
+from config.config import ConfigAugment
+from config.const import CONST
 from utils.utils import read_image_to_list
 
 cfg = ConfigAugment().parse()

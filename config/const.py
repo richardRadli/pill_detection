@@ -31,11 +31,11 @@ class _Const(object):
                    "images/contour_hardest",            # 10
                    "images/rgb_hardest",                # 11
                    "images/texture_hardest",            # 12
-                   "images/stream_network_prediction",  # 13
-                   "images/efficient_net_prediction",   # 14
-                   "images/fusion_network_prediction",  # 15
+                   "images/prediction_stream_network",  # 13
+                   "images/prediction_efficient_net",   # 14
+                   "images/prediction_fusion_network",  # 15
                    "images/images_aug",                 # 16
-                   "images/masks_aug"]                 # 17
+                   "images/masks_aug"]                  # 17
 
     # Directories for the train images. These two directories must exist, it won't be created by the program.
     dir_train_images = os.path.join(PROJECT_ROOT, 'images/train_images/')

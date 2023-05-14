@@ -7,7 +7,7 @@ from pathlib import Path
 from tqdm import tqdm
 from typing import Tuple, List
 
-from const import CONST
+from config.const import CONST
 
 
 # ------------------------------------------------------------------------------------------------------------------- #

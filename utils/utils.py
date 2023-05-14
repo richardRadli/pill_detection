@@ -17,7 +17,7 @@ from torch import Tensor
 from tqdm import tqdm
 
 
-from const import CONST
+from config.const import CONST
 
 
 # ----------------------------------------------------------------------------------------------------------------------

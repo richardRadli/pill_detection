@@ -8,8 +8,8 @@ from tqdm import tqdm
 from typing import List, Tuple
 from PIL import Image
 
-from const import CONST
-from config import ConfigFusionNetwork
+from config.const import CONST
+from config.config import ConfigFusionNetwork
 from fusion_network import FusionNet
 from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory, \
     plot_ref_query_images, find_latest_file_in_directory, prediction_statistics

@@ -8,8 +8,8 @@ from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
-from config import ConfigFusionNetwork
-from const import CONST
+from config.config import ConfigFusionNetwork
+from config.const import CONST
 from fusion_network import FusionNet
 from fusion_dataset_loader import FusionDataset
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
@@ -37,7 +37,7 @@ class TrainFusionNet:
         self.device = use_gpu_if_available()
 
         # Load datasets using FusionDataset
-        dataset = FusionDataset("C:/Users/ricsi/Documents/project/storage/IVM/images")
+        dataset = FusionDataset(os.path.join(CONST.PROJECT_ROOT, "images"))
         train_size = int(self.cfg.train_split * len(dataset))
         valid_size = len(dataset) - train_size
         print(f"Size of the train set: {train_size}, size of the validation set: {valid_size}")

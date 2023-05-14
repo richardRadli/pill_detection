@@ -7,7 +7,7 @@ from glob import glob
 from sklearn.metrics import confusion_matrix
 from tqdm import tqdm
 
-from const import CONST
+from config.const import CONST
 from utils.utils import plot_diagrams, numerical_sort
 
 
