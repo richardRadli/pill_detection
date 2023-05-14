@@ -3,13 +3,35 @@ import logging
 import numpy as np
 import os
 
+from glob import glob
+from typing import List, Tuple
 from tqdm import tqdm
 from config.config import ConfigAugment
 from config.const import CONST
 from config.logger_setup import setup_logger
-from utils.utils import read_image_to_list
 
 cfg = ConfigAugment().parse()
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------- R E A D   I M A G E   T O   L I S T ----------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def read_image_to_list() -> Tuple[np.ndarray, List[str]]:
+    """
+    Reads all images in a directory and returns them as a numpy array.
+
+    :return: A tuple containing the numpy array of images and a list of their corresponding file names.
+    """
+
+    images = sorted(glob(CONST.dir_train_images + "*.png"))
+    file_names = []
+    images_list = []
+
+    for idx, img_path in tqdm(enumerate(images), desc="Reading images", total=len(images)):
+        file_names.append(os.path.basename(img_path))
+        train_img = cv2.imread(img_path, 1)
+        images_list.append(train_img)
+    return np.array(images_list), file_names
 
 
 def augment_data(training_images, file_names):

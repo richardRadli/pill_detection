@@ -1,8 +1,10 @@
+import logging
 import numpy as np
 import os
 import pandas as pd
 import torch
 
+from glob import glob
 from torchvision import transforms
 from tqdm import tqdm
 from typing import List, Tuple
@@ -10,9 +12,10 @@ from PIL import Image
 
 from config.const import CONST
 from config.config import ConfigFusionNetwork
+from config.logger_setup import setup_logger
 from fusion_network import FusionNet
 from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory, \
-    plot_ref_query_images, find_latest_file_in_directory, prediction_statistics
+    plot_ref_query_images
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -23,6 +26,9 @@ class PredictFusionNetwork:
     # --------------------------------------------------- __I N I T__ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
+        # Setup logger
+        setup_logger()
+
         # Load config
         self.cfg = ConfigFusionNetwork().parse()
 
@@ -47,6 +53,79 @@ class PredictFusionNetwork:
                                                       transforms.ToTensor()])
 
         self.device = use_gpu_if_available()
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------- F I N D   L A T E S T   F I L E --------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def find_latest_file_in_directory(path: str, extension: str) -> str:
+        """
+        Finds the latest file in a directory with a given extension.
+
+        :param path: The path to the directory to search for files.
+        :param extension: The file extension to look for (e.g. "txt").
+        :return: The full path of the latest file with the given extension in the directory.
+        """
+
+        files = glob(os.path.join(path, "*.%s" % extension))
+        latest_file = max(files, key=os.path.getctime)
+        return latest_file
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------- P R E D I C T I O N   S T A T I S T I C S ---------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def prediction_statistics(stream_network_prediction_file: str, fusion_network_prediction_file: str):
+        """
+
+        :param stream_network_prediction_file:
+        :param fusion_network_prediction_file:
+        :return:
+        """
+
+        with open(stream_network_prediction_file, 'r') as f1, open(fusion_network_prediction_file, 'r') as f2:
+            f1_lines = f1.readlines()[1:-3]
+            f2_lines = f2.readlines()[1:-3]
+
+            differ_list = []
+
+            for line1, line2 in zip(f1_lines, f2_lines):
+                cols1 = line1.strip().split('\t')
+                cols2 = line2.strip().split('\t')
+
+                if cols1[1] != cols1[2] or cols2[1] != cols2[2]:
+                    differ_list.append([cols1[1], cols1[2], cols2[2]])
+
+        sn_cnt, fn_cnt, n_count = 0, 0, 0
+        sn_list, fn_list, n_list = [], [], []
+
+        for _, (gt, sn, fn) in enumerate(differ_list):
+            if gt == sn and gt != fn:
+                sn_cnt += 1
+                sn_list.append([gt, sn, fn])
+
+            if gt == fn and gt != sn:
+                fn_cnt += 1
+                fn_list.append([gt, sn, fn])
+
+            if gt != sn and gt != fn:
+                n_count += 1
+                n_list.append([gt, sn, fn])
+
+        df = pd.DataFrame(differ_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
+        df_sn = pd.DataFrame(sn_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
+        df_fn = pd.DataFrame(fn_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
+        df_n = pd.DataFrame(n_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
+
+        pd.set_option('display.max_rows', None)
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.width', None)
+        pd.set_option('display.max_colwidth', None)
+
+        logging.info("Medicines where either StreamNetwork or FusionNetwork predicted well", df)
+        logging.info("Medicines where FusionNetwork predicted wrong and StreamNetwork predicted well", df_sn)
+        logging.info("Medicines where StreamNetwork predicted wrong and FusionNetwork predicted well", df_fn)
+        logging.info("Medicines where neither StreamNetwork nor FusionNetwork predicted well", df_n)
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
@@ -243,9 +322,9 @@ class PredictFusionNetwork:
 
         gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vectors, query_vectors)
 
-        stream_net_pred = find_latest_file_in_directory(CONST.dir_stream_network_predictions, "txt")
-        fusion_net_pred = find_latest_file_in_directory(CONST.dir_fusion_network_predictions, "txt")
-        prediction_statistics(stream_net_pred, fusion_net_pred)
+        stream_net_pred = self.find_latest_file_in_directory(CONST.dir_stream_network_predictions, "txt")
+        fusion_net_pred = self.find_latest_file_in_directory(CONST.dir_fusion_network_predictions, "txt")
+        self.prediction_statistics(stream_net_pred, fusion_net_pred)
 
         plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, operation="fuse")
 

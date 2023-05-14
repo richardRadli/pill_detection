@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
+import re
 import os
+import shutil
 
 from concurrent.futures import ThreadPoolExecutor, wait
 from glob import glob
@@ -8,7 +10,7 @@ from tqdm import tqdm
 from typing import Tuple
 
 from config.const import CONST
-from utils.utils import numerical_sort, create_label_dirs
+from utils.utils import numerical_sort
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -18,6 +20,47 @@ class CreateStreamImages:
     def __init__(self, operation: str = "test"):
         self.path_to_images = self.path_selector(operation)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------ C R E A T E   L A B E L   D I R S -------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def create_label_dirs(rgb_path: str, contour_path: str, texture_path: str) -> None:
+        """
+        Function create labels. Goes through a directory, yield the name of the medicine(s) from the file name, and
+        create a corresponding directory, if that certain directory does not exist. Finally, it copies every image with
+        the same label to the corresponding directory.
+
+        :param rgb_path: string, path to the directory.
+        :param texture_path:
+        :param contour_path:
+        :return: None
+        """
+
+        files_rgb = os.listdir(rgb_path)
+        files_contour = os.listdir(contour_path)
+        files_texture = os.listdir(texture_path)
+
+        for idx, (file_rgb, file_contour, file_texture) in tqdm(
+                enumerate(zip(files_rgb, files_contour, files_texture))):
+            if file_rgb.endswith(".png"):
+                match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
+                if match:
+                    value = match.group(1)
+                    out_path_rgb = os.path.join(rgb_path, value)
+                    out_path_contour = os.path.join(contour_path, value)
+                    out_path_texture = os.path.join(texture_path, value)
+
+                    os.makedirs(out_path_rgb, exist_ok=True)
+                    os.makedirs(out_path_contour, exist_ok=True)
+                    os.makedirs(out_path_texture, exist_ok=True)
+
+                    shutil.move(os.path.join(rgb_path, file_rgb), out_path_rgb)
+                    shutil.move(os.path.join(contour_path, file_contour), out_path_contour)
+                    shutil.move(os.path.join(texture_path, file_texture), out_path_texture)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------- P A T H   S E L E C T O R -------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def path_selector(operation):
         """
@@ -228,9 +271,9 @@ class CreateStreamImages:
         self.save_bounding_box_images()
         self.save_contour_images()
         self.save_texture_images()
-        create_label_dirs(rgb_path=self.path_to_images.get("rgb"),
-                          contour_path=self.path_to_images.get("contour"),
-                          texture_path=self.path_to_images.get("texture"))
+        self.create_label_dirs(rgb_path=self.path_to_images.get("rgb"),
+                               contour_path=self.path_to_images.get("contour"),
+                               texture_path=self.path_to_images.get("texture"))
 
 
 if __name__ == "__main__":

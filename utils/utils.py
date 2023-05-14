@@ -1,59 +1,38 @@
-import cv2
 import gc
-import json
+import logging
 import matplotlib.pyplot as plt
-import numpy as np
 import os
 import pandas as pd
 import re
-import shutil
 import torch
 
 from datetime import datetime
-from glob import glob
-from os.path import splitext
 from PIL import Image
 from torch import Tensor
+from typing import List, Union
 from tqdm import tqdm
 
+from config.logger_setup import setup_logger
 
-from config.const import CONST
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# -------------------------------------------- P L O T   I M G   &   M A S K -------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def plot_img_and_mask(img, mask):
-    """
-
-    :param img:
-    :param mask:
-    :return:
-    """
-
-    classes = mask.max() + 1
-    fig, ax = plt.subplots(1, classes + 1)
-    ax[0].set_title('Input image')
-    ax[0].imshow(img)
-    for i in range(classes):
-        ax[i + 1].set_title(f'Mask (class {i + 1})')
-        ax[i + 1].imshow(mask == i)
-    plt.xticks([]), plt.yticks([])
-    plt.show()
+setup_logger()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------  D I C E   C O E F F ------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_batch_first: bool = False, epsilon: float = 1e-6):
+def dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_batch_first: bool = False, epsilon: float = 1e-6) \
+        -> Tensor:
     """
     Average of Dice coefficient for all batches, or for a single mask
 
-    :param input_tensor:
-    :param target:
-    :param reduce_batch_first:
-    :param epsilon:
-    :return:
+    :param input_tensor: The input tensor with shape (batch_size, num_classes, height, width).
+    :param target: The target tensor with shape (batch_size, num_classes, height, width)
+    :param reduce_batch_first: A flag indicating whether to reduce the batch dimension first before computing the
+    Dice coefficient. Default is False.
+    :param epsilon: A small value to prevent division by zero. Default is 1e-6.
+    :return: The Dice coefficient computed for each batch or for a single mask, depending on the reduce_batch_first
+    flag. If reduce_batch_first is True, the returned tensor has shape (num_classes,).
+    If reduce_batch_first is False, the returned tensor has shape (batch_size, num_classes)
     """
 
     assert input_tensor.size() == target.size()
@@ -75,13 +54,13 @@ def dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_batch_first: b
 def multiclass_dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_batch_first: bool = False,
                                 epsilon: float = 1e-6):
     """
-    Average of Dice coefficient for all classes
+    Calculate the average Dice coefficient for all classes in a multi-class segmentation task.
 
-    :param input_tensor:
-    :param target:
-    :param reduce_batch_first:
-    :param epsilon:
-    :return:
+    :param input_tensor: The input tensor with shape [batch_size, num_classes, height, width]
+    :param target: The target tensor with shape [batch_size, num_classes, height, width].
+    :param reduce_batch_first: Whether to reduce the batch size before calculating the Dice coefficient.
+    :param epsilon: A small value added to the denominator to avoid division by zero.
+    :return: The average Dice coefficient for all classes.
     """
 
     return dice_coefficient(input_tensor.flatten(0, 1), target.flatten(0, 1), reduce_batch_first, epsilon)
@@ -90,14 +69,16 @@ def multiclass_dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_bat
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------ D I C E   L O S S ---------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def dice_loss(input_tensor: Tensor, target: Tensor, multiclass: bool = False):
+def dice_loss(input_tensor: Tensor, target: Tensor, multiclass: bool = False) -> float:
     """
     Dice loss (objective to minimize) between 0 and 1
 
-    :param input_tensor:
-    :param target:
-    :param multiclass:
-    :return:
+    :param input_tensor: a tensor representing the predicted mask, of shape (batch_size, num_classes, height, width)
+    :param target: a tensor representing the ground truth mask, of shape (batch_size, num_classes, height, width)
+    :param multiclass: a boolean flag that indicates whether the input and target tensors represent a multiclass
+    segmentation task, where each pixel can belong to one of several classes
+    :return: a scalar tensor representing the Dice loss between the input and target tensors, which is a value between
+    0 and 1.
     """
 
     fn = multiclass_dice_coefficient if multiclass else dice_coefficient
@@ -105,109 +86,14 @@ def dice_loss(input_tensor: Tensor, target: Tensor, multiclass: bool = False):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------------ L O A D   I M A G E -------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def load_image(filename):
-    """
-
-    :param filename:
-    :return:
-    """
-
-    ext = splitext(filename)[1]
-    if ext == '.npy':
-        return Image.fromarray(np.load(filename))
-    elif ext in ['.pt', '.pth']:
-        return Image.fromarray(torch.load(filename).numpy())
-    else:
-        return Image.open(filename)
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------ U N I Q U E   M A S K   V A L U E S ---------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def unique_mask_values(idx, mask_dir, mask_suffix):
-    """
-
-    :param idx:
-    :param mask_dir:
-    :param mask_suffix:
-    :return:
-    """
-
-    mask_file = list(mask_dir.glob(idx + mask_suffix + '.*'))[0]
-    mask = np.asarray(load_image(mask_file))
-    if mask.ndim == 2:
-        return np.unique(mask)
-    elif mask.ndim == 3:
-        mask = mask.reshape(-1, mask.shape[-1])
-        return np.unique(mask, axis=0)
-    else:
-        raise ValueError(f'Loaded masks should have 2 or 3 dimensions, found {mask.ndim}')
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ----------------------------------------- R E A D   I M A G E   T O   L I S T ----------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def read_image_to_list():
-    """
-
-    :return:
-    """
-
-    images = sorted(glob(CONST.dir_train_images + "*.png"))
-    file_names = []
-    images_list = []
-
-    for idx, img_path in tqdm(enumerate(images), desc="Reading images", total=len(images)):
-        file_names.append(os.path.basename(img_path))
-        train_img = cv2.imread(img_path, 1)
-        images_list.append(train_img)
-    return np.array(images_list), file_names
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# --------------------------------------------- P L O T   D I A G R A M S ----------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def plot_diagrams(input_image, gt_image, pred_image, save_path):
-    """
-
-    :param input_image:
-    :param gt_image:
-    :param pred_image:
-    :param save_path:
-    :return:
-    """
-
-    plt.figure()
-
-    # subplot(r,c) provide the no. of rows and columns
-    f, ax = plt.subplots(1, 3)
-
-    # use the created array to output your multiple images. In this case I have stacked 4 images vertically
-    ax[0].imshow(cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB))
-    ax[0].set_title("Input")
-    ax[1].imshow(gt_image)
-    ax[1].set_title("Ground truth")
-    ax[2].imshow(pred_image)
-    ax[2].set_title("Predicted")
-
-    plt.savefig(save_path)
-    plt.close()
-
-    plt.close("all")
-    plt.close()
-    gc.collect()
-
-
-# ----------------------------------------------------------------------------------------------------------------------
 # --------------------------------------------- N U M E R I C A L   S O R T --------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def numerical_sort(value):
+def numerical_sort(value: str) -> List[Union[str, int]]:
     """
-    This function sorts the numerical values correctly.
-    :param value: input numbers.
-    :return:
+    Sort numerical values in a string in a way that ensures numerical values are sorted correctly.
+
+    :param value: The input string.
+    :return: A list of strings and integers sorted by numerical value.
     """
 
     numbers = re.compile(r'(\d+)')
@@ -219,10 +105,11 @@ def numerical_sort(value):
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------- C R E A T E   T I M E S T A M P ------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def create_timestamp():
+def create_timestamp() -> str:
     """
-    This function creates a timestamp.
-    :return: timestamp
+    Creates a timestamp in the format of '%Y-%m-%d_%H-%M-%S', representing the current date and time.
+
+    :return: The timestamp string.
     """
 
     return datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -265,24 +152,7 @@ def find_latest_file_in_latest_directory(path: str) -> str:
     # Get the latest file
     latest_file = files[0]
 
-    print(f"The latest file is {latest_file}")
-    return latest_file
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------- F I N D   L A T E S T   F I L E ------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def find_latest_file_in_directory(path: str, extension: str) -> str:
-    """
-    Finds the latest file in a directory with a given extension.
-
-    :param path: The path to the directory to search for files.
-    :param extension: The file extension to look for (e.g. "txt").
-    :return: The full path of the latest file with the given extension in the directory.
-    """
-
-    files = glob(os.path.join(path, "*.%s" % extension))
-    latest_file = max(files, key=os.path.getctime)
+    logging.info(f"The latest file is {latest_file}")
     return latest_file
 
 
@@ -330,43 +200,6 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------ C R E A T E   L A B E L   D I R S -----------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def create_label_dirs(rgb_path: str, contour_path: str, texture_path: str) -> None:
-    """
-    Function create labels. Goes through a directory, yield the name of the medicine(s) from the file name, and create
-    a corresponding directory, if that certain directory does not exist. Finally, it copies every image with the same
-    label to the corresponding directory.
-
-    :param rgb_path: string, path to the directory.
-    :param texture_path:
-    :param contour_path:
-    :return: None
-    """
-
-    files_rgb = os.listdir(rgb_path)
-    files_contour = os.listdir(contour_path)
-    files_texture = os.listdir(texture_path)
-
-    for idx, (file_rgb, file_contour, file_texture) in tqdm(enumerate(zip(files_rgb, files_contour, files_texture))):
-        if file_rgb.endswith(".png"):
-            match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
-            if match:
-                value = match.group(1)
-                out_path_rgb = os.path.join(rgb_path, value)
-                out_path_contour = os.path.join(contour_path, value)
-                out_path_texture = os.path.join(texture_path, value)
-
-                os.makedirs(out_path_rgb, exist_ok=True)
-                os.makedirs(out_path_contour, exist_ok=True)
-                os.makedirs(out_path_texture, exist_ok=True)
-
-                shutil.move(os.path.join(rgb_path, file_rgb), out_path_rgb)
-                shutil.move(os.path.join(contour_path, file_contour), out_path_contour)
-                shutil.move(os.path.join(texture_path, file_texture), out_path_texture)
-
-
-# ----------------------------------------------------------------------------------------------------------------------
 # --------------------------------------- P R I N T   N E T W O R K   C O N F I G --------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def print_network_config(cfg):
@@ -377,105 +210,18 @@ def print_network_config(cfg):
     """
 
     df = pd.DataFrame.from_dict(vars(cfg), orient='index', columns=['value'])
-    print("Parameters of the selected %s\n" % cfg.type_of_net, df)
+    logging.info("Parameters of the selected %s:", cfg.type_of_net)
+    logging.info(df)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ---------------------------------------- F I N D   S T R E A M   F O L D E R S ---------------------------------------
+# --------------------------------------- U S E   G P U   I F   A V A I L A B L E --------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def find_stream_folders(path):
+def use_gpu_if_available() -> torch.device:
     """
+    Provides information about the currently available GPUs and returns a torch device for training and inference.
 
-    :param path:
-    :return:
-    """
-    found_paths = []
-
-    dirs = sorted(glob(os.path.join(path, '????-??-??_??-??-??')), reverse=True)
-    subdir_dict = {'RGB': [], 'Contour': [], 'Texture': []}
-
-    for d in dirs:
-        subdirs = ['RGB', 'Contour', 'Texture']
-        for subdir in subdirs:
-            if os.path.isdir(os.path.join(d, subdir)):
-                subdir_dict[subdir].append(d)
-                break
-
-        if all(subdir_dict.values()):
-            break
-
-    for subdir, dirs in subdir_dict.items():
-        print(f"{subdir} directories:")
-        for d in dirs:
-            print(f"  {d}")
-            found_paths.append(d)
-
-    return found_paths
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# -------------------------------------- P R E D I C T I O N   S T A T I S T I C S -------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def prediction_statistics(stream_network_prediction_file: str, fusion_network_prediction_file: str):
-    """
-
-    :param stream_network_prediction_file:
-    :param fusion_network_prediction_file:
-    :return:
-    """
-
-    with open(stream_network_prediction_file, 'r') as f1, open(fusion_network_prediction_file, 'r') as f2:
-        f1_lines = f1.readlines()[1:-3]
-        f2_lines = f2.readlines()[1:-3]
-
-        differ_list = []
-
-        for line1, line2 in zip(f1_lines, f2_lines):
-            cols1 = line1.strip().split('\t')
-            cols2 = line2.strip().split('\t')
-
-            if cols1[1] != cols1[2] or cols2[1] != cols2[2]:
-                differ_list.append([cols1[1], cols1[2], cols2[2]])
-
-    sn_cnt, fn_cnt, n_count = 0, 0, 0
-    sn_list, fn_list, n_list = [], [], []
-
-    for _, (gt, sn, fn) in enumerate(differ_list):
-        if gt == sn and gt != fn:
-            sn_cnt += 1
-            sn_list.append([gt, sn, fn])
-
-        if gt == fn and gt != sn:
-            fn_cnt += 1
-            fn_list.append([gt, sn, fn])
-
-        if gt != sn and gt != fn:
-            n_count += 1
-            n_list.append([gt, sn, fn])
-
-    df = pd.DataFrame(differ_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
-    df_sn = pd.DataFrame(sn_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
-    df_fn = pd.DataFrame(fn_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
-    df_n = pd.DataFrame(n_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
-
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', None)
-    pd.set_option('display.max_colwidth', None)
-
-    print("\nMedicines where either StreamNetwork or FusionNetwork predicted well\n", df)
-    print("\nMedicines where FusionNetwork predicted wrong and StreamNetwork predicted well\n", df_sn)
-    print("\nMedicines where StreamNetwork predicted wrong and FusionNetwork predicted well\n", df_fn)
-    print("\nMedicines where neither StreamNetwork nor FusionNetwork predicted well\n", df_n)
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------- C U D A   I N F O R M A T I O N ------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def use_gpu_if_available():
-    """
-    This function provides information about the currently available GPUs.
-    :return: device
+    :return: A torch device for either "cuda" or "cpu".
     """
 
     cuda_info = {
@@ -486,24 +232,6 @@ def use_gpu_if_available():
     }
 
     df = pd.DataFrame(cuda_info)
-    print("\n", df, "\n")
+    logging.info(df)
 
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-def print_json_structure(json_file: str) -> None:
-    # Load the JSON file
-    with open(json_file, 'r') as file:
-        data = json.load(file)
-
-    # Print the keys of each nested dictionary or element in a list
-    for key in data.keys():
-        if isinstance(data[key], dict):
-            print(f"Keys in '{key}':", data[key].keys())
-        elif isinstance(data[key], list):
-            print(f"Elements in '{key}':")
-            for element in data[key]:
-                if isinstance(element, dict):
-                    print(element.keys())
-        else:
-            print(f"Unknown type for '{key}'")

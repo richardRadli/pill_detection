@@ -9,7 +9,7 @@ from PIL import Image
 from config.config import ConfigTestingUnet
 from unet import UNet
 from unet.data_loading import BasicDataset
-from utils.utils import plot_img_and_mask, use_gpu_if_available
+from utils.utils import use_gpu_if_available
 
 cfg = ConfigTestingUnet().parse()
 
@@ -108,10 +108,6 @@ def main():
             result = mask_to_image(mask, mask_values)
             result.save(out_filename)
             logging.info(f'Mask saved to {out_filename}')
-
-        if cfg.viz:
-            logging.info(f'Visualizing results for image {filename}, close to continue...')
-            plot_img_and_mask(img, mask)
 
 
 if __name__ == '__main__':

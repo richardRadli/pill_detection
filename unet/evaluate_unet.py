@@ -1,5 +1,7 @@
 import concurrent.futures
 import cv2
+import gc
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 
@@ -8,7 +10,7 @@ from sklearn.metrics import confusion_matrix
 from tqdm import tqdm
 
 from config.const import CONST
-from utils.utils import plot_diagrams, numerical_sort
+from utils.utils import numerical_sort
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -94,6 +96,42 @@ def calculate_metrics(true_img_path: str, pred_img_path: str) -> (float, float, 
     return fpr, tpr, ppv, iou
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------- P L O T   D I A G R A M S ----------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def plot_unet_comparison_images(input_image: np.ndarray, gt_image: np.ndarray, pred_image: np.ndarray, save_path: str) \
+        -> None:
+    """
+    Plots and saves comparison of input, ground truth and predicted images in one figure.
+
+    :param input_image: A numpy array representing the input image.
+    :param gt_image: A numpy array representing the ground truth image.
+    :param pred_image: A numpy array representing the predicted image.
+    :param save_path: A string representing the path to save the plot.
+    :return: None
+    """
+
+    plt.figure()
+
+    # subplot(r,c) provide the no. of rows and columns
+    f, ax = plt.subplots(1, 3)
+
+    # use the created array to output your multiple images. In this case I have stacked 4 images vertically
+    ax[0].imshow(cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB))
+    ax[0].set_title("Input")
+    ax[1].imshow(gt_image)
+    ax[1].set_title("Ground truth")
+    ax[2].imshow(pred_image)
+    ax[2].set_title("Predicted")
+
+    plt.savefig(save_path)
+    plt.close()
+
+    plt.close("all")
+    plt.close()
+    gc.collect()
+
+
 def plot_results() -> None:
     """
     Plots the ground truth image, mask and the predicted mask on a figure.
@@ -114,7 +152,7 @@ def plot_results() -> None:
         in_img = cv2.imread(input_img_val)
         gt_img = cv2.imread(true_img_val)
         pred_img = cv2.imread(pred_img_val)
-        plot_diagrams(in_img, gt_img, pred_img, output_path)
+        plot_unet_comparison_images(in_img, gt_img, pred_img, output_path)
 
 
 if __name__ == "__main__":

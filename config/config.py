@@ -45,8 +45,6 @@ class ConfigTestingUnet:
         self.parser.add_argument('--input', '-i', metavar='INPUT', nargs='+', help='Filenames of input images',
                                  required=True)
         self.parser.add_argument('--output', '-o', metavar='OUTPUT', nargs='+', help='Filenames of output images')
-        self.parser.add_argument('--viz', '-v', action='store_true',
-                                 help='Visualize the images as they are processed')
         self.parser.add_argument('--no-save', '-n', action='store_true', help='Do not save the output masks')
         self.parser.add_argument('--mask-threshold', '-t', type=float, default=0.5,
                                  help='Minimum probability value to consider a mask pixel white')

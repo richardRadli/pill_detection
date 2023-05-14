@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 
@@ -5,7 +6,40 @@ from glob import glob
 from tqdm import tqdm
 
 from config.const import CONST
-from utils.utils import find_stream_folders
+from config.logger_setup import setup_logger
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------- F I N D   S T R E A M   F O L D E R S ---------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def find_stream_folders(path):
+    """
+
+    :param path:
+    :return:
+    """
+    found_paths = []
+
+    dirs = sorted(glob(os.path.join(path, '????-??-??_??-??-??')), reverse=True)
+    subdir_dict = {'RGB': [], 'Contour': [], 'Texture': []}
+
+    for d in dirs:
+        subdirs = ['RGB', 'Contour', 'Texture']
+        for subdir in subdirs:
+            if os.path.isdir(os.path.join(d, subdir)):
+                subdir_dict[subdir].append(d)
+                break
+
+        if all(subdir_dict.values()):
+            break
+
+    for subdir, dirs in subdir_dict.items():
+        logging.info(f"{subdir} directories:")
+        for d in dirs:
+            logging.info(f"  {d}")
+            found_paths.append(d)
+
+    return found_paths
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -131,6 +165,7 @@ def main() -> None:
 
     :return:
     """
+    setup_logger()
 
     latest_neg_contour_txt, latest_neg_rgb_txt, latest_neg_texture_txt = get_latest_txt_files("negative")
     latest_pos_contour_txt, latest_pos_rgb_txt, latest_pos_texture_txt = get_latest_txt_files("positive")

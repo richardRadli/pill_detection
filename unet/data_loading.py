@@ -10,8 +10,6 @@ from PIL import Image
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from utils.utils import load_image, unique_mask_values
-
 
 class BasicDataset(Dataset):
     def __init__(self, images_dir: str, mask_dir: str, scale: float = 1.0, mask_suffix: str = ''):
@@ -31,9 +29,8 @@ class BasicDataset(Dataset):
 
         with Pool() as p:
             unique = list(tqdm(
-                p.imap(partial(unique_mask_values, mask_dir=self.mask_dir, mask_suffix=self.mask_suffix), self.ids),
-                total=len(self.ids)
-            ))
+                p.imap(partial(self.unique_mask_values,
+                               mask_dir=self.mask_dir, mask_suffix=self.mask_suffix), self.ids), total=len(self.ids)))
 
         self.mask_values = list(sorted(np.unique(np.concatenate(unique), axis=0).tolist()))
 
@@ -41,6 +38,49 @@ class BasicDataset(Dataset):
 
     def __len__(self):
         return len(self.ids)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------ L O A D   I M A G E ---------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def load_image(filename: str) -> Image:
+        """
+        Load an image from a file with support for different file formats
+
+        :param filename: path to the file to load
+        :return: the loaded image
+        """
+
+        ext = splitext(filename)[1]
+        if ext == '.npy':
+            return Image.fromarray(np.load(filename))
+        elif ext in ['.pt', '.pth']:
+            return Image.fromarray(torch.load(filename).numpy())
+        else:
+            return Image.open(filename)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------ U N I Q U E   M A S K   V A L U E S -----------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def unique_mask_values(self, idx: str, mask_dir: Path, mask_suffix: str) -> np.ndarray:
+        """
+        Get unique values in a mask file for a given ID.
+
+        :param idx: ID of the image/mask
+        :param mask_dir: Directory where mask files are located
+        :param mask_suffix: Suffix of the mask file
+        :return: Numpy array of unique values in the mask
+        """
+
+        mask_file = list(mask_dir.glob(idx + mask_suffix + '.*'))[0]
+        mask = np.asarray(self.load_image(mask_file))
+        if mask.ndim == 2:
+            return np.unique(mask)
+        elif mask.ndim == 3:
+            mask = mask.reshape(-1, mask.shape[-1])
+            return np.unique(mask, axis=0)
+        else:
+            raise ValueError(f'Loaded masks should have 2 or 3 dimensions, found {mask.ndim}')
 
     @staticmethod
     def preprocess(mask_values, pil_img, scale, is_mask):
@@ -77,8 +117,8 @@ class BasicDataset(Dataset):
 
         assert len(img_file) == 1, f'Either no image or multiple images found for the ID {name}: {img_file}'
         assert len(mask_file) == 1, f'Either no mask or multiple masks found for the ID {name}: {mask_file}'
-        mask = load_image(mask_file[0])
-        img = load_image(img_file[0])
+        mask = self.load_image(mask_file[0])
+        img = self.load_image(img_file[0])
 
         assert img.size == mask.size, \
             f'Image and mask {name} should be the same size, but are {img.size} and {mask.size}'
