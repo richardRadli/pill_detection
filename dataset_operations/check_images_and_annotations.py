@@ -1,3 +1,5 @@
+import logging
+
 import cv2
 import numpy as np
 import os
@@ -6,6 +8,7 @@ from glob import glob
 from tqdm import tqdm
 from typing import List
 
+from config.logger_setup import setup_logger
 from config.const import CONST
 from convert_yolo import convert_yolo_format_to_pixels, read_yolo_annotations_to_list
 
@@ -32,9 +35,9 @@ def main():
     original_imgs_file_names = read_image_to_list(main_dir + "/images")
     yolo_annotations = read_yolo_annotations_to_list(main_dir + "/labels")
 
-    for _, (img, txt) in tqdm(enumerate(zip(original_imgs_file_names, yolo_annotations)),
-                              total=len(original_imgs_file_names)):
-        print("\n", f'Image name: {os.path.basename(img)}\ntxt name: {os.path.basename(txt)}')
+    for i, (img, txt) in enumerate(zip(original_imgs_file_names, yolo_annotations)):
+        logging.info(f'Image name: {os.path.basename(img)}')
+        logging.info(f'txt name: {os.path.basename(txt)}')
         image = cv2.imread(img)
 
         with open(txt, "r") as file:
@@ -51,9 +54,13 @@ def main():
         cv2.imshow("", cv2.resize(image, (image.shape[1] // 2, image.shape[0] // 2)))
         cv2.waitKey(100)
 
+        # Print a separator line between iterations
+        if i < len(original_imgs_file_names) - 1:
+            logging.info('-' * 80)
+
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt as kie:
-        print(kie)
+        logging.error(kie)

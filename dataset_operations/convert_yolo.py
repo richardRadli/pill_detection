@@ -1,5 +1,6 @@
 import cv2
 import concurrent.futures
+import logging
 import numpy as np
 import os
 import shutil
@@ -7,6 +8,9 @@ import shutil
 from typing import List, Tuple
 from glob import glob
 from tqdm import tqdm
+
+from config.logger_setup import setup_logger
+
 
 
 def convert_yolo_format_to_pixels(image: np.ndarray, annotation: list) -> list:
@@ -161,7 +165,7 @@ def create_subdirectories_and_copy_files(source_dir: str, target_dir: str) -> No
                 try:
                     shutil.move(source_file, target_file)
                 except FileNotFoundError as fnfe:
-                    print(fnfe)
+                    logging.error(fnfe)
 
 
 def process_image(main_dir: str, ori: str, cropped: str, yolo_annotation: str) -> None:
@@ -199,6 +203,9 @@ def process_image(main_dir: str, ori: str, cropped: str, yolo_annotation: str) -
 
 
 def main():
+    # Set up logger
+    setup_logger()
+
     # Directories
     main_dir = "D:/project/IVM"
     original_images_dir_name = "captured_OGYEI_pill_photos_undistorted"
@@ -231,4 +238,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt as kie:
-        print(kie)
+        logging.error(kie)

@@ -1,3 +1,4 @@
+import logging
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
@@ -7,6 +8,7 @@ from tqdm import tqdm
 from typing import Dict, List, Tuple
 
 from config.const import CONST
+from config.logger_setup import setup_logger
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -74,7 +76,7 @@ def statistics_of_dataset(class_counts: Dict[str, int], train_images: Dict[str, 
     :return: None
     """
 
-    print('Image counts per class:')
+    logging.info('Image counts per class:')
     results = []
     for class_name, count in class_counts.items():
         train_count = len(train_images[class_name])
@@ -86,7 +88,7 @@ def statistics_of_dataset(class_counts: Dict[str, int], train_images: Dict[str, 
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)
     pd.set_option('display.max_colwidth', None)
-    print(df)
+    logging.info(df)
 
     plt.figure(figsize=(10, 6))
     plt.bar(df['Class'], df['Train'], label='Train')
@@ -145,6 +147,7 @@ def main(replace_files: bool = False, rollback: bool = False) -> None:
     :param rollback: If True, rollback the files from the test directory to the train directory.
     :return: None
     """
+    setup_logger()
 
     class_counts, train_images, test_images = get_classes()
     class_counts, train_images, test_images = split_dataset(class_counts, train_images, test_images)

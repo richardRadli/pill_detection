@@ -1,6 +1,10 @@
+import logging
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
+
+from config.logger_setup import setup_logger
+from config.const import CONST
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -77,7 +81,7 @@ def plot_data(proportions: dict, class_counts: dict, threshold: float = 0.5) -> 
     pd.set_option('display.width', None)
     pd.set_option('display.max_colwidth', None)
 
-    print(df)
+    logging.info(df)
 
     # Calculate threshold value
     mean = df['Proportion'].mean()
@@ -115,14 +119,15 @@ def calculate_imbalance_ratio(class_counts: dict) -> None:
     max_count = max(class_counts.values())
     min_count = min(class_counts.values())
     imbalance_ratio = max_count / min_count
-    print(f'Imbalance ratio of the dataset is: {imbalance_ratio}')
+    logging.info(f'Imbalance ratio of the dataset is: {imbalance_ratio}')
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------- M A I N ------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def main() -> None:
-    main_dir = "C:/Users/ricsi/Documents/project/storage/IVM/datasets/ogyi/full_img_size/unsplitted"
+    setup_logger()
+    main_dir = os.path.join(CONST.PROJECT_ROOT, "datasets/ogyi/full_img_size/unsplitted")
     images_directory = os.path.join(main_dir, "images")
 
     number_of_classes = get_classes(images_directory)

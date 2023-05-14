@@ -1,6 +1,6 @@
+import logging
 import numpy as np
 import os
-
 import pandas as pd
 import torch
 
@@ -11,6 +11,7 @@ from PIL import Image
 
 from config.const import CONST
 from config.config import ConfigStreamNetwork
+from config.logger_setup import setup_logger
 from network_selector import NetworkFactory
 from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory, \
     plot_ref_query_images
@@ -24,6 +25,9 @@ class PredictStreamNetwork:
     # --------------------------------------------------- __I N I T__ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
+        # Setup logger
+        setup_logger()
+
         # Load config
         self.cfg = ConfigStreamNetwork().parse()
 
@@ -66,7 +70,7 @@ class PredictStreamNetwork:
         """
 
         network_type = self.cfg.type_of_net
-        print(network_type)
+        logging.info(network_type)
         network_configs = {
             'StreamNetwork': {
                 'prediction_folder': CONST.dir_stream_network_predictions,
@@ -304,8 +308,8 @@ class PredictStreamNetwork:
         pd.set_option('display.width', None)
         pd.set_option('display.max_colwidth', None)
 
-        print(df)
-        print(df_stat)
+        logging.info(df)
+        logging.info(df_stat)
 
         df_combined = pd.concat([df, df_stat], ignore_index=True)
 
@@ -348,4 +352,4 @@ if __name__ == "__main__":
         pill_rec = PredictStreamNetwork()
         pill_rec.main()
     except KeyboardInterrupt as kie:
-        print(kie)
+        logging.error(kie)

@@ -1,10 +1,15 @@
+import logging
 import os
+
+from config.logger_setup import setup_logger
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++ C O N S T ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class _Const(object):
+    setup_logger()
+
     # Root of the project
     user = os.getlogin()
     if user == "keplab":
@@ -82,7 +87,7 @@ class _Const(object):
     for d in directories_images:
         if not os.path.exists(d):
             os.makedirs(d)
-            print(f"Directory {d} has been created")
+            logging.info(f"Directory {d} has been created")
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- D A T A   F I L E S ----------------------------------------------
@@ -168,7 +173,7 @@ class _Const(object):
     for d in directories_data:
         if not os.path.exists(d):
             os.makedirs(d)
-            print(f"Directory {d} has been created")
+            logging.info(f"Directory {d} has been created")
 
     def __setattr__(self, *_):
         raise TypeError

@@ -3,8 +3,12 @@ import colorlog
 
 
 def setup_logger():
-    # Set up logging
+    # Check if logger has already been set up
     logger = logging.getLogger()
+    if logger.hasHandlers():
+        return logger
+
+    # Set up logging
     logger.setLevel(logging.INFO)
 
     # Create a colorized formatter
@@ -25,13 +29,3 @@ def setup_logger():
     logger.addHandler(console_handler)
 
     return logger
-
-# logger = setup_logger()
-#
-# # Now you can use logging in your code
-# logging.debug("Debug message")
-# logging.info("Info message")
-# logging.warning("Warning message")
-# logging.error("Error message")
-# logging.critical("Critical message")
-#

@@ -11,7 +11,6 @@ from config.const import CONST
 class UnDistortTestImages:
     def __init__(self):
         cam_mtx_np_file = os.path.join(CONST.dir_cam_data, os.listdir(CONST.dir_cam_data)[1])
-        print(cam_mtx_np_file)
         data = np.load(cam_mtx_np_file, allow_pickle=True)
 
         self.matrix = data.item()['matrix']

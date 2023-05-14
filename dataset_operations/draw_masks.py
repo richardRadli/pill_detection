@@ -1,4 +1,5 @@
 import concurrent.futures
+import logging
 import numpy as np
 import os
 
@@ -8,6 +9,7 @@ from tqdm import tqdm
 from typing import Tuple, List
 
 from config.const import CONST
+from config.logger_setup import setup_logger
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -61,7 +63,7 @@ def process_data(img_files: str, txt_files: str):
         img = Image.open(img_files)
         img_width, img_height = img.size
     except FileNotFoundError:
-        print(f"Error: {img_files} is not a valid image file.")
+        logging.error(f"{img_files} is not a valid image file.")
         return None, None
 
     try:
@@ -70,7 +72,7 @@ def process_data(img_files: str, txt_files: str):
             yolo_coords = line.split()[1:]
             yolo_coords = [float(x.strip('\'')) for x in yolo_coords]
     except FileNotFoundError:
-        print(f"Error: {txt_files} is not a valid text file.")
+        logging.error(f"{txt_files} is not a valid text file.")
         return None, None
 
     coords = [int(coord * img_width if i % 2 == 0 else coord * img_height) for i, coord in enumerate(yolo_coords)]
@@ -110,6 +112,7 @@ def main(save: bool = True) -> None:
     :param save: If True, saves masks.
     :return: None
     """
+    setup_logger()
 
     img_files, txt_files = load_files(train_dir=CONST.dir_train_images, labels_dir=CONST.dir_labels_data)
 
@@ -125,7 +128,7 @@ def main(save: bool = True) -> None:
                 if save:
                     save_masks(mask, img_file)
             except Exception as e:
-                print(f"Error processing {img_file}: {e}")
+                logging.error(f"Error processing {img_file}: {e}")
 
 
 if __name__ == "__main__":

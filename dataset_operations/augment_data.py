@@ -1,10 +1,12 @@
 import cv2
+import logging
 import numpy as np
 import os
 
 from tqdm import tqdm
 from config.config import ConfigAugment
 from config.const import CONST
+from config.logger_setup import setup_logger
 from utils.utils import read_image_to_list
 
 cfg = ConfigAugment().parse()
@@ -38,11 +40,12 @@ def do_augmentation():
 
     :return:
     """
+    setup_logger()
 
     train_imgs, file_names = read_image_to_list()
     aug_imgs, f_names = augment_data(train_imgs, file_names)
 
-    print(f'\nNumber of images: {aug_imgs.shape[0]}')
+    logging.info(f'\nNumber of images: {aug_imgs.shape[0]}')
 
     for idx, (value_img, f_name) in tqdm(enumerate(zip(aug_imgs, f_names))):
         cv2.imshow(os.path.join(CONST.dir_aug_img, str(idx) + f_name), value_img)
@@ -53,4 +56,4 @@ if __name__ == "__main__":
     try:
         do_augmentation()
     except KeyboardInterrupt as kie:
-        print(kie)
+        logging.error(kie)
