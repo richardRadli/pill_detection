@@ -79,6 +79,10 @@ class PredictStreamNetwork:
             'EfficientNet': {
                 'prediction_folder': CONST.dir_efficient_net_predictions,
                 'plotting_folder': CONST.dir_efficient_net_prediction
+            },
+            'EfficientNetSelfAttention': {
+                'prediction_folder': CONST.dir_efficient_net_self_attention_predictions,
+                'plotting_folder': CONST.dir_efficient_net_self_attention_prediction
             }
         }
         if network_type not in network_configs:
@@ -101,7 +105,8 @@ class PredictStreamNetwork:
                 "channels": [3, 64, 96, 128, 256, 384, 512],
                 "model_weights_dir": {
                     "StreamNetwork": CONST.dir_stream_rgb_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_rgb_model_weights
+                    "EfficientNet": CONST.dir_efficient_net_rgb_model_weights,
+                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_rgb_model_weights
                 }.get(self.cfg.type_of_net, CONST.dir_stream_rgb_model_weights),
                 "grayscale": False
             },
@@ -110,7 +115,8 @@ class PredictStreamNetwork:
                 "channels": [1, 32, 48, 64, 128, 192, 256],
                 "model_weights_dir": {
                     "StreamNetwork": CONST.dir_stream_texture_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_texture_model_weights
+                    "EfficientNet": CONST.dir_efficient_net_texture_model_weights,
+                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_texture_model_weights
                 }.get(self.cfg.type_of_net, CONST.dir_stream_texture_model_weights),
                 "grayscale": True
             },
@@ -119,7 +125,8 @@ class PredictStreamNetwork:
                 "channels": [1, 32, 48, 64, 128, 192, 256],
                 "model_weights_dir": {
                     "StreamNetwork": CONST.dir_stream_contour_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_contour_model_weights
+                    "EfficientNet": CONST.dir_efficient_net_contour_model_weights,
+                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_contour_model_weights
                 }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
                 "grayscale": True
             }

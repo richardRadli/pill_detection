@@ -3,6 +3,7 @@ import torch
 from abc import ABC, abstractmethod
 
 from efficient_net_b0 import EfficientNet
+from efficient_net_b0_self_attention import EfficientNetSelfAttention
 from CNN import CNN
 
 
@@ -25,6 +26,15 @@ class EfficientNetWrapper(BaseNetwork):
         return self.model(x)
 
 
+class EfficientNetSelfAttentionWrapper(BaseNetwork):
+    def __init__(self, network_cfg):
+        self.model = EfficientNetSelfAttention(loc=network_cfg.get('channels'),
+                                               grayscale=network_cfg.get('grayscale'))
+
+    def forward(self, x):
+        return self.model(x)
+
+
 class StreamNetworkWrapper(BaseNetwork):
     def __init__(self, network_cfg):
         self.model = CNN(network_cfg.get('channels'))
@@ -38,6 +48,8 @@ class NetworkFactory:
     def create_network(network_type, network_cfg, device=None):
         if network_type == "EfficientNet":
             model = EfficientNetWrapper(network_cfg).model
+        elif network_type == "EfficientNetSelfAttention":
+            model = EfficientNetSelfAttentionWrapper(network_cfg).model
         elif network_type == "StreamNetwork":
             model = StreamNetworkWrapper(network_cfg).model
         else:

@@ -52,8 +52,8 @@ class TrainModel:
         self.dataset = StreamDataset(network_cfg.get('dataset_dir'), self.cfg.type_of_stream)
         train_size = int(self.cfg.train_rate * len(self.dataset))
         valid_size = len(self.dataset) - train_size
-        logging.info(f"Size of the train set: {train_size}")
-        logging.info(f"Size of the validation set: {valid_size}")
+        logging.info(f"Number of images in the train set: {train_size}")
+        logging.info(f"Number of images in the validation set: {valid_size}")
         train_dataset, valid_dataset = random_split(self.dataset, [train_size, valid_size])
         self.train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
         self.valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
@@ -100,15 +100,18 @@ class TrainModel:
                 "dataset_dir": CONST.dir_rgb,
                 "model_weights_dir": {
                     "StreamNetwork": CONST.dir_stream_rgb_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_rgb_model_weights
+                    "EfficientNet": CONST.dir_efficient_net_rgb_model_weights,
+                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_rgb_model_weights
                 }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
                 "logs_dir": {
                     "StreamNetwork": CONST.dir_logs_stream_net_rgb,
-                    "EfficientNet": CONST.dir_logs_efficient_net_rgb
+                    "EfficientNet": CONST.dir_logs_efficient_net_rgb,
+                    "EfficientNetSelfAttention": CONST.dir_logs_efficient_net_self_attention_rgb
                 }.get(self.cfg.type_of_net, CONST.dir_logs_stream_net_contour),
                 "learning_rate": {
                     "StreamNetwork": self.cfg.learning_rate_cnn_rgb,
-                    "EfficientNet": self.cfg.learning_rate_en_rgb
+                    "EfficientNet": self.cfg.learning_rate_en_rgb,
+                    "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_rgb
                 }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_rgb),
                 "grayscale": False
             },
@@ -118,15 +121,18 @@ class TrainModel:
                 "dataset_dir": CONST.dir_texture,
                 "model_weights_dir": {
                     "StreamNetwork": CONST.dir_stream_texture_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_texture_model_weights
+                    "EfficientNet": CONST.dir_efficient_net_texture_model_weights,
+                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_texture_model_weights
                 }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
                 "logs_dir": {
                     "StreamNetwork": CONST.dir_logs_stream_net_texture,
-                    "EfficientNet": CONST.dir_logs_efficient_net_texture
+                    "EfficientNet": CONST.dir_logs_efficient_net_texture,
+                    "EfficientNetSelfAttention": CONST.dir_logs_efficient_net_self_attention_texture
                 }.get(self.cfg.type_of_net, CONST.dir_logs_stream_net_contour),
                 "learning_rate": {
                     "StreamNetwork": self.cfg.learning_rate_cnn_con_tex,
-                    "EfficientNet": self.cfg.learning_rate_en_con_tex
+                    "EfficientNet": self.cfg.learning_rate_en_con_tex,
+                    "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_con_tex
                 }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex),
                 "grayscale": True
             },
@@ -136,15 +142,18 @@ class TrainModel:
                 "dataset_dir": CONST.dir_contour,
                 "model_weights_dir": {
                     "StreamNetwork": CONST.dir_stream_contour_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_contour_model_weights
+                    "EfficientNet": CONST.dir_efficient_net_contour_model_weights,
+                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_contour_model_weights
                 }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
                 "logs_dir": {
                     "StreamNetwork": CONST.dir_logs_stream_net_contour,
-                    "EfficientNet": CONST.dir_logs_efficient_net_contour
+                    "EfficientNet": CONST.dir_logs_efficient_net_contour,
+                    "EfficientNetSelfAttention": CONST.dir_logs_efficient_net_self_attention_contour
                 }.get(self.cfg.type_of_net, CONST.dir_logs_stream_net_contour),
                 "learning_rate": {
                     "StreamNetwork": self.cfg.learning_rate_cnn_con_tex,
-                    "EfficientNet": self.cfg.learning_rate_en_con_tex
+                    "EfficientNet": self.cfg.learning_rate_en_con_tex,
+                    "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_con_tex
                 }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex),
                 "grayscale": True
             }

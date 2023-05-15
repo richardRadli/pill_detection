@@ -23,24 +23,25 @@ class _Const(object):
     # ---------------------------------------------- I M A G E   F I L E S ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     # Directories for the images
-    dirs_images = ["images/test_images",                # 0
-                   "images/test_masks",                 # 1
-                   "images/rgb",                        # 2
-                   "images/contour",                    # 3
-                   "images/texture",                    # 4
-                   "images/unet_out",                   # 5
-                   "images/unet_compare",               # 6
-                   "images/query/rgb",                  # 7
-                   "images/query/contour",              # 8
-                   "images/query/texture",              # 9
-                   "images/contour_hardest",            # 10
-                   "images/rgb_hardest",                # 11
-                   "images/texture_hardest",            # 12
-                   "images/prediction_stream_network",  # 13
-                   "images/prediction_efficient_net",   # 14
-                   "images/prediction_fusion_network",  # 15
-                   "images/images_aug",                 # 16
-                   "images/masks_aug"]                  # 17
+    dirs_images = ["images/test_images",                                # 0
+                   "images/test_masks",                                 # 1
+                   "images/rgb",                                        # 2
+                   "images/contour",                                    # 3
+                   "images/texture",                                    # 4
+                   "images/unet_out",                                   # 5
+                   "images/unet_compare",                               # 6
+                   "images/query/rgb",                                  # 7
+                   "images/query/contour",                              # 8
+                   "images/query/texture",                              # 9
+                   "images/contour_hardest",                            # 10
+                   "images/rgb_hardest",                                # 11
+                   "images/texture_hardest",                            # 12
+                   "images/prediction_stream_network",                  # 13
+                   "images/prediction_efficient_net",                   # 14
+                   "images/prediction_fusion_network",                  # 15
+                   "images/prediction_efficient_net_self_attention",    # 16
+                   "images/images_aug",                                 # 17
+                   "images/masks_aug"]                                  # 18
 
     # Directories for the train images. These two directories must exist, it won't be created by the program.
     dir_train_images = os.path.join(PROJECT_ROOT, 'images/train_images/')
@@ -48,8 +49,8 @@ class _Const(object):
 
     # Aux variables for the other directories. These will be created by the program.
     # Directories for augmentation
-    dir_aug_img = os.path.join(PROJECT_ROOT, dirs_images[16])
-    dir_aug_mask = os.path.join(PROJECT_ROOT, dirs_images[17])
+    dir_aug_img = os.path.join(PROJECT_ROOT, dirs_images[17])
+    dir_aug_mask = os.path.join(PROJECT_ROOT, dirs_images[18])
 
     # Directories for stream networks, stage 1
     dir_rgb = os.path.join(PROJECT_ROOT, dirs_images[2])
@@ -78,6 +79,7 @@ class _Const(object):
     dir_stream_network_pred = os.path.join(PROJECT_ROOT, dirs_images[13])
     dir_efficient_net_prediction = os.path.join(PROJECT_ROOT, dirs_images[14])
     dir_fusion_net_pred = os.path.join(PROJECT_ROOT, dirs_images[15])
+    dir_efficient_net_self_attention_prediction = os.path.join(PROJECT_ROOT, dirs_images[16])
 
     # At this part, the program creates the directories.
     directories_images = []
@@ -93,29 +95,36 @@ class _Const(object):
     # ----------------------------------------------- D A T A   F I L E S ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     # Directories for the data
-    dirs_data = ["data/weights_unet",                           # 0
-                 "data/logs_unet",                              # 1
-                 "data/weights_stream_network_contour",         # 2
-                 "data/weights_stream_network_rgb",             # 3
-                 "data/weights_stream_network_texture",         # 4
-                 "data/predictions_stream_network",             # 5
-                 "data/logs_stream_contour",                    # 6
-                 "data/logs_stream_rgb",                        # 7
-                 "data/logs_stream_texture",                    # 8
-                 "data/hardest_samples/negative",               # 9
-                 "data/hardest_samples/positive",               # 10
-                 "data/weights_fusion_net",                     # 11
-                 "data/logs_fusion_net",                        # 12
-                 "data/cam_data",                               # 13
-                 "data/train_labels",                           # 14
-                 "data/predictions_fusion_network",             # 15
-                 "data/weights_efficient_net_rgb",              # 16
-                 "data/weights_efficient_net_texture",          # 17
-                 "data/weights_efficient_net_contour",          # 18
-                 "data/predictions_efficient_net",              # 19
-                 "data/logs_efficient_net_rgb",                 # 20
-                 "data/logs_efficient_net_texture",             # 21
-                 "data/logs_efficient_net_contour"              # 22
+    dirs_data = ["data/weights_unet",                                   # 0
+                 "data/logs_unet",                                      # 1
+                 "data/weights_stream_network_contour",                 # 2
+                 "data/weights_stream_network_rgb",                     # 3
+                 "data/weights_stream_network_texture",                 # 4
+                 "data/predictions_stream_network",                     # 5
+                 "data/logs_stream_contour",                            # 6
+                 "data/logs_stream_rgb",                                # 7
+                 "data/logs_stream_texture",                            # 8
+                 "data/hardest_samples/negative",                       # 9
+                 "data/hardest_samples/positive",                       # 10
+                 "data/weights_fusion_net",                             # 11
+                 "data/logs_fusion_net",                                # 12
+                 "data/cam_data",                                       # 13
+                 "data/train_labels",                                   # 14
+                 "data/predictions_fusion_network",                     # 15
+                 "data/weights_efficient_net_rgb",                      # 16
+                 "data/weights_efficient_net_texture",                  # 17
+                 "data/weights_efficient_net_contour",                  # 18
+                 "data/predictions_efficient_net",                      # 19
+                 "data/logs_efficient_net_rgb",                         # 20
+                 "data/logs_efficient_net_texture",                     # 21
+                 "data/logs_efficient_net_contour",                     # 22
+                 "data/weights_efficient_self_attention_net_rgb",       # 23
+                 "data/weights_efficient_self_attention_net_contour",   # 24
+                 "data/weights_efficient_self_attention_net_texture",   # 25
+                 "data/predictions_efficient_self_attention_net",       # 26
+                 "data/logs_efficient_net_self_attention_rgb",          # 27
+                 "data/logs_efficient_net_self_attention_texture",      # 28
+                 "data/logs_efficient_net_self_attention_contour"       # 29
                  ]
 
     # Aux variables for the other directories. These will be created by the program.
@@ -159,8 +168,21 @@ class _Const(object):
     dir_logs_efficient_net_rgb = os.path.join(PROJECT_ROOT, dirs_data[20])
     dir_logs_efficient_net_texture = os.path.join(PROJECT_ROOT, dirs_data[21])
 
-    # Directory for saving the predictions
+    # Directory for saving the predictions, EfficientNet
     dir_efficient_net_predictions = os.path.join(PROJECT_ROOT, dirs_data[19])
+
+    # Directories for EfficientNetSelfAttention, for saving the weights
+    dir_efficient_net_self_attention_rgb_model_weights = os.path.join(PROJECT_ROOT, dirs_data[23])
+    dir_efficient_net_self_attention_contour_model_weights = os.path.join(PROJECT_ROOT, dirs_data[24])
+    dir_efficient_net_self_attention_texture_model_weights = os.path.join(PROJECT_ROOT, dirs_data[25])
+
+    # Directories for EfficientNetSelfAttention, for saving the logs
+    dir_logs_efficient_net_self_attention_rgb = os.path.join(PROJECT_ROOT, dirs_data[27])
+    dir_logs_efficient_net_self_attention_texture = os.path.join(PROJECT_ROOT, dirs_data[28])
+    dir_logs_efficient_net_self_attention_contour = os.path.join(PROJECT_ROOT, dirs_data[29])
+
+    # Directory for saving the predictions, EfficientNetSelfAttention
+    dir_efficient_net_self_attention_predictions = os.path.join(PROJECT_ROOT, dirs_data[26])
 
     # Other
     dir_cam_data = os.path.join(PROJECT_ROOT, dirs_data[13])
