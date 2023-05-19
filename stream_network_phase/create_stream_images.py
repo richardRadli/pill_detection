@@ -1,4 +1,5 @@
 import cv2
+import logging
 import numpy as np
 import re
 import os
@@ -10,6 +11,7 @@ from tqdm import tqdm
 from typing import Tuple
 
 from config.const import CONST
+from config.logger_setup import setup_logger
 from utils.utils import numerical_sort
 
 
@@ -18,7 +20,42 @@ from utils.utils import numerical_sort
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CreateStreamImages:
     def __init__(self, operation: str = "test"):
+        setup_logger()
         self.path_to_images = self.path_selector(operation)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------- P A T H   S E L E C T O R -------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def path_selector(operation):
+        """
+        Selects the correct directory paths based on the given operation string.
+
+        :param operation: A string indicating the operation mode (train or test).
+        :return: A dictionary containing directory paths for images, masks, and other related files.
+        :raises ValueError: If the operation string is not "train" or "test".
+        """
+
+        if operation.lower() == "train":
+            path_to_images = {
+                "images": CONST.dir_train_images,
+                "masks": CONST.dir_train_masks,
+                "rgb": CONST.dir_rgb,
+                "contour": CONST.dir_contour,
+                "texture": CONST.dir_texture
+            }
+        elif operation.lower() == "test":
+            path_to_images = {
+                "images": CONST.dir_test_images,
+                "masks": CONST.dir_test_mask,
+                "rgb": CONST.dir_query_rgb,
+                "contour": CONST.dir_query_contour,
+                "texture": CONST.dir_query_texture
+            }
+        else:
+            raise ValueError("Wrong operation!")
+
+        return path_to_images
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------ C R E A T E   L A B E L   D I R S -------------------------------------
@@ -54,43 +91,12 @@ class CreateStreamImages:
                     os.makedirs(out_path_contour, exist_ok=True)
                     os.makedirs(out_path_texture, exist_ok=True)
 
-                    shutil.move(os.path.join(rgb_path, file_rgb), out_path_rgb)
-                    shutil.move(os.path.join(contour_path, file_contour), out_path_contour)
-                    shutil.move(os.path.join(texture_path, file_texture), out_path_texture)
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # -------------------------------------------- P A T H   S E L E C T O R -------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def path_selector(operation):
-        """
-        Selects the correct directory paths based on the given operation string.
-
-        :param operation: A string indicating the operation mode (train or test).
-        :return: A dictionary containing directory paths for images, masks, and other related files.
-        :raises ValueError: If the operation string is not "train" or "test".
-        """
-
-        if operation.lower() == "train":
-            path_to_images = {
-                "images": CONST.dir_train_images,
-                "masks": CONST.dir_train_masks,
-                "rgb": CONST.dir_rgb,
-                "contour": CONST.dir_contour,
-                "texture": CONST.dir_texture
-            }
-        elif operation.lower() == "test":
-            path_to_images = {
-                "images": CONST.dir_test_images,
-                "masks": CONST.dir_test_mask,
-                "rgb": CONST.dir_query_rgb,
-                "contour": CONST.dir_query_contour,
-                "texture": CONST.dir_query_texture
-            }
-        else:
-            raise ValueError("Wrong operation!")
-
-        return path_to_images
+                    try:
+                        shutil.move(os.path.join(rgb_path, file_rgb), out_path_rgb)
+                        shutil.move(os.path.join(contour_path, file_contour), out_path_contour)
+                        shutil.move(os.path.join(texture_path, file_texture), out_path_texture)
+                    except shutil.Error as se:
+                        logging.error(f"Error moving file: {se.args[0]}")
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- D R A W   B O U N D I N G   B O X ---------------------------------------
@@ -168,7 +174,7 @@ class CreateStreamImages:
     # ------------------------------------ C R E A T E   C O N T O U R   I M A G E S -----------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def create_contour_images(args):
+    def create_contour_images(args) -> None:
         """
         Applies edge detection on an input image and saves the resulting edge map.
 
@@ -189,7 +195,7 @@ class CreateStreamImages:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- S A V E   C O N T O U R   I M G S ---------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def save_contour_images(self):
+    def save_contour_images(self) -> None:
         """
         Loads RGB images from the designated directory and applies Canny edge detection algorithm to extract contours
         for each image. The resulting images are saved in a new directory designated for contour images.
@@ -214,7 +220,7 @@ class CreateStreamImages:
     # ------------------------------------ C R E A T E   T E X T U R E   I M A G E S -----------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def create_texture_images(args):
+    def create_texture_images(args) -> None:
         """
         Given a cropped input image, this method applies a Gaussian blur, subtracts the blurred image from the original,
         normalizes the resulting image intensities between 0 and 255, and saves the resulting texture image to a
@@ -238,7 +244,7 @@ class CreateStreamImages:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- S A V E   T E X T U R E   I M G S ---------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def save_texture_images(self):
+    def save_texture_images(self) -> None:
         """
         Save texture images using Gaussian Blur filter.
 
@@ -261,7 +267,7 @@ class CreateStreamImages:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------- M A I N ----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def main(self):
+    def main(self) -> None:
         """
         Executes the functions to create the images.
 

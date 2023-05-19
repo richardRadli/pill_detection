@@ -60,27 +60,6 @@ class ConfigTestingUnet:
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# +++++++++++++++++++++++++++++++++++++++++++++ C O N F I G   A U G M E N T ++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class ConfigAugment:
-    def __init__(self):
-        self.opt = None
-        self.parser = argparse.ArgumentParser()
-
-        # Testing
-        self.parser.add_argument("--augmentation_factor", type=int, default=1)
-        self.parser.add_argument("--use_original", type=bool, default=True)
-        self.parser.add_argument("--use_gaussian_noise", type=bool, default=True)
-        self.parser.add_argument("--use_horizontal_flip", type=bool, default=True)
-        self.parser.add_argument("--use_vertical_flip", type=bool, default=True)
-        self.parser.add_argument("--kernel_size", type=int, default=5)
-
-    def parse(self):
-        self.opt = self.parser.parse_args()
-        return self.opt
-
-
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++ C O N F I G   S T R E A M   N E T W O R K +++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class ConfigStreamNetwork:

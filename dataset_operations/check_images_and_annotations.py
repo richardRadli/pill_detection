@@ -31,9 +31,10 @@ def read_image_to_list(dir_train_images: str) -> List[str]:
 
 
 def main():
-    main_dir = os.path.join(CONST.PROJECT_ROOT, "datasets/ogyi/full_img_size/splitted/test")
-    original_imgs_file_names = read_image_to_list(main_dir + "/images")
-    yolo_annotations = read_yolo_annotations_to_list(main_dir + "/labels")
+    setup_logger()
+    # main_dir = os.path.join(CONST.PROJECT_ROOT, "datasets/ogyi/full_img_size/splitted/test")
+    original_imgs_file_names = read_image_to_list(CONST.dir_aug_img)
+    yolo_annotations = read_yolo_annotations_to_list(CONST.dir_aug_labels)
 
     for i, (img, txt) in enumerate(zip(original_imgs_file_names, yolo_annotations)):
         logging.info(f'Image name: {os.path.basename(img)}')
@@ -52,7 +53,7 @@ def main():
         cv2.polylines(image, [annotation_points], isClosed=True, color=(0, 255, 0), thickness=2)
 
         cv2.imshow("", cv2.resize(image, (image.shape[1] // 2, image.shape[0] // 2)))
-        cv2.waitKey(100)
+        cv2.waitKey()
 
         # Print a separator line between iterations
         if i < len(original_imgs_file_names) - 1:

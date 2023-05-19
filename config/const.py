@@ -40,8 +40,7 @@ class _Const(object):
                    "images/prediction_efficient_net",                   # 14
                    "images/prediction_fusion_network",                  # 15
                    "images/prediction_efficient_net_self_attention",    # 16
-                   "images/images_aug",                                 # 17
-                   "images/masks_aug"]                                  # 18
+                   "images/images_aug"]                                 # 17
 
     # Directories for the train images. These two directories must exist, it won't be created by the program.
     dir_train_images = os.path.join(PROJECT_ROOT, 'images/train_images/')
@@ -50,7 +49,6 @@ class _Const(object):
     # Aux variables for the other directories. These will be created by the program.
     # Directories for augmentation
     dir_aug_img = os.path.join(PROJECT_ROOT, dirs_images[17])
-    dir_aug_mask = os.path.join(PROJECT_ROOT, dirs_images[18])
 
     # Directories for stream networks, stage 1
     dir_rgb = os.path.join(PROJECT_ROOT, dirs_images[2])
@@ -124,7 +122,8 @@ class _Const(object):
                  "data/predictions_efficient_self_attention_net",       # 26
                  "data/logs_efficient_net_self_attention_rgb",          # 27
                  "data/logs_efficient_net_self_attention_texture",      # 28
-                 "data/logs_efficient_net_self_attention_contour"       # 29
+                 "data/logs_efficient_net_self_attention_contour",      # 29
+                 "data/augmented_train_data_labels"                     # 30
                  ]
 
     # Aux variables for the other directories. These will be created by the program.
@@ -187,6 +186,7 @@ class _Const(object):
     # Other
     dir_cam_data = os.path.join(PROJECT_ROOT, dirs_data[13])
     dir_labels_data = os.path.join(PROJECT_ROOT, dirs_data[14])
+    dir_aug_labels = os.path.join(PROJECT_ROOT, dirs_data[30])
 
     directories_data = []
     for d in dirs_data:
