@@ -4,9 +4,11 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import re
+import time
 import torch
 
 from datetime import datetime
+from functools import wraps
 from PIL import Image
 from torch import Tensor
 from typing import List, Union
@@ -235,3 +237,18 @@ def use_gpu_if_available() -> torch.device:
     logging.info(df)
 
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------- M E A S U R E   E X E C U T I O N   T I M E ------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def measure_execution_time(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"Execution time of {func.__name__}: {execution_time} seconds")
+        return result
+    return wrapper

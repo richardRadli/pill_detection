@@ -2,10 +2,13 @@ import cv2
 import numpy as np
 import os
 
+from concurrent.futures import ThreadPoolExecutor
 from glob import glob
+from tqdm import tqdm
 
 from config.const import CONST
 from convert_yolo import convert_yolo_format_to_pixels
+from utils.utils import measure_execution_time
 
 
 def change_background(image_path, annotations_path, background_color):
@@ -38,18 +41,25 @@ def change_background(image_path, annotations_path, background_color):
     cv2.imwrite(output_file_name, output_image)
 
 
+@measure_execution_time
 def main():
-    image_path = os.path.join(CONST.DATASET_ROOT, 'ogyi_multi//splitted/train/images')
-    annotations_path = os.path.join(CONST.DATASET_ROOT, 'ogyi_multi/splitted/train/labels')
+    image_path = CONST.dir_ogyi_multi_splitted_train_images
+    annotations_path = CONST.dir_ogyi_multi_splitted_train_labels
 
     images = sorted(glob(image_path + "/*.png"))
     annotations = sorted(glob(annotations_path + "/*.txt"))
 
-    background_color = (120, 120, 120)
+    background_color = (100, 100, 100)
 
-    for idx, (img, txt) in enumerate(zip(images, annotations)):
-        change_background(img, txt, background_color)
-        break
+    with ThreadPoolExecutor() as executor:
+        futures = []
+        for img, txt in tqdm(zip(images, annotations), total=len(images), desc="Processing images"):
+            future = executor.submit(change_background, img, txt, background_color)
+            futures.append(future)
+
+        # Wait for all tasks to complete
+        for future in tqdm(futures, total=len(futures), desc='Saving images'):
+            future.result()
 
 
 if __name__ == "__main__":

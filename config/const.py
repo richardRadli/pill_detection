@@ -14,8 +14,10 @@ class _Const(object):
     user = os.getlogin()
     if user == "keplab":
         PROJECT_ROOT = "E:/users/ricsi/IVM"
+        DATASET_ROOT = ""
     elif user == "ricsi":
         PROJECT_ROOT = "C:/Users/ricsi/Documents/project/storage/IVM"
+        DATASET_ROOT = "C:/Users/ricsi/Documents/project/storage/IVM/datasets"
     else:
         raise ValueError("Wrong user!")
 
@@ -40,7 +42,8 @@ class _Const(object):
                    "images/prediction_efficient_net",                   # 14
                    "images/prediction_fusion_network",                  # 15
                    "images/prediction_efficient_net_self_attention",    # 16
-                   "images/images_aug"]                                 # 17
+                   "images/images_aug",                                 # 17
+                   "images/wo_background"]                              # 18
 
     # Directories for the train images. These two directories must exist, it won't be created by the program.
     dir_train_images = os.path.join(PROJECT_ROOT, 'images/train_images/')
@@ -49,6 +52,7 @@ class _Const(object):
     # Aux variables for the other directories. These will be created by the program.
     # Directories for augmentation
     dir_aug_img = os.path.join(PROJECT_ROOT, dirs_images[17])
+    dir_wo_background = os.path.join(PROJECT_ROOT, dirs_images[18])
 
     # Directories for stream networks, stage 1
     dir_rgb = os.path.join(PROJECT_ROOT, dirs_images[2])
@@ -193,6 +197,60 @@ class _Const(object):
         directories_data.append(os.path.join(PROJECT_ROOT, d))
 
     for d in directories_data:
+        if not os.path.exists(d):
+            os.makedirs(d)
+            logging.info(f"Directory {d} has been created")
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------- D A T A S E T S ------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    dirs_dataset = [
+        'ogyi/full_img_size/unsplitted/images',             # 0
+        'ogyi/full_img_size/unsplitted/labels',             # 1
+        'ogyi/full_img_size/splitted/train/images',         # 2
+        'ogyi/full_img_size/splitted/train/labels',         # 3
+        'ogyi/full_img_size/splitted/test/images',          # 4
+        'ogyi/full_img_size/splitted/test/labels',          # 5
+        'ogyi/full_img_size/splitted/valid/images',         # 6
+        'ogyi/full_img_size/splitted/valid/labels',         # 7
+        'ogyi_multi/unsplitted/images',                     # 8
+        'ogyi_multi/unsplitted/labels',                     # 9
+        'ogyi_multi/splitted/train/images',                 # 10
+        'ogyi_multi/splitted/train/labels',                 # 11
+        'ogyi_multi/splitted/test/images',                  # 12
+        'ogyi_multi/splitted/test/labels',                  # 13
+        'ogyi_multi/splitted/valid/images',                 # 14
+        'ogyi_multi/splitted/valid/labels'                  # 15
+    ]
+    # OGYI Single - Full img size - unsplitted
+    dir_ogyi_single_unsplitted_images = os.path.join(DATASET_ROOT, dirs_dataset[0])
+    dir_ogyi_single_unsplitted_labels = os.path.join(DATASET_ROOT, dirs_dataset[1])
+
+    # OGYI Single - Full img size - splitted
+    dir_ogyi_single_splitted_train_images = os.path.join(DATASET_ROOT, dirs_dataset[2])
+    dir_ogyi_single_splitted_train_labels = os.path.join(DATASET_ROOT, dirs_dataset[3])
+    dir_ogyi_single_splitted_test_images = os.path.join(DATASET_ROOT, dirs_dataset[4])
+    dir_ogyi_single_splitted_test_labels = os.path.join(DATASET_ROOT, dirs_dataset[5])
+    dir_ogyi_single_splitted_valid_images = os.path.join(DATASET_ROOT, dirs_dataset[6])
+    dir_ogyi_single_splitted_valid_labels = os.path.join(DATASET_ROOT, dirs_dataset[7])
+
+    # OGYI Multi - unsplitted
+    dir_ogyi_multi_unsplitted_images = os.path.join(DATASET_ROOT, dirs_dataset[8])
+    dir_ogyi_multi_unsplitted_labels = os.path.join(DATASET_ROOT, dirs_dataset[9])
+    #
+    # # OGYI Multi - splitted
+    dir_ogyi_multi_splitted_train_images = os.path.join(DATASET_ROOT, dirs_dataset[10])
+    dir_ogyi_multi_splitted_train_labels = os.path.join(DATASET_ROOT, dirs_dataset[11])
+    dir_ogyi_multi_splitted_test_images = os.path.join(DATASET_ROOT, dirs_dataset[12])
+    dir_ogyi_multi_splitted_test_labels = os.path.join(DATASET_ROOT, dirs_dataset[13])
+    dir_ogyi_multi_splitted_val_images = os.path.join(DATASET_ROOT, dirs_dataset[14])
+    dir_ogyi_multi_splitted_val_labels = os.path.join(DATASET_ROOT, dirs_dataset[15])
+
+    directories_data_set = []
+    for d in dirs_dataset:
+        directories_data_set.append(os.path.join(DATASET_ROOT, d))
+
+    for d in directories_data_set:
         if not os.path.exists(d):
             os.makedirs(d)
             logging.info(f"Directory {d} has been created")
