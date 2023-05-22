@@ -243,6 +243,13 @@ def use_gpu_if_available() -> torch.device:
 # ------------------------------------- M E A S U R E   E X E C U T I O N   T I M E ------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def measure_execution_time(func):
+    """
+    Decorator to measure the execution time.
+
+    :param func:
+    :return:
+    """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.time()

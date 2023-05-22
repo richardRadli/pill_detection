@@ -5,13 +5,29 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from glob import glob
 from tqdm import tqdm
+from typing import Tuple
 
 from config.const import CONST
 from convert_yolo import convert_yolo_format_to_pixels
 from utils.utils import measure_execution_time
 
 
-def change_background(image_path, annotations_path, background_color):
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------ C H A N G E   B A C K G R O U N D -----------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def change_background(image_path: str, annotations_path: str, background_color: Tuple[int, int, int]) -> None:
+    """
+    The function reads in the path of an image and a corresponding annotation file. Converts the YOLO annotation values
+     to pixel coordinates, after that it applies bitwise and operation in order to subtract the fore and background.
+     Finally, it adds together the images. Results should be an image with the pill(s) on it, and a homogeneous
+     background.
+
+    :param image_path: Path to where the images are located.
+    :param annotations_path: Path to where the annotations are located.
+    :param background_color: Color of the background.
+    :return: None
+    """
+
     image = cv2.imread(image_path)
 
     with open(annotations_path, 'r') as file:
@@ -41,13 +57,21 @@ def change_background(image_path, annotations_path, background_color):
     cv2.imwrite(output_file_name, output_image)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------ M A I N -------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 @measure_execution_time
-def main():
-    image_path = CONST.dir_ogyi_multi_splitted_train_images
-    annotations_path = CONST.dir_ogyi_multi_splitted_train_labels
+def main() -> None:
+    """
+    Main function of the file. Collects the files and in a parallelized way, it executes the change_background()
+    function. As to demonstrate technical capability, the execution time is measured with the measure_execution_time()
+    decorator function.
 
-    images = sorted(glob(image_path + "/*.png"))
-    annotations = sorted(glob(annotations_path + "/*.txt"))
+    :return: None
+    """
+
+    images = sorted(glob(CONST.dir_ogyi_multi_splitted_train_images + "/*.png"))
+    annotations = sorted(glob(CONST.dir_ogyi_multi_splitted_train_labels + "/*.txt"))
 
     background_color = (100, 100, 100)
 
@@ -57,10 +81,12 @@ def main():
             future = executor.submit(change_background, img, txt, background_color)
             futures.append(future)
 
-        # Wait for all tasks to complete
         for future in tqdm(futures, total=len(futures), desc='Saving images'):
             future.result()
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------- __M A I N__ -----------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     main()

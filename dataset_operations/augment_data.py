@@ -68,20 +68,23 @@ def rotate_image(image, angle: int = 180):
     return rotated_image
 
 
-def scale_image(image: np.ndarray, scale_percent: int) -> np.ndarray:
-    """
-    Scale an image by a given factor and save it to the output path.
+def distort_color(image, domain):
+    # Convert the image to float32 for accurate calculations
+    image = image.astype(np.float32) / 255.0
 
-    :param image: The path to the input image file.
-    :param scale_percent: The factor by which to scale the image.
-    """
+    # Generate random color shift values
+    color_shift = np.random.uniform(low=domain[0], high=domain[1], size=(1, 3))
 
-    width = int(image.shape[1] * scale_percent / 100)
-    height = int(image.shape[0] * scale_percent / 100)
-    dim = (width, height)
+    # Apply the color shift to each pixel
+    distorted_image = image * color_shift
 
-    scaled_image = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
-    return scaled_image
+    # Clip the pixel values to the valid range [0, 1]
+    distorted_image = np.clip(distorted_image, 0, 1)
+
+    # Convert the image back to uint8 format
+    distorted_image = (distorted_image * 255).astype(np.uint8)
+
+    return distorted_image
 
 
 def rotate_segmentation_annotations(annotations, image_width, image_height, angle):
@@ -180,6 +183,9 @@ def augment_images(input_img_dir, input_txt_dir, output_img_dir, output_txt_dir)
 
     salt_vs_pepper_ratio = 0.5
     noise_amount = 0.05
+    distort_color_domain = (0.7, 1.2)
+    brightness_factor = random.uniform(0.5, 1.5)
+    kernel = (7, 7)
 
     image_paths = glob(os.path.join(input_img_dir, '*.png'))
     txt_paths = glob(os.path.join(input_txt_dir, "*.txt"))
@@ -194,18 +200,19 @@ def augment_images(input_img_dir, input_txt_dir, output_img_dir, output_txt_dir)
         rotated_image = rotate_image(image)
         save_rotated_images(image, image_path, output_img_dir, output_txt_dir, annotations, rotated_image)
 
-        brightness_factor = random.uniform(0.5, 1.5)
-        save_files(image_path, output_img_dir, output_txt_dir, annotations, brightness_factor, "brightness")
+        brightness_changed_images = change_brightness(image, brightness_factor)
+        save_files(image_path, output_img_dir, output_txt_dir, annotations, brightness_changed_images, "brightness")
 
-        smoothed_image = cv2.GaussianBlur(image, (7, 7), 0)
+        smoothed_image = cv2.GaussianBlur(image, kernel, 0)
         save_files(image_path, output_img_dir, output_txt_dir, annotations, smoothed_image, "smoothed")
 
         noisy_image = add_salt_and_pepper_noise(image, salt_vs_pepper_ratio, noise_amount)
         save_files(image_path, output_img_dir, output_txt_dir, annotations, noisy_image, "noisy")
 
-        scaled_image = scale_image(image, scale_percent=50)
-        save_files(image_path, output_img_dir, output_txt_dir, annotations, scaled_image, "scaled")
+        color_distorted_image = distort_color(image, distort_color_domain)
+        save_files(image_path, output_img_dir, output_txt_dir, annotations, color_distorted_image, "color_distorted")
 
+        break
 
 def do_augmentation():
     setup_logger()
