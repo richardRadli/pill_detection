@@ -1,3 +1,13 @@
+"""
+File: check_dataset_balance.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: May 03, 2023
+
+Description: This program performs data analysis on a dataset. It calculates the proportions of different classes in the
+dataset, plots the data as a dataframe and a bar plot, and calculates the imbalance ratio of the dataset.
+"""
+
 import logging
 import matplotlib.pyplot as plt
 import os

@@ -12,12 +12,21 @@ class _Const(object):
 
     # Root of the project
     user = os.getlogin()
-    if user == "keplab":
-        PROJECT_ROOT = "E:/users/ricsi/IVM"
-        DATASET_ROOT = ""
-    elif user == "ricsi":
-        PROJECT_ROOT = "C:/Users/ricsi/Documents/project/storage/IVM"
-        DATASET_ROOT = "C:/Users/ricsi/Documents/project/storage/IVM/datasets"
+    root_mapping = {
+        "keplab": {
+            "PROJECT_ROOT": "E:/users/ricsi/IVM",
+            "DATASET_ROOT": ""
+        },
+        "ricsi": {
+            "PROJECT_ROOT": "C:/Users/ricsi/Documents/project/storage/IVM",
+            "DATASET_ROOT": "C:/Users/ricsi/Documents/project/storage/IVM/datasets"
+        }
+    }
+
+    if user in root_mapping:
+        root_info = root_mapping[user]
+        PROJECT_ROOT = root_info["PROJECT_ROOT"]
+        DATASET_ROOT = root_info["DATASET_ROOT"]
     else:
         raise ValueError("Wrong user!")
 

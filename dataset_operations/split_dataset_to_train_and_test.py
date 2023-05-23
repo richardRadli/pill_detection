@@ -1,3 +1,14 @@
+"""
+File: split_dataset_to_train_and_test.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description: This program is used to split a dataset into train and test sets. It reads the dataset files, calculates
+the class counts, and then splits the files into train and test sets based on the class counts. It also provides
+statistics about the dataset and can move the files to the test directory if specified.
+"""
+
 import logging
 import matplotlib.pyplot as plt
 import os

@@ -1,3 +1,14 @@
+"""
+File: convert_yolo.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 24, 2023
+
+Description: The program converts YOLO format annotations to pixel coordinates and then back to YOLO format.
+It reads image files, processes them, and saves the converted annotations. Images were originally annotated on the size
+of 800x800, the program transform these annotation values back to their original size.
+"""
+
 import cv2
 import concurrent.futures
 import logging
@@ -10,7 +21,6 @@ from glob import glob
 from tqdm import tqdm
 
 from config.logger_setup import setup_logger
-
 
 
 def convert_yolo_format_to_pixels(image: np.ndarray, annotation: list) -> list:

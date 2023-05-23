@@ -1,3 +1,14 @@
+"""
+File: undistort_images.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description: The program takes a directory of test images as input, undistorts the images using camera calibration data,
+and saves the undistorted images to an output directory. It performs the undistortion process using multithreading for
+faster processing.
+"""
+
 import cv2
 import os
 import numpy as np
@@ -8,7 +19,13 @@ from tqdm import tqdm
 from config.const import CONST
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++++++++ U N D I S T O R T   T E S T   I M A G E S ++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class UnDistortTestImages:
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------- __I N I T__ --------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
         cam_mtx_np_file = os.path.join(CONST.dir_cam_data, os.listdir(CONST.dir_cam_data)[1])
         data = np.load(cam_mtx_np_file, allow_pickle=True)
@@ -18,7 +35,18 @@ class UnDistortTestImages:
         self.undst_matrix = data.item()['undst_matrix']
         self.roi = data.item()['roi']
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------- P R O C E S S   I M A G E -------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def process_image(self, img_path: str, output_path: str) -> None:
+        """
+        Process an image by undistorting it, using camera calibration data and save the undistorted image.
+
+        :param img_path: The path of the input image.
+        :param output_path: The path to save the undistorted image.
+        :return: None
+        """
+
         src_img = cv2.imread(img_path)
 
         undistorted_image = cv2.undistort(src_img, self.matrix, self.dist_coeff, None, self.undst_matrix)
@@ -27,7 +55,16 @@ class UnDistortTestImages:
 
         cv2.imwrite(output_path, undistorted_image)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------- U N D I S T O R T   I M A G E S ----------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def undistort_images(self) -> None:
+        """
+        Undistort the images in the input directory and save them to the output directory.
+
+        :return: None
+        """
+
         input_dir = "D:/project/IVM/captured_OGYEI_pill_photos_v4"
         output_dir = "D:/project/IVM/captured_OGYEI_pill_photos_v4_undistorted"
 

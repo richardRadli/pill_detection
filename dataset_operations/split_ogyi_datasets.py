@@ -1,3 +1,14 @@
+"""
+File: split_ogyi_dataset.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: May 03, 2023
+
+Description: This program is used to split a dataset into train, validation, and test sets. It collects the data from a
+source directory and organizes it into train, validation, and test directories. The image files are shuffled and
+distributed among the directories accordingly.
+"""
+
 import os
 import shutil
 

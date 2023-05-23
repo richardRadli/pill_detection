@@ -1,9 +1,24 @@
+"""
+File: rename_roboflow_files.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: May 23, 2023
+
+Description: Roboflow tends to add name extensions to image files, also, it converts images to .jpg format. This program
+chops off the name extensions, and converts back the files to .png files.
+"""
+
 import os
 from glob import glob
 from PIL import Image
 
 
 def rename_files():
+    """
+
+    :return:
+    """
+
     path = "C:/Users/ricsi/Desktop/test"
     images = sorted(glob(path + "/images/*.jpg"))
     text = sorted(glob(path + "/labels/*.txt"))
@@ -40,6 +55,12 @@ def rename_files():
 
 
 def convert_images_to_png(directory):
+    """
+
+    :param directory:
+    :return:
+    """
+
     image_files = os.listdir(directory)
     for file_name in image_files:
         if file_name.lower().endswith(('.png')):

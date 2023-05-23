@@ -1,3 +1,13 @@
+"""
+File: draw_mask.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description: The program based on YOLO format segmentation annotations, creates binary masks of the corresponding
+images.
+"""
+
 import concurrent.futures
 import logging
 import numpy as np

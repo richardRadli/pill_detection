@@ -1,3 +1,13 @@
+"""
+File: check_images_and_annotations.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: May 03, 2023
+
+Description: This program reads in images and their corresponding YOLO format annotations, and projects the segmentation
+annotations on the images in order to check the correctness of the annotations.
+"""
+
 import logging
 
 import cv2

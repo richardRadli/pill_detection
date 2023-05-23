@@ -1,3 +1,14 @@
+"""
+File: change_background.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: May 22, 2023
+
+Description: The program  applies bitwise operations to subtract the foreground from the background and combines them to
+create an image with the pill(s) on a various backgrounds. The main() function uses multithreading to process multiple
+images in parallel using the change_background() function.
+"""
+
 import cv2
 import numpy as np
 import os
@@ -5,7 +16,6 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from glob import glob
 from tqdm import tqdm
-from typing import Tuple
 
 from config.const import CONST
 from convert_yolo import convert_yolo_format_to_pixels
@@ -15,7 +25,7 @@ from utils.utils import measure_execution_time
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------ C H A N G E   B A C K G R O U N D -----------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def change_background(image_path: str, annotations_path: str, background_color: Tuple[int, int, int]) -> None:
+def change_background(image_path: str, annotations_path: str, background_path: str) -> None:
     """
     The function reads in the path of an image and a corresponding annotation file. Converts the YOLO annotation values
      to pixel coordinates, after that it applies bitwise and operation in order to subtract the fore and background.
@@ -24,18 +34,18 @@ def change_background(image_path: str, annotations_path: str, background_color: 
 
     :param image_path: Path to where the images are located.
     :param annotations_path: Path to where the annotations are located.
-    :param background_color: Color of the background.
+    :param background_path: Color of the background.
     :return: None
     """
 
     image = cv2.imread(image_path)
+    background = cv2.imread(background_path)
 
     with open(annotations_path, 'r') as file:
         annotation_text = file.readlines()
 
     mask = np.zeros(image.shape[:2], dtype=np.uint8)
-    background = np.zeros(image.shape, dtype=np.uint8)
-    background[:] = background_color
+    background = cv2.resize(background, (image.shape[1], image.shape[0]))
     foreground = None
 
     for anno_text in annotation_text:
@@ -70,15 +80,14 @@ def main() -> None:
     :return: None
     """
 
-    images = sorted(glob(CONST.dir_ogyi_multi_splitted_train_images + "/*.png"))
-    annotations = sorted(glob(CONST.dir_ogyi_multi_splitted_train_labels + "/*.txt"))
-
-    background_color = (100, 100, 100)
+    images = sorted(glob(CONST.dir_ogyi_single_splitted_train_images + "/*.png"))
+    annotations = sorted(glob(CONST.dir_ogyi_single_splitted_train_labels + "/*.txt"))
+    backgrounds = sorted(glob("C:/Users/ricsi/Desktop/images/*.jpg"))
 
     with ThreadPoolExecutor() as executor:
         futures = []
-        for img, txt in tqdm(zip(images, annotations), total=len(images), desc="Processing images"):
-            future = executor.submit(change_background, img, txt, background_color)
+        for img, txt, bg in tqdm(zip(images, annotations, backgrounds), total=len(images), desc="Processing images"):
+            future = executor.submit(change_background, img, txt, bg)
             futures.append(future)
 
         for future in tqdm(futures, total=len(futures), desc='Saving images'):
