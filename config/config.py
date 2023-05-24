@@ -67,9 +67,9 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetSelfAttention",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
                                  help="StreamNetwork | EfficientNet | EfficientNetSelfAttention")
-        self.parser.add_argument("--type_of_stream", type=str, default="RGB", help="RGB | Contour | Texture")
+        self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="RGB | Contour | Texture")
         self.parser.add_argument("--train_rate", type=float, default=0.8)
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=30)
@@ -82,6 +82,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--learning_rate_ensa_con_tex", type=float, default=1e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)
         self.parser.add_argument("--img_size", type=int, default=128)
+        self.parser.add_argument("--load_ref_vector", type=bool, default=True)
 
     def parse(self):
         self.opt = self.parser.parse_args()

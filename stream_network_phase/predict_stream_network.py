@@ -1,9 +1,19 @@
+"""
+File: predict_stream_network.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description:
+"""
+
 import logging
 import numpy as np
 import os
 import pandas as pd
 import torch
 
+from glob import glob
 from torchvision import transforms
 from tqdm import tqdm
 from typing import List, Tuple, Dict
@@ -40,15 +50,17 @@ class PredictStreamNetwork:
         self.query_image_rgb = None
         self.query_image_con = None
 
+        # Load configs
         self.main_network_config = self.get_main_network_config()
         self.sub_network_config = self.get_subnetwork_config()
 
+        # Load networks
         self.network_con, self.network_rgb, self.network_tex = self.load_networks()
-
         self.network_con.eval()
         self.network_rgb.eval()
         self.network_tex.eval()
 
+        # Preprocess images
         self.preprocess_rgb = transforms.Compose([transforms.Resize((self.cfg.img_size, self.cfg.img_size)),
                                                   transforms.ToTensor(),
                                                   transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
@@ -57,6 +69,7 @@ class PredictStreamNetwork:
                                                       transforms.Grayscale(),
                                                       transforms.ToTensor()])
 
+        # Select device
         self.device = use_gpu_if_available()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -74,15 +87,18 @@ class PredictStreamNetwork:
         network_configs = {
             'StreamNetwork': {
                 'prediction_folder': CONST.dir_stream_network_predictions,
-                'plotting_folder': CONST.dir_stream_network_pred
+                'plotting_folder': CONST.dir_stream_network_pred,
+                'ref_vectors_folder': CONST.dir_ref_vectors_stream_net
             },
             'EfficientNet': {
                 'prediction_folder': CONST.dir_efficient_net_predictions,
-                'plotting_folder': CONST.dir_efficient_net_prediction
+                'plotting_folder': CONST.dir_efficient_net_prediction,
+                'ref_vectors_folder': CONST.dir_ref_vectors_efficient_net
             },
             'EfficientNetSelfAttention': {
                 'prediction_folder': CONST.dir_efficient_net_self_attention_predictions,
-                'plotting_folder': CONST.dir_efficient_net_self_attention_prediction
+                'plotting_folder': CONST.dir_efficient_net_self_attention_prediction,
+                'ref_vectors_folder': CONST.dir_ref_vectors_efficient_net_self_attention
             }
         }
         if network_type not in network_configs:
@@ -218,6 +234,10 @@ class PredictStreamNetwork:
                 vectors.append(vector)
                 labels.append(med_class)
 
+        if operation == "reference":
+            torch.save({'vectors': vectors, 'labels': labels, 'images_path': images_path},
+                       os.path.join(self.main_network_config['ref_vectors_folder'], self.timestamp + "_ref_vectors.pt"))
+
         return vectors, labels, images_path
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -341,10 +361,20 @@ class PredictStreamNetwork:
                                                                operation="query")
 
         # Calculate reference vectors
-        ref_vecs, r_labels, r_images_path = self.get_vectors(contour_dir=CONST.dir_contour,
-                                                             rgb_dir=CONST.dir_rgb,
-                                                             texture_dir=CONST.dir_texture,
-                                                             operation="reference")
+        if self.cfg.load_ref_vector:
+            latest_ref_vec_pt_file = \
+                max(glob(os.path.join(self.main_network_config['ref_vectors_folder'], "*.pt")), key=os.path.getctime)
+            data = torch.load(latest_ref_vec_pt_file)
+
+            ref_vecs = data['vectors']
+            r_labels = data['labels']
+            r_images_path = data['images_path']
+            logging.info("Reference vectors has been loaded!")
+        else:
+            ref_vecs, r_labels, r_images_path = self.get_vectors(contour_dir=CONST.dir_contour,
+                                                                 rgb_dir=CONST.dir_rgb,
+                                                                 texture_dir=CONST.dir_texture,
+                                                                 operation="reference")
 
         # Compare query and reference vectors
         gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)

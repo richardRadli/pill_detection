@@ -1,3 +1,12 @@
+"""
+File: train_stream_network.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description:
+"""
+
 import json
 import logging
 import numpy as np
@@ -16,7 +25,7 @@ from network_selector import NetworkFactory
 from stream_network_dataset_loader import StreamDataset
 from triplet_loss import TripletLossWithHardMining
 from config.logger_setup import setup_logger
-from utils.utils import create_timestamp, print_network_config, use_gpu_if_available
+from utils.utils import create_timestamp, measure_execution_time, print_network_config, use_gpu_if_available
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -209,6 +218,7 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------------ F I T -----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
+    @measure_execution_time
     def fit(self) -> None:
         """
         This function is responsible for the training of the network.

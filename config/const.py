@@ -136,7 +136,10 @@ class _Const(object):
                  "data/logs_efficient_net_self_attention_rgb",          # 27
                  "data/logs_efficient_net_self_attention_texture",      # 28
                  "data/logs_efficient_net_self_attention_contour",      # 29
-                 "data/augmented_train_data_labels"                     # 30
+                 "data/augmented_train_data_labels",                    # 30
+                 "data/reference_vectors_stream_network",               # 31
+                 "data/reference_vectors_efficient_net",                # 32
+                 "data/reference_vectors_efficient_net_self_attention"  # 33
                  ]
 
     # Aux variables for the other directories. These will be created by the program.
@@ -200,6 +203,11 @@ class _Const(object):
     dir_cam_data = os.path.join(PROJECT_ROOT, dirs_data[13])
     dir_labels_data = os.path.join(PROJECT_ROOT, dirs_data[14])
     dir_aug_labels = os.path.join(PROJECT_ROOT, dirs_data[30])
+
+    # Reference vectors
+    dir_ref_vectors_stream_net = os.path.join(PROJECT_ROOT, dirs_data[31])
+    dir_ref_vectors_efficient_net = os.path.join(PROJECT_ROOT, dirs_data[32])
+    dir_ref_vectors_efficient_net_self_attention = os.path.join(PROJECT_ROOT, dirs_data[33])
 
     directories_data = []
     for d in dirs_data:
