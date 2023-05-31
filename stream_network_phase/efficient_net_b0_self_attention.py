@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torchvision.models as models
 
@@ -7,21 +8,36 @@ class EfficientNetSelfAttention(nn.Module):
         super(EfficientNetSelfAttention, self).__init__()
         self.loc = loc
         self.grayscale = grayscale
-        self.model = models.efficientnet_b0(weights='DEFAULT') # self.build_model()
+        self.model = models.efficientnet_b0(weights='DEFAULT')  # self.build_model()
         if self.grayscale:
             self.model.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
         self.linear = nn.Linear(1000, loc[4])
-        self.self_attention = nn.MultiheadAttention(embed_dim=loc[4], num_heads=loc[4])
-        self.fc = nn.Linear(loc[4], loc[4])
+
+        self.input_dim = loc[4]
+        self.query = nn.Linear(self.input_dim, self.input_dim)
+        self.key = nn.Linear(self.input_dim, self.input_dim)
+        self.value = nn.Linear(self.input_dim, self.input_dim)
 
     def forward(self, x):
         if self.grayscale:
             x = x.expand(-1, 3, -1, -1)
         x = self.model(x)
         x = self.linear(x)
-        x, _ = self.self_attention(x, x, x)  # Self-attention
-        x = self.fc(x)  # Linear layer
-        return x
+
+        queries = self.query(x)
+        keys = self.key(x)
+        values = self.value(x)
+
+        keys = keys.unsqueeze(2)
+        values = values.unsqueeze(1)
+        queries = queries.unsqueeze(1)
+
+        result = torch.bmm(queries, keys)
+        scores = result / (self.input_dim ** 0.5)
+        attention = torch.softmax(scores, dim=2)
+        weighted = torch.bmm(attention, values)
+
+        return weighted.squeeze(1)
 
     def build_model(self):
         model = models.efficientnet_b0(weights='DEFAULT')
@@ -32,7 +48,7 @@ class EfficientNetSelfAttention(nn.Module):
         return model
 
 
-from torchsummary import summary
-en = EfficientNetSelfAttention(loc=[3, 64, 96, 128, 256, 384, 512])
-en = en.to("cuda")
-summary(en, (3, 128, 128))
+# from torchsummary import summary
+# en = EfficientNetSelfAttention(loc=[3, 64, 96, 128, 256, 384, 512])
+# en = en.to("cuda")
+# summary(en, (3, 128, 128))

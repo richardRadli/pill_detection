@@ -61,9 +61,9 @@ def train_model(model, device, epochs: int = 5, batch_size: int = 1, learning_ra
                 weight_decay: float = 1e-8, momentum: float = 0.999, gradient_clipping: float = 1.0):
     # 1. Create dataset
     try:
-        dataset = CustomDataset(CONST.dir_train_images, CONST.dir_train_masks, cfg.scale)
+        dataset = CustomDataset(CONST.dir_aug_img, CONST.dir_train_masks, cfg.scale)
     except (AssertionError, RuntimeError, IndexError):
-        dataset = BasicDataset(CONST.dir_train_images, CONST.dir_train_masks, cfg.scale)
+        dataset = BasicDataset(CONST.dir_aug_img, CONST.dir_train_masks, cfg.scale)
 
     # 2. Split into train / validation partitions
     # Determine the ratio of the split

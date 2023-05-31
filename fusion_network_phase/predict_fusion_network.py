@@ -322,11 +322,11 @@ class PredictFusionNetwork:
 
         gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vectors, query_vectors)
 
-        stream_net_pred = self.find_latest_file_in_directory(CONST.dir_stream_network_predictions, "txt")
-        fusion_net_pred = self.find_latest_file_in_directory(CONST.dir_fusion_network_predictions, "txt")
-        self.prediction_statistics(stream_net_pred, fusion_net_pred)
+        # stream_net_pred = self.find_latest_file_in_directory(CONST.dir_stream_network_predictions, "txt")
+        # fusion_net_pred = self.find_latest_file_in_directory(CONST.dir_fusion_network_predictions, "txt")
+        # self.prediction_statistics(stream_net_pred, fusion_net_pred)
 
-        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, operation="fuse")
+        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, CONST.dir_fusion_net_pred)
 
 
 if __name__ == "__main__":

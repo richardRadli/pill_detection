@@ -270,10 +270,8 @@ def main() -> None:
     """
 
     setup_logger()
-    augment_images(input_img_dir="C:/Users/ricsi/Documents/project/storage/IVM/datasets/ogyi/full_img_size/splitted/"
-                                 "train/images",
-                   input_txt_dir="C:/Users/ricsi/Documents/project/storage/IVM/datasets/ogyi/full_img_size/splitted/"
-                                 "train/labels",
+    augment_images(input_img_dir="C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/train/images",
+                   input_txt_dir="C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/train/labels",
                    output_img_dir=CONST.dir_aug_img,
                    output_txt_dir=CONST.dir_aug_labels)
 

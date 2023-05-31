@@ -35,12 +35,6 @@ class CNN(nn.Module):
         self.reg = nn.Linear(loc[6], loc[4])
 
     def forward(self, x):
-        """
-
-        :param x:
-        :return:
-        """
-
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)

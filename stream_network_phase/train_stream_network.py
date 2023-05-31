@@ -52,7 +52,7 @@ class TrainModel:
         self.device = use_gpu_if_available()
 
         # Setup network config
-        if self.cfg.type_of_stream not in ["RGB", "Texture", "Contour"]:
+        if self.cfg.type_of_stream not in ["RGB", "Texture", "Contour", "LBP"]:
             raise ValueError("Wrong type was given!")
         network_config = self.subnetwork_configs()
         network_cfg = network_config.get(self.cfg.type_of_stream)
@@ -159,6 +159,27 @@ class TrainModel:
                     "EfficientNet": CONST.dir_logs_efficient_net_contour,
                     "EfficientNetSelfAttention": CONST.dir_logs_efficient_net_self_attention_contour
                 }.get(self.cfg.type_of_net, CONST.dir_logs_stream_net_contour),
+                "learning_rate": {
+                    "StreamNetwork": self.cfg.learning_rate_cnn_con_tex,
+                    "EfficientNet": self.cfg.learning_rate_en_con_tex,
+                    "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_con_tex
+                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex),
+                "grayscale": True
+            },
+
+            "LBP": {
+                "channels": [1, 32, 48, 64, 128, 192, 256],
+                "dataset_dir": CONST.dir_lbp,
+                "model_weights_dir": {
+                    "StreamNetwork": CONST.dir_stream_lbp_model_weights,
+                    "EfficientNet": CONST.dir_efficient_net_lbp_model_weights,
+                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_lbp_model_weights
+                }.get(self.cfg.type_of_net, CONST.dir_stream_lbp_model_weights),
+                "logs_dir": {
+                    "StreamNetwork": CONST.dir_logs_stream_net_lbp,
+                    "EfficientNet": CONST.dir_logs_efficient_net_lbp,
+                    "EfficientNetSelfAttention": CONST.dir_logs_efficient_net_self_attention_lbp
+                }.get(self.cfg.type_of_net, CONST.dir_logs_stream_net_lbp),
                 "learning_rate": {
                     "StreamNetwork": self.cfg.learning_rate_cnn_con_tex,
                     "EfficientNet": self.cfg.learning_rate_en_con_tex,

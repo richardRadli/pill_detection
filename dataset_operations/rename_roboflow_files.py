@@ -9,8 +9,10 @@ chops off the name extensions, and converts back the files to .png files.
 """
 
 import os
+
 from glob import glob
 from PIL import Image
+from tqdm import tqdm
 
 
 def rename_files():
@@ -19,7 +21,7 @@ def rename_files():
     :return:
     """
 
-    path = "C:/Users/ricsi/Desktop/test"
+    path = "C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/train"
     images = sorted(glob(path + "/images/*.jpg"))
     text = sorted(glob(path + "/labels/*.txt"))
 
@@ -62,14 +64,20 @@ def convert_images_to_png(directory):
     """
 
     image_files = os.listdir(directory)
-    for file_name in image_files:
-        if file_name.lower().endswith(('.png')):
+    for file_name in tqdm(image_files, total=len(image_files), desc="Processing images"):
+        if file_name.lower().endswith('.png'):
             image_path = os.path.join(directory, file_name)
+
             img = Image.open(image_path)
             img = img.convert("RGB")
-
             img.save(image_path, 'PNG')
             print(f"Converted {file_name}")
 
 
-convert_images_to_png("C:/Users/ricsi/Desktop/test/images")
+def main():
+    rename_files()
+    convert_images_to_png("C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/train/images")
+
+
+if __name__ == "__main__":
+    main()

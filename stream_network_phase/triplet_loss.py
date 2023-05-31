@@ -16,6 +16,14 @@ class TripletLossWithHardMining(torch.nn.Module):
             Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         This function calculates the loss and selects the hardest positive and negative samples for each anchor.
+        The Euclidean distances between the anchor-positive pairs and anchor-negative pairs are computed.
+        Then, for each anchor, the hardest negative sample is selected by finding the negative sample that violates the
+        margin and has the largest distance to the anchor. Similarly, the hardest positive sample is selected by finding
+        the positive sample that violates the margin and has the smallest distance to the anchor.
+
+        Finally, the loss is computed using the functional.relu function to enforce the margin constraint, and the mean
+        of the resulting tensor is taken as the loss value. The loss value, along with the tensors of the hardest
+        negative and positive samples, is returned as a tuple.
 
         :param anchor: tensor of anchor images
         :param positive: tensor of positive images

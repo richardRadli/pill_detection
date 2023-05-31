@@ -10,13 +10,13 @@ class ConfigTrainingUnet:
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument('--epochs', '-e', metavar='E', type=int, default=5, help='Number of epochs')
-        self.parser.add_argument('--batch_size', type=int, default=4, help='Batch size')
+        self.parser.add_argument('--batch_size', type=int, default=2, help='Batch size')
         self.parser.add_argument('--lr', type=float, default=1e-5, help='Learning rate')
         self.parser.add_argument('--weight_decay', '-wd', type=float, default=1e-8)
         self.parser.add_argument('--momentum', type=float, default=0.999)
         self.parser.add_argument('--gradient_clipping', type=float, default=1.0)
         self.parser.add_argument('--load', '-f', type=str, default=False, help='Load model from a .pth file')
-        self.parser.add_argument('--scale', '-s', type=float, default=0.25, help='Downscaling factor of the images')
+        self.parser.add_argument('--scale', '-s', type=float, default=0.5, help='Downscaling factor of the images')
         self.parser.add_argument('--valid', '-v', type=float, default=10.0,
                                  help='Percent of the data that is used as validation (0-100)')
         self.parser.add_argument('--amp', type=bool, default=False, help='Use mixed precision')
@@ -67,22 +67,22 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetSelfAttention",
                                  help="StreamNetwork | EfficientNet | EfficientNetSelfAttention")
-        self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="RGB | Contour | Texture")
+        self.parser.add_argument("--type_of_stream", type=str, default="LBP", help="RGB | Contour | Texture | LBP")
         self.parser.add_argument("--train_rate", type=float, default=0.8)
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=30)
         self.parser.add_argument("--batch_size", type=int, default=128)
         self.parser.add_argument("--learning_rate_cnn_rgb", type=float, default=1e-4)
-        self.parser.add_argument("--learning_rate_cnn_con_tex", type=float, default=3e-4)
+        self.parser.add_argument("--learning_rate_cnn_con_tex", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_rgb", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_con_tex", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_ensa_rgb", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_ensa_con_tex", type=float, default=1e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)
         self.parser.add_argument("--img_size", type=int, default=128)
-        self.parser.add_argument("--load_ref_vector", type=bool, default=True)
+        self.parser.add_argument("--load_ref_vector", type=bool, default=False)
 
     def parse(self):
         self.opt = self.parser.parse_args()
@@ -96,7 +96,8 @@ class ConfigFusionNetwork:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()
-
+        self.parser.add_argument("--type_of_net", type=str, default="StreamNetwork",
+                                 help="StreamNetwork | EfficientNet | EfficientNetSelfAttention")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_split", type=float, default=0.8)
         self.parser.add_argument("--epochs", type=int, default=30)

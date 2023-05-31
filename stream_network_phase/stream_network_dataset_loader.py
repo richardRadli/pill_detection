@@ -28,7 +28,7 @@ class StreamDataset(Dataset):
                 transforms.ToTensor(),
                 transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
             ])
-        elif self.type_of_stream in ["Contour", "Texture"]:
+        elif self.type_of_stream in ["Contour", "Texture", "LBP"]:
             self.transform = transforms.Compose([
                 transforms.Resize(128),
                 transforms.CenterCrop(128),

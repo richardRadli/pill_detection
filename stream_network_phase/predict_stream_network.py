@@ -23,8 +23,8 @@ from config.const import CONST
 from config.config import ConfigStreamNetwork
 from config.logger_setup import setup_logger
 from network_selector import NetworkFactory
-from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory, \
-    plot_ref_query_images
+from utils.utils import create_timestamp, find_latest_file_in_latest_directory, \
+    plot_ref_query_images, use_gpu_if_available
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -46,19 +46,17 @@ class PredictStreamNetwork:
 
         self.preprocess_rgb = None
         self.preprocess_con_tex = None
-        self.query_image_tex = None
-        self.query_image_rgb = None
-        self.query_image_con = None
 
         # Load configs
         self.main_network_config = self.get_main_network_config()
         self.sub_network_config = self.get_subnetwork_config()
 
         # Load networks
-        self.network_con, self.network_rgb, self.network_tex = self.load_networks()
+        self.network_con, self.network_rgb, self.network_tex, self.network_lbp = self.load_networks()
         self.network_con.eval()
         self.network_rgb.eval()
         self.network_tex.eval()
+        self.network_lbp.eval()
 
         # Preprocess images
         self.preprocess_rgb = transforms.Compose([transforms.Resize((self.cfg.img_size, self.cfg.img_size)),
@@ -145,6 +143,16 @@ class PredictStreamNetwork:
                     "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_contour_model_weights
                 }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
                 "grayscale": True
+            },
+
+            "LBP": {
+                "channels": [1, 32, 48, 64, 128, 192, 256],
+                "model_weights_dir": {
+                    "StreamNetwork": CONST.dir_stream_lbp_model_weights,
+                    "EfficientNet": CONST.dir_efficient_net_lbp_model_weights,
+                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_lbp_model_weights
+                }.get(self.cfg.type_of_net, CONST.dir_stream_lbp_model_weights),
+                "grayscale": True
             }
         }
 
@@ -163,25 +171,29 @@ class PredictStreamNetwork:
         con_config = self.sub_network_config.get("Contour")
         rgb_config = self.sub_network_config.get("RGB")
         tex_config = self.sub_network_config.get("Texture")
+        lbp_config = self.sub_network_config.get("LBP")
 
         latest_con_pt_file = find_latest_file_in_latest_directory(con_config.get("model_weights_dir"))
         latest_rgb_pt_file = find_latest_file_in_latest_directory(rgb_config.get("model_weights_dir"))
         latest_tex_pt_file = find_latest_file_in_latest_directory(tex_config.get("model_weights_dir"))
+        latest_lbp_pt_file = find_latest_file_in_latest_directory(lbp_config.get("model_weights_dir"))
 
         network_con = NetworkFactory.create_network(self.cfg.type_of_net, con_config)
         network_rgb = NetworkFactory.create_network(self.cfg.type_of_net, rgb_config)
         network_tex = NetworkFactory.create_network(self.cfg.type_of_net, tex_config)
+        network_lbp = NetworkFactory.create_network(self.cfg.type_of_net, lbp_config)
 
         network_con.load_state_dict(torch.load(latest_con_pt_file))
         network_rgb.load_state_dict(torch.load(latest_rgb_pt_file))
         network_tex.load_state_dict(torch.load(latest_tex_pt_file))
+        network_lbp.load_state_dict(torch.load(latest_lbp_pt_file))
 
-        return network_con, network_rgb, network_tex
+        return network_con, network_rgb, network_tex, network_lbp
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def get_vectors(self, contour_dir: str, rgb_dir: str, texture_dir: str, operation: str):
+    def get_vectors(self, contour_dir: str, rgb_dir: str, texture_dir: str, lbp_dir: str, operation: str):
         """
         :param contour_dir: path to the directory containing contour images
         :param rgb_dir: path to the directory containing rgb images
@@ -199,14 +211,16 @@ class PredictStreamNetwork:
         self.network_con = self.network_con.to(self.device)
         self.network_rgb = self.network_rgb.to(self.device)
         self.network_tex = self.network_tex.to(self.device)
+        self.network_lbp = self.network_lbp.to(self.device)
 
         for med_class in tqdm(medicine_classes, desc="\nProcess %s images" % operation):
             # Collecting the images
             image_paths_con = os.listdir(os.path.join(contour_dir, med_class))
             image_paths_rgb = os.listdir(os.path.join(rgb_dir, med_class))
             image_paths_tex = os.listdir(os.path.join(texture_dir, med_class))
+            image_paths_lbp = os.listdir(os.path.join(lbp_dir, med_class))
 
-            for idx, (con, rgb, tex) in enumerate(zip(image_paths_con, image_paths_rgb, image_paths_tex)):
+            for idx, (con, rgb, tex, lpb) in enumerate(zip(image_paths_con, image_paths_rgb, image_paths_tex, image_paths_lbp)):
                 # Open images and convert them to tensors
                 con_image = Image.open(os.path.join(contour_dir, med_class, con))
                 con_image = self.preprocess_con_tex(con_image)
@@ -218,19 +232,24 @@ class PredictStreamNetwork:
                 tex_image = Image.open(os.path.join(texture_dir, med_class, tex))
                 tex_image = self.preprocess_con_tex(tex_image)
 
+                lbp_image = Image.open(os.path.join(lbp_dir, med_class, lpb))
+                lbp_image = self.preprocess_con_tex(lbp_image)
+
                 # Make prediction
                 with torch.no_grad():
                     # Move input to GPU
                     con_image = con_image.unsqueeze(0).to(self.device)
                     rgb_image = rgb_image.unsqueeze(0).to(self.device)
                     tex_image = tex_image.unsqueeze(0).to(self.device)
+                    lbp_image = lbp_image.unsqueeze(0).to(self.device)
 
                     # Perform computation on GPU and move result back to CPU
                     vector1 = self.network_con(con_image).squeeze().cpu()
                     vector2 = self.network_rgb(rgb_image).squeeze().cpu()
                     vector3 = self.network_tex(tex_image).squeeze().cpu()
+                    vector4 = self.network_lbp(lbp_image).squeeze().cpu()
 
-                vector = torch.cat((vector1, vector2, vector3), dim=0)
+                vector = torch.cat((vector1, vector2, vector3, vector4), dim=0)
                 vectors.append(vector)
                 labels.append(med_class)
 
@@ -248,15 +267,15 @@ class PredictStreamNetwork:
         """
         This method measures the similarity and distance between two sets of labels (q_labels and r_labels) and their
         corresponding embedded vectors (query_vectors and reference_vectors) using Euclidean distance.
-        It returns the original query labels, predicted medicine labels, and the indices of the most similar medicines
-        in the reference set.
+        It returns the original query labels, predicted medicine labels, indices of the most similar medicines in the
+        reference set, and Mean Average Precision (mAP).
 
         :param q_labels: a list of ground truth medicine names
         :param r_labels: a list of reference medicine names
         :param reference_vectors: a numpy array of embedded vectors for the reference set
         :param query_vectors: a numpy array of embedded vectors for the query set
-        :return: the original query labels, predicted medicine labels, and indices of the most similar medicines in the
-        reference set
+        :return: the original query labels, predicted medicine labels, indices of the most similar medicines in the
+        reference set, and mAP
         """
 
         similarity_scores_euc_dist = []
@@ -302,7 +321,6 @@ class PredictStreamNetwork:
         # Calculate confidence
         confidence_percentages = [1 - (score / max(scores)) for score, scores in
                                   zip(corresp_sim_euc_dist, similarity_scores_euc_dist)]
-
         confidence_percentages = [cp * 100 for cp in confidence_percentages]
 
         # Find index position of the ground truth medicine
@@ -358,6 +376,7 @@ class PredictStreamNetwork:
         query_vecs, q_labels, q_images_path = self.get_vectors(contour_dir=CONST.dir_query_contour,
                                                                rgb_dir=CONST.dir_query_rgb,
                                                                texture_dir=CONST.dir_query_texture,
+                                                               lbp_dir=CONST.dir_query_lbp,
                                                                operation="query")
 
         # Calculate reference vectors
@@ -374,6 +393,7 @@ class PredictStreamNetwork:
             ref_vecs, r_labels, r_images_path = self.get_vectors(contour_dir=CONST.dir_contour,
                                                                  rgb_dir=CONST.dir_rgb,
                                                                  texture_dir=CONST.dir_texture,
+                                                                 lbp_dir=CONST.dir_lbp,
                                                                  operation="reference")
 
         # Compare query and reference vectors

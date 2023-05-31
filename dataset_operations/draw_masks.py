@@ -36,7 +36,7 @@ def load_files(train_dir: str, labels_dir: str) -> Tuple[List[str], List[str]]:
     if not os.path.isdir(train_dir):
         raise ValueError(f"Invalid path: {train_dir} is not a directory")
 
-    if not os.path.isdir(CONST.dir_labels_data):
+    if not os.path.isdir(CONST.dir_test_labels):
         raise ValueError(f"Invalid path: {labels_dir} is not a directory")
 
     image_files = sorted([str(file) for file in Path(train_dir).glob("*.jpg")] +
@@ -107,7 +107,7 @@ def save_masks(mask: np.ndarray, img_file: str) -> None:
     """
 
     name = os.path.basename(img_file)
-    save_path = (os.path.join(CONST.dir_train_masks, name))
+    save_path = (os.path.join(CONST.dir_test_mask, name))
     mask_pil = Image.fromarray(mask)
     mask_pil.save(save_path)
 
@@ -124,7 +124,7 @@ def main(save: bool = True) -> None:
     """
     setup_logger()
 
-    img_files, txt_files = load_files(train_dir=CONST.dir_train_images, labels_dir=CONST.dir_labels_data)
+    img_files, txt_files = load_files(train_dir=CONST.dir_test_images, labels_dir=CONST.dir_test_labels)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []

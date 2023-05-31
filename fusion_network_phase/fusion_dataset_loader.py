@@ -146,6 +146,7 @@ class FusionDataset(Dataset):
 
         dataset = []
         labels = []
+
         dataset_path = os.path.join(self.dataset_path, dataset_name)
         for label_name in os.listdir(dataset_path):
             label_path = os.path.join(dataset_path, label_name)
@@ -157,6 +158,7 @@ class FusionDataset(Dataset):
                 dataset.append((image_path, label))
                 labels.append(label)
         self.labels = labels
+
         return dataset
 
     # ------------------------------------------------------------------------------------------------------------------

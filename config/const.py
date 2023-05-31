@@ -52,7 +52,10 @@ class _Const(object):
                    "images/prediction_fusion_network",                  # 15
                    "images/prediction_efficient_net_self_attention",    # 16
                    "images/images_aug",                                 # 17
-                   "images/wo_background"]                              # 18
+                   "images/wo_background",                              # 18
+                   "images/lbp",                                        # 19
+                   "images/query/lbp"                                  # 20
+                   ]
 
     # Directories for the train images. These two directories must exist, it won't be created by the program.
     dir_train_images = os.path.join(PROJECT_ROOT, 'images/train_images/')
@@ -80,6 +83,7 @@ class _Const(object):
     dir_query_rgb = os.path.join(PROJECT_ROOT, dirs_images[7])
     dir_query_contour = os.path.join(PROJECT_ROOT, dirs_images[8])
     dir_query_texture = os.path.join(PROJECT_ROOT, dirs_images[9])
+    dir_query_lbp = os.path.join(PROJECT_ROOT, dirs_images[20])
 
     # Directories for the hard samples, steam networks, stage 2
     dir_contour_hardest = os.path.join(PROJECT_ROOT, dirs_images[10])
@@ -91,6 +95,9 @@ class _Const(object):
     dir_efficient_net_prediction = os.path.join(PROJECT_ROOT, dirs_images[14])
     dir_fusion_net_pred = os.path.join(PROJECT_ROOT, dirs_images[15])
     dir_efficient_net_self_attention_prediction = os.path.join(PROJECT_ROOT, dirs_images[16])
+
+    # LBP
+    dir_lbp = os.path.join(PROJECT_ROOT, dirs_images[19])
 
     # At this part, the program creates the directories.
     directories_images = []
@@ -139,7 +146,14 @@ class _Const(object):
                  "data/augmented_train_data_labels",                    # 30
                  "data/reference_vectors_stream_network",               # 31
                  "data/reference_vectors_efficient_net",                # 32
-                 "data/reference_vectors_efficient_net_self_attention"  # 33
+                 "data/reference_vectors_efficient_net_self_attention", # 33
+                 "data/test_labels",                                    # 34
+                 "data/weights_stream_network_lbp",                     # 35
+                 "data/weights_efficient_net_lbp",                      # 36
+                 "data/weights_efficient_self_attention_net_lbp",       # 37
+                 "data/logs_stream_lbp",                                # 38
+                 "data/logs_efficient_net_lbp",                         # 39
+                 "data/logs_efficient_net_self_attention_lbp"           # 40
                  ]
 
     # Aux variables for the other directories. These will be created by the program.
@@ -151,11 +165,13 @@ class _Const(object):
     dir_stream_contour_model_weights = os.path.join(PROJECT_ROOT, dirs_data[2])
     dir_stream_rgb_model_weights = os.path.join(PROJECT_ROOT, dirs_data[3])
     dir_stream_texture_model_weights = os.path.join(PROJECT_ROOT, dirs_data[4])
+    dir_stream_lbp_model_weights = os.path.join(PROJECT_ROOT, dirs_data[35])
 
     # Directories for stream networks, for saving the logs
     dir_logs_stream_net_contour = os.path.join(PROJECT_ROOT, dirs_data[6])
     dir_logs_stream_net_rgb = os.path.join(PROJECT_ROOT, dirs_data[7])
     dir_logs_stream_net_texture = os.path.join(PROJECT_ROOT, dirs_data[8])
+    dir_logs_stream_net_lbp = os.path.join(PROJECT_ROOT, dirs_data[38])
 
     # Directory for saving the predictions
     dir_stream_network_predictions = os.path.join(PROJECT_ROOT, dirs_data[5])
@@ -177,11 +193,13 @@ class _Const(object):
     dir_efficient_net_rgb_model_weights = os.path.join(PROJECT_ROOT, dirs_data[16])
     dir_efficient_net_texture_model_weights = os.path.join(PROJECT_ROOT, dirs_data[17])
     dir_efficient_net_contour_model_weights = os.path.join(PROJECT_ROOT, dirs_data[18])
+    dir_efficient_net_lbp_model_weights = os.path.join(PROJECT_ROOT, dirs_data[36])
 
     # Directories for EfficientNet, for saving the logs
     dir_logs_efficient_net_contour = os.path.join(PROJECT_ROOT, dirs_data[22])
     dir_logs_efficient_net_rgb = os.path.join(PROJECT_ROOT, dirs_data[20])
     dir_logs_efficient_net_texture = os.path.join(PROJECT_ROOT, dirs_data[21])
+    dir_logs_efficient_net_lbp = os.path.join(PROJECT_ROOT, dirs_data[39])
 
     # Directory for saving the predictions, EfficientNet
     dir_efficient_net_predictions = os.path.join(PROJECT_ROOT, dirs_data[19])
@@ -190,18 +208,21 @@ class _Const(object):
     dir_efficient_net_self_attention_rgb_model_weights = os.path.join(PROJECT_ROOT, dirs_data[23])
     dir_efficient_net_self_attention_contour_model_weights = os.path.join(PROJECT_ROOT, dirs_data[24])
     dir_efficient_net_self_attention_texture_model_weights = os.path.join(PROJECT_ROOT, dirs_data[25])
+    dir_efficient_net_self_attention_lbp_model_weights = os.path.join(PROJECT_ROOT, dirs_data[37])
 
     # Directories for EfficientNetSelfAttention, for saving the logs
     dir_logs_efficient_net_self_attention_rgb = os.path.join(PROJECT_ROOT, dirs_data[27])
     dir_logs_efficient_net_self_attention_texture = os.path.join(PROJECT_ROOT, dirs_data[28])
     dir_logs_efficient_net_self_attention_contour = os.path.join(PROJECT_ROOT, dirs_data[29])
+    dir_logs_efficient_net_self_attention_lbp = os.path.join(PROJECT_ROOT, dirs_data[40])
 
     # Directory for saving the predictions, EfficientNetSelfAttention
     dir_efficient_net_self_attention_predictions = os.path.join(PROJECT_ROOT, dirs_data[26])
 
     # Other
     dir_cam_data = os.path.join(PROJECT_ROOT, dirs_data[13])
-    dir_labels_data = os.path.join(PROJECT_ROOT, dirs_data[14])
+    dir_train_labels = os.path.join(PROJECT_ROOT, dirs_data[14])
+    dir_test_labels = os.path.join(PROJECT_ROOT, dirs_data[34])
     dir_aug_labels = os.path.join(PROJECT_ROOT, dirs_data[30])
 
     # Reference vectors

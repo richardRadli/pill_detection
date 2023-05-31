@@ -35,11 +35,11 @@ def main(operation: str = "multi"):
         predict_multiple_images(input_dir=CONST.dir_test_images,
                                 output_dir=CONST.dir_unet_output)
     elif operation.lower() == "single":
-        predict_single_image(input_image_path="C:/Users/ricsi/Desktop/id_mul_001_002_003_ambroxol_egis-dorithricin_mentol-cataflam_v_009.png",
-                             output_image_path="C:/Users/ricsi/Desktop/out_osszeer.png")
+        predict_single_image(input_image_path="C:/Users/ricsi/Desktop/cure_og/0/bottom/Customer/0_bottom_32.jpg",
+                             output_image_path="C:/Users/ricsi/Desktop/out.jpg")
     else:
         raise ValueError("Wrong operation!")
 
 
 if __name__ == "__main__":
-    main(operation="multi")
+    main(operation="single")
