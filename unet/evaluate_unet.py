@@ -9,7 +9,7 @@ from glob import glob
 from sklearn.metrics import confusion_matrix
 from tqdm import tqdm
 
-from config.const import CONST
+from config.const import IMAGES_PATH
 from utils.utils import numerical_sort
 
 
@@ -22,8 +22,8 @@ def calculate_metrics_thread() -> (float, float, float, float):
     :return: mean values of fpr, tpr, ppv, iou.
     """
 
-    images_true = sorted(glob(CONST.dir_test_mask + "/*.png"))
-    images_pred = sorted(glob(CONST.dir_unet_output + "/*.png"))
+    images_true = sorted(glob(IMAGES_PATH.get_data_path("test_mask") + "/*.png"))
+    images_pred = sorted(glob(IMAGES_PATH.get_data_path("unet_out") + "/*.png"))
 
     fpr_list = []
     tpr_list = []
@@ -139,15 +139,15 @@ def plot_results() -> None:
     :return: None
     """
 
-    images_input = sorted(glob(CONST.dir_test_images + "/*.png"), key=numerical_sort)
-    images_true = sorted(glob(CONST.dir_test_mask + '/*.png'), key=numerical_sort)
-    images_pred = sorted(glob(CONST.dir_unet_output + '/*.png'), key=numerical_sort)
+    images_input = sorted(glob(IMAGES_PATH.get_data_path("test_images") + "/*.png"), key=numerical_sort)
+    images_true = sorted(glob(IMAGES_PATH.get_data_path("test_mask") + '/*.png'), key=numerical_sort)
+    images_pred = sorted(glob(IMAGES_PATH.get_data_path("unet_out") + '/*.png'), key=numerical_sort)
 
     for idx, (input_img_val, true_img_val, pred_img_val) in tqdm(enumerate(zip(images_input, images_true, images_pred)),
                                                                  total=len(images_input), desc="Plotting images"):
         save_path = input_img_val
         file_name = save_path.split("\\")[2]
-        output_path = (os.path.join(CONST.dir_unet_compare, file_name))
+        output_path = (os.path.join(IMAGES_PATH.get_data_path("unet_compare"), file_name))
 
         in_img = cv2.imread(input_img_val)
         gt_img = cv2.imread(true_img_val)
@@ -158,7 +158,8 @@ def plot_results() -> None:
 if __name__ == "__main__":
     try:
         fpr_res, tpr_res, ppvc_res, iou_res = calculate_metrics_thread()
-        print(f" Fall out: {fpr_res: .4f}\n Recall: {tpr_res: .4f}\n Precision: {ppvc_res: .4f}\n IoU: {iou_res: .4f}\n")
+        print(
+            f" Fall out: {fpr_res: .4f}\n Recall: {tpr_res: .4f}\n Precision: {ppvc_res: .4f}\n IoU: {iou_res: .4f}\n")
         plot_results()
     except KeyboardInterrupt as kie:
         print(kie)

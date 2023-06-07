@@ -15,7 +15,7 @@ from unet import UNet
 from unet.data_loading import CustomDataset, BasicDataset
 from utils.utils import create_timestamp, dice_coefficient, dice_loss, multiclass_dice_coefficient, use_gpu_if_available
 from config.config import ConfigTrainingUnet
-from config.const import CONST
+from config.const import DATA_PATH, IMAGES_PATH
 
 cfg = ConfigTrainingUnet().parse()
 
@@ -61,9 +61,11 @@ def train_model(model, device, epochs: int = 5, batch_size: int = 1, learning_ra
                 weight_decay: float = 1e-8, momentum: float = 0.999, gradient_clipping: float = 1.0):
     # 1. Create dataset
     try:
-        dataset = CustomDataset(CONST.dir_aug_img, CONST.dir_train_masks, cfg.scale)
+        dataset = CustomDataset(IMAGES_PATH.get_data_path("train_images"), IMAGES_PATH.get_data_path("train_masks"),
+                                cfg.scale)
     except (AssertionError, RuntimeError, IndexError):
-        dataset = BasicDataset(CONST.dir_aug_img, CONST.dir_train_masks, cfg.scale)
+        dataset = BasicDataset(IMAGES_PATH.get_data_path("train_images"), IMAGES_PATH.get_data_path("train_masks"),
+                               cfg.scale)
 
     # 2. Split into train / validation partitions
     # Determine the ratio of the split
@@ -81,7 +83,7 @@ def train_model(model, device, epochs: int = 5, batch_size: int = 1, learning_ra
     val_loader = DataLoader(val_set, shuffle=False, drop_last=True, **loader_cfg)
 
     # (Initialize logging)
-    experiment = wandb.init(project='U-Net', dir=CONST.dir_unet_logs, resume='allow', anonymous='must')
+    experiment = wandb.init(project='U-Net', dir=DATA_PATH.get_data_path("logs_unet"), resume='allow', anonymous='must')
     experiment.config.update(
         dict(epochs=epochs, batch_size=batch_size, learning_rate=learning_rate,
              val_percent=val_percent, save_checkpoint=save_checkpoint, img_scale=img_scale, amp=amp)
@@ -185,7 +187,7 @@ def train_model(model, device, epochs: int = 5, batch_size: int = 1, learning_ra
 
         if cfg.save_checkpoint:
             timestamp = create_timestamp()
-            path_to_save = os.path.join(CONST.dir_unet_checkpoint, timestamp)
+            path_to_save = os.path.join(DATA_PATH.get_data_path("weights_unet"), timestamp)
             Path(path_to_save).mkdir(parents=True, exist_ok=True)
             state_dict = model.state_dict()
             state_dict['mask_values'] = dataset.mask_values
