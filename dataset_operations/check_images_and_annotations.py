@@ -19,10 +19,13 @@ from tqdm import tqdm
 from typing import List
 
 from config.logger_setup import setup_logger
-from config.const import CONST
+from config.const import DATA_PATH, IMAGES_PATH
 from convert_yolo import convert_yolo_format_to_pixels, read_yolo_annotations_to_list
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------- R E A D   I M A G E  T O   L I S T -----------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def read_image_to_list(dir_train_images: str) -> List[str]:
     """
     Reads image files from a directory and its subdirectories.
@@ -40,11 +43,13 @@ def read_image_to_list(dir_train_images: str) -> List[str]:
     return file_names
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------ M A I N -------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def main():
     setup_logger()
-    # main_dir = os.path.join(CONST.PROJECT_ROOT, "datasets/ogyi/full_img_size/splitted/test")
-    original_imgs_file_names = read_image_to_list(CONST.dir_aug_img)
-    yolo_annotations = read_yolo_annotations_to_list(CONST.dir_aug_labels)
+    original_imgs_file_names = read_image_to_list(IMAGES_PATH.get_data_path("images_aug"))
+    yolo_annotations = read_yolo_annotations_to_list(DATA_PATH.get_data_path("augmented_train_data_labels"))
 
     for i, (img, txt) in enumerate(zip(original_imgs_file_names, yolo_annotations)):
         logging.info(f'Image name: {os.path.basename(img)}')
@@ -70,6 +75,9 @@ def main():
             logging.info('-' * 80)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------- __M A I N__ -----------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
         main()

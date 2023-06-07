@@ -16,7 +16,7 @@ import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 
-from config.const import CONST
+from config.const import DATA_PATH
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -27,7 +27,8 @@ class UnDistortTestImages:
     # --------------------------------------------------- __I N I T__ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
-        cam_mtx_np_file = os.path.join(CONST.dir_cam_data, os.listdir(CONST.dir_cam_data)[1])
+        cam_mtx_np_file = os.path.join(DATA_PATH.get_data_path("cam_data"),
+                                       os.listdir(DATA_PATH.get_data_path("cam_data"))[1])
         data = np.load(cam_mtx_np_file, allow_pickle=True)
 
         self.matrix = data.item()['matrix']
@@ -86,4 +87,4 @@ class UnDistortTestImages:
 
 if __name__ == "__main__":
     undistort_test_images = UnDistortTestImages()
-    undistort_test_images.undistort_images()
+    # undistort_test_images.undistort_images()

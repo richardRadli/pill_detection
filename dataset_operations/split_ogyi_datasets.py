@@ -14,52 +14,25 @@ import shutil
 
 from random import sample
 from tqdm import tqdm
-from typing import List, Tuple
 
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ----------------------------------------------- C O L L E C T   D A T A ----------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def collect_data() -> Tuple[str, List[str], str, str, str]:
-    """
-    Collects data by setting up the source and target directories, and returns the necessary paths.
-
-    :return: A tuple containing the source directory, image files list, train directory, valid directory,
-    and test directory.
-    """
-
-    source_dir = r"C:/Users/ricsi/Documents/project/storage/IVM/datasets/ogyi/full_img_size/unsplitted"
-    target_dir = r"C:/Users/ricsi/Documents/project/storage/IVM/datasets/ogyi/full_img_size/splitted"
-
-    train_dir = os.path.join(target_dir, "train")
-    valid_dir = os.path.join(target_dir, "valid")
-    test_dir = os.path.join(target_dir, "test")
-
-    folders = ["labels", "images"]
-    for f in folders:
-        os.makedirs(os.path.join(train_dir, f), exist_ok=True)
-        os.makedirs(os.path.join(valid_dir, f), exist_ok=True)
-        os.makedirs(os.path.join(test_dir, f), exist_ok=True)
-
-    image_files = os.listdir(os.path.join(source_dir, "images"))
-
-    return source_dir, image_files, train_dir, valid_dir, test_dir
+from config.const import DATASET_PATH
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------- S O R T   F I L E S ------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def sort_files(source_dir: str, image_files: List[str], train_dir: str, valid_dir: str, test_dir: str) -> None:
+def sort_files() -> None:
     """
     Sorts the image files into train, valid, and test sets and copies them to the respective directories.
-
-    :param source_dir: The source directory containing the image files.
-    :param image_files: The list of image files.
-    :param train_dir: The directory for the train set.
-    :param valid_dir: The directory for the valid set.
-    :param test_dir: The directory for the test set.
     :return: None
     """
+
+    source_dir = '/'.join(DATASET_PATH.get_data_path("ogyi_v2_unsplitted_images").split('/')[0:-1])
+    train_dir = '/'.join(DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images").split('/')[0:-1])
+    valid_dir = '/'.join(DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_images").split('/')[0:-1])
+    test_dir = '/'.join(DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images").split('/')[0:-1])
+
+    image_files = os.listdir()
 
     # Shuffle the image files
     sampled_files = sample(image_files, len(image_files))
@@ -112,8 +85,7 @@ def main() -> None:
     :return: None
     """
 
-    source_dir, image_files, train_dir, valid_dir, test_dir = collect_data()
-    sort_files(source_dir, image_files, train_dir, valid_dir, test_dir)
+    sort_files()
 
 
 if __name__ == "__main__":

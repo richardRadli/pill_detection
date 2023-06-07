@@ -18,13 +18,43 @@ from pathlib import Path
 from tqdm import tqdm
 from typing import Tuple, List
 
-from config.const import CONST
+from config.const import DATA_PATH, IMAGES_PATH
 from config.logger_setup import setup_logger
 
 
-# ------------------------------------------------------------------------------------------------------------------- #
-# ----------------------------------------------- L O A D   F I L E S ----------------------------------------------- #
-# ------------------------------------------------------------------------------------------------------------------- #
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------- P A T H   S E L E C T O R -----------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def path_selector(operation):
+    """
+    Selects the correct directory paths based on the given operation string.
+
+    :param operation: A string indicating the operation mode (train or test).
+    :return: A dictionary containing directory paths for images, masks, and other related files.
+    :raises ValueError: If the operation string is not "train" or "test".
+    """
+
+    if operation.lower() == "train":
+        path_to_images = {
+            "images": IMAGES_PATH.get_data_path("train_images"),
+            "labels": DATA_PATH.get_data_path("train_labels"),
+            "masks": IMAGES_PATH.get_data_path("train_masks")
+        }
+    elif operation.lower() == "test":
+        path_to_images = {
+            "images": IMAGES_PATH.get_data_path("test_images"),
+            "labels": DATA_PATH.get_data_path("test_labels"),
+            "masks": IMAGES_PATH.get_data_path("test_masks")
+        }
+    else:
+        raise ValueError("Wrong operation!")
+
+    return path_to_images
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------- L O A D   F I L E S --------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def load_files(train_dir: str, labels_dir: str) -> Tuple[List[str], List[str]]:
     """
     This function loads the image and label files from two directories: train_dir and labels_dir.
@@ -36,7 +66,7 @@ def load_files(train_dir: str, labels_dir: str) -> Tuple[List[str], List[str]]:
     if not os.path.isdir(train_dir):
         raise ValueError(f"Invalid path: {train_dir} is not a directory")
 
-    if not os.path.isdir(CONST.dir_test_labels):
+    if not os.path.isdir(labels_dir):
         raise ValueError(f"Invalid path: {labels_dir} is not a directory")
 
     image_files = sorted([str(file) for file in Path(train_dir).glob("*.jpg")] +
@@ -53,9 +83,9 @@ def load_files(train_dir: str, labels_dir: str) -> Tuple[List[str], List[str]]:
     return image_files, text_files
 
 
-# ------------------------------------------------------------------------------------------------------------------- #
-# --------------------------------------------- P R O C E S S   D A T A --------------------------------------------- #
-# ------------------------------------------------------------------------------------------------------------------- #
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------- P R O C E S S   D A T A ------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def process_data(img_files: str, txt_files: str):
     """
     Given the file paths to an image file and a corresponding text file with object coordinates in YOLO format,
@@ -95,36 +125,37 @@ def process_data(img_files: str, txt_files: str):
     return img, mask
 
 
-# ------------------------------------------------------------------------------------------------------------------- #
-# ----------------------------------------------- S A V E   M A S K S ----------------------------------------------- #
-# ------------------------------------------------------------------------------------------------------------------- #
-def save_masks(mask: np.ndarray, img_file: str) -> None:
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------- S A V E   M A S K S --------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def save_masks(mask: np.ndarray, img_file: str, path_to_files) -> None:
     """
     This function saves the mask to a given path.
     :param mask: Mask image.
-    :param img_file: path of the image file
+    :param img_file: path of the image file.
+    :param: path_to_files: path to the images.
     :return: None
     """
 
     name = os.path.basename(img_file)
-    save_path = (os.path.join(CONST.dir_test_mask, name))
+    save_path = (os.path.join(path_to_files.get("masks"), name))
     mask_pil = Image.fromarray(mask)
     mask_pil.save(save_path)
 
 
-# ------------------------------------------------------------------------------------------------------------------- #
-# ----------------------------------------------------- M A I N ----------------------------------------------------- #
-# ------------------------------------------------------------------------------------------------------------------- #
-def main(save: bool = True) -> None:
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------- M A I N --------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def main(operation: str = "Train") -> None:
     """
     Runs the main processing pipeline.
-
-    :param save: If True, saves masks.
     :return: None
     """
-    setup_logger()
 
-    img_files, txt_files = load_files(train_dir=CONST.dir_test_images, labels_dir=CONST.dir_test_labels)
+    setup_logger()
+    path_to_files = path_selector(operation)
+
+    img_files, txt_files = load_files(train_dir=path_to_files.get("images"), labels_dir=path_to_files.get("labels"))
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []
@@ -135,11 +166,13 @@ def main(save: bool = True) -> None:
                                           desc="Processing data"):
             try:
                 img, mask = future.result()
-                if save:
-                    save_masks(mask, img_file)
+                save_masks(mask=mask, img_file=img_file, path_to_files=path_to_files)
             except Exception as e:
                 logging.error(f"Error processing {img_file}: {e}")
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------- __M A I N__ ------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    main(save=True)
+    main(operation="Test")

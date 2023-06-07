@@ -18,23 +18,24 @@ import shutil
 from tqdm import tqdm
 from typing import Dict, List, Tuple
 
-from config.const import CONST
+from config.const import IMAGES_PATH
 from config.logger_setup import setup_logger
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # ---------------------------------------------- G E T   C L A S S E S ---------------------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
-def get_classes() -> Tuple[Dict[str, int], Dict[str, List[str]], Dict[str, List[str]]]:
+def get_classes(train_images_path) -> Tuple[Dict[str, int], Dict[str, List[str]], Dict[str, List[str]]]:
     """
     Get the classes present in the dataset and initialize dictionaries for class counts, train images, and test images.
 
+    :param: Path to the train image files.
     :return: A tuple containing dictionaries for class counts, train images, and test images.
     """
 
     classes = set()
 
-    for filename in os.listdir(CONST.dir_train_images):
+    for filename in os.listdir(train_images_path):
         if filename.endswith('.png'):
             class_name = filename.split('_')[2:-1]
             classes.add('_'.join(class_name))
@@ -50,18 +51,19 @@ def get_classes() -> Tuple[Dict[str, int], Dict[str, List[str]], Dict[str, List[
 # ------------------------------------------------------------------------------------------------------------------- #
 # -------------------------------------------- S P L I T   D A T A S E T -------------------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
-def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str]], test_images: Dict[str, List[str]]) \
-        -> Tuple[Dict[str, int], Dict[str, List[str]], Dict[str, List[str]]]:
+def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str]], test_images: Dict[str, List[str]],
+                  train_images_path) -> Tuple[Dict[str, int], Dict[str, List[str]], Dict[str, List[str]]]:
     """
     Split the dataset into train and test sets based on the class counts.
 
     :param class_counts: A dictionary containing the counts of each class.
     :param train_images: A dictionary containing the train images for each class.
     :param test_images: A dictionary containing the test images for each class.
+    :param train_images_path: Path to the train images.
     :return: A tuple containing dictionaries for class counts, train images, and test images.
     """
 
-    for filename in os.listdir(CONST.dir_train_images):
+    for filename in os.listdir(train_images_path):
         if filename.endswith('.png'):
             class_name = '_'.join(filename.split('_')[2:-1])
             class_counts[class_name] += 1
@@ -115,18 +117,23 @@ def statistics_of_dataset(class_counts: Dict[str, int], train_images: Dict[str, 
 # ------------------------------------------------------------------------------------------------------------------- #
 # ----------------------------------------------- M O V E   F I L E S ----------------------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
-def move_files(test_images: Dict[str, List[str]]) -> None:
+def move_files(test_images: Dict[str, List[str]], train_images_path, test_images_path, train_masks_path,
+               test_masks_path) -> None:
     """
     Move the files from the train directories to the test directories based on the test images.
 
     :param test_images: A dictionary containing the test images for each class.
+    :param train_images_path: Path to the train images.
+    :param test_images_path: Path to the test images.
+    :param train_masks_path: Path to the train mask images.
+    :param test_masks_path: Path to the test mask images.
     :return: None
     """
 
     for class_name in tqdm(test_images, desc="Moving files"):
         for name in test_images[class_name]:
-            shutil.move(os.path.join(CONST.dir_train_images, name), os.path.join(CONST.dir_test_images, name))
-            shutil.move(os.path.join(CONST.dir_train_masks, name), os.path.join(CONST.dir_test_mask, name))
+            shutil.move(os.path.join(train_images_path, name), os.path.join(test_images_path, name))
+            shutil.move(os.path.join(train_masks_path, name), os.path.join(test_masks_path, name))
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -158,20 +165,30 @@ def main(replace_files: bool = False, rollback: bool = False) -> None:
     :param rollback: If True, rollback the files from the test directory to the train directory.
     :return: None
     """
+
     setup_logger()
 
-    class_counts, train_images, test_images = get_classes()
-    class_counts, train_images, test_images = split_dataset(class_counts, train_images, test_images)
+    train_images_path = IMAGES_PATH.get_data_path("train_images")
+    test_images_path = IMAGES_PATH.get_data_path("test_images")
+    train_masks_path = IMAGES_PATH.get_data_path("train_masks")
+    test_masks_path = IMAGES_PATH.get_data_path("test_masks")
+
+    class_counts, train_images, test_images = get_classes(train_images_path)
+    class_counts, train_images, test_images = split_dataset(class_counts, train_images, test_images, train_images_path)
 
     statistics_of_dataset(class_counts, train_images, test_images)
 
     if replace_files:
-        move_files(test_images)
+        move_files(test_images, train_images_path=train_images_path, test_images_path=test_images_path,
+                   train_masks_path=train_masks_path, test_masks_path=test_masks_path)
 
     if rollback:
-        rollback_files(CONST.dir_train_images, CONST.dir_test_images)
-        rollback_files(CONST.dir_train_masks, CONST.dir_test_mask)
+        rollback_files(train_images_path, test_images_path)
+        rollback_files(train_masks_path, test_masks_path)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------- __M A I N__ ----------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     main(replace_files=True, rollback=False)

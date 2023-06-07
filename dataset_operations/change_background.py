@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 from glob import glob
 from tqdm import tqdm
 
-from config.const import CONST
+from config.const import DATASET_PATH, IMAGES_PATH
 from convert_yolo import convert_yolo_format_to_pixels
 from utils.utils import measure_execution_time
 
@@ -63,7 +63,7 @@ def change_background(image_path: str, annotations_path: str, background_path: s
 
     output_image = cv2.add(foreground, background)
 
-    output_file_name = os.path.join(CONST.dir_wo_background, os.path.basename(image_path))
+    output_file_name = os.path.join(IMAGES_PATH.get_data_path("wo_background"), os.path.basename(image_path))
     cv2.imwrite(output_file_name, output_image)
 
 
@@ -80,9 +80,9 @@ def main() -> None:
     :return: None
     """
 
-    images = sorted(glob(CONST.dir_ogyi_single_splitted_train_images + "/*.png"))
-    annotations = sorted(glob(CONST.dir_ogyi_single_splitted_train_labels + "/*.txt"))
-    backgrounds = sorted(glob("C:/Users/ricsi/Desktop/images/*.jpg"))
+    images = sorted(glob(DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images") + "/*.png"))
+    annotations = sorted(glob(DATASET_PATH.get_data_path("ogyi_v2_splitted_train_labels") + "/*.txt"))
+    backgrounds = sorted(glob(DATASET_PATH.get_data_path("dtd_images") + "/*.jpg"))
 
     with ThreadPoolExecutor() as executor:
         futures = []

@@ -14,7 +14,7 @@ import os
 import pandas as pd
 
 from config.logger_setup import setup_logger
-from config.const import CONST
+from config.const import DATASET_PATH
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -137,9 +137,7 @@ def calculate_imbalance_ratio(class_counts: dict) -> None:
 # ----------------------------------------------------------------------------------------------------------------------
 def main() -> None:
     setup_logger()
-    main_dir = os.path.join(CONST.PROJECT_ROOT, "datasets/ogyi/full_img_size/unsplitted")
-    images_directory = os.path.join(main_dir, "images")
-
+    images_directory = DATASET_PATH.get_data_path("ogyi_v2_unsplitted_images")
     number_of_classes = get_classes(images_directory)
     proportion_value = calculate_proportions(images_directory, number_of_classes)
     calculate_imbalance_ratio(number_of_classes)

@@ -18,7 +18,7 @@ import random
 from glob import glob
 from tqdm import tqdm
 from typing import List, Tuple
-from config.const import CONST
+from config.const import IMAGES_PATH, DATA_PATH, DATASET_PATH
 from config.logger_setup import setup_logger
 from skimage.util import random_noise
 
@@ -270,12 +270,15 @@ def main() -> None:
     """
 
     setup_logger()
-    augment_images(input_img_dir="C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/train/images",
-                   input_txt_dir="C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/train/labels",
-                   output_img_dir=CONST.dir_aug_img,
-                   output_txt_dir=CONST.dir_aug_labels)
+    augment_images(input_img_dir=DATASET_PATH.get_data_path("ogyi_v2_unsplitted_images"),
+                   input_txt_dir=DATASET_PATH.get_data_path("ogyi_v2_unsplitted_labels"),
+                   output_img_dir=IMAGES_PATH.get_data_path("images_aug"),
+                   output_txt_dir=DATA_PATH.get_data_path("augmented_train_data_labels"))
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------- __M A I N__ -----------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
         main()
