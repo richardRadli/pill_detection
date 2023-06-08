@@ -60,6 +60,25 @@ class ConfigTestingUnet:
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++ C O N F I G   G E N E R A L +++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+class ConfigGeneral:
+    def __init__(self):
+        self.opt = None
+        self.parser = argparse.ArgumentParser()
+
+        self.parser.add_argument("--threshold_area", type=int, default=100)
+        self.parser.add_argument("--kernel_median_contour", type=int, default=7)
+        self.parser.add_argument("--canny_low_thr", type=int, default=10)
+        self.parser.add_argument("--canny_high_thr", type=int, default=40)
+        self.parser.add_argument("--kernel_gaussian_texture", type=int, default=7)
+
+    def parse(self):
+        self.opt = self.parser.parse_args()
+        return self.opt
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++ C O N F I G   S T R E A M   N E T W O R K +++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class ConfigStreamNetwork:
@@ -67,7 +86,7 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
+        self.parser.add_argument("--type_of_net", type=str, default="StreamNetwork",
                                  help="StreamNetwork | EfficientNet | EfficientNetSelfAttention")
         self.parser.add_argument("--type_of_stream", type=str, default="LBP", help="RGB | Contour | Texture | LBP")
         self.parser.add_argument("--train_rate", type=float, default=0.8)
@@ -75,14 +94,14 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--epochs", type=int, default=30)
         self.parser.add_argument("--batch_size", type=int, default=128)
         self.parser.add_argument("--learning_rate_cnn_rgb", type=float, default=1e-4)
-        self.parser.add_argument("--learning_rate_cnn_con_tex", type=float, default=1e-4)
+        self.parser.add_argument("--learning_rate_cnn_con_tex_lbp", type=float, default=3e-4)
         self.parser.add_argument("--learning_rate_en_rgb", type=float, default=1e-4)
-        self.parser.add_argument("--learning_rate_en_con_tex", type=float, default=1e-4)
+        self.parser.add_argument("--learning_rate_en_con_tex_lbp", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_ensa_rgb", type=float, default=1e-4)
-        self.parser.add_argument("--learning_rate_ensa_con_tex", type=float, default=1e-4)
+        self.parser.add_argument("--learning_rate_ensa_con_tex_lbp", type=float, default=1e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)
         self.parser.add_argument("--img_size", type=int, default=128)
-        self.parser.add_argument("--load_ref_vector", type=bool, default=False)
+        self.parser.add_argument("--load_ref_vector", type=bool, default=True)
 
     def parse(self):
         self.opt = self.parser.parse_args()

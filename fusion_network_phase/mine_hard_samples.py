@@ -5,7 +5,7 @@ import shutil
 from glob import glob
 from tqdm import tqdm
 
-from config.const import CONST
+from config.const import DATA_PATH, IMAGES_PATH
 from config.logger_setup import setup_logger
 
 
@@ -18,13 +18,14 @@ def find_stream_folders(path):
     :param path:
     :return:
     """
+
     found_paths = []
 
     dirs = sorted(glob(os.path.join(path, '????-??-??_??-??-??')), reverse=True)
-    subdir_dict = {'RGB': [], 'Contour': [], 'Texture': []}
+    subdir_dict = {'RGB': [], 'Contour': [], 'Texture': [], 'LBP': []}
 
     for d in dirs:
-        subdirs = ['RGB', 'Contour', 'Texture']
+        subdirs = ['RGB', 'Contour', 'Texture', 'LBP']
         for subdir in subdirs:
             if os.path.isdir(os.path.join(d, subdir)):
                 subdir_dict[subdir].append(d)
@@ -97,7 +98,7 @@ def files_to_move(hardest_sample_images: set, src_dir: str) -> list:
     for root, dirs, files in os.walk(src_dir):
         for file in files:
             copy_of_file = file
-            copy_of_file = copy_of_file.replace("contour_", "").replace("texture_", "")
+            copy_of_file = copy_of_file.replace("contour_", "").replace("texture_", "").replace("lbp_", "")
             if copy_of_file in hardest_sample_images:
                 list_of_files_to_move.append(os.path.join(root, file))
 
@@ -117,7 +118,7 @@ def copy_hardest_samples(new_dir: str, src_dir: str, hardest_sample_images: list
     :return: None
     """
 
-    for src_paths in tqdm(hardest_sample_images):
+    for src_paths in tqdm(hardest_sample_images, total=len(hardest_sample_images), desc=os.path.basename(new_dir)):
         source_path = os.path.join(src_dir, src_paths.split("\\")[2])
 
         dest_path = src_paths.split("\\")[2]
@@ -134,27 +135,23 @@ def copy_hardest_samples(new_dir: str, src_dir: str, hardest_sample_images: list
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------------- G E T   L A T E S T   T X T   F I L E S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def get_latest_txt_files(operation: str):
+def get_latest_txt_files():
     """
     Retrieves the latest .txt files for contour, RGB, and texture data in the specified directories
     for either positive or negative operations.
 
-    :param operation: The type of operation to perform, either "positive" or "negative".
     :return: A tuple of the paths to the latest contour, RGB, and texture .txt files, respectively.
     :raises ValueError: If the specified operation is neither "positive" nor "negative".
     """
-
-    if operation not in ["positive", "negative"]:
-        raise ValueError("Wrong operation!")
-
-    path = CONST.dir_hardest_neg_samples if operation == "negative" else CONST.dir_hardest_pos_samples
+    path = DATA_PATH.get_data_path("negative")
     d = find_stream_folders(path)
 
-    latest_contour_txt = get_hardest_samples(path, os.path.join(d[1].split("\\")[-1], "Contour"))
-    latest_rgb_txt = get_hardest_samples(path, os.path.join(d[0].split("\\")[-1], "RGB"))
-    latest_texture_txt = get_hardest_samples(path, os.path.join(d[2].split("\\")[-1], "Texture"))
+    latest_rgb_txt = get_hardest_samples(path, os.path.join(os.path.basename(d[0]), "RGB"))
+    latest_contour_txt = get_hardest_samples(path, os.path.join(os.path.basename(d[1]), "Contour"))
+    latest_texture_txt = get_hardest_samples(path, os.path.join(os.path.basename(d[2]), "Texture"))
+    latest_lbp_txt = get_hardest_samples(path, os.path.join(os.path.basename(d[3]), "lbp"))
 
-    return latest_contour_txt, latest_rgb_txt, latest_texture_txt
+    return latest_contour_txt, latest_rgb_txt, latest_texture_txt, latest_lbp_txt
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -167,31 +164,35 @@ def main() -> None:
     """
     setup_logger()
 
-    latest_neg_contour_txt, latest_neg_rgb_txt, latest_neg_texture_txt = get_latest_txt_files("negative")
-    latest_pos_contour_txt, latest_pos_rgb_txt, latest_pos_texture_txt = get_latest_txt_files("positive")
+    latest_neg_contour_txt, latest_neg_rgb_txt, latest_neg_texture_txt, latest_neg_lbp_txt = get_latest_txt_files()
 
     hardest_neg_samples_contour = process_txt(latest_neg_contour_txt)
     hardest_neg_samples_rgb = process_txt(latest_neg_rgb_txt)
     hardest_neg_samples_texture = process_txt(latest_neg_texture_txt)
 
-    hardest_pos_samples_contour = process_txt(latest_pos_contour_txt)
-    hardest_pos_samples_rgb = process_txt(latest_pos_rgb_txt)
-    hardest_pos_samples_texture = process_txt(latest_pos_texture_txt)
-
     hardest_neg_samples_union = hardest_neg_samples_contour | hardest_neg_samples_rgb | hardest_neg_samples_texture
-    hardest_pos_samples_union = hardest_pos_samples_contour | hardest_pos_samples_rgb | hardest_pos_samples_texture
-    hardest_samples_union = hardest_pos_samples_union | hardest_neg_samples_union
 
-    result = {x.split('\\')[-1] for x in hardest_samples_union}
+    result = {os.path.basename(x) for x in hardest_neg_samples_union}
 
-    files_to_move_contour = files_to_move(result, CONST.dir_contour)
-    copy_hardest_samples(CONST.dir_contour_hardest, CONST.dir_contour, files_to_move_contour)
+    # Move hardest contour images
+    files_to_move_contour = files_to_move(result, IMAGES_PATH.get_data_path("ref_contour"))
+    copy_hardest_samples(IMAGES_PATH.get_data_path("contour_hardest"), IMAGES_PATH.get_data_path("ref_contour"),
+                         files_to_move_contour)
 
-    files_to_move_rgb = files_to_move(result, CONST.dir_rgb)
-    copy_hardest_samples(CONST.dir_rgb_hardest, CONST.dir_rgb, files_to_move_rgb)
+    # Move hardest rgb images
+    files_to_move_rgb = files_to_move(result, IMAGES_PATH.get_data_path("ref_rgb"))
+    copy_hardest_samples(IMAGES_PATH.get_data_path("rgb_hardest"), IMAGES_PATH.get_data_path("ref_rgb"),
+                         files_to_move_rgb)
 
-    files_to_move_texture = files_to_move(result, CONST.dir_texture)
-    copy_hardest_samples(CONST.dir_texture_hardest, CONST.dir_texture, files_to_move_texture)
+    # Move hardest texture images
+    files_to_move_texture = files_to_move(result, IMAGES_PATH.get_data_path("ref_texture"))
+    copy_hardest_samples(IMAGES_PATH.get_data_path("texture_hardest"), IMAGES_PATH.get_data_path("ref_texture"),
+                         files_to_move_texture)
+
+    # Move hardest lbp images
+    files_to_move_lbp = files_to_move(result, IMAGES_PATH.get_data_path("ref_lbp"))
+    copy_hardest_samples(IMAGES_PATH.get_data_path("lbp_hardest"), IMAGES_PATH.get_data_path("ref_lbp"),
+                         files_to_move_lbp)
 
 
 if __name__ == "__main__":

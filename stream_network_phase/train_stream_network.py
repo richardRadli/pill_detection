@@ -20,7 +20,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config.config import ConfigStreamNetwork
-from config.const import CONST
+from config.const import DATA_PATH, IMAGES_PATH
 from network_selector import NetworkFactory
 from stream_network_dataset_loader import StreamDataset
 from triplet_loss import TripletLossWithHardMining
@@ -104,19 +104,61 @@ class TrainModel:
         """
 
         network_config = {
+            "Contour": {
+                "channels": [1, 32, 48, 64, 128, 192, 256],
+                "dataset_dir": IMAGES_PATH.get_data_path("ref_contour"),
+                "model_weights_dir": {
+                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_contour"),
+                    "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_contour"),
+                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_contour")
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_contour")),
+                "logs_dir": {
+                    "StreamNetwork": DATA_PATH.get_data_path("logs_stream_contour"),
+                    "EfficientNet": DATA_PATH.get_data_path("logs_efficient_net_contour"),
+                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("logs_efficient_net_self_attention_contour")
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_stream_contour")),
+                "learning_rate": {
+                    "StreamNetwork": self.cfg.learning_rate_cnn_con_tex_lbp,
+                    "EfficientNet": self.cfg.learning_rate_en_con_tex_lbp,
+                    "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_con_tex_lbp
+                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex_lbp),
+                "grayscale": True
+            },
+
+            "LBP": {
+                "channels": [1, 32, 48, 64, 128, 192, 256],
+                "dataset_dir": IMAGES_PATH.get_data_path("ref_lbp"),
+                "model_weights_dir": {
+                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_lbp"),
+                    "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_lbp"),
+                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_lbp")
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_lbp")),
+                "logs_dir": {
+                    "StreamNetwork": DATA_PATH.get_data_path("logs_stream_lbp"),
+                    "EfficientNet": DATA_PATH.get_data_path("logs_efficient_net_lbp"),
+                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("logs_efficient_net_self_attention_lbp")
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_stream_lbp")),
+                "learning_rate": {
+                    "StreamNetwork": self.cfg.learning_rate_cnn_con_tex_lbp,
+                    "EfficientNet": self.cfg.learning_rate_cnn_con_tex_lbp,
+                    "EfficientNetSelfAttention": self.cfg.learning_rate_cnn_con_tex_lbp
+                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex_lbp),
+                "grayscale": True
+            },
+
             "RGB": {
                 "channels": [3, 64, 96, 128, 256, 384, 512],
-                "dataset_dir": CONST.dir_rgb,
+                "dataset_dir": IMAGES_PATH.get_data_path("ref_rgb"),
                 "model_weights_dir": {
-                    "StreamNetwork": CONST.dir_stream_rgb_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_rgb_model_weights,
-                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_rgb_model_weights
-                }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
+                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_rgb"),
+                    "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_rgb"),
+                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_rgb")
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_rgb")),
                 "logs_dir": {
-                    "StreamNetwork": CONST.dir_logs_stream_net_rgb,
-                    "EfficientNet": CONST.dir_logs_efficient_net_rgb,
-                    "EfficientNetSelfAttention": CONST.dir_logs_efficient_net_self_attention_rgb
-                }.get(self.cfg.type_of_net, CONST.dir_logs_stream_net_contour),
+                    "StreamNetwork": DATA_PATH.get_data_path("logs_stream_rgb"),
+                    "EfficientNet": DATA_PATH.get_data_path("logs_efficient_net_rgb"),
+                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("logs_efficient_net_self_attention_rgb")
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_stream_rgb")),
                 "learning_rate": {
                     "StreamNetwork": self.cfg.learning_rate_cnn_rgb,
                     "EfficientNet": self.cfg.learning_rate_en_rgb,
@@ -127,64 +169,22 @@ class TrainModel:
 
             "Texture": {
                 "channels": [1, 32, 48, 64, 128, 192, 256],
-                "dataset_dir": CONST.dir_texture,
+                "dataset_dir": IMAGES_PATH.get_data_path("ref_texture"),
                 "model_weights_dir": {
-                    "StreamNetwork": CONST.dir_stream_texture_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_texture_model_weights,
-                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_texture_model_weights
-                }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
+                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_texture"),
+                    "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_texture"),
+                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_texture")
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_texture")),
                 "logs_dir": {
-                    "StreamNetwork": CONST.dir_logs_stream_net_texture,
-                    "EfficientNet": CONST.dir_logs_efficient_net_texture,
-                    "EfficientNetSelfAttention": CONST.dir_logs_efficient_net_self_attention_texture
-                }.get(self.cfg.type_of_net, CONST.dir_logs_stream_net_contour),
+                    "StreamNetwork": DATA_PATH.get_data_path("logs_stream_texture"),
+                    "EfficientNet": DATA_PATH.get_data_path("logs_efficient_net_texture"),
+                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("")
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_efficient_net_self_attention_texture")),
                 "learning_rate": {
-                    "StreamNetwork": self.cfg.learning_rate_cnn_con_tex,
-                    "EfficientNet": self.cfg.learning_rate_en_con_tex,
-                    "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_con_tex
-                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex),
-                "grayscale": True
-            },
-
-            "Contour": {
-                "channels": [1, 32, 48, 64, 128, 192, 256],
-                "dataset_dir": CONST.dir_contour,
-                "model_weights_dir": {
-                    "StreamNetwork": CONST.dir_stream_contour_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_contour_model_weights,
-                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_contour_model_weights
-                }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
-                "logs_dir": {
-                    "StreamNetwork": CONST.dir_logs_stream_net_contour,
-                    "EfficientNet": CONST.dir_logs_efficient_net_contour,
-                    "EfficientNetSelfAttention": CONST.dir_logs_efficient_net_self_attention_contour
-                }.get(self.cfg.type_of_net, CONST.dir_logs_stream_net_contour),
-                "learning_rate": {
-                    "StreamNetwork": self.cfg.learning_rate_cnn_con_tex,
-                    "EfficientNet": self.cfg.learning_rate_en_con_tex,
-                    "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_con_tex
-                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex),
-                "grayscale": True
-            },
-
-            "LBP": {
-                "channels": [1, 32, 48, 64, 128, 192, 256],
-                "dataset_dir": CONST.dir_lbp,
-                "model_weights_dir": {
-                    "StreamNetwork": CONST.dir_stream_lbp_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_lbp_model_weights,
-                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_lbp_model_weights
-                }.get(self.cfg.type_of_net, CONST.dir_stream_lbp_model_weights),
-                "logs_dir": {
-                    "StreamNetwork": CONST.dir_logs_stream_net_lbp,
-                    "EfficientNet": CONST.dir_logs_efficient_net_lbp,
-                    "EfficientNetSelfAttention": CONST.dir_logs_efficient_net_self_attention_lbp
-                }.get(self.cfg.type_of_net, CONST.dir_logs_stream_net_lbp),
-                "learning_rate": {
-                    "StreamNetwork": self.cfg.learning_rate_cnn_con_tex,
-                    "EfficientNet": self.cfg.learning_rate_en_con_tex,
-                    "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_con_tex
-                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex),
+                    "StreamNetwork": self.cfg.learning_rate_cnn_con_tex_lbp,
+                    "EfficientNet": self.cfg.learning_rate_cnn_con_tex_lbp,
+                    "EfficientNetSelfAttention": self.cfg.learning_rate_cnn_con_tex_lbp
+                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex_lbp),
                 "grayscale": True
             }
         }
@@ -253,8 +253,6 @@ class TrainModel:
         valid_losses = []
         # to mine the hard negative samples
         hard_neg_images = []
-        # to mine the hard positive samples
-        hard_pos_images = []
 
         # Variables to save only the best weights and model
         best_valid_loss = float('inf')
@@ -278,7 +276,7 @@ class TrainModel:
                 negative_emb = self.model(negative)
 
                 # Compute triplet loss
-                loss, hard_neg, hard_pos = self.criterion(anchor_emb, positive_emb, negative_emb)
+                loss, hard_neg = self.criterion(anchor_emb, positive_emb, negative_emb)
 
                 # Backward pass, optimize and scheduler
                 loss.backward()
@@ -289,7 +287,6 @@ class TrainModel:
 
                 # Collect hardest positive and negative samples
                 hard_neg_images = self.record_hard_samples(hard_neg, negative_img_path, hard_neg_images)
-                hard_pos_images = self.record_hard_samples(hard_pos, positive_img_path, hard_pos_images)
 
             # Validation loop
             with torch.no_grad():
@@ -307,7 +304,7 @@ class TrainModel:
                     negative_emb = self.model(negative)
 
                     # Compute triplet loss
-                    val_loss, _, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
+                    val_loss, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
 
                     # Accumulate loss
                     valid_losses.append(val_loss.item())
@@ -320,14 +317,12 @@ class TrainModel:
             logging.info(f'train_loss: {train_loss:.5f} valid_loss: {valid_loss:.5f}')
 
             # Loop over the hard negative tensors
-            self.get_hardest_samples(epoch, hard_neg_images, CONST.dir_hardest_neg_samples, "negative")
-            self.get_hardest_samples(epoch, hard_pos_images, CONST.dir_hardest_pos_samples, "positive")
+            self.get_hardest_samples(epoch, hard_neg_images, DATA_PATH.get_data_path("negative"), "negative")
 
             # Clear lists to track next epoch
             train_losses.clear()
             valid_losses.clear()
             hard_neg_images.clear()
-            hard_pos_images.clear()
 
             # Save the model and weights
             if valid_loss < best_valid_loss:

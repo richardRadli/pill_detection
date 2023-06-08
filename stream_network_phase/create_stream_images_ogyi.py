@@ -11,6 +11,7 @@ from tqdm import tqdm
 from typing import Tuple
 
 from config.const import IMAGES_PATH
+from config.config import ConfigGeneral
 from config.logger_setup import setup_logger
 from utils.utils import numerical_sort
 
@@ -21,6 +22,7 @@ from utils.utils import numerical_sort
 class CreateStreamImages:
     def __init__(self, operation: str = "test"):
         setup_logger()
+        self.cfg = ConfigGeneral().parse()
         self.path_to_images = self.path_selector(operation)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -108,8 +110,7 @@ class CreateStreamImages:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- D R A W   B O U N D I N G   B O X ---------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def draw_bounding_box(in_img: np.ndarray, seg_map: np.ndarray, output_path: str) -> None:
+    def draw_bounding_box(self, in_img: np.ndarray, seg_map: np.ndarray, output_path: str) -> None:
         """
         Draws bounding box over medicines. It draws only the biggest bounding box, small ones are terminated.
         After that it crops out the bounding box's content.
@@ -128,7 +129,7 @@ class CreateStreamImages:
 
         for i in range(1, n_objects):
             x, y, w, h, area = stats[i]
-            if area > 100 and area > max_area:
+            if area > self.cfg.threshold_area and area > max_area:
                 max_x, max_y, max_w, max_h = x, y, w, h
                 max_area = area
 
@@ -163,17 +164,15 @@ class CreateStreamImages:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------- S A V E   B O U N D I N G   B O X   I M G S ----------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def save_bounding_box_images(self) -> None:
+    def save_rgb_images(self) -> None:
         """
         Reads in the images, draws the bounding box, and saves the images in parallel.
         :return: None
         """
 
-        # Read in all color and mask image paths
         color_images = sorted(glob(self.path_to_images.get("images") + "/*.png"))
         mask_images = sorted(glob(self.path_to_images.get("masks") + "/*.png"))
 
-        # Process the images in parallel using ThreadPoolExecutor
         with ThreadPoolExecutor() as executor:
             list(tqdm(executor.map(self.process_image, zip(color_images, mask_images)), total=len(color_images),
                       desc="RGB images"))
@@ -218,7 +217,8 @@ class CreateStreamImages:
             output_name = "contour_" + os.path.basename(img_path)
             output_file = (os.path.join(self.path_to_images.get("contour"), output_name))
             bbox_imgs = cv2.imread(img_path, 0)
-            args_list.append((bbox_imgs, output_file, 7, 10, 40))
+            args_list.append((bbox_imgs, output_file, self.cfg.kernel_median_contour, self.cfg.canny_low_thr,
+                              self.cfg.canny_high_thr))
 
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(self.create_contour_images, args) for args in args_list]
@@ -266,7 +266,8 @@ class CreateStreamImages:
             output_name = "texture_" + os.path.basename(img_path)
             output_file = (os.path.join(self.path_to_images.get("texture"), output_name))
             bbox_imgs = cv2.imread(img_path, 0)
-            args_list.append((bbox_imgs, output_file, (7, 7)))
+            args_list.append((bbox_imgs, output_file,
+                              (self.cfg.kernel_gaussian_texture, self.cfg.kernel_gaussian_texture)))
 
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(self.create_texture_images, args) for args in args_list]
@@ -319,6 +320,9 @@ class CreateStreamImages:
             val += val_ar[i] * power_val[i]
         return val
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------- P R O C E S S   L B P   I M A G E S --------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def process_lbp_image(self, img_gray: np.ndarray, dest_image_path: str) -> None:
         """
         Process the LBP image for a given image file and save it to the destination directory.
@@ -335,7 +339,15 @@ class CreateStreamImages:
                 img_lbp[i, j] = self.lbp_calculated_pixel(img_gray, i, j)
         cv2.imwrite(dest_image_path, img_lbp)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------- S A V E   L B P   I M A G E S ---------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def save_lbp_images(self) -> None:
+        """
+        Saves LBP images in parallel.
+        :return: None
+        """
+
         bbox_images = sorted(glob(self.path_to_images.get("rgb") + "/*.png"), key=numerical_sort)
 
         with ThreadPoolExecutor() as executor:
@@ -347,7 +359,7 @@ class CreateStreamImages:
                 future = executor.submit(self.process_lbp_image, bbox_imgs, output_file)
                 futures.append(future)
 
-            for future in tqdm(futures):
+            for future in futures:
                 future.result()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -360,7 +372,7 @@ class CreateStreamImages:
         :return: None
         """
 
-        self.save_bounding_box_images()
+        self.save_rgb_images()
         self.save_contour_images()
         self.save_texture_images()
         self.save_lbp_images()
@@ -374,5 +386,5 @@ class CreateStreamImages:
 # ----------------------------------------------------- __M A I N__ ----------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    proc_unet_imgs = CreateStreamImages(operation="Train")
+    proc_unet_imgs = CreateStreamImages(operation="Test")
     proc_unet_imgs.main()

@@ -19,7 +19,7 @@ from tqdm import tqdm
 from typing import List, Tuple, Dict
 from PIL import Image
 
-from config.const import CONST
+from config.const import DATA_PATH, IMAGES_PATH
 from config.config import ConfigStreamNetwork
 from config.logger_setup import setup_logger
 from network_selector import NetworkFactory
@@ -84,19 +84,19 @@ class PredictStreamNetwork:
         logging.info(network_type)
         network_configs = {
             'StreamNetwork': {
-                'prediction_folder': CONST.dir_stream_network_predictions,
-                'plotting_folder': CONST.dir_stream_network_pred,
-                'ref_vectors_folder': CONST.dir_ref_vectors_stream_net
+                'prediction_folder': DATA_PATH.get_data_path("predictions_stream_network"),
+                'plotting_folder': IMAGES_PATH.get_data_path("plotting_stream_network"),
+                'ref_vectors_folder': DATA_PATH.get_data_path("reference_vectors_stream_network")
             },
             'EfficientNet': {
-                'prediction_folder': CONST.dir_efficient_net_predictions,
-                'plotting_folder': CONST.dir_efficient_net_prediction,
-                'ref_vectors_folder': CONST.dir_ref_vectors_efficient_net
+                'prediction_folder': DATA_PATH.get_data_path("predictions_efficient_net"),
+                'plotting_folder': IMAGES_PATH.get_data_path("plotting_efficient_net"),
+                'ref_vectors_folder': DATA_PATH.get_data_path("reference_vectors_efficient_net")
             },
             'EfficientNetSelfAttention': {
-                'prediction_folder': CONST.dir_efficient_net_self_attention_predictions,
-                'plotting_folder': CONST.dir_efficient_net_self_attention_prediction,
-                'ref_vectors_folder': CONST.dir_ref_vectors_efficient_net_self_attention
+                'prediction_folder': DATA_PATH.get_data_path("predictions_efficient_self_attention_net"),
+                'plotting_folder': IMAGES_PATH.get_data_path("plotting_efficient_net_self_attention"),
+                'ref_vectors_folder': DATA_PATH.get_data_path("reference_vectors_efficient_net_self_attention")
             }
         }
         if network_type not in network_configs:
@@ -115,45 +115,47 @@ class PredictStreamNetwork:
         """
 
         network_config = {
-            "RGB": {
-                "channels": [3, 64, 96, 128, 256, 384, 512],
-                "model_weights_dir": {
-                    "StreamNetwork": CONST.dir_stream_rgb_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_rgb_model_weights,
-                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_rgb_model_weights
-                }.get(self.cfg.type_of_net, CONST.dir_stream_rgb_model_weights),
-                "grayscale": False
-            },
-
-            "Texture": {
-                "channels": [1, 32, 48, 64, 128, 192, 256],
-                "model_weights_dir": {
-                    "StreamNetwork": CONST.dir_stream_texture_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_texture_model_weights,
-                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_texture_model_weights
-                }.get(self.cfg.type_of_net, CONST.dir_stream_texture_model_weights),
-                "grayscale": True
-            },
-
             "Contour": {
                 "channels": [1, 32, 48, 64, 128, 192, 256],
                 "model_weights_dir": {
-                    "StreamNetwork": CONST.dir_stream_contour_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_contour_model_weights,
-                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_contour_model_weights
-                }.get(self.cfg.type_of_net, CONST.dir_stream_contour_model_weights),
+                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_contour"),
+                    "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_contour"),
+                    "EfficientNetSelfAttention":
+                        DATA_PATH.get_data_path("weights_efficient_net_self_attention_contour"),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_contour")),
                 "grayscale": True
             },
 
             "LBP": {
                 "channels": [1, 32, 48, 64, 128, 192, 256],
                 "model_weights_dir": {
-                    "StreamNetwork": CONST.dir_stream_lbp_model_weights,
-                    "EfficientNet": CONST.dir_efficient_net_lbp_model_weights,
-                    "EfficientNetSelfAttention": CONST.dir_efficient_net_self_attention_lbp_model_weights
-                }.get(self.cfg.type_of_net, CONST.dir_stream_lbp_model_weights),
+                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_lbp"),
+                    "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_lbp"),
+                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_lbp"),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_lbp")),
                 "grayscale": True
-            }
+            },
+
+            "RGB": {
+                "channels": [3, 64, 96, 128, 256, 384, 512],
+                "model_weights_dir": {
+                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_rgb"),
+                    "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_rgb"),
+                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_rgb"),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_rgb")),
+                "grayscale": False
+            },
+
+            "Texture": {
+                "channels": [1, 32, 48, 64, 128, 192, 256],
+                "model_weights_dir": {
+                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_texture"),
+                    "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_texture"),
+                    "EfficientNetSelfAttention":
+                        DATA_PATH.get_data_path("weights_efficient_net_self_attention_texture"),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_texture")),
+                "grayscale": True
+            },
         }
 
         return network_config
@@ -193,9 +195,10 @@ class PredictStreamNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def get_vectors(self, contour_dir: str, rgb_dir: str, texture_dir: str, lbp_dir: str, operation: str):
+    def get_vectors(self, contour_dir: str, lbp_dir: str, rgb_dir: str, texture_dir: str, operation: str):
         """
         :param contour_dir: path to the directory containing contour images
+        :param lbp_dir: path to the directory containing LBP images
         :param rgb_dir: path to the directory containing rgb images
         :param texture_dir: path to the directory containing texture images
         :param operation: name of the operation being performed
@@ -209,49 +212,50 @@ class PredictStreamNetwork:
 
         # Move the model to the GPU
         self.network_con = self.network_con.to(self.device)
+        self.network_lbp = self.network_lbp.to(self.device)
         self.network_rgb = self.network_rgb.to(self.device)
         self.network_tex = self.network_tex.to(self.device)
-        self.network_lbp = self.network_lbp.to(self.device)
 
-        for med_class in tqdm(medicine_classes, desc="\nProcess %s images" % operation):
-            # Collecting the images
-            image_paths_con = os.listdir(os.path.join(contour_dir, med_class))
-            image_paths_rgb = os.listdir(os.path.join(rgb_dir, med_class))
-            image_paths_tex = os.listdir(os.path.join(texture_dir, med_class))
-            image_paths_lbp = os.listdir(os.path.join(lbp_dir, med_class))
+        for image_name in tqdm(medicine_classes, desc="\nProcess %s images" % operation):
+            # Collecting images
+            image_paths_con = os.listdir(os.path.join(contour_dir, image_name))
+            image_paths_rgb = os.listdir(os.path.join(rgb_dir, image_name))
+            image_paths_tex = os.listdir(os.path.join(texture_dir, image_name))
+            image_paths_lbp = os.listdir(os.path.join(lbp_dir, image_name))
 
-            for idx, (con, rgb, tex, lpb) in enumerate(zip(image_paths_con, image_paths_rgb, image_paths_tex, image_paths_lbp)):
+            for idx, (con, rgb, tex, lbp) in enumerate(zip(
+                    image_paths_con, image_paths_rgb, image_paths_tex, image_paths_lbp)):
                 # Open images and convert them to tensors
-                con_image = Image.open(os.path.join(contour_dir, med_class, con))
+                con_image = Image.open(os.path.join(contour_dir, image_name, con))
                 con_image = self.preprocess_con_tex(con_image)
 
-                rgb_image = Image.open(os.path.join(rgb_dir, med_class, rgb))
-                images_path.append(os.path.join(rgb_dir, med_class, rgb))
+                lbp_image = Image.open(os.path.join(lbp_dir, image_name, lbp))
+                lbp_image = self.preprocess_con_tex(lbp_image)
+
+                rgb_image = Image.open(os.path.join(rgb_dir, image_name, rgb))
+                images_path.append(os.path.join(rgb_dir, image_name, rgb))
                 rgb_image = self.preprocess_rgb(rgb_image)
 
-                tex_image = Image.open(os.path.join(texture_dir, med_class, tex))
+                tex_image = Image.open(os.path.join(texture_dir, image_name, tex))
                 tex_image = self.preprocess_con_tex(tex_image)
-
-                lbp_image = Image.open(os.path.join(lbp_dir, med_class, lpb))
-                lbp_image = self.preprocess_con_tex(lbp_image)
 
                 # Make prediction
                 with torch.no_grad():
                     # Move input to GPU
                     con_image = con_image.unsqueeze(0).to(self.device)
+                    lbp_image = lbp_image.unsqueeze(0).to(self.device)
                     rgb_image = rgb_image.unsqueeze(0).to(self.device)
                     tex_image = tex_image.unsqueeze(0).to(self.device)
-                    lbp_image = lbp_image.unsqueeze(0).to(self.device)
 
                     # Perform computation on GPU and move result back to CPU
                     vector1 = self.network_con(con_image).squeeze().cpu()
-                    vector2 = self.network_rgb(rgb_image).squeeze().cpu()
-                    vector3 = self.network_tex(tex_image).squeeze().cpu()
-                    vector4 = self.network_lbp(lbp_image).squeeze().cpu()
+                    vector2 = self.network_lbp(lbp_image).squeeze().cpu()
+                    vector3 = self.network_rgb(rgb_image).squeeze().cpu()
+                    vector4 = self.network_tex(tex_image).squeeze().cpu()
 
                 vector = torch.cat((vector1, vector2, vector3, vector4), dim=0)
                 vectors.append(vector)
-                labels.append(med_class)
+                labels.append(image_name)
 
         if operation == "reference":
             torch.save({'vectors': vectors, 'labels': labels, 'images_path': images_path},
@@ -366,17 +370,17 @@ class PredictStreamNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------- M A I N ----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def main(self):
+    def main(self) -> None:
         """
-
-        :return:
+        Executes the pipeline for prediction.
+        :return: None
         """
 
         # Calculate query vectors
-        query_vecs, q_labels, q_images_path = self.get_vectors(contour_dir=CONST.dir_query_contour,
-                                                               rgb_dir=CONST.dir_query_rgb,
-                                                               texture_dir=CONST.dir_query_texture,
-                                                               lbp_dir=CONST.dir_query_lbp,
+        query_vecs, q_labels, q_images_path = self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("query_contour"),
+                                                               lbp_dir=IMAGES_PATH.get_data_path("query_lbp"),
+                                                               rgb_dir=IMAGES_PATH.get_data_path("query_rgb"),
+                                                               texture_dir=IMAGES_PATH.get_data_path("query_texture"),
                                                                operation="query")
 
         # Calculate reference vectors
@@ -390,10 +394,10 @@ class PredictStreamNetwork:
             r_images_path = data['images_path']
             logging.info("Reference vectors has been loaded!")
         else:
-            ref_vecs, r_labels, r_images_path = self.get_vectors(contour_dir=CONST.dir_contour,
-                                                                 rgb_dir=CONST.dir_rgb,
-                                                                 texture_dir=CONST.dir_texture,
-                                                                 lbp_dir=CONST.dir_lbp,
+            ref_vecs, r_labels, r_images_path = self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("ref_contour"),
+                                                                 lbp_dir=IMAGES_PATH.get_data_path("ref_lbp"),
+                                                                 rgb_dir=IMAGES_PATH.get_data_path("ref_rgb"),
+                                                                 texture_dir=IMAGES_PATH.get_data_path("ref_texture"),
                                                                  operation="reference")
 
         # Compare query and reference vectors
