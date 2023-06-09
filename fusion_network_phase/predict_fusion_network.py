@@ -10,7 +10,7 @@ from tqdm import tqdm
 from typing import List, Tuple
 from PIL import Image
 
-from config.const import CONST
+from config.const import DATA_PATH, IMAGES_PATH
 from config.config import ConfigFusionNetwork
 from config.logger_setup import setup_logger
 from fusion_network import FusionNet
@@ -36,7 +36,7 @@ class PredictFusionNetwork:
         self.timestamp = create_timestamp()
 
         self.preprocess_rgb = None
-        self.preprocess_con_tex = None
+        self.preprocess_con_tex_lbp = None
         self.query_image_tex = None
         self.query_image_rgb = None
         self.query_image_con = None
@@ -48,9 +48,9 @@ class PredictFusionNetwork:
                                                   transforms.ToTensor(),
                                                   transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
 
-        self.preprocess_con_tex = transforms.Compose([transforms.Resize((self.cfg.img_size, self.cfg.img_size)),
-                                                      transforms.Grayscale(),
-                                                      transforms.ToTensor()])
+        self.preprocess_con_tex_lbp = transforms.Compose([transforms.Resize((self.cfg.img_size, self.cfg.img_size)),
+                                                          transforms.Grayscale(),
+                                                          transforms.ToTensor()])
 
         self.device = use_gpu_if_available()
 
@@ -122,10 +122,10 @@ class PredictFusionNetwork:
         pd.set_option('display.width', None)
         pd.set_option('display.max_colwidth', None)
 
-        logging.info("Medicines where either StreamNetwork or FusionNetwork predicted well", df)
-        logging.info("Medicines where FusionNetwork predicted wrong and StreamNetwork predicted well", df_sn)
-        logging.info("Medicines where StreamNetwork predicted wrong and FusionNetwork predicted well", df_fn)
-        logging.info("Medicines where neither StreamNetwork nor FusionNetwork predicted well", df_n)
+        print("Medicines where either StreamNetwork or FusionNetwork predicted well", df)
+        print("Medicines where FusionNetwork predicted wrong and StreamNetwork predicted well", df_sn)
+        print("Medicines where StreamNetwork predicted wrong and FusionNetwork predicted well", df_fn)
+        print("Medicines where neither StreamNetwork nor FusionNetwork predicted well", df_n)
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
@@ -138,7 +138,7 @@ class PredictFusionNetwork:
         :return: <class 'fusion_network.FusionNet'>
         """
 
-        latest_con_pt_file = find_latest_file_in_latest_directory(CONST.dir_fusion_net_weights)
+        latest_con_pt_file = find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_fusion_net"))
         network_fusion = FusionNet()
         network_fusion.load_state_dict(torch.load(latest_con_pt_file))
 
@@ -147,13 +147,15 @@ class PredictFusionNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def get_vectors(self, contour_dir: str, rgb_dir: str, texture_dir: str, operation: str) -> Tuple[List, List, List]:
+    def get_vectors(self, contour_dir: str, rgb_dir: str, texture_dir: str, lbp_dir: str, operation: str) -> \
+            Tuple[List, List, List]:
         """
         Get feature vectors for images.
 
         :param contour_dir: path to the directory containing contour images
-        :param rgb_dir: path to the directory containing rgb images
+        :param rgb_dir: path to the directory containing RGB images
         :param texture_dir: path to the directory containing texture images
+        :param lbp_dir: path to the directory containing LBP images
         :param operation: name of the operation being performed
         :return: tuple containing three lists - vectors, labels, and images_path
         """
@@ -169,26 +171,32 @@ class PredictFusionNetwork:
             image_paths_con = os.listdir(os.path.join(contour_dir, med_class))
             image_paths_rgb = os.listdir(os.path.join(rgb_dir, med_class))
             image_paths_tex = os.listdir(os.path.join(texture_dir, med_class))
+            image_paths_lbp = os.listdir(os.path.join(lbp_dir, med_class))
 
-            for idx, (con, rgb, tex) in enumerate(zip(image_paths_con, image_paths_rgb, image_paths_tex)):
+            for idx, (con, rgb, tex, lbp) in \
+                    enumerate(zip(image_paths_con, image_paths_rgb, image_paths_tex, image_paths_lbp)):
                 con_image = Image.open(os.path.join(contour_dir, med_class, con))
-                con_image = self.preprocess_con_tex(con_image)
+                con_image = self.preprocess_con_tex_lbp(con_image)
 
                 rgb_image = Image.open(os.path.join(rgb_dir, med_class, rgb))
                 images_path.append(os.path.join(rgb_dir, med_class, rgb))
                 rgb_image = self.preprocess_rgb(rgb_image)
 
                 tex_image = Image.open(os.path.join(texture_dir, med_class, tex))
-                tex_image = self.preprocess_con_tex(tex_image)
+                tex_image = self.preprocess_con_tex_lbp(tex_image)
+
+                lbp_image = Image.open(os.path.join(lbp_dir, med_class, lbp))
+                lbp_image = self.preprocess_con_tex_lbp(lbp_image)
 
                 with torch.no_grad():
                     # Move input to GPU
                     con_image = con_image.unsqueeze(0).to(self.device)
                     rgb_image = rgb_image.unsqueeze(0).to(self.device)
                     tex_image = tex_image.unsqueeze(0).to(self.device)
+                    lbp_image = lbp_image.unsqueeze(0).to(self.device)
 
                     vector = \
-                        self.network(con_image, rgb_image, tex_image).squeeze().cpu()
+                        self.network(con_image, rgb_image, tex_image, lbp_image).squeeze().cpu()
 
                 vectors.append(vector)
                 labels.append(med_class)
@@ -296,7 +304,8 @@ class PredictFusionNetwork:
         df_combined = pd.concat([df, df_stat], ignore_index=True)
 
         df_combined.to_csv(
-            os.path.join(CONST.dir_fusion_network_predictions, self.timestamp + "_fusion_network_prediction.txt"),
+            os.path.join(DATA_PATH.get_data_path("predictions_fusion_network"), self.timestamp +
+                         "_fusion_network_prediction.txt"),
             sep='\t', index=True)
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
@@ -310,23 +319,29 @@ class PredictFusionNetwork:
         :return: None
         """
 
-        query_vectors, q_labels, q_images_path = self.get_vectors(contour_dir=CONST.dir_query_contour,
-                                                                  rgb_dir=CONST.dir_query_rgb,
-                                                                  texture_dir=CONST.dir_query_texture,
-                                                                  operation="query")
+        query_vectors, q_labels, q_images_path = \
+            self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("query_contour"),
+                             rgb_dir=IMAGES_PATH.get_data_path("query_rgb"),
+                             texture_dir=IMAGES_PATH.get_data_path("query_texture"),
+                             lbp_dir=IMAGES_PATH.get_data_path("query_lbp"),
+                             operation="query")
 
-        ref_vectors, r_labels, r_images_path = self.get_vectors(contour_dir=CONST.dir_contour,
-                                                                rgb_dir=CONST.dir_rgb,
-                                                                texture_dir=CONST.dir_texture,
+        ref_vectors, r_labels, r_images_path = self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("ref_contour"),
+                                                                rgb_dir=IMAGES_PATH.get_data_path("ref_rgb"),
+                                                                texture_dir=IMAGES_PATH.get_data_path("ref_texture"),
+                                                                lbp_dir=IMAGES_PATH.get_data_path("ref_lbp"),
                                                                 operation="reference")
 
         gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vectors, query_vectors)
 
-        # stream_net_pred = self.find_latest_file_in_directory(CONST.dir_stream_network_predictions, "txt")
-        # fusion_net_pred = self.find_latest_file_in_directory(CONST.dir_fusion_network_predictions, "txt")
-        # self.prediction_statistics(stream_net_pred, fusion_net_pred)
+        stream_net_pred = \
+            self.find_latest_file_in_directory(DATA_PATH.get_data_path("predictions_stream_network"), "txt")
+        fusion_net_pred = \
+            self.find_latest_file_in_directory(DATA_PATH.get_data_path("predictions_fusion_network"), "txt")
+        self.prediction_statistics(stream_net_pred, fusion_net_pred)
 
-        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, CONST.dir_fusion_net_pred)
+        plot_ref_query_images(indices=indices, q_images_path=q_images_path, r_images_path=r_images_path, gt=gt,
+                              pred_ed=pred_ed, out_path=IMAGES_PATH.get_data_path("plotting_fusion_network"))
 
 
 if __name__ == "__main__":

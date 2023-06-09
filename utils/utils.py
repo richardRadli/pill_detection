@@ -162,7 +162,7 @@ def find_latest_file_in_latest_directory(path: str) -> str:
 # ---------------------------------------- P L O T   R E F   Q U E R Y   I M G S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images_path: list[str], gt: list[str],
-                          pred_cs: list[str], out_path: str) -> None:
+                          pred_ed: list[str], out_path: str) -> None:
     """
     Plots the reference and query images with their corresponding ground truth and predicted class labels.
 
@@ -170,14 +170,14 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
     :param q_images_path: list of file paths to query images
     :param r_images_path: list of file paths to reference images
     :param gt: list of ground truth class labels for each query image
-    :param pred_cs: list of predicted class labels for each query image
+    :param pred_ed: list of predicted class labels for each query image
     :param out_path: stream or fusion network path
     :return: None
     """
 
     new_list = [i for i in range(len(indices))]
 
-    for idx, (i, j, k, l) in tqdm(enumerate(zip(indices, new_list, gt, pred_cs)), total=len(new_list),
+    for idx, (i, j, k, l) in tqdm(enumerate(zip(indices, new_list, gt, pred_ed)), total=len(new_list),
                                   desc="Plotting ref and query images"):
         img_path_query = q_images_path[j]
         img_query = Image.open(img_path_query)

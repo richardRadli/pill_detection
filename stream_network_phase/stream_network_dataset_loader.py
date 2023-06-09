@@ -81,13 +81,16 @@ class StreamDataset(Dataset):
         positive_index = index
         while positive_index == index:
             positive_index = np.random.choice(self.label_to_indices[anchor_label])
+
         positive_img_path, positive_label = self.dataset[positive_index]
         negative_label = np.random.choice(list(self.labels_set - {anchor_label}))
         negative_index = np.random.choice(self.label_to_indices[negative_label])
         negative_img_path, _ = self.dataset[negative_index]
+
         anchor_img = Image.open(anchor_img_path)
         positive_img = Image.open(positive_img_path)
         negative_img = Image.open(negative_img_path)
+
         if self.transform:
             anchor_img = self.transform(anchor_img)
             positive_img = self.transform(positive_img)

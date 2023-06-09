@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config.config import ConfigFusionNetwork
-from config.const import CONST
+from config.const import DATA_PATH
 from fusion_network import FusionNet
 from fusion_dataset_loader import FusionDataset
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
@@ -37,7 +37,7 @@ class TrainFusionNet:
         self.device = use_gpu_if_available()
 
         # Load datasets using FusionDataset
-        dataset = FusionDataset(os.path.join(CONST.PROJECT_ROOT, "images"))
+        dataset = FusionDataset()
         train_size = int(self.cfg.train_split * len(dataset))
         valid_size = len(dataset) - train_size
         print(f"Size of the train set: {train_size}, size of the validation set: {valid_size}")
@@ -50,16 +50,19 @@ class TrainFusionNet:
 
         # Load the saved state dictionaries of the stream networks
         stream_con_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(CONST.dir_stream_contour_model_weights)))
+            (torch.load(find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_stream_network_contour"))))
         stream_rgb_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(CONST.dir_stream_rgb_model_weights)))
+            (torch.load(find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_stream_network_rgb"))))
         stream_tex_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(CONST.dir_stream_texture_model_weights)))
+            (torch.load(find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_stream_network_texture"))))
+        stream_lbp_state_dict = \
+            (torch.load(find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_stream_network_lbp"))))
 
         # Update the state dictionaries of the fusion network's stream networks
         self.model.contour_network.load_state_dict(stream_con_state_dict)
         self.model.rgb_network.load_state_dict(stream_rgb_state_dict)
         self.model.texture_network.load_state_dict(stream_tex_state_dict)
+        self.model.lbp_network.load_state_dict(stream_lbp_state_dict)
 
         # Freeze the weights of the stream networks
         for param in self.model.contour_network.parameters():
@@ -68,15 +71,18 @@ class TrainFusionNet:
             param.requires_grad = False
         for param in self.model.texture_network.parameters():
             param.requires_grad = False
+        for param in self.model.lbp_network.parameters():
+            param.requires_grad = False
 
         # Load model and upload it to the GPU
         self.model.to(self.device)
 
-        list_of_channels_con_tex = [1, 32, 48, 64, 128, 192, 256]
+        list_of_channels_con_tex_lbp = [1, 32, 48, 64, 128, 192, 256]
         list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
-        summary(self.model, input_size=[(list_of_channels_con_tex[0], self.cfg.img_size, self.cfg.img_size),
+        summary(self.model, input_size=[(list_of_channels_con_tex_lbp[0], self.cfg.img_size, self.cfg.img_size),
                                         (list_of_channels_rgb[0], self.cfg.img_size, self.cfg.img_size),
-                                        (list_of_channels_con_tex[0], self.cfg.img_size, self.cfg.img_size)])
+                                        (list_of_channels_con_tex_lbp[0], self.cfg.img_size, self.cfg.img_size),
+                                        (list_of_channels_con_tex_lbp[0], self.cfg.img_size, self.cfg.img_size)])
 
         # Specify loss function
         self.criterion = nn.TripletMarginLoss(margin=self.cfg.margin)
@@ -84,20 +90,21 @@ class TrainFusionNet:
         # Specify optimizer
         self.optimizer = torch.optim.SGD(list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
                                          lr=self.cfg.learning_rate, weight_decay=self.cfg.weight_decay)
+
         # Tensorboard
-        tensorboard_log_dir = os.path.join(CONST.dir_fusion_net_logs, self.timestamp)
+        tensorboard_log_dir = os.path.join(DATA_PATH.get_data_path("logs_fusion_net"), self.timestamp)
         if not os.path.exists(tensorboard_log_dir):
             os.makedirs(tensorboard_log_dir)
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
 
         # Create save path
-        self.save_path = os.path.join(CONST.dir_fusion_net_weights, self.timestamp)
+        self.save_path = os.path.join(DATA_PATH.get_data_path("weights_fusion_net"), self.timestamp)
         os.makedirs(self.save_path, exist_ok=True)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------------ F I T -----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def fit(self):
+    def train(self):
         # To track the training loss as the model trains
         train_losses = []
 
@@ -110,7 +117,7 @@ class TrainFusionNet:
 
         for epoch in tqdm(range(self.cfg.epochs), desc="Epochs"):
             # Train loop
-            for a_rgb, a_con, a_tex, p_rgb, p_con, p_tex, n_rgb, n_con, n_tex in \
+            for a_rgb, a_con, a_tex, a_lbp, p_rgb, p_con, p_tex, p_lbp, n_rgb, n_con, n_tex, n_lbp in \
                     tqdm(self.train_data_loader, total=len(self.train_data_loader), desc="Training"):
                 # Uploading data to the GPU
                 anchor_rgb = a_rgb.to(self.device)
@@ -125,12 +132,16 @@ class TrainFusionNet:
                 positive_texture = p_tex.to(self.device)
                 negative_texture = n_tex.to(self.device)
 
+                anchor_lbp = a_lbp.to(self.device)
+                positive_lbp = p_lbp.to(self.device)
+                negative_lbp = n_lbp.to(self.device)
+
                 self.optimizer.zero_grad()
 
                 # Forward pass
-                anchor_out = self.model(anchor_contour, anchor_rgb, anchor_texture)
-                positive_out = self.model(positive_contour, positive_rgb, positive_texture)
-                negative_out = self.model(negative_contour, negative_rgb, negative_texture)
+                anchor_out = self.model(anchor_contour, anchor_rgb, anchor_texture, anchor_lbp)
+                positive_out = self.model(positive_contour, positive_rgb, positive_texture, positive_lbp)
+                negative_out = self.model(negative_contour, negative_rgb, negative_texture, negative_lbp)
 
                 # Compute triplet loss
                 t_loss = self.criterion(anchor_out, positive_out, negative_out)
@@ -144,7 +155,7 @@ class TrainFusionNet:
 
             # Validation loop
             with torch.no_grad():
-                for a_rgb, a_con, a_tex, p_rgb, p_con, p_tex, n_rgb, n_con, n_tex in \
+                for a_rgb, a_con, a_tex, a_lbp, p_rgb, p_con, p_tex, p_lbp, n_rgb, n_con, n_tex, n_lbp in \
                         tqdm(self.valid_data_loader, total=len(self.valid_data_loader), desc="Validation"):
                     # Uploading data to the GPU
                     anchor_rgb = a_rgb.to(self.device)
@@ -159,12 +170,16 @@ class TrainFusionNet:
                     positive_texture = p_tex.to(self.device)
                     negative_texture = n_tex.to(self.device)
 
+                    anchor_lbp = a_lbp.to(self.device)
+                    positive_lbp = p_lbp.to(self.device)
+                    negative_lbp = n_lbp.to(self.device)
+
                     self.optimizer.zero_grad()
 
                     # Forward pass
-                    anchor_out = self.model(anchor_contour, anchor_rgb, anchor_texture)
-                    positive_out = self.model(positive_contour, positive_rgb, positive_texture)
-                    negative_out = self.model(negative_contour, negative_rgb, negative_texture)
+                    anchor_out = self.model(anchor_contour, anchor_rgb, anchor_texture, anchor_lbp)
+                    positive_out = self.model(positive_contour, positive_rgb, positive_texture, positive_lbp)
+                    negative_out = self.model(negative_contour, negative_rgb, negative_texture, negative_lbp)
 
                     # Compute triplet loss
                     v_loss = self.criterion(anchor_out, positive_out, negative_out)
@@ -200,6 +215,6 @@ class TrainFusionNet:
 if __name__ == "__main__":
     try:
         tm = TrainFusionNet()
-        tm.fit()
+        tm.train()
     except KeyboardInterrupt as kbe:
         print(f'{kbe}')

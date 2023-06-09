@@ -7,6 +7,8 @@ from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 from typing import Tuple
 
+from config.const import IMAGES_PATH
+
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++ F U S I O N D A T A S E T +++++++++++++++++++++++++++++++++++++++++++++
@@ -15,17 +17,15 @@ class FusionDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- __ I N I T __ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self, dataset_dir: str) -> None:
+    def __init__(self) -> None:
         """
         This is the __init__ function of the dataset loader class.
 
-        :param dataset_dir: Path to the dataset.
         :return: None
         """
 
         self.label_to_indices = None
         self.labels = None
-        self.dataset_path = dataset_dir
 
         # Transforms for each dataset
         self.rgb_transform = transforms.Compose([
@@ -38,42 +38,49 @@ class FusionDataset(Dataset):
             transforms.Resize(128),
             transforms.CenterCrop(128),
             transforms.Grayscale(),
-            transforms.ToTensor(),
+            transforms.ToTensor()
         ])
         self.contour_transform = transforms.Compose([
             transforms.Resize(128),
             transforms.CenterCrop(128),
             transforms.Grayscale(),
-            transforms.ToTensor(),
+            transforms.ToTensor()
+        ])
+        self.lbp_transform = transforms.Compose([
+            transforms.Resize(128),
+            transforms.CenterCrop(128),
+            transforms.Grayscale(),
+            transforms.ToTensor()
         ])
 
         # Load datasets
-        self.rgb_dataset = self.load_dataset('rgb_hardest')
+        self.rgb_dataset = self.load_dataset(IMAGES_PATH.get_data_path("rgb_hardest"))
+        self.texture_dataset = self.load_dataset(IMAGES_PATH.get_data_path("texture_hardest"))
+        self.contour_dataset = self.load_dataset(IMAGES_PATH.get_data_path("contour_hardest"))
+        self.lbp_dataset = self.load_dataset(IMAGES_PATH.get_data_path("lbp_hardest"))
         self.labels_set = set(label for _, label in self.rgb_dataset)
-
-        self.texture_dataset = self.load_dataset('texture_hardest')
-        self.contour_dataset = self.load_dataset('contour_hardest')
         self.prepare_labels()
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- __ G E T I T E M __ ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor,
-                                               torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-
+                                               torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor,
+                                               torch.Tensor, torch.Tensor]:
         """
         This is the __getitem__ method of a dataset loader class. Given an index, it loads the corresponding images from
-        three different datasets (rgb, texture, and contour), and applies some data augmentation (transforms) to each
-        image. It then returns a tuple of nine images.
+        three different datasets (RGB, texture, contour, LBP), and applies some data augmentation (transforms) to each
+        image. It then returns a tuple of twelve images.
 
         :param index: An integer representing the index of the sample to retrieve from the dataset.
-        :return: A tuple of 9 elements, where each element corresponds to an image with a specific transformation.
+        :return: A tuple of 12 elements, where each element corresponds to an image with a specific transformation.
         """
 
         # Load corresponding images from all datasets
         rgb_anchor_img_path, anchor_label = self.rgb_dataset[index]
         texture_anchor_img_path, _ = self.texture_dataset[index]
         contour_anchor_img_path, _ = self.contour_dataset[index]
+        lbp_anchor_img_path, _ = self.lbp_dataset[index]
 
         # Load positive sample from the same class as anchor
         positive_index = index
@@ -82,6 +89,7 @@ class FusionDataset(Dataset):
         rgb_positive_img_path, _ = self.rgb_dataset[positive_index]
         texture_positive_img_path, _ = self.texture_dataset[positive_index]
         contour_positive_img_path, _ = self.contour_dataset[positive_index]
+        lbp_positive_img_path, _ = self.lbp_dataset[positive_index]
 
         # Load negative sample from a different class
         negative_label = np.random.choice(list(self.labels_set - {anchor_label}))
@@ -89,6 +97,7 @@ class FusionDataset(Dataset):
         rgb_negative_img_path, _ = self.rgb_dataset[negative_index]
         texture_negative_img_path, _ = self.texture_dataset[negative_index]
         contour_negative_img_path, _ = self.contour_dataset[negative_index]
+        lbp_negative_img_path, _ = self.lbp_dataset[negative_index]
 
         # Load images and apply transforms
         rgb_anchor_img = Image.open(rgb_anchor_img_path)
@@ -103,6 +112,10 @@ class FusionDataset(Dataset):
         contour_positive_img = Image.open(contour_positive_img_path)
         contour_negative_img = Image.open(contour_negative_img_path)
 
+        lbp_anchor_img = Image.open(lbp_anchor_img_path)
+        lbp_positive_img = Image.open(lbp_positive_img_path)
+        lbp_negative_img = Image.open(lbp_negative_img_path)
+
         rgb_anchor_img = self.rgb_transform(rgb_anchor_img)
         rgb_positive_img = self.rgb_transform(rgb_positive_img)
         rgb_negative_img = self.rgb_transform(rgb_negative_img)
@@ -115,9 +128,13 @@ class FusionDataset(Dataset):
         contour_positive_img = self.contour_transform(contour_positive_img)
         contour_negative_img = self.contour_transform(contour_negative_img)
 
-        return (rgb_anchor_img, texture_anchor_img, contour_anchor_img,
-                rgb_positive_img, texture_positive_img, contour_positive_img,
-                rgb_negative_img, texture_negative_img, contour_negative_img)
+        lbp_anchor_img = self.lbp_transform(lbp_anchor_img)
+        lbp_positive_img = self.lbp_transform(lbp_positive_img)
+        lbp_negative_img = self.lbp_transform(lbp_negative_img)
+
+        return (rgb_anchor_img, texture_anchor_img, contour_anchor_img, lbp_anchor_img,
+                rgb_positive_img, texture_positive_img, contour_positive_img, lbp_positive_img,
+                rgb_negative_img, texture_negative_img, contour_negative_img,lbp_negative_img)
 
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- __ L E N __ --------------------------------------------------
@@ -147,9 +164,8 @@ class FusionDataset(Dataset):
         dataset = []
         labels = []
 
-        dataset_path = os.path.join(self.dataset_path, dataset_name)
-        for label_name in os.listdir(dataset_path):
-            label_path = os.path.join(dataset_path, label_name)
+        for label_name in os.listdir(dataset_name):
+            label_path = os.path.join(dataset_name, label_name)
             if not os.path.isdir(label_path):
                 continue
             label = label_name
