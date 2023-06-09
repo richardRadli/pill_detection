@@ -175,23 +175,23 @@ def main() -> None:
     result = {os.path.basename(x) for x in hardest_neg_samples_union}
 
     # Move hardest contour images
-    files_to_move_contour = files_to_move(result, IMAGES_PATH.get_data_path("ref_contour"))
-    copy_hardest_samples(IMAGES_PATH.get_data_path("contour_hardest"), IMAGES_PATH.get_data_path("ref_contour"),
+    files_to_move_contour = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_contour"))
+    copy_hardest_samples(IMAGES_PATH.get_data_path("contour_hardest"), IMAGES_PATH.get_data_path("ref_train_contour"),
                          files_to_move_contour)
 
     # Move hardest rgb images
-    files_to_move_rgb = files_to_move(result, IMAGES_PATH.get_data_path("ref_rgb"))
-    copy_hardest_samples(IMAGES_PATH.get_data_path("rgb_hardest"), IMAGES_PATH.get_data_path("ref_rgb"),
+    files_to_move_rgb = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_rgb"))
+    copy_hardest_samples(IMAGES_PATH.get_data_path("rgb_hardest"), IMAGES_PATH.get_data_path("ref_train_rgb"),
                          files_to_move_rgb)
 
     # Move hardest texture images
-    files_to_move_texture = files_to_move(result, IMAGES_PATH.get_data_path("ref_texture"))
-    copy_hardest_samples(IMAGES_PATH.get_data_path("texture_hardest"), IMAGES_PATH.get_data_path("ref_texture"),
+    files_to_move_texture = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_texture"))
+    copy_hardest_samples(IMAGES_PATH.get_data_path("texture_hardest"), IMAGES_PATH.get_data_path("ref_train_texture"),
                          files_to_move_texture)
 
     # Move hardest lbp images
-    files_to_move_lbp = files_to_move(result, IMAGES_PATH.get_data_path("ref_lbp"))
-    copy_hardest_samples(IMAGES_PATH.get_data_path("lbp_hardest"), IMAGES_PATH.get_data_path("ref_lbp"),
+    files_to_move_lbp = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_lbp"))
+    copy_hardest_samples(IMAGES_PATH.get_data_path("lbp_hardest"), IMAGES_PATH.get_data_path("ref_train_lbp"),
                          files_to_move_lbp)
 
 

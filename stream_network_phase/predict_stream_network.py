@@ -394,11 +394,12 @@ class PredictStreamNetwork:
             r_images_path = data['images_path']
             logging.info("Reference vectors has been loaded!")
         else:
-            ref_vecs, r_labels, r_images_path = self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("ref_contour"),
-                                                                 lbp_dir=IMAGES_PATH.get_data_path("ref_lbp"),
-                                                                 rgb_dir=IMAGES_PATH.get_data_path("ref_rgb"),
-                                                                 texture_dir=IMAGES_PATH.get_data_path("ref_texture"),
-                                                                 operation="reference")
+            ref_vecs, r_labels, r_images_path = \
+                self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("ref_train_contour"),
+                                 lbp_dir=IMAGES_PATH.get_data_path("ref_train_lbp"),
+                                 rgb_dir=IMAGES_PATH.get_data_path("ref_train_rgb"),
+                                 texture_dir=IMAGES_PATH.get_data_path("ref_train_texture"),
+                                 operation="reference")
 
         # Compare query and reference vectors
         gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)

@@ -146,7 +146,7 @@ class Data(_Const):
         "logs_efficient_net_texture": "data/logs/logs_efficient_net_texture",
 
         "logs_efficient_net_self_attention_contour": "data/logs/logs_efficient_net_self_attention_contour",
-        "logs_efficient_net_sefl_attention_lbp": "data/logs/logs_efficient_net_self_attention_lbp",
+        "logs_efficient_net_self_attention_lbp": "data/logs/logs_efficient_net_self_attention_lbp",
         "logs_efficient_net_self_attention_rgb": "data/logs/logs_efficient_net_self_attention_rgb",
         "logs_efficient_net_self_attention_texture": "data/logs/logs_efficient_net_self_attention_texture",
 

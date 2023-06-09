@@ -180,8 +180,8 @@ class TrainModel:
                 "logs_dir": {
                     "StreamNetwork": DATA_PATH.get_data_path("logs_stream_texture"),
                     "EfficientNet": DATA_PATH.get_data_path("logs_efficient_net_texture"),
-                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("")
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_efficient_net_self_attention_texture")),
+                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("logs_efficient_net_self_attention_texture")
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_stream_texture")),
                 "learning_rate": {
                     "StreamNetwork": self.cfg.learning_rate_cnn_tex,
                     "EfficientNet": self.cfg.learning_rate_en_tex,
