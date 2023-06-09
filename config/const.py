@@ -61,6 +61,8 @@ class Images(_Const):
         "test_images": "images/test/test_images",
         "test_masks": "images/test/test_masks",
 
+        "valid_masks": "images/valid/validatio",
+
         "unet_out": "images/unet/unet_out",
         "unet_compare": "images/unet/unet_compare",
 
