@@ -123,10 +123,18 @@ def statistics_of_dataset(class_counts: Dict[str, int], train_images: Dict[str, 
 # ------------------------------------------------------------------------------------------------------------------- #
 # ----------------------------------------------- M O V E   F I L E S ----------------------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
-def move_files(set_images, images_path, set_images_path, labels_path, set_labels_path, op: str) -> None:
+def move_files(set_images: Dict[str, List[str]], images_path: str, set_images_path: str, labels_path: str,
+               set_labels_path: str, op: str) -> None:
     """
-    Move the files from the train directories to the test directories based on the test images.
+    Move files from the source directory to the destination directory.
 
+    :param set_images: Dictionary containing image filenames for each class.
+    :param images_path: Path to the source image directory.
+    :param set_images_path: Path to the destination image directory.
+    :param labels_path: Path to the source label directory.
+    :param set_labels_path: Path to the destination label directory.
+    :param op: Operation description for progress display.
+    :return: None
     """
 
     for class_name in tqdm(set_images, desc="Moving %s files" % op):

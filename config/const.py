@@ -55,13 +55,9 @@ class _Const(object):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Images(_Const):
     dirs_images = {
-        "train_images": "images/train/train_images",
-        "train_masks": "images/train/train_masks",
-
-        "test_images": "images/test/test_images",
-        "test_masks": "images/test/test_masks",
-
-        "valid_masks": "images/valid/validatio",
+        "train_masks": "images/masks/train_masks",
+        "test_masks": "images/masks/test_masks",
+        "valid_masks": "images/masks/validation",
 
         "unet_out": "images/unet/unet_out",
         "unet_compare": "images/unet/unet_compare",
@@ -185,10 +181,10 @@ class Datasets(_Const):
 
         "ogyi_v2_splitted_train_images": "datasets/ogyi_v2/splitted/train/images",
         "ogyi_v2_splitted_train_labels": "datasets/ogyi_v2/splitted/train/labels",
-        "ogyi_v2_splitted_test_images": "datasets/ogyi_v2/splitted/test/images",
-        "ogyi_v2_splitted_test_labels": "datasets/ogyi_v2/splitted/test/labels",
         "ogyi_v2_splitted_valid_images": "datasets/ogyi_v2/splitted/valid/images",
         "ogyi_v2_splitted_valid_labels": "datasets/ogyi_v2/splitted/valid/labels",
+        "ogyi_v2_splitted_test_images": "datasets/ogyi_v2/splitted/test/images",
+        "ogyi_v2_splitted_test_labels": "datasets/ogyi_v2/splitted/test/labels",
 
         "ogyi_v3_unsplitted_images": "datasets/ogyi_v3/unsplitted/images",
         "ogyi_v3_unsplitted_labels": "datasets/ogyi_v3/unsplitted/labels",

@@ -9,7 +9,7 @@ from glob import glob
 from sklearn.metrics import confusion_matrix
 from tqdm import tqdm
 
-from config.const import IMAGES_PATH
+from config.const import IMAGES_PATH, DATASET_PATH
 from utils.utils import numerical_sort
 
 
@@ -24,6 +24,9 @@ def calculate_metrics_thread() -> (float, float, float, float):
 
     images_true = sorted(glob(IMAGES_PATH.get_data_path("test_mask") + "/*.png"))
     images_pred = sorted(glob(IMAGES_PATH.get_data_path("unet_out") + "/*.png"))
+
+    if len(images_true) == 0 or len(images_pred) == 0:
+        raise ValueError("The list is empty.")
 
     fpr_list = []
     tpr_list = []
@@ -132,6 +135,9 @@ def plot_unet_comparison_images(input_image: np.ndarray, gt_image: np.ndarray, p
     gc.collect()
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------- P L O T   R E S U L T S -----------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def plot_results() -> None:
     """
     Plots the ground truth image, mask and the predicted mask on a figure.
@@ -139,9 +145,12 @@ def plot_results() -> None:
     :return: None
     """
 
-    images_input = sorted(glob(IMAGES_PATH.get_data_path("test_images") + "/*.png"), key=numerical_sort)
-    images_true = sorted(glob(IMAGES_PATH.get_data_path("test_mask") + '/*.png'), key=numerical_sort)
-    images_pred = sorted(glob(IMAGES_PATH.get_data_path("unet_out") + '/*.png'), key=numerical_sort)
+    images_input = \
+        sorted(glob(DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images") + "/*.png"), key=numerical_sort)
+    images_true = \
+        sorted(glob(IMAGES_PATH.get_data_path("test_mask") + '/*.png'), key=numerical_sort)
+    images_pred = \
+        sorted(glob(IMAGES_PATH.get_data_path("unet_out") + '/*.png'), key=numerical_sort)
 
     for idx, (input_img_val, true_img_val, pred_img_val) in tqdm(enumerate(zip(images_input, images_true, images_pred)),
                                                                  total=len(images_input), desc="Plotting images"):
@@ -155,11 +164,19 @@ def plot_results() -> None:
         plot_unet_comparison_images(in_img, gt_img, pred_img, output_path)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------- M A I N ------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def main():
+    fpr_res, tpr_res, ppvc_res, iou_res = calculate_metrics_thread()
+    print(
+        f" Fall out: {fpr_res: .4f}\n Recall: {tpr_res: .4f}\n Precision: {ppvc_res: .4f}\n IoU: {iou_res: .4f}\n")
+    plot_results()
+
+
 if __name__ == "__main__":
     try:
-        fpr_res, tpr_res, ppvc_res, iou_res = calculate_metrics_thread()
-        print(
-            f" Fall out: {fpr_res: .4f}\n Recall: {tpr_res: .4f}\n Precision: {ppvc_res: .4f}\n IoU: {iou_res: .4f}\n")
-        plot_results()
+        main()
     except KeyboardInterrupt as kie:
         print(kie)
+

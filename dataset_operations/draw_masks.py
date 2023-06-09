@@ -16,9 +16,9 @@ import os
 from PIL import Image, ImageDraw
 from pathlib import Path
 from tqdm import tqdm
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 
-from config.const import DATA_PATH, IMAGES_PATH
+from config.const import DATASET_PATH, IMAGES_PATH
 from config.logger_setup import setup_logger
 
 
@@ -31,19 +31,25 @@ def path_selector(operation):
 
     :param operation: A string indicating the operation mode (train or test).
     :return: A dictionary containing directory paths for images, masks, and other related files.
-    :raises ValueError: If the operation string is not "train" or "test".
+    :raises ValueError: If the operation string is not "train", "valid" or "test".
     """
 
     if operation.lower() == "train":
         path_to_images = {
-            "images": IMAGES_PATH.get_data_path("train_images"),
-            "labels": DATA_PATH.get_data_path("train_labels"),
+            "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images"),
+            "labels": DATASET_PATH.get_data_path("ogyi_v2_splitted_train_labels"),
             "masks": IMAGES_PATH.get_data_path("train_masks")
+        }
+    elif operation.lower() == "valid":
+        path_to_images = {
+            "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_images"),
+            "labels": DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_labels"),
+            "masks": IMAGES_PATH.get_data_path("valid_masks")
         }
     elif operation.lower() == "test":
         path_to_images = {
-            "images": IMAGES_PATH.get_data_path("test_images"),
-            "labels": DATA_PATH.get_data_path("test_labels"),
+            "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images"),
+            "labels": DATASET_PATH.get_data_path("ogyi_v2_splitted_test_labels"),
             "masks": IMAGES_PATH.get_data_path("test_masks")
         }
     else:
@@ -55,27 +61,27 @@ def path_selector(operation):
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------- L O A D   F I L E S --------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def load_files(train_dir: str, labels_dir: str) -> Tuple[List[str], List[str]]:
+def load_files(images_dir: str, labels_dir: str) -> Tuple[List[str], List[str]]:
     """
     This function loads the image and label files from two directories: train_dir and labels_dir.
-    :param train_dir: it is the path to the directory containing the image files.
+    :param images_dir: it is the path to the directory containing the image files.
     :param labels_dir: it is the path to the directory containing the corresponding label files for each image
     :return: two lists of file paths: image_files and text_files.
     """
 
-    if not os.path.isdir(train_dir):
-        raise ValueError(f"Invalid path: {train_dir} is not a directory")
+    if not os.path.isdir(images_dir):
+        raise ValueError(f"Invalid path: {images_dir} is not a directory")
 
     if not os.path.isdir(labels_dir):
         raise ValueError(f"Invalid path: {labels_dir} is not a directory")
 
-    image_files = sorted([str(file) for file in Path(train_dir).glob("*.jpg")] +
-                         [str(file) for file in Path(train_dir).glob("*.png")])
+    image_files = sorted([str(file) for file in Path(images_dir).glob("*.jpg")] +
+                         [str(file) for file in Path(images_dir).glob("*.png")])
 
     text_files = sorted([str(file) for file in Path(labels_dir).glob("*.txt")])
 
     if not image_files:
-        raise ValueError(f"No image files found in {train_dir}")
+        raise ValueError(f"No image files found in {images_dir}")
 
     if not text_files:
         raise ValueError(f"No text files found in {labels_dir}")
@@ -128,12 +134,13 @@ def process_data(img_files: str, txt_files: str):
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------- S A V E   M A S K S --------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def save_masks(mask: np.ndarray, img_file: str, path_to_files) -> None:
+def save_masks(mask: np.ndarray, img_file: str, path_to_files: Dict[str, str]) -> None:
     """
     This function saves the mask to a given path.
+
     :param mask: Mask image.
     :param img_file: path of the image file.
-    :param: path_to_files: path to the images.
+    :param path_to_files: path to the files.
     :return: None
     """
 
@@ -155,7 +162,7 @@ def main(operation: str = "Train") -> None:
     setup_logger()
     path_to_files = path_selector(operation)
 
-    img_files, txt_files = load_files(train_dir=path_to_files.get("images"), labels_dir=path_to_files.get("labels"))
+    img_files, txt_files = load_files(images_dir=path_to_files.get("images"), labels_dir=path_to_files.get("labels"))
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []
@@ -175,4 +182,4 @@ def main(operation: str = "Train") -> None:
 # --------------------------------------------------- __M A I N__ ------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    main(operation="Test")
+    main(operation="Train")

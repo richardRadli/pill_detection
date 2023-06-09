@@ -7,7 +7,7 @@ import wandb
 
 from pathlib import Path
 from torch import optim
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 from torchsummary import summary
 from tqdm import tqdm
 
@@ -15,7 +15,7 @@ from unet import UNet
 from unet.data_loading import CustomDataset, BasicDataset
 from utils.utils import create_timestamp, dice_coefficient, dice_loss, multiclass_dice_coefficient, use_gpu_if_available
 from config.config import ConfigTrainingUnet
-from config.const import DATA_PATH, IMAGES_PATH
+from config.const import DATA_PATH, DATASET_PATH, IMAGES_PATH
 
 cfg = ConfigTrainingUnet().parse()
 
@@ -59,28 +59,28 @@ def evaluate(net, dataloader, device, amp):
 def train_model(model, device, epochs: int = 5, batch_size: int = 1, learning_rate: float = 1e-5,
                 val_percent: float = 0.1, save_checkpoint: bool = True, img_scale: float = 0.5, amp: bool = False,
                 weight_decay: float = 1e-8, momentum: float = 0.999, gradient_clipping: float = 1.0):
-    # 1. Create dataset
+    # 1. Create train dataset
     try:
-        dataset = CustomDataset(IMAGES_PATH.get_data_path("train_images"), IMAGES_PATH.get_data_path("train_masks"),
-                                cfg.scale)
+        train_dataset = CustomDataset(DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images"),
+                                      IMAGES_PATH.get_data_path("train_masks"), cfg.scale)
     except (AssertionError, RuntimeError, IndexError):
-        dataset = BasicDataset(IMAGES_PATH.get_data_path("train_images"), IMAGES_PATH.get_data_path("train_masks"),
-                               cfg.scale)
+        train_dataset = BasicDataset(DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images"),
+                                     IMAGES_PATH.get_data_path("train_masks"), cfg.scale)
 
-    # 2. Split into train / validation partitions
-    # Determine the ratio of the split
-    train_ratio = 0.8
-
-    # Determine the lengths of each split based on the ratio
-    n_train = int(train_ratio * len(dataset))
-    n_val = len(dataset) - n_train
-
-    train_set, val_set = random_split(dataset, [n_train, n_val])
+    # 2. Create validation dataset
+    try:
+        valid_dataset = CustomDataset(DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_images"),
+                                      IMAGES_PATH.get_data_path("valid_masks"), cfg.scale)
+    except (AssertionError, RuntimeError, IndexError):
+        valid_dataset = BasicDataset(DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_images"),
+                                     IMAGES_PATH.get_data_path("valid_masks"), cfg.scale)
 
     # 3. Create data loaders
     loader_cfg = dict(batch_size=cfg.batch_size, num_workers=1, pin_memory=True)
-    train_loader = DataLoader(train_set, shuffle=True, **loader_cfg)
-    val_loader = DataLoader(val_set, shuffle=False, drop_last=True, **loader_cfg)
+    train_loader = DataLoader(train_dataset, shuffle=True, **loader_cfg)
+    n_train = len(train_loader)
+    val_loader = DataLoader(valid_dataset, shuffle=False, drop_last=True, **loader_cfg)
+    n_val = len(val_loader)
 
     # (Initialize logging)
     experiment = wandb.init(project='U-Net', dir=DATA_PATH.get_data_path("logs_unet"), resume='allow', anonymous='must')
@@ -190,7 +190,7 @@ def train_model(model, device, epochs: int = 5, batch_size: int = 1, learning_ra
             path_to_save = os.path.join(DATA_PATH.get_data_path("weights_unet"), timestamp)
             Path(path_to_save).mkdir(parents=True, exist_ok=True)
             state_dict = model.state_dict()
-            state_dict['mask_values'] = dataset.mask_values
+            state_dict['mask_values'] = train_dataset.mask_values
             torch.save(state_dict, (path_to_save + '/checkpoint_epoch{}.pth'.format(epoch)))
             logging.info(f'Checkpoint {epoch} saved!')
 
