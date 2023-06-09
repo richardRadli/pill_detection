@@ -10,51 +10,61 @@ from glob import glob
 from tqdm import tqdm
 from typing import Tuple
 
-from config.const import IMAGES_PATH
+from config.const import DATASET_PATH, IMAGES_PATH
 from config.config import ConfigGeneral
 from config.logger_setup import setup_logger
-from utils.utils import numerical_sort
+from utils.utils import measure_execution_time, numerical_sort
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++ C R E A T E   S T R E A M   I M A G E S +++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CreateStreamImages:
-    def __init__(self, operation: str = "test"):
+    def __init__(self, op: str = "test"):
         setup_logger()
+        logging.info("Selected operation: %s" % op)
         self.cfg = ConfigGeneral().parse()
-        self.path_to_images = self.path_selector(operation)
+        self.path_to_images = self.path_selector(op)
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- P A T H   S E L E C T O R -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def path_selector(operation):
+    def path_selector(op):
         """
         Selects the correct directory paths based on the given operation string.
 
-        :param operation: A string indicating the operation mode (train or test).
+        :param op: A string indicating the operation mode (train or test).
         :return: A dictionary containing directory paths for images, masks, and other related files.
         :raises ValueError: If the operation string is not "train" or "test".
         """
 
-        if operation.lower() == "train":
+        if op.lower() == "train":
             path_to_images = {
-                "images": IMAGES_PATH.get_data_path("train_images"),
+                "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images"),
                 "masks": IMAGES_PATH.get_data_path("train_masks"),
-                "rgb": IMAGES_PATH.get_data_path("ref_rgb"),
-                "contour": IMAGES_PATH.get_data_path("ref_contour"),
-                "texture": IMAGES_PATH.get_data_path("ref_texture"),
-                "lbp": IMAGES_PATH.get_data_path("ref_lbp")
+                "contour": IMAGES_PATH.get_data_path("ref_train_contour"),
+                "lbp": IMAGES_PATH.get_data_path("ref_train_lbp"),
+                "rgb": IMAGES_PATH.get_data_path("ref_train_rgb"),
+                "texture": IMAGES_PATH.get_data_path("ref_train_texture"),
             }
-        elif operation.lower() == "test":
+        elif op.lower() == "valid":
             path_to_images = {
-                "images": IMAGES_PATH.get_data_path("test_images"),
+                "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_images"),
+                "masks": IMAGES_PATH.get_data_path("valid_masks"),
+                "contour": IMAGES_PATH.get_data_path("ref_valid_contour"),
+                "lbp": IMAGES_PATH.get_data_path("ref_valid_lbp"),
+                "rgb": IMAGES_PATH.get_data_path("ref_valid_rgb"),
+                "texture": IMAGES_PATH.get_data_path("ref_valid_texture"),
+            }
+        elif op.lower() == "test":
+            path_to_images = {
+                "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images"),
                 "masks": IMAGES_PATH.get_data_path("test_masks"),
-                "rgb": IMAGES_PATH.get_data_path("query_rgb"),
                 "contour": IMAGES_PATH.get_data_path("query_contour"),
+                "lbp": IMAGES_PATH.get_data_path("query_lbp"),
+                "rgb": IMAGES_PATH.get_data_path("query_rgb"),
                 "texture": IMAGES_PATH.get_data_path("query_texture"),
-                "lbp": IMAGES_PATH.get_data_path("query_lbp")
             }
         else:
             raise ValueError("Wrong operation!")
@@ -365,6 +375,7 @@ class CreateStreamImages:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------- M A I N ----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
+    @measure_execution_time
     def main(self) -> None:
         """
         Executes the functions to create the images.
@@ -386,5 +397,10 @@ class CreateStreamImages:
 # ----------------------------------------------------- __M A I N__ ----------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    proc_unet_imgs = CreateStreamImages(operation="Test")
-    proc_unet_imgs.main()
+    try:
+        operations = ["Train", "Valid", "Test"]
+        for operation in operations:
+            proc_unet_imgs = CreateStreamImages(op=operation)
+            proc_unet_imgs.main()
+    except KeyboardInterrupt as kie:
+        logging.error(kie)

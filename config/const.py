@@ -62,10 +62,15 @@ class Images(_Const):
         "unet_out": "images/unet/unet_out",
         "unet_compare": "images/unet/unet_compare",
 
-        "ref_contour": "images/references/contour",
-        "ref_lbp": "images/references/lbp",
-        "ref_rgb": "images/references/rgb",
-        "ref_texture": "images/references/texture",
+        "ref_train_contour": "images/references/contour/train",
+        "ref_train_lbp": "images/references/lbp/train",
+        "ref_train_rgb": "images/references/rgb/train",
+        "ref_train_texture": "images/references/texture/train",
+
+        "ref_valid_contour": "images/references/contour/valid",
+        "ref_valid_lbp": "images/references/lbp/valid",
+        "ref_valid_rgb": "images/references/rgb/valid",
+        "ref_valid_texture": "images/references/texture/valid",
 
         "query_contour": "images/query/contour",
         "query_lbp": "images/query/lbp",

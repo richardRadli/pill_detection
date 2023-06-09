@@ -15,7 +15,7 @@ import torch
 
 from typing import Dict
 from tqdm import tqdm
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
@@ -58,12 +58,10 @@ class TrainModel:
         network_cfg = network_config.get(self.cfg.type_of_stream)
 
         # Load dataset
-        self.dataset = StreamDataset(network_cfg.get('dataset_dir'), self.cfg.type_of_stream)
-        train_size = int(self.cfg.train_rate * len(self.dataset))
-        valid_size = len(self.dataset) - train_size
-        logging.info(f"Number of images in the train set: {train_size}")
-        logging.info(f"Number of images in the validation set: {valid_size}")
-        train_dataset, valid_dataset = random_split(self.dataset, [train_size, valid_size])
+        train_dataset = StreamDataset(network_cfg.get('train_dataset_dir'), self.cfg.type_of_stream)
+        valid_dataset = StreamDataset(network_cfg.get('valid_dataset_dir'), self.cfg.type_of_stream)
+        logging.info(f"Number of images in the train set: {len(train_dataset)}")
+        logging.info(f"Number of images in the validation set: {len(valid_dataset)}")
         self.train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
         self.valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
 
@@ -106,7 +104,8 @@ class TrainModel:
         network_config = {
             "Contour": {
                 "channels": [1, 32, 48, 64, 128, 192, 256],
-                "dataset_dir": IMAGES_PATH.get_data_path("ref_contour"),
+                "train_dataset_dir": IMAGES_PATH.get_data_path("ref_train_contour"),
+                "valid_dataset_dir": IMAGES_PATH.get_data_path("ref_valid_contour"),
                 "model_weights_dir": {
                     "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_contour"),
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_contour"),
@@ -118,16 +117,17 @@ class TrainModel:
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("logs_efficient_net_self_attention_contour")
                 }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_stream_contour")),
                 "learning_rate": {
-                    "StreamNetwork": self.cfg.learning_rate_cnn_con_tex_lbp,
-                    "EfficientNet": self.cfg.learning_rate_en_con_tex_lbp,
-                    "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_con_tex_lbp
-                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex_lbp),
+                    "StreamNetwork": self.cfg.learning_rate_cnn_con,
+                    "EfficientNet": self.cfg.learning_rate_en_con,
+                    "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_con
+                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con),
                 "grayscale": True
             },
 
             "LBP": {
                 "channels": [1, 32, 48, 64, 128, 192, 256],
-                "dataset_dir": IMAGES_PATH.get_data_path("ref_lbp"),
+                "train_dataset_dir": IMAGES_PATH.get_data_path("ref_train_lbp"),
+                "valid_dataset_dir": IMAGES_PATH.get_data_path("ref_valid_lbp"),
                 "model_weights_dir": {
                     "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_lbp"),
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_lbp"),
@@ -139,16 +139,17 @@ class TrainModel:
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("logs_efficient_net_self_attention_lbp")
                 }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_stream_lbp")),
                 "learning_rate": {
-                    "StreamNetwork": self.cfg.learning_rate_cnn_con_tex_lbp,
-                    "EfficientNet": self.cfg.learning_rate_cnn_con_tex_lbp,
-                    "EfficientNetSelfAttention": self.cfg.learning_rate_cnn_con_tex_lbp
-                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex_lbp),
+                    "StreamNetwork": self.cfg.learning_rate_cnn_lbp,
+                    "EfficientNet": self.cfg.learning_rate_en_lbp,
+                    "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_lbp
+                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_lbp),
                 "grayscale": True
             },
 
             "RGB": {
                 "channels": [3, 64, 96, 128, 256, 384, 512],
-                "dataset_dir": IMAGES_PATH.get_data_path("ref_rgb"),
+                "train_dataset_dir": IMAGES_PATH.get_data_path("ref_train_rgb"),
+                "valid_dataset_dir": IMAGES_PATH.get_data_path("ref_valid_rgb"),
                 "model_weights_dir": {
                     "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_rgb"),
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_rgb"),
@@ -169,7 +170,8 @@ class TrainModel:
 
             "Texture": {
                 "channels": [1, 32, 48, 64, 128, 192, 256],
-                "dataset_dir": IMAGES_PATH.get_data_path("ref_texture"),
+                "train_dataset_dir": IMAGES_PATH.get_data_path("ref_train_texture"),
+                "valid_dataset_dir": IMAGES_PATH.get_data_path("ref_valid_texture"),
                 "model_weights_dir": {
                     "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_texture"),
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_texture"),
@@ -181,10 +183,10 @@ class TrainModel:
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("")
                 }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_efficient_net_self_attention_texture")),
                 "learning_rate": {
-                    "StreamNetwork": self.cfg.learning_rate_cnn_con_tex_lbp,
-                    "EfficientNet": self.cfg.learning_rate_cnn_con_tex_lbp,
-                    "EfficientNetSelfAttention": self.cfg.learning_rate_cnn_con_tex_lbp
-                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con_tex_lbp),
+                    "StreamNetwork": self.cfg.learning_rate_cnn_tex,
+                    "EfficientNet": self.cfg.learning_rate_en_tex,
+                    "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_tex
+                }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_tex),
                 "grayscale": True
             }
         }
