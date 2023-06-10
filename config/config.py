@@ -86,9 +86,9 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetSelfAttention",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
                                  help="StreamNetwork | EfficientNet | EfficientNetSelfAttention")
-        self.parser.add_argument("--type_of_stream", type=str, default="LBP", help="RGB | Contour | Texture | LBP")
+        self.parser.add_argument("--type_of_stream", type=str, default="RGB", help="RGB | Contour | Texture | LBP")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=30)
         self.parser.add_argument("--batch_size", type=int, default=128)
@@ -105,7 +105,9 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--learning_rate_ensa_lbp", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_ensa_tex", type=float, default=1e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)
-        self.parser.add_argument("--img_size", type=int, default=128)
+        self.parser.add_argument("--img_size_cnn", type=int, default=128)
+        self.parser.add_argument("--img_size_en", type=int, default=224)
+        self.parser.add_argument("--img_size_ensa", type=int, default=224)
         self.parser.add_argument("--load_ref_vector", type=bool, default=False)
 
     def parse(self):

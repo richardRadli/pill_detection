@@ -1,4 +1,3 @@
-import logging
 import numpy as np
 import os
 import pandas as pd
@@ -326,11 +325,12 @@ class PredictFusionNetwork:
                              lbp_dir=IMAGES_PATH.get_data_path("query_lbp"),
                              operation="query")
 
-        ref_vectors, r_labels, r_images_path = self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("ref_contour"),
-                                                                rgb_dir=IMAGES_PATH.get_data_path("ref_rgb"),
-                                                                texture_dir=IMAGES_PATH.get_data_path("ref_texture"),
-                                                                lbp_dir=IMAGES_PATH.get_data_path("ref_lbp"),
-                                                                operation="reference")
+        ref_vectors, r_labels, r_images_path = \
+            self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("ref_train_contour"),
+                             rgb_dir=IMAGES_PATH.get_data_path("ref_train_rgb"),
+                             texture_dir=IMAGES_PATH.get_data_path("ref_train_texture"),
+                             lbp_dir=IMAGES_PATH.get_data_path("ref_train_lbp"),
+                             operation="reference")
 
         gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vectors, query_vectors)
 

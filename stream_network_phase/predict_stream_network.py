@@ -59,13 +59,19 @@ class PredictStreamNetwork:
         self.network_lbp.eval()
 
         # Preprocess images
-        self.preprocess_rgb = transforms.Compose([transforms.Resize((self.cfg.img_size, self.cfg.img_size)),
-                                                  transforms.ToTensor(),
-                                                  transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
+        self.preprocess_rgb = \
+            transforms.Compose([transforms.Resize((
+                self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
+                self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))),
+                transforms.ToTensor(),
+                transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
 
-        self.preprocess_con_tex = transforms.Compose([transforms.Resize((self.cfg.img_size, self.cfg.img_size)),
-                                                      transforms.Grayscale(),
-                                                      transforms.ToTensor()])
+        self.preprocess_con_tex = \
+            transforms.Compose([transforms.Resize((
+                self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
+                self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))),
+                transforms.Grayscale(),
+                transforms.ToTensor()])
 
         # Select device
         self.device = use_gpu_if_available()
@@ -123,6 +129,11 @@ class PredictStreamNetwork:
                     "EfficientNetSelfAttention":
                         DATA_PATH.get_data_path("weights_efficient_net_self_attention_contour"),
                 }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_contour")),
+                "image_size": {
+                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "EfficientNet": self.cfg.img_size_en,
+                    "EfficientNetSelfAttention": self.cfg.img_size_ensa
+                }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
                 "grayscale": True
             },
 
@@ -133,6 +144,11 @@ class PredictStreamNetwork:
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_lbp"),
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_lbp"),
                 }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_lbp")),
+                "image_size": {
+                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "EfficientNet": self.cfg.img_size_en,
+                    "EfficientNetSelfAttention": self.cfg.img_size_ensa
+                }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
                 "grayscale": True
             },
 
@@ -143,6 +159,11 @@ class PredictStreamNetwork:
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_rgb"),
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_rgb"),
                 }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_rgb")),
+                "image_size": {
+                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "EfficientNet": self.cfg.img_size_en,
+                    "EfficientNetSelfAttention": self.cfg.img_size_ensa
+                }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
                 "grayscale": False
             },
 
@@ -154,6 +175,11 @@ class PredictStreamNetwork:
                     "EfficientNetSelfAttention":
                         DATA_PATH.get_data_path("weights_efficient_net_self_attention_texture"),
                 }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_texture")),
+                "image_size": {
+                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "EfficientNet": self.cfg.img_size_en,
+                    "EfficientNetSelfAttention": self.cfg.img_size_ensa
+                }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
                 "grayscale": True
             },
         }

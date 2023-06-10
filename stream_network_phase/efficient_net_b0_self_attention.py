@@ -8,10 +8,10 @@ class EfficientNetSelfAttention(nn.Module):
         super(EfficientNetSelfAttention, self).__init__()
         self.loc = loc
         self.grayscale = grayscale
-        self.model = models.efficientnet_b0(weights='DEFAULT')  # self.build_model()
+        self.model = self.build_model()
         if self.grayscale:
             self.model.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
-        self.linear = nn.Linear(1000, loc[4])
+        self.linear = nn.Linear(loc[6], loc[4])
 
         self.input_dim = loc[4]
         self.query = nn.Linear(self.input_dim, self.input_dim)
@@ -22,7 +22,6 @@ class EfficientNetSelfAttention(nn.Module):
         if self.grayscale:
             x = x.expand(-1, 3, -1, -1)
         x = self.model(x)
-        x = self.linear(x)
 
         queries = self.query(x)
         keys = self.key(x)
@@ -44,11 +43,5 @@ class EfficientNetSelfAttention(nn.Module):
         for params in model.parameters():
             params.requires_grad = False
 
-        model.classifier[1] = nn.Linear(in_features=1280, out_features=self.loc[6])
+        model.classifier[1] = nn.Linear(in_features=1280, out_features=self.loc[4])
         return model
-
-
-# from torchsummary import summary
-# en = EfficientNetSelfAttention(loc=[3, 64, 96, 128, 256, 384, 512])
-# en = en.to("cuda")
-# summary(en, (3, 128, 128))

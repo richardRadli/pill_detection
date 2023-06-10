@@ -58,8 +58,10 @@ class TrainModel:
         network_cfg = network_config.get(self.cfg.type_of_stream)
 
         # Load dataset
-        train_dataset = StreamDataset(network_cfg.get('train_dataset_dir'), self.cfg.type_of_stream)
-        valid_dataset = StreamDataset(network_cfg.get('valid_dataset_dir'), self.cfg.type_of_stream)
+        train_dataset = \
+            StreamDataset(network_cfg.get('train_dataset_dir'), self.cfg.type_of_stream, network_cfg.get("image_size"))
+        valid_dataset = \
+            StreamDataset(network_cfg.get('valid_dataset_dir'), self.cfg.type_of_stream, network_cfg.get("image_size"))
         logging.info(f"Number of images in the train set: {len(train_dataset)}")
         logging.info(f"Number of images in the validation set: {len(valid_dataset)}")
         self.train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
@@ -70,7 +72,8 @@ class TrainModel:
         self.model.to(self.device)
 
         # Print model configuration
-        summary(self.model, (network_cfg.get('channels')[0], self.cfg.img_size, self.cfg.img_size))
+        summary(self.model,
+                (network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size")))
 
         # Specify loss function
         self.criterion = TripletLossWithHardMining(margin=self.cfg.margin)
@@ -121,6 +124,11 @@ class TrainModel:
                     "EfficientNet": self.cfg.learning_rate_en_con,
                     "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_con
                 }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con),
+                "image_size": {
+                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "EfficientNet": self.cfg.img_size_en,
+                    "EfficientNetSelfAttention": self.cfg.img_size_ensa
+                }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
                 "grayscale": True
             },
 
@@ -143,6 +151,11 @@ class TrainModel:
                     "EfficientNet": self.cfg.learning_rate_en_lbp,
                     "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_lbp
                 }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_lbp),
+                "image_size": {
+                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "EfficientNet": self.cfg.img_size_en,
+                    "EfficientNetSelfAttention": self.cfg.img_size_ensa
+                }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
                 "grayscale": True
             },
 
@@ -165,6 +178,11 @@ class TrainModel:
                     "EfficientNet": self.cfg.learning_rate_en_rgb,
                     "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_rgb
                 }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_rgb),
+                "image_size": {
+                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "EfficientNet": self.cfg.img_size_en,
+                    "EfficientNetSelfAttention": self.cfg.img_size_ensa
+                }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
                 "grayscale": False
             },
 
@@ -187,6 +205,11 @@ class TrainModel:
                     "EfficientNet": self.cfg.learning_rate_en_tex,
                     "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_tex
                 }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_tex),
+                "image_size": {
+                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "EfficientNet": self.cfg.img_size_en,
+                    "EfficientNetSelfAttention": self.cfg.img_size_ensa
+                }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
                 "grayscale": True
             }
         }
@@ -262,7 +285,7 @@ class TrainModel:
 
         for epoch in tqdm(range(self.cfg.epochs), desc="Epochs"):
             # Train loop
-            for idx, (anchor, positive, negative, negative_img_path, positive_img_path) in \
+            for idx, (anchor, positive, negative, negative_img_path) in \
                     tqdm(enumerate(self.train_data_loader), total=len(self.train_data_loader), desc="Train"):
                 # Upload data to the GPU
                 anchor = anchor.to(self.device)
@@ -292,9 +315,9 @@ class TrainModel:
 
             # Validation loop
             with torch.no_grad():
-                for idx, (anchor, positive, negative, _, _) in tqdm(enumerate(self.valid_data_loader),
-                                                                    total=len(self.valid_data_loader),
-                                                                    desc="Validation"):
+                for idx, (anchor, positive, negative, _) in tqdm(enumerate(self.valid_data_loader),
+                                                                 total=len(self.valid_data_loader),
+                                                                 desc="Validation"):
                     # Upload data to GPU
                     anchor = anchor.to(self.device)
                     positive = positive.to(self.device)

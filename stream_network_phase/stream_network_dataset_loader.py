@@ -1,6 +1,7 @@
 import numpy as np
 import os
 
+from itertools import combinations
 from PIL import Image
 from typing import List, Tuple
 from torch.utils.data import Dataset
@@ -11,10 +12,7 @@ from torchvision.transforms import transforms
 # +++++++++++++++++++++++++++++++++++++++++++++ S T R E A M   D A T A S E T ++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class StreamDataset(Dataset):
-    # ------------------------------------------------------------------------------------------------------------------
-    # --------------------------------------------------- _ I N I T _ --------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self, dataset_dir: str, type_of_stream: str) -> None:
+    def __init__(self, dataset_dir: str, type_of_stream: str, image_size: int) -> None:
         self.labels_set = None
         self.label_to_indices = None
         self.labels = None
@@ -23,15 +21,15 @@ class StreamDataset(Dataset):
 
         if self.type_of_stream == "RGB":
             self.transform = transforms.Compose([
-                transforms.Resize(128),
-                transforms.CenterCrop(128),
+                transforms.Resize(image_size),
+                transforms.CenterCrop(image_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
             ])
         elif self.type_of_stream in ["Contour", "Texture", "LBP"]:
             self.transform = transforms.Compose([
-                transforms.Resize(128),
-                transforms.CenterCrop(128),
+                transforms.Resize(image_size),
+                transforms.CenterCrop(image_size),
                 transforms.Grayscale(),
                 transforms.ToTensor(),
             ])
@@ -39,17 +37,9 @@ class StreamDataset(Dataset):
             raise ValueError("Wrong kind of network")
 
         self.dataset = self.load_dataset()
+        self.triplets = self.generate_triplets()
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ---------------------------------------- L O A D   T H E   D A T A S E T -----------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     def load_dataset(self) -> List[Tuple[str, str]]:
-        """
-        Load the dataset.
-
-        :return: A list of tuples, where each tuple contains the path to an image and its corresponding label.
-        """
-
         dataset = []
         labels = set()
         for label_name in os.listdir(self.dataset_path):
@@ -66,25 +56,24 @@ class StreamDataset(Dataset):
         self.label_to_indices = {label: np.where(self.labels == label)[0] for label in self.labels_set}
         return dataset
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ----------------------------------------------- __ G E T I T E M __ ----------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def __getitem__(self, index: int) -> Tuple[Image.Image, Image.Image, Image.Image, str, str]:
-        """
-        Retrieve a triplet of images (anchor, positive, negative) and their paths for a given index.
+    def generate_triplets(self) -> List[Tuple[int, int, int]]:
+        triplets = []
+        for label in self.labels_set:
+            label_indices = self.label_to_indices[label]
+            if len(label_indices) < 2:
+                continue
+            anchor_positive_pairs = list(combinations(label_indices, 2))
+            for anchor_index, positive_index in anchor_positive_pairs:
+                negative_label = np.random.choice(list(self.labels_set - {label}))
+                negative_index = np.random.choice(self.label_to_indices[negative_label])
+                triplets.append((anchor_index, positive_index, negative_index))
+        return triplets
 
-        :param index: The index of the anchor image.
-        :return: A tuple of three images (anchor, positive, negative) and their paths.
-        """
+    def __getitem__(self, index: int):
+        anchor_index, positive_index, negative_index = self.triplets[index]
 
-        anchor_img_path, anchor_label = self.dataset[index]
-        positive_index = index
-        while positive_index == index:
-            positive_index = np.random.choice(self.label_to_indices[anchor_label])
-
-        positive_img_path, positive_label = self.dataset[positive_index]
-        negative_label = np.random.choice(list(self.labels_set - {anchor_label}))
-        negative_index = np.random.choice(self.label_to_indices[negative_label])
+        anchor_img_path, _ = self.dataset[anchor_index]
+        positive_img_path, _ = self.dataset[positive_index]
         negative_img_path, _ = self.dataset[negative_index]
 
         anchor_img = Image.open(anchor_img_path)
@@ -96,16 +85,7 @@ class StreamDataset(Dataset):
             positive_img = self.transform(positive_img)
             negative_img = self.transform(negative_img)
 
-        return anchor_img, positive_img, negative_img, negative_img_path, positive_img_path
+        return anchor_img, positive_img, negative_img, negative_img_path
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # --------------------------------------------------- __ L E N __ --------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     def __len__(self) -> int:
-        """
-        This is the __len__ method of a dataset loader class.
-
-        :return: The length of the dataset
-        """
-
-        return len(self.dataset)
+        return len(self.triplets)
