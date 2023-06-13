@@ -15,7 +15,10 @@ from tqdm import tqdm
 from typing import Dict, List, Tuple
 
 from config.const import DATASET_PATH
+from config.config import ConfigGeneral
 from config.logger_setup import setup_logger
+
+cfg = ConfigGeneral().parse()
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -68,9 +71,9 @@ def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str
         if filename.endswith('.png'):
             class_name = '_'.join(filename.split('_')[2:-1])
             class_counts[class_name] += 1
-            if len(validation_images[class_name]) < round(class_counts[class_name] * 0.1):
+            if len(validation_images[class_name]) < round(class_counts[class_name] * cfg.valid_split_ratio):
                 validation_images[class_name].append(filename)
-            elif len(test_images[class_name]) < round(class_counts[class_name] * 0.1):
+            elif len(test_images[class_name]) < round(class_counts[class_name] * cfg.test_split_ratio):
                 test_images[class_name].append(filename)
             else:
                 train_images[class_name].append(filename)

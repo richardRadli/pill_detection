@@ -30,7 +30,7 @@ class CreateStreamImages:
     # -------------------------------------------- P A T H   S E L E C T O R -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def path_selector(op):
+    def path_selector(op: str):
         """
         Selects the correct directory paths based on the given operation string.
 

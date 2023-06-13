@@ -15,10 +15,6 @@ class _Const(object):
     # Select user and according paths
     user = os.getlogin()
     root_mapping = {
-        "keplab": {
-            "PROJECT_ROOT": "",
-            "DATASET_ROOT": ""
-        },
         "ricsi": {
             "PROJECT_ROOT": "C:/Users/ricsi/Documents/project/storage/IVM",
             "DATASET_ROOT": "C:/Users/ricsi/Documents/project/storage/IVM/datasets"
@@ -36,7 +32,7 @@ class _Const(object):
     # ---------------------------------------- C R E A T E   D I R C T O R I E S ---------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def create_directories(cls, dirs):
+    def create_directories(cls, dirs, root_type):
         """
 
         :param dirs:
@@ -44,7 +40,13 @@ class _Const(object):
         """
 
         for _, path in dirs.items():
-            dir_path = os.path.join(cls.PROJECT_ROOT, path)
+            if root_type == "PROJECT":
+                dir_path = os.path.join(cls.PROJECT_ROOT, path)
+            elif root_type == "DATASET":
+                dir_path = os.path.join(cls.DATASET_ROOT, path)
+            else:
+                raise ValueError("Wrong root type!")
+
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
                 logging.info(f"Directory {dir_path} has been created")
@@ -96,7 +98,7 @@ class Images(_Const):
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
         super().__init__()
-        self.create_directories(self.dirs_images)
+        self.create_directories(self.dirs_images, "PROJECT")
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------ G E T   D A T A   P A T H ---------------------------------------------
@@ -173,7 +175,7 @@ class Data(_Const):
 
     def __init__(self):
         super().__init__()
-        self.create_directories(self.dirs_data)
+        self.create_directories(self.dirs_data, "PROJECT")
 
     def get_data_path(self, key):
         return os.path.join(self.PROJECT_ROOT, self.dirs_data.get(key, ""))
@@ -181,27 +183,36 @@ class Data(_Const):
 
 class Datasets(_Const):
     dirs_dataset = {
-        "ogyi_v2_unsplitted_images": "datasets/ogyi_v2/unsplitted/images",
-        "ogyi_v2_unsplitted_labels": "datasets/ogyi_v2/unsplitted/labels",
+        "cure_customer": "cure/Customer",
+        "cure_customer_mask": "cure/Customer_mask",
+        "cure_reference": "cure/Reference",
+        "cure_reference_mask": "cure/Reference_mask",
+        "cure_train": "cure/train",
+        "cure_train_mask": "cure/train_mask",
+        "cure_test": "cure/test",
+        "cure_test_mask": "cure/test_mask",
 
-        "ogyi_v2_splitted_train_images": "datasets/ogyi_v2/splitted/train/images",
-        "ogyi_v2_splitted_train_labels": "datasets/ogyi_v2/splitted/train/labels",
-        "ogyi_v2_splitted_valid_images": "datasets/ogyi_v2/splitted/valid/images",
-        "ogyi_v2_splitted_valid_labels": "datasets/ogyi_v2/splitted/valid/labels",
-        "ogyi_v2_splitted_test_images": "datasets/ogyi_v2/splitted/test/images",
-        "ogyi_v2_splitted_test_labels": "datasets/ogyi_v2/splitted/test/labels",
+        "dtd_images": "dtd_images",
 
-        "ogyi_v3_unsplitted_images": "datasets/ogyi_v3/unsplitted/images",
-        "ogyi_v3_unsplitted_labels": "datasets/ogyi_v3/unsplitted/labels",
+        "ogyi_v2_unsplitted_images": "ogyi_v2/unsplitted/images",
+        "ogyi_v2_unsplitted_labels": "ogyi_v2/unsplitted/labels",
 
-        "ogyi_v3_splitted_train_images": "datasets/ogyi_v3/splitted/train/images",
-        "ogyi_v3_splitted_train_labels": "datasets/ogyi_v3/splitted/train/labels",
-        "ogyi_v3_splitted_test_images": "datasets/ogyi_v3/splitted/test/images",
-        "ogyi_v3_splitted_test_labels": "datasets/ogyi_v3/splitted/test/labels",
-        "ogyi_v3_splitted_valid_images": "datasets/ogyi_v3/splitted/valid/images",
-        "ogyi_v3_splitted_valid_labels": "datasets/ogyi_v3/splitted/valid/labels",
+        "ogyi_v2_splitted_train_images": "ogyi_v2/splitted/train/images",
+        "ogyi_v2_splitted_train_labels": "ogyi_v2/splitted/train/labels",
+        "ogyi_v2_splitted_valid_images": "ogyi_v2/splitted/valid/images",
+        "ogyi_v2_splitted_valid_labels": "ogyi_v2/splitted/valid/labels",
+        "ogyi_v2_splitted_test_images": "ogyi_v2/splitted/test/images",
+        "ogyi_v2_splitted_test_labels": "ogyi_v2/splitted/test/labels",
 
-        "dtd_images": "datasets/dtd_images"
+        "ogyi_v3_unsplitted_images": "ogyi_v3/unsplitted/images",
+        "ogyi_v3_unsplitted_labels": "ogyi_v3/unsplitted/labels",
+
+        "ogyi_v3_splitted_train_images": "ogyi_v3/splitted/train/images",
+        "ogyi_v3_splitted_train_labels": "ogyi_v3/splitted/train/labels",
+        "ogyi_v3_splitted_test_images": "ogyi_v3/splitted/test/images",
+        "ogyi_v3_splitted_test_labels": "ogyi_v3/splitted/test/labels",
+        "ogyi_v3_splitted_valid_images": "ogyi_v3/splitted/valid/images",
+        "ogyi_v3_splitted_valid_labels": "ogyi_v3/splitted/valid/labels"
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -209,13 +220,13 @@ class Datasets(_Const):
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
         super().__init__()
-        self.create_directories(self.dirs_dataset)
+        self.create_directories(self.dirs_dataset, "DATASET")
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------ G E T   D A T A   P A T H ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def get_data_path(self, key):
-        return os.path.join(self.PROJECT_ROOT, self.dirs_dataset.get(key, ""))
+        return os.path.join(self.DATASET_ROOT, self.dirs_dataset.get(key, ""))
 
 
 CONST: _Const = _Const()

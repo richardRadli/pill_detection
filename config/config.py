@@ -67,6 +67,8 @@ class ConfigGeneral:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
+        self.parser.add_argument("--test_split_ratio", type=float, default=0.15)
+        self.parser.add_argument("--valid_split_ratio", type=float, default=0.15)
         self.parser.add_argument("--threshold_area", type=int, default=100)
         self.parser.add_argument("--kernel_median_contour", type=int, default=7)
         self.parser.add_argument("--canny_low_thr", type=int, default=10)
@@ -88,7 +90,7 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
                                  help="StreamNetwork | EfficientNet | EfficientNetSelfAttention")
-        self.parser.add_argument("--type_of_stream", type=str, default="RGB", help="RGB | Contour | Texture | LBP")
+        self.parser.add_argument("--type_of_stream", type=str, default="LBP", help="RGB | Contour | Texture | LBP")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=30)
         self.parser.add_argument("--batch_size", type=int, default=128)
