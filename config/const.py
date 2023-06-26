@@ -32,11 +32,12 @@ class _Const(object):
     # ---------------------------------------- C R E A T E   D I R C T O R I E S ---------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def create_directories(cls, dirs, root_type):
+    def create_directories(cls, dirs, root_type) -> None:
         """
-
-        :param dirs:
-        :return:
+        Class method that creates the missing directories.
+        :param dirs: These are the directories that the function checks.
+        :param root_type: Either PROJECT or DATASET.
+        :return: None
         """
 
         for _, path in dirs.items():
@@ -84,7 +85,7 @@ class Images(_Const):
         "rgb_hardest": "images/hardest_samples/rgb_hardest",
         "texture_hardest": "images/hardest_samples/texture_hardest",
 
-        "plotting_stream_network": "images/plotting/plotting_stream_network",
+        "plotting_cnn_network": "images/plotting/plotting_cnn_network",
         "plotting_efficient_net": "images/plotting/plotting_efficient_net",
         "plotting_fusion_network": "images/plotting/plotting_fusion_network",
         "plotting_efficient_net_self_attention": "images/plotting/plotting_efficient_net_self_attention",
@@ -117,10 +118,10 @@ class Data(_Const):
 
         "weights_fusion_net": "data/weights/weights_fusion_net",
 
-        "weights_stream_network_contour": "data/weights/weights_stream_network_contour",
-        "weights_stream_network_lbp": "data/weights/weights_stream_network_lbp",
-        "weights_stream_network_rgb": "data/weights/weights_stream_network_rgb",
-        "weights_stream_network_texture": "data/weights/weights_stream_network_texture",
+        "weights_cnn_network_contour": "data/weights/weights_cnn_network_contour",
+        "weights_cnn_network_lbp": "data/weights/weights_cnn_network_lbp",
+        "weights_cnn_network_rgb": "data/weights/weights_cnn_network_rgb",
+        "weights_cnn_network_texture": "data/weights/weights_cnn_network_texture",
 
         "weights_efficient_net_contour": "data/weights/weights_efficient_net_contour",
         "weights_efficient_net_lbp": "data/weights/weights_efficient_net_lbp",
@@ -137,10 +138,10 @@ class Data(_Const):
 
         "logs_fusion_net": "data/logs/logs_fusion_net",
 
-        "logs_stream_contour": "data/logs/logs_stream_contour",
-        "logs_stream_lbp": "data/logs/logs_stream_lbp",
-        "logs_stream_rgb": "data/logs/logs_stream_rgb",
-        "logs_stream_texture": "data/logs/logs_stream_texture",
+        "logs_cnn_contour": "data/logs/logs_cnn_contour",
+        "logs_cnn_lbp": "data/logs/logs_cnn_lbp",
+        "logs_cnn_rgb": "data/logs/logs_cnn_rgb",
+        "logs_cnn_texture": "data/logs/logs_cnn_texture",
 
         "logs_efficient_net_contour": "data/logs/logs_efficient_net_contour",
         "logs_efficient_net_lbp": "data/logs/logs_efficient_net_lbp",
@@ -153,13 +154,13 @@ class Data(_Const):
         "logs_efficient_net_self_attention_texture": "data/logs/logs_efficient_net_self_attention_texture",
 
         # Predictions
-        "predictions_stream_network": "data/predictions/predictions_stream_network",
+        "predictions_cnn_network": "data/predictions/predictions_cnn_network",
         "predictions_fusion_network": "data/predictions/predictions_fusion_network",
         "predictions_efficient_net": "data/predictions/predictions_efficient_net",
         "predictions_efficient_self_attention_net": "data/predictions/predictions_efficient_self_attention_net",
 
         # Reference vectors
-        "reference_vectors_stream_network": "data/ref_vec/reference_vectors_stream_network",
+        "reference_vectors_cnn_network": "data/ref_vec/reference_vectors_cnn_network",
         "reference_vectors_efficient_net": "data/ref_vec/reference_vectors_efficient_net",
         "reference_vectors_efficient_net_self_attention": "data/ref_vec/reference_vectors_efficient_net_self_attention",
 

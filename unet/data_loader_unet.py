@@ -32,7 +32,7 @@ class BasicDataset(Dataset):
                 p.imap(partial(self.unique_mask_values,
                                mask_dir=self.mask_dir, mask_suffix=self.mask_suffix), self.ids), total=len(self.ids)))
 
-        self.mask_values = list(sorted(np.unique(np.concatenate(unique), axis=0).tolist()))
+        self.mask_values = np.unique(np.concatenate(unique), axis=0).tolist()
 
         print(f'Unique mask values: {self.mask_values}')
 
@@ -73,7 +73,7 @@ class BasicDataset(Dataset):
         """
 
         mask_file = list(mask_dir.glob(idx + mask_suffix + '.*'))[0]
-        mask = np.asarray(self.load_image(mask_file))
+        mask = np.asarray(self.load_image(str(mask_file)))
         if mask.ndim == 2:
             return np.unique(mask)
         elif mask.ndim == 3:
@@ -112,13 +112,13 @@ class BasicDataset(Dataset):
 
     def __getitem__(self, idx):
         name = self.ids[idx]
-        mask_file = list(self.mask_dir.glob(name + self.mask_suffix + '.*'))
-        img_file = list(self.images_dir.glob(name + '.*'))
+        mask_file = list(self.mask_dir.glob(str(name) + self.mask_suffix + '.*'))
+        img_file = list(self.images_dir.glob(str(name) + '.*'))
 
         assert len(img_file) == 1, f'Either no image or multiple images found for the ID {name}: {img_file}'
         assert len(mask_file) == 1, f'Either no mask or multiple masks found for the ID {name}: {mask_file}'
-        mask = self.load_image(mask_file[0])
-        img = self.load_image(img_file[0])
+        mask = self.load_image(str(mask_file[0]))
+        img = self.load_image(str(img_file[0]))
 
         assert img.size == mask.size, \
             f'Image and mask {name} should be the same size, but are {img.size} and {mask.size}'
@@ -132,6 +132,6 @@ class BasicDataset(Dataset):
         }
 
 
-class CustomDataset(BasicDataset):
+class UNetDataLoader(BasicDataset):
     def __init__(self, images_dir, mask_dir, scale=1):
         super().__init__(images_dir, mask_dir, scale, mask_suffix='_mask')

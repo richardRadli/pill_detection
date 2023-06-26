@@ -1,8 +1,7 @@
 """ Full assembly of the parts to form the complete network """
 
 from torch.utils.checkpoint import checkpoint
-
-from .unet_parts import *
+from unet_parts import *
 
 
 class UNet(nn.Module):

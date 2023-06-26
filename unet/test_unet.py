@@ -41,7 +41,8 @@ def predict_single_image(input_image_file_path: str, output_image_file_path: str
     :return: None
     """
 
-    model_path = find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_unet"))
+    # model_path = find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_unet"))
+    model_path = "C:/Users/ricsi/Desktop/checkpoints/checkpoint_epoch5.pth"
     os.system("python predict_unet.py "
               f"-i {input_image_file_path} "
               f"-o {output_image_file_path} "
@@ -64,7 +65,7 @@ def main(operation: str = "multi") -> None:
         predict_multiple_images(input_dir=DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images"),
                                 output_dir=IMAGES_PATH.get_data_path("unet_out"))
     elif operation.lower() == "single":
-        predict_single_image(input_image_file_path="C:/Users/ricsi/Desktop/cure_og/0/bottom/Customer/0_bottom_32.jpg",
+        predict_single_image(input_image_file_path="C:/Users/ricsi/Desktop/train/images/0c02f95a08.png",
                              output_image_file_path="C:/Users/ricsi/Desktop/out.jpg")
     else:
         raise ValueError("Wrong operation!")

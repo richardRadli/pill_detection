@@ -1,22 +1,19 @@
 import logging
-import numpy as np
 import os
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-
 from PIL import Image
 
+from data_loader_unet import BasicDataset
+from unet_model import UNet
+
 from config.config import ConfigTestingUnet
-from unet import UNet
-from unet.data_loading import BasicDataset
-from utils.utils import use_gpu_if_available
 
 cfg = ConfigTestingUnet().parse()
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# ----------------------------------------------- P R E D I C T   I M G ------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
 def predict_img(net, full_img, device, scale_factor=1, out_threshold=0.5):
     net.eval()
     img = torch.from_numpy(BasicDataset.preprocess(None, full_img, scale_factor, is_mask=False))
@@ -34,26 +31,13 @@ def predict_img(net, full_img, device, scale_factor=1, out_threshold=0.5):
     return mask[0].long().squeeze().numpy()
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# --------------------------------------- G E T   O U T P U T   F I L E N A M E S --------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
 def get_output_filenames():
-    """
-    This function returns a list of output file names that will be produced after running some image processing on the
-    input files specified in the cfg configuration object.
-
-    :return: a list of output file names.
-    """
-
     def _generate_name(fn):
         return f'{os.path.splitext(fn)[0]}_OUT.png'
 
     return cfg.output or list(map(_generate_name, cfg.input))
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# ---------------------------------------------- M A S K   T O   I M A G E ---------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
 def mask_to_image(mask: np.ndarray, mask_values):
     if isinstance(mask_values[0], list):
         out = np.zeros((mask.shape[-2], mask.shape[-1], len(mask_values[0])), dtype=np.uint8)
@@ -71,18 +55,15 @@ def mask_to_image(mask: np.ndarray, mask_values):
     return Image.fromarray(out)
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------------------ M A I N -------------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def main():
+if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
     in_files = cfg.input
     out_files = get_output_filenames()
 
-    net = UNet(cfg.channels, cfg.classes, bilinear=cfg.bilinear)
+    net = UNet(n_channels=3, n_classes=cfg.classes, bilinear=cfg.bilinear)
 
-    device = use_gpu_if_available()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logging.info(f'Loading model {cfg.model}')
     logging.info(f'Using device {device}')
 
@@ -108,10 +89,3 @@ def main():
             result = mask_to_image(mask, mask_values)
             result.save(out_filename)
             logging.info(f'Mask saved to {out_filename}')
-
-
-if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt as kie:
-        print(kie)
