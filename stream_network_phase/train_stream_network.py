@@ -22,7 +22,7 @@ from torchsummary import summary
 from config.config import ConfigStreamNetwork
 from config.const import DATA_PATH, IMAGES_PATH
 from network_selector import NetworkFactory
-from stream_network_dataset_loader import StreamDataset
+from dataloader_stream_network_ba import StreamDataset
 from triplet_loss import TripletLossWithHardMining
 from config.logger_setup import setup_logger
 from utils.utils import create_timestamp, measure_execution_time, print_network_config, use_gpu_if_available
@@ -48,7 +48,7 @@ class TrainModel:
         # Create time stamp
         self.timestamp = create_timestamp()
 
-        # Select the GPU if possibly
+        # Select the GPU if possible
         self.device = use_gpu_if_available()
 
         # Setup network config
@@ -110,22 +110,22 @@ class TrainModel:
                 "train_dataset_dir": IMAGES_PATH.get_data_path("ref_train_contour"),
                 "valid_dataset_dir": IMAGES_PATH.get_data_path("ref_valid_contour"),
                 "model_weights_dir": {
-                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_contour"),
+                    "CNN": DATA_PATH.get_data_path("weights_cnn_network_contour"),
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_contour"),
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_contour")
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_contour")),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_contour")),
                 "logs_dir": {
-                    "StreamNetwork": DATA_PATH.get_data_path("logs_stream_contour"),
+                    "CNN": DATA_PATH.get_data_path("logs_cnn_contour"),
                     "EfficientNet": DATA_PATH.get_data_path("logs_efficient_net_contour"),
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("logs_efficient_net_self_attention_contour")
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_stream_contour")),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_cnn_contour")),
                 "learning_rate": {
-                    "StreamNetwork": self.cfg.learning_rate_cnn_con,
+                    "CNN": self.cfg.learning_rate_cnn_con,
                     "EfficientNet": self.cfg.learning_rate_en_con,
                     "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_con
                 }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_con),
                 "image_size": {
-                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "CNN": self.cfg.img_size_cnn,
                     "EfficientNet": self.cfg.img_size_en,
                     "EfficientNetSelfAttention": self.cfg.img_size_ensa
                 }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
@@ -137,22 +137,22 @@ class TrainModel:
                 "train_dataset_dir": IMAGES_PATH.get_data_path("ref_train_lbp"),
                 "valid_dataset_dir": IMAGES_PATH.get_data_path("ref_valid_lbp"),
                 "model_weights_dir": {
-                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_lbp"),
+                    "CNN": DATA_PATH.get_data_path("weights_cnn_network_lbp"),
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_lbp"),
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_lbp")
                 }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_lbp")),
                 "logs_dir": {
-                    "StreamNetwork": DATA_PATH.get_data_path("logs_stream_lbp"),
+                    "CNN": DATA_PATH.get_data_path("logs_cnn_lbp"),
                     "EfficientNet": DATA_PATH.get_data_path("logs_efficient_net_lbp"),
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("logs_efficient_net_self_attention_lbp")
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_stream_lbp")),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_cnn_lbp")),
                 "learning_rate": {
-                    "StreamNetwork": self.cfg.learning_rate_cnn_lbp,
+                    "CNN": self.cfg.learning_rate_cnn_lbp,
                     "EfficientNet": self.cfg.learning_rate_en_lbp,
                     "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_lbp
                 }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_lbp),
                 "image_size": {
-                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "CNN": self.cfg.img_size_cnn,
                     "EfficientNet": self.cfg.img_size_en,
                     "EfficientNetSelfAttention": self.cfg.img_size_ensa
                 }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
@@ -164,22 +164,22 @@ class TrainModel:
                 "train_dataset_dir": IMAGES_PATH.get_data_path("ref_train_rgb"),
                 "valid_dataset_dir": IMAGES_PATH.get_data_path("ref_valid_rgb"),
                 "model_weights_dir": {
-                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_rgb"),
+                    "CNN": DATA_PATH.get_data_path("weights_cnn_network_rgb"),
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_rgb"),
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_rgb")
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_rgb")),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_rgb")),
                 "logs_dir": {
-                    "StreamNetwork": DATA_PATH.get_data_path("logs_stream_rgb"),
+                    "CNN": DATA_PATH.get_data_path("logs_cnn_rgb"),
                     "EfficientNet": DATA_PATH.get_data_path("logs_efficient_net_rgb"),
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("logs_efficient_net_self_attention_rgb")
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_stream_rgb")),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_cnn_rgb")),
                 "learning_rate": {
-                    "StreamNetwork": self.cfg.learning_rate_cnn_rgb,
+                    "CNN": self.cfg.learning_rate_cnn_rgb,
                     "EfficientNet": self.cfg.learning_rate_en_rgb,
                     "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_rgb
                 }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_rgb),
                 "image_size": {
-                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "CNN": self.cfg.img_size_cnn,
                     "EfficientNet": self.cfg.img_size_en,
                     "EfficientNetSelfAttention": self.cfg.img_size_ensa
                 }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
@@ -191,22 +191,22 @@ class TrainModel:
                 "train_dataset_dir": IMAGES_PATH.get_data_path("ref_train_texture"),
                 "valid_dataset_dir": IMAGES_PATH.get_data_path("ref_valid_texture"),
                 "model_weights_dir": {
-                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_texture"),
+                    "CNN": DATA_PATH.get_data_path("weights_cnn_network_texture"),
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_texture"),
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_texture")
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_texture")),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_texture")),
                 "logs_dir": {
-                    "StreamNetwork": DATA_PATH.get_data_path("logs_stream_texture"),
+                    "CNN": DATA_PATH.get_data_path("logs_cnn_texture"),
                     "EfficientNet": DATA_PATH.get_data_path("logs_efficient_net_texture"),
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("logs_efficient_net_self_attention_texture")
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_stream_texture")),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("logs_cnn_texture")),
                 "learning_rate": {
-                    "StreamNetwork": self.cfg.learning_rate_cnn_tex,
+                    "CNN": self.cfg.learning_rate_cnn_tex,
                     "EfficientNet": self.cfg.learning_rate_en_tex,
                     "EfficientNetSelfAttention": self.cfg.learning_rate_ensa_tex
                 }.get(self.cfg.type_of_net, self.cfg.learning_rate_cnn_tex),
                 "image_size": {
-                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "CNN": self.cfg.img_size_cnn,
                     "EfficientNet": self.cfg.img_size_en,
                     "EfficientNetSelfAttention": self.cfg.img_size_ensa
                 }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),

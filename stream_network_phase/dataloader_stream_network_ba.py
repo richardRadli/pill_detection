@@ -39,7 +39,16 @@ class StreamDataset(Dataset):
         self.dataset = self.load_dataset()
         self.triplets = self.generate_triplets()
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------- L O A D   D A T A S E T ---------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def load_dataset(self) -> List[Tuple[str, str]]:
+        """
+        Load the dataset.
+
+        :return: A list of tuples, where each tuple contains the path to an image and its corresponding label.
+        """
+
         dataset = []
         labels = set()
         for label_name in os.listdir(self.dataset_path):
@@ -69,6 +78,9 @@ class StreamDataset(Dataset):
                 triplets.append((anchor_index, positive_index, negative_index))
         return triplets
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------- __ G E T I T E M __ ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def __getitem__(self, index: int):
         anchor_index, positive_index, negative_index = self.triplets[index]
 

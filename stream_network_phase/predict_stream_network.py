@@ -89,10 +89,10 @@ class PredictStreamNetwork:
         network_type = self.cfg.type_of_net
         logging.info(network_type)
         network_configs = {
-            'StreamNetwork': {
-                'prediction_folder': DATA_PATH.get_data_path("predictions_stream_network"),
-                'plotting_folder': IMAGES_PATH.get_data_path("plotting_stream_network"),
-                'ref_vectors_folder': DATA_PATH.get_data_path("reference_vectors_stream_network")
+            'CNN': {
+                'prediction_folder': DATA_PATH.get_data_path("predictions_cnn_network"),
+                'plotting_folder': IMAGES_PATH.get_data_path("plotting_cnn_network"),
+                'ref_vectors_folder': DATA_PATH.get_data_path("reference_vectors_cnn_network")
             },
             'EfficientNet': {
                 'prediction_folder': DATA_PATH.get_data_path("predictions_efficient_net"),
@@ -124,13 +124,13 @@ class PredictStreamNetwork:
             "Contour": {
                 "channels": [1, 32, 48, 64, 128, 192, 256],
                 "model_weights_dir": {
-                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_contour"),
+                    "CNN": DATA_PATH.get_data_path("weights_cnn_network_contour"),
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_contour"),
                     "EfficientNetSelfAttention":
                         DATA_PATH.get_data_path("weights_efficient_net_self_attention_contour"),
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_contour")),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_contour")),
                 "image_size": {
-                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "CNN": self.cfg.img_size_cnn,
                     "EfficientNet": self.cfg.img_size_en,
                     "EfficientNetSelfAttention": self.cfg.img_size_ensa
                 }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
@@ -140,12 +140,12 @@ class PredictStreamNetwork:
             "LBP": {
                 "channels": [1, 32, 48, 64, 128, 192, 256],
                 "model_weights_dir": {
-                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_lbp"),
+                    "CNN": DATA_PATH.get_data_path("weights_cnn_network_lbp"),
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_lbp"),
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_lbp"),
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_lbp")),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_lbp")),
                 "image_size": {
-                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "CNN": self.cfg.img_size_cnn,
                     "EfficientNet": self.cfg.img_size_en,
                     "EfficientNetSelfAttention": self.cfg.img_size_ensa
                 }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
@@ -155,12 +155,12 @@ class PredictStreamNetwork:
             "RGB": {
                 "channels": [3, 64, 96, 128, 256, 384, 512],
                 "model_weights_dir": {
-                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_rgb"),
+                    "CNN": DATA_PATH.get_data_path("weights_cnn_network_rgb"),
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_rgb"),
                     "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_rgb"),
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_rgb")),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_rgb")),
                 "image_size": {
-                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "CNN": self.cfg.img_size_cnn,
                     "EfficientNet": self.cfg.img_size_en,
                     "EfficientNetSelfAttention": self.cfg.img_size_ensa
                 }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
@@ -170,13 +170,13 @@ class PredictStreamNetwork:
             "Texture": {
                 "channels": [1, 32, 48, 64, 128, 192, 256],
                 "model_weights_dir": {
-                    "StreamNetwork": DATA_PATH.get_data_path("weights_stream_network_texture"),
+                    "CNN": DATA_PATH.get_data_path("weights_cnn_network_texture"),
                     "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_texture"),
                     "EfficientNetSelfAttention":
                         DATA_PATH.get_data_path("weights_efficient_net_self_attention_texture"),
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_texture")),
+                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_texture")),
                 "image_size": {
-                    "StreamNetwork": self.cfg.img_size_cnn,
+                    "CNN": self.cfg.img_size_cnn,
                     "EfficientNet": self.cfg.img_size_en,
                     "EfficientNetSelfAttention": self.cfg.img_size_ensa
                 }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
@@ -279,8 +279,8 @@ class PredictStreamNetwork:
                     vector3 = self.network_rgb(rgb_image).squeeze().cpu()
                     vector4 = self.network_tex(tex_image).squeeze().cpu()
 
-                vector = torch.cat((vector1, vector2, vector3, vector4), dim=0)
-                vectors.append(vector)
+                concatenated = torch.cat((vector1, vector2, vector3, vector4), dim=0)
+                vectors.append(concatenated)
                 labels.append(image_name)
 
         if operation == "reference":
@@ -435,6 +435,9 @@ class PredictStreamNetwork:
                               self.main_network_config['plotting_folder'])
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------- __M A I N__ ----------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
         pill_rec = PredictStreamNetwork()
