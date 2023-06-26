@@ -7,8 +7,8 @@ import torch.nn.functional as F
 from PIL import Image
 
 from data_loader_unet import BasicDataset
-from unet_model import UNet
-
+# from unet_model import UNet
+import segmentation_models_pytorch as smp
 from config.config import ConfigTestingUnet
 
 cfg = ConfigTestingUnet().parse()
@@ -23,7 +23,7 @@ def predict_img(net, full_img, device, scale_factor=1, out_threshold=0.5):
     with torch.no_grad():
         output = net(img).cpu()
         output = F.interpolate(output, (full_img.size[1], full_img.size[0]), mode='bilinear')
-        if net.n_classes > 1:
+        if cfg.classes > 1:
             mask = output.argmax(dim=1)
         else:
             mask = torch.sigmoid(output) > out_threshold
@@ -61,9 +61,21 @@ if __name__ == '__main__':
     in_files = cfg.input
     out_files = get_output_filenames()
 
-    net = UNet(n_channels=3, n_classes=cfg.classes, bilinear=cfg.bilinear)
-
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    # net = UNet(n_channels=3, n_classes=cfg.classes, bilinear=cfg.bilinear)
+    net = smp.Unet(
+        encoder_name='resnet34',
+        encoder_weights='imagenet',
+        in_channels=cfg.channels,
+        classes=cfg.classes
+    )
+
+    # Modify the last layer for fine-tuning
+    num_channels = net.segmentation_head[0].in_channels
+    net.segmentation_head[0] = \
+        torch.nn.Conv2d(in_channels=num_channels, out_channels=cfg.classes, kernel_size=1).to(device)
+
     logging.info(f'Loading model {cfg.model}')
     logging.info(f'Using device {device}')
 

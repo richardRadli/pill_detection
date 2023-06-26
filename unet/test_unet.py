@@ -65,7 +65,7 @@ def main(operation: str = "multi") -> None:
         predict_multiple_images(input_dir=DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images"),
                                 output_dir=IMAGES_PATH.get_data_path("unet_out"))
     elif operation.lower() == "single":
-        predict_single_image(input_image_file_path="C:/Users/ricsi/Desktop/train/images/0c02f95a08.png",
+        predict_single_image(input_image_file_path="C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/Reference/141_bottom_141_ref_bottom.png",
                              output_image_file_path="C:/Users/ricsi/Desktop/out.jpg")
     else:
         raise ValueError("Wrong operation!")

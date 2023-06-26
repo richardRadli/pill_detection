@@ -1,17 +1,19 @@
 import logging
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import segmentation_models_pytorch as smp
+import wandb
+
 from pathlib import Path
 from torch import optim
+from torchsummary import summary
 from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
-import torch
 
-import wandb
-from unet_model import UNet
-from data_loader_unet import BasicDataset, UNetDataLoader
 from config.config import ConfigTrainingUnet
-from utils.utils import multiclass_dice_coefficient, dice_coefficient, dice_loss
+from data_loader_unet import BasicDataset, UNetDataLoader
+from utils.utils import multiclass_dice_coefficient, dice_coefficient, dice_loss, measure_execution_time
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -24,8 +26,8 @@ class TrainUnet:
     def __init__(self):
         self.cfg = ConfigTrainingUnet().parse()
 
-        self.dir_img = Path('C:/Users/ricsi/Desktop/train/images/')
-        self.dir_mask = Path('C:/Users/ricsi/Desktop/train/masks/')
+        self.dir_img = Path('C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/Reference/')
+        self.dir_mask = Path('C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/Reference_mask/')
         self.dir_checkpoint = Path('C:/Users/ricsi/Desktop/checkpoints/')
 
         # 1. Create dataset
@@ -34,14 +36,13 @@ class TrainUnet:
         except (AssertionError, RuntimeError, IndexError):
             self.dataset = BasicDataset(str(self.dir_img), str(self.dir_mask), self.cfg.img_scale)
 
-        # 2. Split into train / validation partitions
-        val_percent = self.cfg.val / 100
-        self.n_val = int(len(self.dataset) * val_percent)
+        # Split into train / validation partitions
+        self.n_val = int(len(self.dataset) * self.cfg.val)
         self.n_train = len(self.dataset) - self.n_val
         train_set, val_set = random_split(self.dataset, [self.n_train, self.n_val],
                                           generator=torch.Generator().manual_seed(0))
 
-        # 3. Create data loaders
+        # Create data loaders
         loader_args = dict(batch_size=self.cfg.batch_size, num_workers=1, pin_memory=True)
         self.train_loader = DataLoader(train_set, shuffle=True, **loader_args)
         self.val_loader = DataLoader(val_set, shuffle=False, drop_last=True, **loader_args)
@@ -50,31 +51,43 @@ class TrainUnet:
         self.experiment = wandb.init(project='U-Net', resume='allow', anonymous='must')
         self.experiment.config.update(
             dict(epochs=self.cfg.epochs, batch_size=self.cfg.batch_size, learning_rate=self.cfg.learning_rate,
-                 val_percent=val_percent, save_checkpoint=self.cfg.save_checkpoint, img_scale=self.cfg.img_scale,
-                 amp=self.cfg.amp)
-        )
+                 val_percent=self.cfg.val, save_checkpoint=self.cfg.save_checkpoint, img_scale=self.cfg.img_scale,
+                 amp=self.cfg.amp))
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         logging.info(f'Using device {self.device}')
 
-        # Change here to adapt to your data
-        # n_channels=3 for RGB images
-        # n_classes is the number of probabilities you want to get per pixel
-        self.model = UNet(n_channels=3, n_classes=self.cfg.classes, bilinear=self.cfg.bilinear)
+        # Define the UNet model
+        self.model = smp.Unet(
+            encoder_name='resnet34',
+            encoder_weights='imagenet',
+            in_channels=self.cfg.channels,
+            classes=self.cfg.classes
+        )
+
+        # Modify the last layer for fine-tuning
+        num_channels = self.model.segmentation_head[0].in_channels
+        self.model.segmentation_head[0] = \
+            nn.Conv2d(in_channels=num_channels, out_channels=self.cfg.classes, kernel_size=1).to(self.device)
+
         self.model = self.model.to(self.device)
 
-        logging.info(f'Network:\n'
-                     f'\t{self.model.n_channels} input channels\n'
-                     f'\t{self.model.n_classes} output channels (classes)\n'
-                     f'\t{"Bilinear" if self.model.bilinear else "Transposed conv"} upscaling')
+        images = next(iter(self.train_loader))['image']
+        height, width = images.shape[2:]
+        summary(self.model, (self.cfg.channels, width, height))
 
-        # 4. Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
+        logging.info(f'Network:\n'
+                     f'\t{self.cfg.channels} input channels\n'
+                     f'\t{self.cfg.classes} output channels (classes)\n'
+                     )
+
+        # Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
         self.optimizer = optim.RMSprop(self.model.parameters(),
                                        lr=self.cfg.learning_rate, weight_decay=self.cfg.weight_decay,
                                        momentum=self.cfg.momentum)
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 'max', patience=5)
         self.grad_scaler = torch.cuda.amp.GradScaler(enabled=self.cfg.amp)
-        self.criterion = nn.CrossEntropyLoss() if self.model.n_classes > 1 else nn.BCEWithLogitsLoss()
+        self.criterion = nn.CrossEntropyLoss() if self.cfg.classes > 1 else nn.BCEWithLogitsLoss()
         self.global_step = 0
 
         logging.info(f'''Starting training:
@@ -111,18 +124,18 @@ class TrainUnet:
                 # predict the mask
                 mask_pred = self.model(image)
 
-                if self.model.n_classes == 1:
+                if self.cfg.classes == 1:
                     assert mask_true.min() >= 0 and mask_true.max() <= 1, \
                         'True mask indices should be in [0, 1]'
                     mask_pred = (F.sigmoid(mask_pred) > 0.5).float()
                     # compute the Dice score
                     dice_score += dice_coefficient(mask_pred, mask_true, reduce_batch_first=False)
                 else:
-                    assert mask_true.min() >= 0 and mask_true.max() < self.model.n_classes, \
+                    assert mask_true.min() >= 0 and mask_true.max() < self.cfg.classes, \
                         'True mask indices should be in [0, n_classes['
                     # convert to one-hot format
-                    mask_true = F.one_hot(mask_true, self.model.n_classes).permute(0, 3, 1, 2).float()
-                    mask_pred = F.one_hot(mask_pred.argmax(dim=1), self.model.n_classes).permute(0, 3, 1, 2).float()
+                    mask_true = F.one_hot(mask_true, self.cfg.classes).permute(0, 3, 1, 2).float()
+                    mask_pred = F.one_hot(mask_pred.argmax(dim=1), self.cfg.classes).permute(0, 3, 1, 2).float()
                     # compute the Dice score, ignoring background
                     dice_score += multiclass_dice_coefficient(mask_pred[:, 1:], mask_true[:, 1:],
                                                               reduce_batch_first=False)
@@ -133,6 +146,7 @@ class TrainUnet:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------------- T R A I N ---------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
+    @measure_execution_time
     def train(self):
         # 5. Begin training
         for epoch in range(1, self.cfg.epochs + 1):
@@ -142,8 +156,8 @@ class TrainUnet:
                 for batch in self.train_loader:
                     images, true_masks = batch['image'], batch['mask']
 
-                    assert images.shape[1] == self.model.n_channels, \
-                        f'Network has been defined with {self.model.n_channels} input channels, ' \
+                    assert images.shape[1] == self.cfg.channels, \
+                        f'Network has been defined with {self.cfg.channels} input channels, ' \
                         f'but loaded images have {images.shape[1]} channels. Please check that ' \
                         'the images are loaded correctly.'
 
@@ -152,14 +166,14 @@ class TrainUnet:
 
                     with torch.autocast(self.device.type if self.device.type != 'mps' else 'cpu', enabled=self.cfg.amp):
                         masks_pred = self.model(images)
-                        if self.model.n_classes == 1:
+                        if self.cfg.classes == 1:
                             loss = self.criterion(masks_pred.squeeze(1), true_masks.float())
                             loss += dice_loss(F.sigmoid(masks_pred.squeeze(1)), true_masks.float(), multiclass=False)
                         else:
                             loss = self.criterion(masks_pred, true_masks)
                             loss += dice_loss(
                                 F.softmax(masks_pred, dim=1).float(),
-                                F.one_hot(true_masks, self.model.n_classes).permute(0, 3, 1, 2).float(),
+                                F.one_hot(true_masks, self.cfg.classes).permute(0, 3, 1, 2).float(),
                                 multiclass=True
                             )
 
@@ -188,8 +202,9 @@ class TrainUnet:
                                 tag = tag.replace('/', '.')
                                 if not (torch.isinf(value) | torch.isnan(value)).any():
                                     histograms['Weights/' + tag] = wandb.Histogram(value.data.cpu())
-                                if not (torch.isinf(value.grad) | torch.isnan(value.grad)).any():
-                                    histograms['Gradients/' + tag] = wandb.Histogram(value.grad.data.cpu())
+                                if value.grad is not None:
+                                    if not (torch.isinf(value.grad) | torch.isnan(value.grad)).any():
+                                        histograms['Gradients/' + tag] = wandb.Histogram(value.grad.data.cpu())
 
                             val_score = self.evaluate()
                             self.scheduler.step(val_score)

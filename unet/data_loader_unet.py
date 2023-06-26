@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import torch
 
@@ -10,9 +12,13 @@ from PIL import Image
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
+from config.logger_setup import setup_logger
+
 
 class BasicDataset(Dataset):
     def __init__(self, images_dir: str, mask_dir: str, scale: float = 1.0, mask_suffix: str = ''):
+        setup_logger()
+
         self.images_dir = Path(images_dir)
         self.mask_dir = Path(mask_dir)
         assert 0 < scale <= 1, 'Scale must be between 0 and 1'
@@ -24,8 +30,8 @@ class BasicDataset(Dataset):
         if not self.ids:
             raise RuntimeError(f'No input file found in {images_dir}, make sure you put your images there')
 
-        print(f'Creating dataset with {len(self.ids)} examples')
-        print('Scanning mask files to determine unique values')
+        logging.info(f'Creating dataset with {len(self.ids)} examples')
+        logging.info('Scanning mask files to determine unique values')
 
         with Pool() as p:
             unique = list(tqdm(
@@ -34,8 +40,11 @@ class BasicDataset(Dataset):
 
         self.mask_values = np.unique(np.concatenate(unique), axis=0).tolist()
 
-        print(f'Unique mask values: {self.mask_values}')
+        logging.info(f'Unique mask values: {self.mask_values}')
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------------- __L E N__ ---------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def __len__(self):
         return len(self.ids)
 
@@ -82,15 +91,28 @@ class BasicDataset(Dataset):
         else:
             raise ValueError(f'Loaded masks should have 2 or 3 dimensions, found {mask.ndim}')
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------- P R E P R O C E S S ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def preprocess(mask_values, pil_img, scale, is_mask):
         w, h = pil_img.size
         new_w, new_h = int(scale * w), int(scale * h)
+
+        # Adjust new width and height to be divisible by 32
+        if new_w % 32 != 0:
+            new_w = (new_w // 32 + 1) * 32
+        if new_h % 32 != 0:
+            new_h = (new_h // 32 + 1) * 32
+
         assert new_w > 0 and new_h > 0, 'Scale is too small, resized images would have no pixel'
+
+        # Perform resizing of the input using pil_img.resize
         pil_img = pil_img.resize((new_w, new_h), resample=Image.NEAREST if is_mask else Image.BICUBIC)
         img = np.asarray(pil_img)
 
         if is_mask:
+            # Handle mask processing
             mask = np.zeros((new_h, new_w), dtype=np.int64)
             for i, v in enumerate(mask_values):
                 if img.ndim == 2:
@@ -100,6 +122,7 @@ class BasicDataset(Dataset):
 
             return mask
         else:
+            # Handle image processing
             if img.ndim == 2:
                 img = img[np.newaxis, ...]
             else:
