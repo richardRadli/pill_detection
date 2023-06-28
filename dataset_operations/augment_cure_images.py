@@ -4,11 +4,10 @@ import os
 import random
 import shutil
 
-from glob import glob
 from tqdm import tqdm
 from typing import Tuple
 
-from config.const import DATASET_PATH, IMAGES_PATH
+from config.const import DATASET_PATH
 
 
 class AugmentCUREDataset:
@@ -132,13 +131,34 @@ class AugmentCUREDataset:
         cv2.imwrite(new_image_file_name, adjusted_image)
         cv2.imwrite(new_mask_file_name, mask)
 
-    def rotate_image(self, image_path, mask_path, angle: int = 180) -> None:
+    @staticmethod
+    def unique_count_app(img):
+        img = cv2.resize(img, (img.shape[1]//4, img.shape[0]//4))
+        colors, count = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
+        return tuple(colors[count.argmax()])
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------- R O T A T E   I M A G E ---------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def rotate_image(self, image_path, mask_path, angle: int) -> None:
+        """
+
+        :param image_path:
+        :param mask_path:
+        :param angle:
+        :return:
+        """
+
         image = cv2.imread(image_path)
         mask = cv2.imread(mask_path)
 
         height, width = image.shape[:2]
         rotation_matrix = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1)
-        rotated_image = cv2.warpAffine(image, rotation_matrix, (width, height))
+
+        clr = self.unique_count_app(image)
+        clr = tuple(value.item() for value in clr)
+
+        rotated_image = cv2.warpAffine(image, rotation_matrix, (width, height), borderValue=clr)
         rotated_mask = cv2.warpAffine(mask, rotation_matrix, (width, height))
 
         new_image_file_name = self.rename_file(image_path, op="rotated_%s" % str(angle))
@@ -159,7 +179,10 @@ class AugmentCUREDataset:
         mtx = np.float32([[1, 0, shift_x], [0, 1, shift_y]])
 
         # Apply the shift transformation
-        shifted_image = cv2.warpAffine(image, mtx, (width, height))
+        clr = self.unique_count_app(image)
+        clr = tuple(value.item() for value in clr)
+
+        shifted_image = cv2.warpAffine(image, mtx, (width, height), borderValue=clr)
         shifted_mask = cv2.warpAffine(mask, mtx, (width, height))
 
         new_image_file_name = self.rename_file(image_path, op="shifted")
@@ -278,9 +301,9 @@ class AugmentCUREDataset:
                     self.gaussian_smooth(full_image_path, full_mask_path, (7, 7))
                     self.change_brightness(full_image_path, full_mask_path, exposure_factor=random.uniform(0.5, 1.5))
                     self.change_brightness(full_image_path, full_mask_path, exposure_factor=random.uniform(0.5, 1.5))
-                    self.rotate_image(full_image_path, full_mask_path, angle=90)
-                    self.rotate_image(full_image_path, full_mask_path, angle=180)
-                    self.rotate_image(full_image_path, full_mask_path, angle=270)
+                    self.rotate_image(full_image_path, full_mask_path, angle=random.randint(35, 270))
+                    self.rotate_image(full_image_path, full_mask_path, angle=random.randint(35, 270))
+                    self.rotate_image(full_image_path, full_mask_path, angle=random.randint(35, 270))
                     self.shift_image(full_image_path, full_mask_path, 150, 200)
                     self.zoom_in_object(full_image_path, full_mask_path, 1500)
                     self.flip_image(full_image_path, full_mask_path, 'horizontal')

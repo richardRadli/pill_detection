@@ -30,7 +30,7 @@ def rename_files(images_dir: str, labels_dir: str) -> None:
     """
 
     images = sorted(glob(images_dir + "/*.jpg"))
-    text = sorted(glob(labels_dir + "*.txt"))
+    text = sorted(glob(labels_dir + "/*.txt"))
 
     existing_files = os.listdir(images_dir)
 
