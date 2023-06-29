@@ -1,7 +1,9 @@
+import cv2
 import gc
 import logging
 import matplotlib.pyplot as plt
 import os
+import random
 import pandas as pd
 import re
 import time
@@ -258,3 +260,12 @@ def measure_execution_time(func):
         logging.info(f"Execution time of {func.__name__}: {execution_time} seconds")
         return result
     return wrapper
+
+
+def scale_down_image(image_dir, scale_factor):
+    image_files = os.listdir(image_dir)
+    image_file = random.choice(image_files)
+    image_path = os.path.join(image_dir, image_file)
+    image = cv2.imread(image_path)
+    scaled_image = cv2.resize(image, None, fx=scale_factor, fy=scale_factor)
+    return scaled_image.shape
