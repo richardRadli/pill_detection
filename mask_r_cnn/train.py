@@ -1,101 +1,101 @@
-import os
-import cv2
+import logging
+import os.path
+
+import numpy as np
 import torch
 import torchvision.models.segmentation
 
 from tqdm import tqdm
-
-from torch.utils.data import Dataset, DataLoader
-from torchvision.transforms import ToTensor
+from torch.utils.data import DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+from torchvision import transforms
+
+from config.logger_setup import setup_logger
+from config.config import ConfigTrainingMaskRCNN
+from dataloader_mask_r_cnn import MaskRCNNDataset
+from utils.utils import scale_down_image
 
 
-class MaskRCNNDataset(Dataset):
-    def __init__(self, image_dir, mask_dir):
-        self.image_dir = image_dir
-        self.mask_dir = mask_dir
-        self.image_filenames = os.listdir(image_dir)
+class TrainMaskRCNN:
+    def __init__(self):
+        setup_logger()
 
-    def __len__(self):
-        return len(self.image_filenames)
+        self.cfg = ConfigTrainingMaskRCNN().parse()
 
-    def __getitem__(self, idx):
-        image_name = self.image_filenames[idx]
-        image_path = os.path.join(self.image_dir, image_name)
-        mask_path = os.path.join(self.mask_dir, image_name)
+        # Example usage
+        image_dir = "C:/Users/ricsi/Desktop/ogyei_v2/train/images"
+        mask_dir = "C:/Users/ricsi/Desktop/ogyei_v2/train/masks"
 
-        image = cv2.imread(image_path)
-        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+        new_shape = scale_down_image(image_dir, scale_factor=self.cfg.img_scale)
+        logging.info(f"The new shape after scaling with {self.cfg.img_scale} is {new_shape[1]} × {new_shape[0]}")
 
-        # Convert mask to binary image
-        _, mask = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
+        # Define image transform
+        image_transform = transforms.Compose([
+            transforms.ToPILImage(),  # Convert the image to PIL Image
+            transforms.Resize((new_shape[0], new_shape[1])),  # Resize the image
+            transforms.ToTensor(),  # Convert the image to a tensor
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize the image
+        ])
 
-        # Find contours and generate bounding boxes and labels for each instance
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        num_instances = len(contours)
-        boxes = []
-        labels = []
-        masks = []
-        for i in range(num_instances):
-            x, y, w, h = cv2.boundingRect(contours[i])
-            boxes.append([x, y, x + w, y + h])
-            labels.append(1)  # Class label for instances (change if necessary)
-            instance_mask = (mask == 255).astype('uint8')  # Mask for current instance
-            masks.append(instance_mask)
+        # Define mask transform
+        mask_transform = transforms.Compose([
+            transforms.ToPILImage(),  # Convert the mask to PIL Image
+            transforms.Resize((new_shape[0], new_shape[1])),  # Resize the mask
+            transforms.ToTensor()  # Convert the mask to a tensor
+        ])
 
-        # Apply transformations
-        image = ToTensor()(image)
-        boxes = torch.tensor(boxes, dtype=torch.float32).reshape(num_instances, 4)
-        labels = torch.tensor(labels, dtype=torch.int64)
-        masks = torch.tensor(masks, dtype=torch.uint8)
+        dataset = MaskRCNNDataset(image_dir, mask_dir, image_transform=image_transform, mask_transform=mask_transform)
+        self.dataloader = DataLoader(dataset, batch_size=self.cfg.batch_size, shuffle=True)
 
-        data = {
-            'image': image,
-            'boxes': boxes,
-            'labels': labels,
-            'masks': masks
-        }
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        return data
+        # load an instance segmentation model pre-trained on COCO
+        self.model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
+
+        # get number of input features for the classifier
+        in_features = self.model.roi_heads.box_predictor.cls_score.in_features
+
+        # replace the pre-trained head with a new one
+        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes=self.cfg.num_of_classes)
+        self.model.to(self.device)
+
+        self.optimizer = torch.optim.AdamW(params=self.model.parameters(), lr=self.cfg.learning_rate)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------------- T R A I N ---------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def train(self):
+        train_losses = []
+
+        self.model.train()
+
+        for epoch in tqdm(range(self.cfg.epochs), desc="Epochs"):
+            for batch in tqdm(self.dataloader, total=len(self.dataloader), desc="Processing batch"):
+                images = list(img.to(self.device) for img in batch['image'])
+                targets = []
+                for i in range(len(images)):
+                    target = {'boxes': batch['boxes'][i].to(self.device), 'labels': batch['labels'][i].to(self.device),
+                              'masks': batch['masks'][i].to(self.device)}
+                    targets.append(target)
+
+                self.optimizer.zero_grad()
+                loss_dict = self.model(images, targets)
+
+                losses = sum(loss for loss in loss_dict.values())
+                losses.backward()
+                self.optimizer.step()
+                train_losses.append(losses.item())
+
+            train_loss = np.average(train_losses)
+            print(f'train_loss: {train_loss:.5f}')
+            train_losses.clear()
+
+            torch.save(self.model.state_dict(), os.path.join("C:/Users/ricsi/Desktop", str(epoch) + ".torch"))
 
 
-# Example usage
-image_dir = "C:/Users/ricsi/Desktop/ogyei_v2/train/images"
-mask_dir = "C:/Users/ricsi/Desktop/ogyei_v2/train/masks"
-
-dataset = MaskRCNNDataset(image_dir, mask_dir)
-dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
-
-device = "cuda"
-
-# load an instance segmentation model pre-trained on COCO
-model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
-
-# get number of input features for the classifier
-in_features = model.roi_heads.box_predictor.cls_score.in_features
-# replace the pre-trained head with a new one
-model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes=2)
-model.to(device)  # move model to the right devic
-
-optimizer = torch.optim.AdamW(params=model.parameters(), lr=1e-5)
-model.train()
-
-for epoch in range(10):
-    for batch in dataloader:
-        images = list(img.to(device) for img in batch['image'])
-        targets = []
-        for i in range(len(images)):
-            target = {}
-            target['boxes'] = batch['boxes'][i].to(device)
-            target['labels'] = batch['labels'][i].to(device)
-            target['masks'] = batch['masks'][i].to(device)
-            targets.append(target)
-
-        optimizer.zero_grad()
-        loss_dict = model(images, targets)
-
-        losses = sum(loss for loss in loss_dict.values())
-        losses.backward()
-        optimizer.step()
-
-        print(epoch, 'loss:', losses.item())
+if __name__ == "__main__":
+    try:
+        train_mask_r_cnn = TrainMaskRCNN()
+        train_mask_r_cnn.train()
+    except KeyboardInterrupt as kie:
+        logging.error(kie)
