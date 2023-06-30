@@ -7,13 +7,14 @@ import torchvision.models.segmentation
 
 from tqdm import tqdm
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision import transforms
 
 from config.logger_setup import setup_logger
 from config.config import ConfigTrainingMaskRCNN
 from dataloader_mask_r_cnn import MaskRCNNDataset
-from utils.utils import scale_down_image
+from utils.utils import scale_down_image, use_gpu_if_available
 
 
 class TrainMaskRCNN:
@@ -22,9 +23,11 @@ class TrainMaskRCNN:
 
         self.cfg = ConfigTrainingMaskRCNN().parse()
 
+        self.device = use_gpu_if_available()
+
         # Example usage
-        image_dir = "C:/Users/ricsi/Desktop/ogyei_v2/train/images"
-        mask_dir = "C:/Users/ricsi/Desktop/ogyei_v2/train/masks"
+        image_dir = "C:/Users/ricsi/Desktop/salt/images"
+        mask_dir = "C:/Users/ricsi/Desktop/salt/masks"
 
         new_shape = scale_down_image(image_dir, scale_factor=self.cfg.img_scale)
         logging.info(f"The new shape after scaling with {self.cfg.img_scale} is {new_shape[1]} × {new_shape[0]}")
@@ -44,10 +47,15 @@ class TrainMaskRCNN:
             transforms.ToTensor()  # Convert the mask to a tensor
         ])
 
-        dataset = MaskRCNNDataset(image_dir, mask_dir, image_transform=image_transform, mask_transform=mask_transform)
-        self.dataloader = DataLoader(dataset, batch_size=self.cfg.batch_size, shuffle=True)
+        dataset = MaskRCNNDataset(image_dir, mask_dir, image_transform=None, mask_transform=None)
+        train_size = int(0.8 * len(dataset))  # 80% for training
+        val_size = len(dataset) - train_size  # 20% for validation
 
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
+
+        # Create data loaders for training and validation
+        self.train_dataloader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
+        self.val_dataloader = DataLoader(val_dataset, batch_size=self.cfg.batch_size, shuffle=False)
 
         # load an instance segmentation model pre-trained on COCO
         self.model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
@@ -61,20 +69,27 @@ class TrainMaskRCNN:
 
         self.optimizer = torch.optim.AdamW(params=self.model.parameters(), lr=self.cfg.learning_rate)
 
+        self.writer = SummaryWriter(log_dir="C:/Users/ricsi/Desktop/salt/logs")
+
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------------- T R A I N ---------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def train(self):
         train_losses = []
+        valid_losses = []
+
+        best_valid_loss = float('inf')
+        best_model_path = None
 
         self.model.train()
 
         for epoch in tqdm(range(self.cfg.epochs), desc="Epochs"):
-            for batch in tqdm(self.dataloader, total=len(self.dataloader), desc="Processing batch"):
+            for batch in tqdm(self.train_dataloader, total=len(self.train_dataloader), desc="Training loop"):
                 images = list(img.to(self.device) for img in batch['image'])
                 targets = []
                 for i in range(len(images)):
-                    target = {'boxes': batch['boxes'][i].to(self.device), 'labels': batch['labels'][i].to(self.device),
+                    target = {'boxes': batch['boxes'][i].to(self.device),
+                              'labels': batch['labels'][i].to(self.device),
                               'masks': batch['masks'][i].to(self.device)}
                     targets.append(target)
 
@@ -86,11 +101,33 @@ class TrainMaskRCNN:
                 self.optimizer.step()
                 train_losses.append(losses.item())
 
-            train_loss = np.average(train_losses)
-            print(f'train_loss: {train_loss:.5f}')
-            train_losses.clear()
+            for batch in tqdm(self.val_dataloader, total=len(self.val_dataloader), desc="Validation loop"):
+                images = list(img.to(self.device) for img in batch['image'])
+                targets = []
+                for i in range(len(images)):
+                    target = {'boxes': batch['boxes'][i].to(self.device),
+                              'labels': batch['labels'][i].to(self.device),
+                              'masks': batch['masks'][i].to(self.device)}
+                    targets.append(target)
 
-            torch.save(self.model.state_dict(), os.path.join("C:/Users/ricsi/Desktop", str(epoch) + ".torch"))
+                loss_dict = self.model(images, targets)
+                losses = sum(loss for loss in loss_dict.values())
+                valid_losses.append(losses.item())
+
+            train_loss = np.average(train_losses)
+            valid_loss = np.average(valid_losses)
+            logging.info(f'train_loss: {train_loss:.5f} valid_loss: {valid_loss:.5f}')
+            self.writer.add_scalars("Loss", {"train": train_loss, "validation": valid_loss}, epoch)
+
+            train_losses.clear()
+            valid_losses.clear()
+
+            if valid_loss < best_valid_loss:
+                best_valid_loss = valid_loss
+                if best_model_path is not None:
+                    os.remove(best_model_path)
+                best_model_path = os.path.join("C:/Users/ricsi/Desktop/salt/saves", str(epoch) + ".torch")
+                torch.save(self.model.state_dict(), best_model_path)
 
 
 if __name__ == "__main__":

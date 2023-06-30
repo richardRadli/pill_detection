@@ -60,6 +60,26 @@ class ConfigTestingUnet:
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++ C O N F I G   T R A I N I N G +++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+class ConfigTrainingMaskRCNN:
+    def __init__(self):
+        self.opt = None
+        self.parser = argparse.ArgumentParser()
+
+        self.parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')
+        self.parser.add_argument('--batch_size', type=int, default=16, help='Batch size')
+        self.parser.add_argument('--learning_rate', type=float, default=1e-5, help='Learning rate')
+        self.parser.add_argument('--weight_decay', type=float, default=1e-8)
+        self.parser.add_argument('--img_scale', '-s', type=float, default=0.4, help='Downscaling factor of the images')
+        self.parser.add_argument('--num_of_classes', type=int, default=2)
+
+    def parse(self):
+        self.opt = self.parser.parse_args()
+        return self.opt
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++ C O N F I G   G E N E R A L +++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class ConfigGeneral:

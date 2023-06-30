@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor
 
+
 class MaskRCNNDataset(Dataset):
     def __init__(self, image_dir, mask_dir, image_transform=None, mask_transform=None):
         self.image_dir = image_dir
@@ -26,11 +27,11 @@ class MaskRCNNDataset(Dataset):
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
 
         # Convert mask to binary image
-        _, mask = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
+        # _, mask = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
 
         # Find contours and generate bounding boxes and labels for each instance
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        num_instances = len(contours)
+        num_instances = 1
         boxes = []
         labels = []
         masks = []
@@ -48,7 +49,8 @@ class MaskRCNNDataset(Dataset):
             masks = torch.stack([self.mask_transform(mask) for mask in masks])
 
         # Apply transformations
-        # image = ToTensor()(image)
+        if self.image_transform is None:
+            image = ToTensor()(image)
         boxes = torch.tensor(boxes, dtype=torch.float32).reshape(num_instances, 4)
         labels = torch.tensor(labels, dtype=torch.int64)
         masks = torch.tensor(np.array(masks), dtype=torch.uint8)
