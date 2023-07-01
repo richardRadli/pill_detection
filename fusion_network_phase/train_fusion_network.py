@@ -10,7 +10,8 @@ from torchsummary import summary
 
 from config.config import ConfigFusionNetwork
 from config.const import DATA_PATH
-from fusion_network import FusionNet
+# from fusion_network import FusionNet
+from mssanetwork import MSSANetwork
 from fusion_dataset_loader import FusionDataset
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
     use_gpu_if_available
@@ -46,17 +47,21 @@ class TrainFusionNet:
         self.valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
 
         # # Initialize the fusion network
-        self.model = FusionNet()
+        self.model = MSSANetwork()
 
         # Load the saved state dictionaries of the stream networks
         stream_con_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_stream_network_contour"))))
+            (torch.load(find_latest_file_in_latest_directory(
+                DATA_PATH.get_data_path("weights_efficient_net_self_attention_contour"))))
         stream_rgb_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_stream_network_rgb"))))
+            (torch.load(find_latest_file_in_latest_directory(
+                DATA_PATH.get_data_path("weights_efficient_net_self_attention_rgb"))))
         stream_tex_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_stream_network_texture"))))
+            (torch.load(find_latest_file_in_latest_directory(
+                DATA_PATH.get_data_path("weights_efficient_net_self_attention_texture"))))
         stream_lbp_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_stream_network_lbp"))))
+            (torch.load(find_latest_file_in_latest_directory(
+                DATA_PATH.get_data_path("weights_efficient_net_self_attention_lbp"))))
 
         # Update the state dictionaries of the fusion network's stream networks
         self.model.contour_network.load_state_dict(stream_con_state_dict)
@@ -88,8 +93,8 @@ class TrainFusionNet:
         self.criterion = nn.TripletMarginLoss(margin=self.cfg.margin)
 
         # Specify optimizer
-        self.optimizer = torch.optim.SGD(list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
-                                         lr=self.cfg.learning_rate, weight_decay=self.cfg.weight_decay)
+        self.optimizer = torch.optim.Adam(list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
+                                          lr=self.cfg.learning_rate, weight_decay=self.cfg.weight_decay)
 
         # Tensorboard
         tensorboard_log_dir = os.path.join(DATA_PATH.get_data_path("logs_fusion_net"), self.timestamp)

@@ -26,9 +26,9 @@ class TrainUnet:
     def __init__(self):
         self.cfg = ConfigTrainingUnet().parse()
 
-        self.dir_img = Path('C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/Reference/')
-        self.dir_mask = Path('C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/Reference_mask/')
-        self.dir_checkpoint = Path('C:/Users/ricsi/Desktop/checkpoints/')
+        self.dir_img = Path('C:/Users/ricsi/Desktop/cure/images/')
+        self.dir_mask = Path('C:/Users/ricsi/Desktop/cure/masks/')
+        self.dir_checkpoint = Path('C:/Users/ricsi/Desktop/cure/saves')
 
         # 1. Create dataset
         try:

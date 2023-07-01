@@ -26,8 +26,8 @@ class TrainMaskRCNN:
         self.device = use_gpu_if_available()
 
         # Example usage
-        image_dir = "C:/Users/ricsi/Desktop/salt/images"
-        mask_dir = "C:/Users/ricsi/Desktop/salt/masks"
+        image_dir = "C:/Users/ricsi/Desktop/cure/images"
+        mask_dir = "C:/Users/ricsi/Desktop/cure/masks"
 
         new_shape = scale_down_image(image_dir, scale_factor=self.cfg.img_scale)
         logging.info(f"The new shape after scaling with {self.cfg.img_scale} is {new_shape[1]} × {new_shape[0]}")
@@ -48,14 +48,8 @@ class TrainMaskRCNN:
         ])
 
         dataset = MaskRCNNDataset(image_dir, mask_dir, image_transform=None, mask_transform=None)
-        train_size = int(0.8 * len(dataset))  # 80% for training
-        val_size = len(dataset) - train_size  # 20% for validation
-
-        train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
-
         # Create data loaders for training and validation
-        self.train_dataloader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
-        self.val_dataloader = DataLoader(val_dataset, batch_size=self.cfg.batch_size, shuffle=False)
+        self.train_dataloader = DataLoader(dataset, batch_size=self.cfg.batch_size, shuffle=True)
 
         # load an instance segmentation model pre-trained on COCO
         self.model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
@@ -69,17 +63,13 @@ class TrainMaskRCNN:
 
         self.optimizer = torch.optim.AdamW(params=self.model.parameters(), lr=self.cfg.learning_rate)
 
-        self.writer = SummaryWriter(log_dir="C:/Users/ricsi/Desktop/salt/logs")
+        self.writer = SummaryWriter(log_dir="C:/Users/ricsi/Desktop/cure/logs")
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------------- T R A I N ---------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def train(self):
         train_losses = []
-        valid_losses = []
-
-        best_valid_loss = float('inf')
-        best_model_path = None
 
         self.model.train()
 
@@ -101,32 +91,14 @@ class TrainMaskRCNN:
                 self.optimizer.step()
                 train_losses.append(losses.item())
 
-            for batch in tqdm(self.val_dataloader, total=len(self.val_dataloader), desc="Validation loop"):
-                images = list(img.to(self.device) for img in batch['image'])
-                targets = []
-                for i in range(len(images)):
-                    target = {'boxes': batch['boxes'][i].to(self.device),
-                              'labels': batch['labels'][i].to(self.device),
-                              'masks': batch['masks'][i].to(self.device)}
-                    targets.append(target)
-
-                loss_dict = self.model(images, targets)
-                losses = sum(loss for loss in loss_dict.values())
-                valid_losses.append(losses.item())
-
             train_loss = np.average(train_losses)
-            valid_loss = np.average(valid_losses)
-            logging.info(f'train_loss: {train_loss:.5f} valid_loss: {valid_loss:.5f}')
-            self.writer.add_scalars("Loss", {"train": train_loss, "validation": valid_loss}, epoch)
+            logging.info(f'train_loss: {train_loss:.5f}')
+            self.writer.add_scalar("train_loss", train_loss, epoch)
 
             train_losses.clear()
-            valid_losses.clear()
 
-            if valid_loss < best_valid_loss:
-                best_valid_loss = valid_loss
-                if best_model_path is not None:
-                    os.remove(best_model_path)
-                best_model_path = os.path.join("C:/Users/ricsi/Desktop/salt/saves", str(epoch) + ".torch")
+            best_model_path = os.path.join("C:/Users/ricsi/Desktop/cure/saves", str(epoch) + ".torch")
+            if epoch % 10 == 0 or epoch == (self.cfg.epochs - 1):
                 torch.save(self.model.state_dict(), best_model_path)
 
 
