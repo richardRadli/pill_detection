@@ -35,6 +35,7 @@ class MaskRCNNDataset(Dataset):
         boxes = []
         labels = []
         masks = []
+
         for i in range(num_instances):
             x, y, w, h = cv2.boundingRect(contours[i])
             boxes.append([x, y, x + w, y + h])

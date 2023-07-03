@@ -68,7 +68,7 @@ class ConfigTrainingMaskRCNN:
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument('--epochs', type=int, default=200, help='Number of epochs')
-        self.parser.add_argument('--batch_size', type=int, default=16, help='Batch size')
+        self.parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
         self.parser.add_argument('--learning_rate', type=float, default=1e-5, help='Learning rate')
         self.parser.add_argument('--weight_decay', type=float, default=1e-8)
         self.parser.add_argument('--img_scale', '-s', type=float, default=0.4, help='Downscaling factor of the images')

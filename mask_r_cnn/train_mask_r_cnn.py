@@ -29,13 +29,13 @@ class TrainMaskRCNN:
         image_dir = "C:/Users/ricsi/Desktop/cure/images"
         mask_dir = "C:/Users/ricsi/Desktop/cure/masks"
 
-        new_shape = scale_down_image(image_dir, scale_factor=self.cfg.img_scale)
-        logging.info(f"The new shape after scaling with {self.cfg.img_scale} is {new_shape[1]} × {new_shape[0]}")
+        # new_shape = scale_down_image(image_dir, scale_factor=self.cfg.img_scale)
+        # logging.info(f"The new shape after scaling with {self.cfg.img_scale} is {new_shape[1]} × {new_shape[0]}")
 
         # Define image transform
         image_transform = transforms.Compose([
             transforms.ToPILImage(),  # Convert the image to PIL Image
-            transforms.Resize((new_shape[0], new_shape[1])),  # Resize the image
+            transforms.Resize((101, 101)),  # Resize the image
             transforms.ToTensor(),  # Convert the image to a tensor
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize the image
         ])
@@ -43,11 +43,11 @@ class TrainMaskRCNN:
         # Define mask transform
         mask_transform = transforms.Compose([
             transforms.ToPILImage(),  # Convert the mask to PIL Image
-            transforms.Resize((new_shape[0], new_shape[1])),  # Resize the mask
+            transforms.Resize((101, 101)),  # Resize the mask
             transforms.ToTensor()  # Convert the mask to a tensor
         ])
 
-        dataset = MaskRCNNDataset(image_dir, mask_dir, image_transform=None, mask_transform=None)
+        dataset = MaskRCNNDataset(image_dir, mask_dir, image_transform=image_transform, mask_transform=mask_transform)
         # Create data loaders for training and validation
         self.train_dataloader = DataLoader(dataset, batch_size=self.cfg.batch_size, shuffle=True)
 

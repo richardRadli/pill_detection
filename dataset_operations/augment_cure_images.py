@@ -1,3 +1,5 @@
+import logging
+
 import cv2
 import numpy as np
 import os
@@ -39,8 +41,21 @@ class AugmentCUREDataset:
         self.training_classes = all_classes[:num_training_classes]
         self.test_classes = all_classes[num_training_classes:]
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------- C R E A T E   D I R E C T O R I E S --------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def create_directories(classes, images_dir, masks_dir, dataset_path, masks_path):
+        """
+
+        :param classes:
+        :param images_dir:
+        :param masks_dir:
+        :param dataset_path:
+        :param masks_path:
+        :return:
+        """
+
         # Create directories for each class in the training set
         for class_name in classes:
             class_path = os.path.join(images_dir, class_name)
@@ -63,8 +78,18 @@ class AugmentCUREDataset:
                 dest_mask_path = os.path.join(class_path_mask, mask)
                 shutil.copy(src_mask_path, dest_mask_path)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------- R E N A M E   F I L E ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def rename_file(image_path, op):
+        """
+
+        :param image_path:
+        :param op:
+        :return:
+        """
+
         # Split the original file path into directory and filename
         directory = os.path.dirname(image_path)
         filename = os.path.basename(image_path)
@@ -87,6 +112,14 @@ class AugmentCUREDataset:
     # -------------------------------------------- D I S T O R T   C O L O R -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def distort_color(self, image_path: str, mask_path: str, domain: Tuple[float, float]) -> None:
+        """
+
+        :param image_path:
+        :param mask_path:
+        :param domain:
+        :return:
+        """
+
         image = cv2.imread(image_path)
         mask = cv2.imread(mask_path)
 
@@ -104,7 +137,18 @@ class AugmentCUREDataset:
         cv2.imwrite(new_image_file_name, distorted_image)
         cv2.imwrite(new_mask_file_name, mask)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------- G A U S S I A N   S M O O T H ------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def gaussian_smooth(self, image_path, mask_path, kernel) -> None:
+        """
+
+        :param image_path:
+        :param mask_path:
+        :param kernel:
+        :return:
+        """
+
         image = cv2.imread(image_path)
         mask = cv2.imread(mask_path)
 
@@ -116,7 +160,18 @@ class AugmentCUREDataset:
         cv2.imwrite(new_image_file_name, smoothed_image)
         cv2.imwrite(new_mask_file_name, mask)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------- C H A N G E   B R I G H T N E S S ----------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def change_brightness(self, image_path, mask_path, exposure_factor: float) -> None:
+        """
+
+        :param image_path:
+        :param mask_path:
+        :param exposure_factor:
+        :return:
+        """
+
         image = cv2.imread(image_path)
         mask = cv2.imread(mask_path)
 
@@ -131,8 +186,17 @@ class AugmentCUREDataset:
         cv2.imwrite(new_image_file_name, adjusted_image)
         cv2.imwrite(new_mask_file_name, mask)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------- U N I Q U E   C O U N T   A P P -----------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def unique_count_app(img):
+        """
+
+        :param img:
+        :return:
+        """
+
         img = cv2.resize(img, (img.shape[1]//4, img.shape[0]//4))
         colors, count = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
         return tuple(colors[count.argmax()])
@@ -167,7 +231,19 @@ class AugmentCUREDataset:
         cv2.imwrite(new_image_file_name, rotated_image)
         cv2.imwrite(new_mask_file_name, rotated_mask)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------- S H I F T   I M A G E ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def shift_image(self, image_path, mask_path, shift_x: int = 50, shift_y: int = 100):
+        """
+
+        :param image_path:
+        :param mask_path:
+        :param shift_x:
+        :param shift_y:
+        :return:
+        """
+
         # Read the image
         image = cv2.imread(image_path)
         mask = cv2.imread(mask_path)
@@ -191,7 +267,18 @@ class AugmentCUREDataset:
         cv2.imwrite(new_image_file_name, shifted_image)
         cv2.imwrite(new_mask_file_name, shifted_mask)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------- Z O O M   I N   O B J E C T ------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def zoom_in_object(self, image_path, mask_path, crop_size):
+        """
+
+        :param image_path:
+        :param mask_path:
+        :param crop_size:
+        :return:
+        """
+
         # Read the image
         image = cv2.imread(image_path)
         mask = cv2.imread(mask_path)
@@ -220,6 +307,9 @@ class AugmentCUREDataset:
         cv2.imwrite(new_image_file_name, zoomed_image)
         cv2.imwrite(new_mask_file_name, zoomed_mask)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------- F L I P   I M A G E ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def flip_image(self, image_path, mask_path, flip_direction):
         # Read the image
         image = cv2.imread(image_path)
@@ -262,21 +352,38 @@ class AugmentCUREDataset:
 
         background = cv2.imread(background_image_path)
 
-        # Ensure mask and background have the same size
-        background = cv2.resize(background, (image.shape[1], image.shape[0]))
+        try:
+            if background.size != 0:
+                # Ensure mask and background have the same size
+                background = cv2.resize(background, (image.shape[1], image.shape[0]))
 
-        foreground = cv2.bitwise_and(image, image, mask=mask)
-        background = cv2.bitwise_and(background, background, mask=cv2.bitwise_not(mask))
+                foreground = cv2.bitwise_and(image, image, mask=mask)
+                background = cv2.bitwise_and(background, background, mask=cv2.bitwise_not(mask))
 
-        output_image = cv2.add(foreground, background)
+                output_image = cv2.add(foreground, background)
 
-        new_image_file_name = self.rename_file(image_path, op="changed_background")
-        new_mask_file_name = self.rename_file(mask_path, op="changed_background")
+                new_image_file_name = self.rename_file(image_path, op="changed_background")
+                new_mask_file_name = self.rename_file(mask_path, op="changed_background")
 
-        cv2.imwrite(new_image_file_name, output_image)
-        cv2.imwrite(new_mask_file_name, mask)
+                cv2.imwrite(new_image_file_name, output_image)
+                cv2.imwrite(new_mask_file_name, mask)
+            else:
+                logging.info(f"The background image {os.path.basename(background_image_path)} is empty.")
+        except AttributeError:
+            logging.info(f'Image {os.path.basename(background_image_path)} is wrong!')
 
-    def main(self, split_dataset: bool, do_aug: bool, change_background: bool):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------------- M A I N -----------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def main(self, split_dataset: bool, do_aug: bool, change_background: bool) -> None:
+        """
+
+        :param split_dataset:
+        :param do_aug:
+        :param change_background:
+        :return:
+        """
+
         if split_dataset:
             self.create_directories(self.training_classes, self.training_images, self.training_masks, self.dataset_path,
                                     self.mask_path)
@@ -315,6 +422,9 @@ class AugmentCUREDataset:
             break
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------- __M A I N__ -------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     aug = AugmentCUREDataset()
-    aug.main(split_dataset=False, do_aug=False, change_background=True)
+    aug.main(split_dataset=False, do_aug=True, change_background=False)
