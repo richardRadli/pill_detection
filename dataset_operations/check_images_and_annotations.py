@@ -20,7 +20,7 @@ from typing import List
 
 from config.logger_setup import setup_logger
 from config.const import DATA_PATH, IMAGES_PATH
-from convert_yolo import convert_yolo_format_to_pixels, read_yolo_annotations_to_list
+from convert_segmentation_to_yolo import convert_yolo_format_to_pixels, read_yolo_annotations_to_list
 
 
 # ----------------------------------------------------------------------------------------------------------------------

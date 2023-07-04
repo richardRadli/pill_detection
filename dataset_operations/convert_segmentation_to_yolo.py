@@ -1,5 +1,5 @@
 """
-File: convert_yolo.py
+File: convert_segmentation_to_yolo.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Apr 24, 2023

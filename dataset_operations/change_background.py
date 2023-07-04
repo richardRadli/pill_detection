@@ -18,7 +18,7 @@ from glob import glob
 from tqdm import tqdm
 
 from config.const import DATASET_PATH, IMAGES_PATH
-from convert_yolo import convert_yolo_format_to_pixels
+from convert_segmentation_to_yolo import convert_yolo_format_to_pixels
 from utils.utils import measure_execution_time
 
 

@@ -28,7 +28,7 @@ class UnDistortTestImages:
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
         cam_mtx_np_file = os.path.join(DATA_PATH.get_data_path("cam_data"),
-                                       os.listdir(DATA_PATH.get_data_path("cam_data"))[1])
+                                       os.listdir(DATA_PATH.get_data_path("cam_data"))[2])
         data = np.load(cam_mtx_np_file, allow_pickle=True)
 
         self.matrix = data.item()['matrix']
@@ -66,11 +66,10 @@ class UnDistortTestImages:
         :return: None
         """
 
-        input_dir = "D:/project/IVM/captured_OGYEI_pill_photos_v4"
-        output_dir = "D:/project/IVM/captured_OGYEI_pill_photos_v4_undistorted"
+        input_dir = "C:/Users/ricsi/Desktop/ures_talkak"
+        output_dir = "C:/Users/ricsi/Desktop/ures_talkak_undistorted"
 
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+        os.makedirs(output_dir, exist_ok=True)
 
         with ThreadPoolExecutor() as executor:
             for subdir in tqdm(os.listdir(input_dir)):
@@ -87,4 +86,4 @@ class UnDistortTestImages:
 
 if __name__ == "__main__":
     undistort_test_images = UnDistortTestImages()
-    # undistort_test_images.undistort_images()
+    undistort_test_images.undistort_images()
