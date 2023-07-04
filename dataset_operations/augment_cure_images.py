@@ -1,6 +1,5 @@
-import logging
-
 import cv2
+import logging
 import numpy as np
 import os
 import random
@@ -10,10 +9,13 @@ from tqdm import tqdm
 from typing import Tuple
 
 from config.const import DATASET_PATH
+from config.logger_setup import setup_logger
 
 
 class AugmentCUREDataset:
     def __init__(self):
+        setup_logger()
+
         self.dataset_path = DATASET_PATH.get_data_path("cure_reference")
         self.mask_path = DATASET_PATH.get_data_path("cure_reference_mask")
         self.backgrounds = DATASET_PATH.get_data_path("dtd_images")
@@ -191,12 +193,6 @@ class AugmentCUREDataset:
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def unique_count_app(img):
-        """
-
-        :param img:
-        :return:
-        """
-
         img = cv2.resize(img, (img.shape[1]//4, img.shape[0]//4))
         colors, count = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
         return tuple(colors[count.argmax()])
