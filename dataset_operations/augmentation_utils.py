@@ -160,7 +160,7 @@ def copy_original_images(src_path, dst_path):
 # ------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------- Z O O M   I N   O B J E C T ------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------
-def zoom_in_object(image_path, aug_path, crop_size, mask_path):
+def zoom_in_object(image_path, aug_path, crop_size, mask_path=None):
     image = cv2.imread(image_path)
 
     height, width = image.shape[:2]

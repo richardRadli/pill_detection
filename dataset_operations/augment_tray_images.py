@@ -152,7 +152,7 @@ class AugmentTrayImages:
 
     def main(self, create_class_dirs: bool, first_phase, second_phase, third_phase, fourth_phase) -> None:
         if create_class_dirs:
-            create_directories(self.all_classes, self.tray_images, self.tray_images)
+            create_directories(classes=self.all_classes, images_dir=self.tray_images, dataset_path=self.tray_images)
 
         for class_name in tqdm(self.all_classes, total=len(self.all_classes), desc="Processing classes"):
             # Collects the class folders
