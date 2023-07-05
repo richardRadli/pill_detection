@@ -4,17 +4,16 @@ import numpy as np
 import os
 import random
 import re
-import shutil
 import matplotlib.pyplot as plt
 
 from skimage.transform import resize
 from tqdm import tqdm
-from typing import Tuple
 
 from config.config import ConfigAugmentation
 from config.const import DATASET_PATH
 from config.logger_setup import setup_logger
-from utils.utils import rename_file, unique_count_app
+from augmentation_utils import rename_file, gaussian_smooth, change_brightness, rotate_image, shift_image, \
+    change_white_balance, copy_original_images, create_directories
 
 
 class AugmentTrayImages:
@@ -46,99 +45,25 @@ class AugmentTrayImages:
         self.all_classes = sorted(list(all_classes))
 
     @staticmethod
-    def create_directories(classes, images_dir, dataset_path):
-        for class_name in classes:
-            class_path = os.path.join(images_dir, class_name)
-            os.makedirs(class_path, exist_ok=True)
+    def menu():
+        phase1_title = "Augmenting empty tray images"
+        phase2_title = "Placing pills on the augmented tray images"
+        phase3_title = "Augmenting the images of the previous phase"
+        phase4_title = "Creating absolute difference images"
 
-            images = [image for image in os.listdir(dataset_path) if image.startswith(f"{class_name}_")]
-            for image in tqdm(images, total=len(images), desc="Copying images"):
-                src_path = os.path.join(dataset_path, image)
-                dest_path = os.path.join(class_path, image)
-                shutil.copy(src_path, dest_path)
+        # Print the help menu
+        logging.info("=== Help Menu ===")
+        logging.info("Please select one of the following phases:")
+        logging.info(f"1. {phase1_title}")
+        logging.info(f"2. {phase2_title}")
+        logging.info(f"3. {phase3_title}")
+        logging.info(f"4. {phase4_title}")
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------- F L I P   I M A G E ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def copy_original_images(src_path, dst_path):
-        shutil.copy(src_path, dst_path)
-
-    @staticmethod
-    def change_white_balance(image_path: str, aug_path, domain: Tuple[float, float] = (0.7, 1.2)) -> None:
-        image = cv2.imread(image_path)
-
-        # Generate random scaling factors for each color channel
-        scale_factors = np.random.uniform(low=domain[0], high=domain[1], size=(3,))
-
-        # Apply the scaling factors to the image
-        adjusted_image = image * scale_factors
-
-        # Clip the pixel values to the valid range [0, 255]
-        adjusted_image = np.clip(adjusted_image, 0, 255)
-        adjusted_image = adjusted_image.astype(np.uint8)
-
-        new_image_file_name = rename_file(aug_path, op="distorted_colour")
-        cv2.imwrite(new_image_file_name, adjusted_image)
-
-    def gaussian_smooth(self, image_path, aug_path, kernel) -> None:
-        image = cv2.imread(image_path)
-        smoothed_image = cv2.GaussianBlur(image, kernel, 0)
-        new_image_file_name = rename_file(aug_path, op="gaussian_%s" % str(kernel[0]))
-        cv2.imwrite(new_image_file_name, smoothed_image)
-
-    def change_brightness(self, image_path, aug_path, exposure_factor: float) -> None:
-        image = cv2.imread(image_path)
-
-        image = image.astype(np.float32) / 255.0
-        adjusted_image = image * exposure_factor
-        adjusted_image = np.clip(adjusted_image, 0, 1)
-        adjusted_image = (adjusted_image * 255).astype(np.uint8)
-
-        new_image_file_name = rename_file(aug_path, op="brightness")
-        cv2.imwrite(new_image_file_name, adjusted_image)
-
-    def rotate_image(self, image_path, aug_path, angle: int) -> None:
-        image = cv2.imread(image_path)
-
-        height, width = image.shape[:2]
-        rotation_matrix = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1)
-
-        clr = unique_count_app(image)
-        clr = tuple(value.item() for value in clr)
-
-        rotated_image = cv2.warpAffine(image, rotation_matrix, (width, height), borderValue=clr)
-        new_image_file_name = rename_file(aug_path, op="rotated_%s" % str(angle))
-        cv2.imwrite(new_image_file_name, rotated_image)
-
-    def shift_image(self, image_path, aug_path, shift_x: int = 50, shift_y: int = 100):
-        image = cv2.imread(image_path)
-
-        height, width = image.shape[:2]
-
-        mtx = np.float32([[1, 0, shift_x], [0, 1, shift_y]])
-
-        clr = unique_count_app(image)
-        clr = tuple(value.item() for value in clr)
-
-        shifted_image = cv2.warpAffine(image, mtx, (width, height), borderValue=clr)
-        new_image_file_name = rename_file(aug_path, op="shifted")
-        cv2.imwrite(new_image_file_name, shifted_image)
-
-    def zoom_in_object(self, image_path, aug_path, crop_size):
-        image = cv2.imread(image_path)
-
-        height, width = image.shape[:2]
-
-        start_x = (width - crop_size) // 2
-        start_y = (height - crop_size) // 2
-        end_x = start_x + crop_size
-        end_y = start_y + crop_size
-
-        cropped_image = image[start_y:end_y, start_x:end_x]
-        zoomed_image = cv2.resize(cropped_image, (width, height), interpolation=cv2.INTER_LINEAR)
-
-        new_image_file_name = rename_file(aug_path, op="zoomed")
-        cv2.imwrite(new_image_file_name, zoomed_image)
-
-    def flip_image(self, image_path, aug_path, flip_direction):
+    def flip_image(image_path, aug_path, flip_direction):
         # Read the image
         image = cv2.imread(image_path)
 
@@ -194,39 +119,40 @@ class AugmentTrayImages:
         cv2.imwrite(save_path, tray_image)
 
     @staticmethod
-    def subtract_images(empty_tray_image_path, aug_tray_img_w_pill_aug, save_path=None):
+    def subtract_images(empty_tray_image_path, aug_tray_img_w_pill_aug, display_results, save_path=None):
         img1 = cv2.imread(empty_tray_image_path, 1)
         img2 = cv2.imread(aug_tray_img_w_pill_aug, 1)
 
         diff = cv2.absdiff(img1, img2)
         diff = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
-        # Create a figure and subplots
-        fig, axs = plt.subplots(1, 3, figsize=(12, 4))
+        if display_results:
+            # Create a figure and subplots
+            fig, axs = plt.subplots(1, 3, figsize=(12, 4))
 
-        # Display img1
-        axs[0].imshow(img1, cmap='gray')
-        axs[0].set_title("Image 1")
+            # Display img1
+            axs[0].imshow(img1, cmap='gray')
+            axs[0].set_title("Image 1")
 
-        # Display img2
-        axs[1].imshow(img2, cmap='gray')
-        axs[1].set_title("Image 2")
+            # Display img2
+            axs[1].imshow(img2, cmap='gray')
+            axs[1].set_title("Image 2")
 
-        # Display diff
-        axs[2].imshow(diff, cmap='gray')
-        axs[2].set_title("Absolute Difference")
+            # Display diff
+            axs[2].imshow(diff, cmap='gray')
+            axs[2].set_title("Absolute Difference")
 
-        # Adjust the spacing between subplots
-        plt.tight_layout()
+            # Adjust the spacing between subplots
+            plt.tight_layout()
 
-        # Show the plot
-        plt.show()
+            # Show the plot
+            plt.show()
 
         cv2.imwrite(save_path, diff)
 
     def main(self, create_class_dirs: bool, first_phase, second_phase, third_phase, fourth_phase) -> None:
         if create_class_dirs:
-            self.create_directories(self.all_classes, self.tray_images, self.tray_images)
+            create_directories(self.all_classes, self.tray_images, self.tray_images)
 
         for class_name in tqdm(self.all_classes, total=len(self.all_classes), desc="Processing classes"):
             # Collects the class folders
@@ -255,18 +181,18 @@ class AugmentTrayImages:
                     full_path_image = os.path.join(class_dir, image_file)
                     full_path_image_aug = os.path.join(class_dir_tray_images_aug, image_file)
 
-                    self.copy_original_images(full_path_image, full_path_image_aug)
-                    self.change_white_balance(full_path_image, full_path_image_aug,
-                                              domain=(self.cfg.wb_low_thr, self.cfg.wb_high_thr))
-                    self.gaussian_smooth(full_path_image, full_path_image_aug,
-                                         kernel=(self.cfg.kernel_size, self.cfg.kernel_size))
-                    self.change_brightness(full_path_image, full_path_image_aug,
-                                           exposure_factor=random.uniform(self.cfg.brightness_low_thr,
-                                                                          self.cfg.brightness_high_thr))
-                    self.rotate_image(full_path_image, full_path_image_aug,
-                                      angle=random.randint(self.cfg.rotate_low_thr, self.cfg.rotate_high_thr))
-                    self.shift_image(full_path_image, full_path_image_aug,
-                                     shift_x=self.cfg.shift_low_thr, shift_y=self.cfg.shift_high_thr)
+                    copy_original_images(full_path_image, full_path_image_aug)
+                    change_white_balance(full_path_image, full_path_image_aug,
+                                         domain=(self.cfg.wb_low_thr, self.cfg.wb_high_thr))
+                    gaussian_smooth(image_path=full_path_image, aug_path=full_path_image_aug,
+                                    kernel=(self.cfg.kernel_size, self.cfg.kernel_size))
+                    change_brightness(full_path_image, full_path_image_aug,
+                                      exposure_factor=random.uniform(self.cfg.brightness_low_thr,
+                                                                     self.cfg.brightness_high_thr))
+                    rotate_image(full_path_image, full_path_image_aug,
+                                 angle=random.randint(self.cfg.rotate_low_thr, self.cfg.rotate_high_thr))
+                    shift_image(full_path_image, full_path_image_aug,
+                                shift_x=self.cfg.shift_low_thr, shift_y=self.cfg.shift_high_thr)
                     self.flip_image(full_path_image, full_path_image_aug, flip_direction="horizontal")
                     self.flip_image(full_path_image, full_path_image_aug, flip_direction="vertical")
 
@@ -292,9 +218,9 @@ class AugmentTrayImages:
                     full_path_image_aug = os.path.join(class_dir_tray_images_aug_w_med, image_file)
                     full_path_tray_aug = os.path.join(class_dir_tray_images_aug_w_med_aug, image_file)
 
-                    self.change_white_balance(full_path_image_aug, full_path_tray_aug, domain=(0.9, 1.0))
-                    self.change_brightness(full_path_image_aug, full_path_tray_aug,
-                                           exposure_factor=random.uniform(0.5, 1.2))
+                    change_white_balance(full_path_image_aug, full_path_tray_aug, domain=(0.9, 1.0))
+                    change_brightness(full_path_image_aug, full_path_tray_aug,
+                                      exposure_factor=random.uniform(0.5, 1.2))
 
             if fourth_phase:
                 for img_file_tray_img_aug in tqdm(image_files_tray_images_aug, total=len(image_files_tray_images_aug),
@@ -319,12 +245,14 @@ class AugmentTrayImages:
 
                             self.subtract_images(empty_tray_image_path=full_path_tray_image_aug,
                                                  aug_tray_img_w_pill_aug=full_path_tray_image_aug_w_med_aug,
+                                                 display_results=False,
                                                  save_path=full_path_diff_images)
 
 
 if __name__ == "__main__":
     try:
         aug = AugmentTrayImages()
+        aug.menu()
         aug.main(create_class_dirs=False,
                  first_phase=False,
                  second_phase=False,
