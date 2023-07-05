@@ -1,6 +1,27 @@
 import argparse
 
 
+class ConfigAugmentation:
+    def __init__(self):
+        self.opt = None
+        self.parser = argparse.ArgumentParser()
+
+        self.parser.add_argument('--wb_low_thr', type=float, default=0.7)
+        self.parser.add_argument('--wb_high_thr', type=float, default=1.2)
+        self.parser.add_argument('--kernel_size', type=int, default=7)
+        self.parser.add_argument('--brightness_low_thr', type=float, default=0.5)
+        self.parser.add_argument('--brightness_high_thr', type=float, default=1.5)
+        self.parser.add_argument('--rotate_low_thr', type=int, default=35)
+        self.parser.add_argument('--rotate_high_thr', type=int, default=270)
+        self.parser.add_argument('--shift_low_thr', type=int, default=150)
+        self.parser.add_argument('--shift_high_thr', type=int, default=200)
+        self.parser.add_argument('--scale_pill_img', type=float, default=0.5)
+
+    def parse(self):
+        self.opt = self.parser.parse_args()
+        return self.opt
+
+
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++ C O N F I G   T R A I N I N G +++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

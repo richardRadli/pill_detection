@@ -5,14 +5,16 @@ import os
 import random
 import re
 import shutil
+import matplotlib.pyplot as plt
 
 from skimage.transform import resize
+from tqdm import tqdm
+from typing import Tuple
 
 from config.config import ConfigAugmentation
 from config.const import DATASET_PATH
 from config.logger_setup import setup_logger
-from tqdm import tqdm
-from typing import Tuple
+from utils.utils import rename_file, unique_count_app
 
 
 class AugmentTrayImages:
@@ -56,27 +58,11 @@ class AugmentTrayImages:
                 shutil.copy(src_path, dest_path)
 
     @staticmethod
-    def rename_file(image_path, op):
-        directory = os.path.dirname(image_path)
-        filename = os.path.basename(image_path)
-
-        name, extension = os.path.splitext(filename)
-
-        new_filename = f"{name}_{op}"
-        counter = 1
-        final_file_name = os.path.join(directory, f"{new_filename}_{counter}{extension}")
-
-        while os.path.isfile(final_file_name):
-            counter += 1
-            final_file_name = os.path.join(directory, f"{new_filename}_{counter}{extension}")
-
-        return final_file_name
-
-    @staticmethod
-    def copy_original_image(src_path, dst_path):
+    def copy_original_images(src_path, dst_path):
         shutil.copy(src_path, dst_path)
 
-    def change_white_balance(self, image_path: str, aug_path, domain: Tuple[float, float] = (0.7, 1.2)) -> None:
+    @staticmethod
+    def change_white_balance(image_path: str, aug_path, domain: Tuple[float, float] = (0.7, 1.2)) -> None:
         image = cv2.imread(image_path)
 
         # Generate random scaling factors for each color channel
@@ -89,16 +75,13 @@ class AugmentTrayImages:
         adjusted_image = np.clip(adjusted_image, 0, 255)
         adjusted_image = adjusted_image.astype(np.uint8)
 
-        new_image_file_name = self.rename_file(aug_path, op="distorted_colour")
+        new_image_file_name = rename_file(aug_path, op="distorted_colour")
         cv2.imwrite(new_image_file_name, adjusted_image)
 
     def gaussian_smooth(self, image_path, aug_path, kernel) -> None:
         image = cv2.imread(image_path)
-
         smoothed_image = cv2.GaussianBlur(image, kernel, 0)
-
-        new_image_file_name = self.rename_file(aug_path, op="gaussian_%s" % str(kernel[0]))
-
+        new_image_file_name = rename_file(aug_path, op="gaussian_%s" % str(kernel[0]))
         cv2.imwrite(new_image_file_name, smoothed_image)
 
     def change_brightness(self, image_path, aug_path, exposure_factor: float) -> None:
@@ -109,14 +92,8 @@ class AugmentTrayImages:
         adjusted_image = np.clip(adjusted_image, 0, 1)
         adjusted_image = (adjusted_image * 255).astype(np.uint8)
 
-        new_image_file_name = self.rename_file(aug_path, op="brightness")
+        new_image_file_name = rename_file(aug_path, op="brightness")
         cv2.imwrite(new_image_file_name, adjusted_image)
-
-    @staticmethod
-    def unique_count_app(img):
-        img = cv2.resize(img, (img.shape[1] // 4, img.shape[0] // 4))
-        colors, count = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
-        return tuple(colors[count.argmax()])
 
     def rotate_image(self, image_path, aug_path, angle: int) -> None:
         image = cv2.imread(image_path)
@@ -124,11 +101,11 @@ class AugmentTrayImages:
         height, width = image.shape[:2]
         rotation_matrix = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1)
 
-        clr = self.unique_count_app(image)
+        clr = unique_count_app(image)
         clr = tuple(value.item() for value in clr)
 
         rotated_image = cv2.warpAffine(image, rotation_matrix, (width, height), borderValue=clr)
-        new_image_file_name = self.rename_file(aug_path, op="rotated_%s" % str(angle))
+        new_image_file_name = rename_file(aug_path, op="rotated_%s" % str(angle))
         cv2.imwrite(new_image_file_name, rotated_image)
 
     def shift_image(self, image_path, aug_path, shift_x: int = 50, shift_y: int = 100):
@@ -138,11 +115,11 @@ class AugmentTrayImages:
 
         mtx = np.float32([[1, 0, shift_x], [0, 1, shift_y]])
 
-        clr = self.unique_count_app(image)
+        clr = unique_count_app(image)
         clr = tuple(value.item() for value in clr)
 
         shifted_image = cv2.warpAffine(image, mtx, (width, height), borderValue=clr)
-        new_image_file_name = self.rename_file(aug_path, op="shifted")
+        new_image_file_name = rename_file(aug_path, op="shifted")
         cv2.imwrite(new_image_file_name, shifted_image)
 
     def zoom_in_object(self, image_path, aug_path, crop_size):
@@ -158,7 +135,7 @@ class AugmentTrayImages:
         cropped_image = image[start_y:end_y, start_x:end_x]
         zoomed_image = cv2.resize(cropped_image, (width, height), interpolation=cv2.INTER_LINEAR)
 
-        new_image_file_name = self.rename_file(aug_path, op="zoomed")
+        new_image_file_name = rename_file(aug_path, op="zoomed")
         cv2.imwrite(new_image_file_name, zoomed_image)
 
     def flip_image(self, image_path, aug_path, flip_direction):
@@ -173,7 +150,7 @@ class AugmentTrayImages:
         else:
             raise ValueError("Invalid flip direction. Must be 'horizontal' or 'vertical'.")
 
-        new_image_file_name = self.rename_file(aug_path, op="flipped_%s" % flip_direction)
+        new_image_file_name = rename_file(aug_path, op="flipped_%s" % flip_direction)
         cv2.imwrite(new_image_file_name, flipped_image)
 
     @staticmethod
@@ -218,10 +195,33 @@ class AugmentTrayImages:
 
     @staticmethod
     def subtract_images(empty_tray_image_path, aug_tray_img_w_pill_aug, save_path=None):
-        img1 = cv2.imread(empty_tray_image_path, 0)
-        img2 = cv2.imread(aug_tray_img_w_pill_aug, 0)
+        img1 = cv2.imread(empty_tray_image_path, 1)
+        img2 = cv2.imread(aug_tray_img_w_pill_aug, 1)
 
         diff = cv2.absdiff(img1, img2)
+        diff = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+
+        # Create a figure and subplots
+        fig, axs = plt.subplots(1, 3, figsize=(12, 4))
+
+        # Display img1
+        axs[0].imshow(img1, cmap='gray')
+        axs[0].set_title("Image 1")
+
+        # Display img2
+        axs[1].imshow(img2, cmap='gray')
+        axs[1].set_title("Image 2")
+
+        # Display diff
+        axs[2].imshow(diff, cmap='gray')
+        axs[2].set_title("Absolute Difference")
+
+        # Adjust the spacing between subplots
+        plt.tight_layout()
+
+        # Show the plot
+        plt.show()
+
         cv2.imwrite(save_path, diff)
 
     def main(self, create_class_dirs: bool, first_phase, second_phase, third_phase, fourth_phase) -> None:
@@ -255,7 +255,7 @@ class AugmentTrayImages:
                     full_path_image = os.path.join(class_dir, image_file)
                     full_path_image_aug = os.path.join(class_dir_tray_images_aug, image_file)
 
-                    self.copy_original_image(full_path_image, full_path_image_aug)
+                    self.copy_original_images(full_path_image, full_path_image_aug)
                     self.change_white_balance(full_path_image, full_path_image_aug,
                                               domain=(self.cfg.wb_low_thr, self.cfg.wb_high_thr))
                     self.gaussian_smooth(full_path_image, full_path_image_aug,

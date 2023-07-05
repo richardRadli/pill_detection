@@ -10,6 +10,7 @@ from typing import Tuple
 
 from config.const import DATASET_PATH
 from config.logger_setup import setup_logger
+from utils.utils import rename_file, unique_count_app
 
 
 class AugmentCUREDataset:
@@ -81,36 +82,6 @@ class AugmentCUREDataset:
                 shutil.copy(src_mask_path, dest_mask_path)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # --------------------------------------------- R E N A M E   F I L E ----------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def rename_file(image_path, op):
-        """
-
-        :param image_path:
-        :param op:
-        :return:
-        """
-
-        # Split the original file path into directory and filename
-        directory = os.path.dirname(image_path)
-        filename = os.path.basename(image_path)
-
-        # Split the filename into name and extension
-        name, extension = os.path.splitext(filename)
-
-        # Construct the new file path with the desired filename
-        new_filename = f"{name}_{op}"
-        counter = 1
-        final_file_name = os.path.join(directory, f"{new_filename}_{counter}{extension}")
-
-        while os.path.isfile(final_file_name):
-            counter += 1
-            final_file_name = os.path.join(directory, f"{new_filename}_{counter}{extension}")
-
-        return final_file_name
-
-    # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- D I S T O R T   C O L O R -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def distort_color(self, image_path: str, mask_path: str, domain: Tuple[float, float]) -> None:
@@ -125,18 +96,20 @@ class AugmentCUREDataset:
         image = cv2.imread(image_path)
         mask = cv2.imread(mask_path)
 
-        image = image.astype(np.float32) / 255.0
+        # Generate random scaling factors for each color channel
+        scale_factors = np.random.uniform(low=domain[0], high=domain[1], size=(3,))
 
-        color_shift = np.random.uniform(low=domain[0], high=domain[1], size=(1, 3))
+        # Apply the scaling factors to the image
+        adjusted_image = image * scale_factors
 
-        distorted_image = image * color_shift
-        distorted_image = np.clip(distorted_image, 0, 1)
-        distorted_image = (distorted_image * 255).astype(np.uint8)
+        # Clip the pixel values to the valid range [0, 255]
+        adjusted_image = np.clip(adjusted_image, 0, 255)
+        adjusted_image = adjusted_image.astype(np.uint8)
 
-        new_image_file_name = self.rename_file(image_path, op="distorted_colour")
-        new_mask_file_name = self.rename_file(mask_path, op="distorted_colour")
+        new_image_file_name = rename_file(image_path, op="distorted_colour")
+        new_mask_file_name = rename_file(mask_path, op="distorted_colour")
 
-        cv2.imwrite(new_image_file_name, distorted_image)
+        cv2.imwrite(new_image_file_name, adjusted_image)
         cv2.imwrite(new_mask_file_name, mask)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -156,8 +129,8 @@ class AugmentCUREDataset:
 
         smoothed_image = cv2.GaussianBlur(image, kernel, 0)
 
-        new_image_file_name = self.rename_file(image_path, op="gaussian_%s" % str(kernel[0]))
-        new_mask_file_name = self.rename_file(mask_path, op="gaussian_%s" % str(kernel[0]))
+        new_image_file_name = rename_file(image_path, op="gaussian_%s" % str(kernel[0]))
+        new_mask_file_name = rename_file(mask_path, op="gaussian_%s" % str(kernel[0]))
 
         cv2.imwrite(new_image_file_name, smoothed_image)
         cv2.imwrite(new_mask_file_name, mask)
@@ -182,20 +155,11 @@ class AugmentCUREDataset:
         adjusted_image = np.clip(adjusted_image, 0, 1)
         adjusted_image = (adjusted_image * 255).astype(np.uint8)
 
-        new_image_file_name = self.rename_file(image_path, op="brightness")
-        new_mask_file_name = self.rename_file(mask_path, op="brightness")
+        new_image_file_name = rename_file(image_path, op="brightness")
+        new_mask_file_name = rename_file(mask_path, op="brightness")
 
         cv2.imwrite(new_image_file_name, adjusted_image)
         cv2.imwrite(new_mask_file_name, mask)
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ---------------------------------------- U N I Q U E   C O U N T   A P P -----------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def unique_count_app(img):
-        img = cv2.resize(img, (img.shape[1]//4, img.shape[0]//4))
-        colors, count = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
-        return tuple(colors[count.argmax()])
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- R O T A T E   I M A G E ---------------------------------------------
@@ -215,14 +179,14 @@ class AugmentCUREDataset:
         height, width = image.shape[:2]
         rotation_matrix = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1)
 
-        clr = self.unique_count_app(image)
+        clr = unique_count_app(image)
         clr = tuple(value.item() for value in clr)
 
         rotated_image = cv2.warpAffine(image, rotation_matrix, (width, height), borderValue=clr)
         rotated_mask = cv2.warpAffine(mask, rotation_matrix, (width, height))
 
-        new_image_file_name = self.rename_file(image_path, op="rotated_%s" % str(angle))
-        new_mask_file_name = self.rename_file(mask_path, op="rotated_%s" % str(angle))
+        new_image_file_name = rename_file(image_path, op="rotated_%s" % str(angle))
+        new_mask_file_name = rename_file(mask_path, op="rotated_%s" % str(angle))
 
         cv2.imwrite(new_image_file_name, rotated_image)
         cv2.imwrite(new_mask_file_name, rotated_mask)
@@ -251,14 +215,14 @@ class AugmentCUREDataset:
         mtx = np.float32([[1, 0, shift_x], [0, 1, shift_y]])
 
         # Apply the shift transformation
-        clr = self.unique_count_app(image)
+        clr = unique_count_app(image)
         clr = tuple(value.item() for value in clr)
 
         shifted_image = cv2.warpAffine(image, mtx, (width, height), borderValue=clr)
         shifted_mask = cv2.warpAffine(mask, mtx, (width, height))
 
-        new_image_file_name = self.rename_file(image_path, op="shifted")
-        new_mask_file_name = self.rename_file(mask_path, op="shifted")
+        new_image_file_name = rename_file(image_path, op="shifted")
+        new_mask_file_name = rename_file(mask_path, op="shifted")
 
         cv2.imwrite(new_image_file_name, shifted_image)
         cv2.imwrite(new_mask_file_name, shifted_mask)
@@ -297,8 +261,8 @@ class AugmentCUREDataset:
         zoomed_mask = cv2.resize(croppe_mask, (width, height), interpolation=cv2.INTER_LINEAR)
         _, zoomed_mask = cv2.threshold(zoomed_mask, 128, 255, cv2.THRESH_BINARY)
 
-        new_image_file_name = self.rename_file(image_path, op="zoomed")
-        new_mask_file_name = self.rename_file(mask_path, op="zoomed")
+        new_image_file_name = rename_file(image_path, op="zoomed")
+        new_mask_file_name = rename_file(mask_path, op="zoomed")
 
         cv2.imwrite(new_image_file_name, zoomed_image)
         cv2.imwrite(new_mask_file_name, zoomed_mask)
@@ -321,8 +285,8 @@ class AugmentCUREDataset:
         else:
             raise ValueError("Invalid flip direction. Must be 'horizontal' or 'vertical'.")
 
-        new_image_file_name = self.rename_file(image_path, op="flipped_%s" % flip_direction)
-        new_mask_file_name = self.rename_file(mask_path, op="flipped_%s" % flip_direction)
+        new_image_file_name = rename_file(image_path, op="flipped_%s" % flip_direction)
+        new_mask_file_name = rename_file(mask_path, op="flipped_%s" % flip_direction)
 
         cv2.imwrite(new_image_file_name, flipped_image)
         cv2.imwrite(new_mask_file_name, flipped_mask)
@@ -358,8 +322,8 @@ class AugmentCUREDataset:
 
                 output_image = cv2.add(foreground, background)
 
-                new_image_file_name = self.rename_file(image_path, op="changed_background")
-                new_mask_file_name = self.rename_file(mask_path, op="changed_background")
+                new_image_file_name = rename_file(image_path, op="changed_background")
+                new_mask_file_name = rename_file(mask_path, op="changed_background")
 
                 cv2.imwrite(new_image_file_name, output_image)
                 cv2.imwrite(new_mask_file_name, mask)
