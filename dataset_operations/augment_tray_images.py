@@ -3,22 +3,34 @@ import logging
 import numpy as np
 import os
 import random
+import re
 import shutil
 
+from skimage.transform import resize
+
+from config.config import ConfigAugmentation
 from config.const import DATASET_PATH
+from config.logger_setup import setup_logger
 from tqdm import tqdm
 from typing import Tuple
 
 
 class AugmentTrayImages:
     def __init__(self):
+        setup_logger()
+
+        self.cfg = ConfigAugmentation().parse()
+
         self.root = "C:/Users/ricsi/Desktop/tray"
+
         self.tray_images = os.path.join(self.root, "2023-07-04")
-        self.tray_images_aug = os.path.join(self.root, "tray_aug")
-        self.image_on_tray = os.path.join(self.root, "image_on_tray")
-        self.image_on_tray_aug = os.path.join(self.root, "image_on_tray_aug")
+        self.tray_images_aug = os.path.join(self.root, "tray_images_aug")
+        self.tray_images_aug_w_med = os.path.join(self.root, "tray_images_aug_w_med")
+        self.tray_images_aug_w_med_aug = os.path.join(self.root, "tray_images_aug_w_med_aug")
+        self.diff_images = os.path.join(self.root, "diff_images")
+
         self.medicine_images = DATASET_PATH.get_data_path("cure_reference")
-        self.medicine_mask = DATASET_PATH.get_data_path("cure_reference_mask")
+        self.medicine_masks = DATASET_PATH.get_data_path("cure_reference_mask")
 
         # Get the list of all images
         image_files = os.listdir(self.tray_images)
@@ -102,7 +114,7 @@ class AugmentTrayImages:
 
     @staticmethod
     def unique_count_app(img):
-        img = cv2.resize(img, (img.shape[1]//4, img.shape[0]//4))
+        img = cv2.resize(img, (img.shape[1] // 4, img.shape[0] // 4))
         colors, count = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
         return tuple(colors[count.argmax()])
 
@@ -164,105 +176,159 @@ class AugmentTrayImages:
         new_image_file_name = self.rename_file(aug_path, op="flipped_%s" % flip_direction)
         cv2.imwrite(new_image_file_name, flipped_image)
 
-    def place_medicine_on_tray(self, pill_image_path, pill_mask_path, tray_image_path):
-        # Read the pill image and its corresponding mask
+    @staticmethod
+    def place_medicine_on_tray(pill_image_path, pill_mask_path, tray_image_path, save_path, scaling_factor):
         pill_image = cv2.imread(pill_image_path)
         pill_mask = cv2.imread(pill_mask_path, cv2.IMREAD_GRAYSCALE)
-
-        # Threshold the mask to create a binary mask
-        _, binary_mask = cv2.threshold(pill_mask, 1, 255, cv2.THRESH_BINARY)
-
-        # Find contours in the binary mask
-        contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        # Select the largest contour (assuming it corresponds to the pill)
-        largest_contour = max(contours, key=cv2.contourArea)
-
-        # Create a bounding rectangle around the largest contour
-        x, y, w, h = cv2.boundingRect(largest_contour)
-
-        # Extract the region of interest (ROI) from the pill image
-        pill_roi = pill_image[y:y + h, x:x + w]
-
-        # Read the tray image
         tray_image = cv2.imread(tray_image_path)
 
-        # Get the dimensions of the tray image
+        unique_values = np.unique(pill_mask)
+        if any((value != 0 and value != 255) for value in unique_values):
+            _, binary_mask = cv2.threshold(pill_mask, 1, 255, cv2.THRESH_BINARY)
+
+        contours, _ = cv2.findContours(pill_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        largest_contour = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(largest_contour)
+
+        pill_roi = pill_image[y:y + h, x:x + w]
+
         tray_height, tray_width = tray_image.shape[:2]
+        resized_width = int(w * scaling_factor)
+        resized_height = int(h * scaling_factor)
+        resized_pill_roi = resize(pill_roi, (resized_height, resized_width), preserve_range=True).astype(np.uint8)
 
-        # Resize the pill ROI to fit within the tray image
-        resized_pill_roi = cv2.resize(pill_roi, (w, h))
+        x_offset = random.randint(0, tray_width - resized_width)
+        y_offset = random.randint(0, tray_height - resized_height)
+        pill_mask_roi = pill_mask[y:y + h, x:x + w]
 
-        # Calculate the coordinates to place the pill ROI on the tray image
-        x_offset = random.randint(0, tray_width - w)
-        y_offset = random.randint(0, tray_height - h)
+        # Resize the pill mask to match the resized pill image
+        resized_pill_mask_roi = resize(pill_mask_roi, (resized_height, resized_width), preserve_range=True).astype(
+            np.uint8)
 
-        # Create a mask for the pill ROI
-        pill_mask_roi = binary_mask[y:y + h, x:x + w]
+        # Convert pill_mask_roi to 3-channel mask
+        pill_mask_roi_3ch = cv2.cvtColor(resized_pill_mask_roi, cv2.COLOR_GRAY2BGR)
 
-        # Apply the pill ROI on the tray image using the mask
-        tray_image[y_offset:y_offset + h, x_offset:x_offset + w] = np.where(
-            np.expand_dims(pill_mask_roi, axis=2),
+        tray_image[y_offset:y_offset + resized_height, x_offset:x_offset + resized_width] = np.where(
+            pill_mask_roi_3ch,
             resized_pill_roi,
-            tray_image[y_offset:y_offset + h, x_offset:x_offset + w]
+            tray_image[y_offset:y_offset + resized_height, x_offset:x_offset + resized_width]
         )
 
-        class_name = (os.path.basename(tray_image_path).split('_')[0])
-        out_path_dir = os.path.join(self.image_on_tray, class_name)
-        os.makedirs(out_path_dir, exist_ok=True)
-        new_file_name = os.path.join(out_path_dir, os.path.basename(tray_image_path))
-        cv2.imwrite(new_file_name, tray_image)
+        cv2.imwrite(save_path, tray_image)
 
-    def main(self, create_class_dirs: bool, first_phase, second_phase, third_phase) -> None:
+    @staticmethod
+    def subtract_images(empty_tray_image_path, aug_tray_img_w_pill_aug, save_path=None):
+        img1 = cv2.imread(empty_tray_image_path, 0)
+        img2 = cv2.imread(aug_tray_img_w_pill_aug, 0)
+
+        diff = cv2.absdiff(img1, img2)
+        cv2.imwrite(save_path, diff)
+
+    def main(self, create_class_dirs: bool, first_phase, second_phase, third_phase, fourth_phase) -> None:
         if create_class_dirs:
             self.create_directories(self.all_classes, self.tray_images, self.tray_images)
 
-        for class_name in self.all_classes:
+        for class_name in tqdm(self.all_classes, total=len(self.all_classes), desc="Processing classes"):
+            # Collects the class folders
             class_dir = os.path.join(self.tray_images, class_name)
-            class_dir_aug = os.path.join(self.tray_images_aug, class_name)
-            class_image_on_tray = os.path.join(self.image_on_tray, class_name)
-            class_dir_tray_aug = os.path.join(self.image_on_tray_aug, class_name)
+            class_dir_tray_images_aug = os.path.join(self.tray_images_aug, class_name)
+            class_dir_tray_images_aug_w_med = os.path.join(self.tray_images_aug_w_med, class_name)
+            class_dir_tray_images_aug_w_med_aug = os.path.join(self.tray_images_aug_w_med_aug, class_name)
+            class_dir_diff_images = os.path.join(self.diff_images, class_name)
 
-            os.makedirs(class_dir_aug, exist_ok=True)
-            os.makedirs(class_dir_tray_aug, exist_ok=True)
+            # Create the directories if they don't exist
+            os.makedirs(class_dir_tray_images_aug, exist_ok=True)
+            os.makedirs(class_dir_tray_images_aug_w_med, exist_ok=True)
+            os.makedirs(class_dir_tray_images_aug_w_med_aug, exist_ok=True)
+            os.makedirs(class_dir_diff_images, exist_ok=True)
 
+            # Collect file names
             image_files = os.listdir(class_dir)
-            images_files_aug = os.listdir(class_dir_aug)
-            images_files_aug_tray = os.listdir(class_image_on_tray)
+            image_files_tray_images_aug = os.listdir(class_dir_tray_images_aug)
+            image_files_tray_images_aug_w_med = os.listdir(class_dir_tray_images_aug_w_med)
+            image_files_tray_images_aug_w_med_aug = os.listdir(class_dir_tray_images_aug_w_med_aug)
 
             if first_phase:
-                # First phase, augmenting empty tray images
-                for _, image_file in tqdm(enumerate(image_files), total=len(image_files)):
+                # First phase, we are augmenting empty tray images
+                for _, image_file in tqdm(enumerate(image_files), total=len(image_files),
+                                          desc='Augmenting empty tray images'):
                     full_path_image = os.path.join(class_dir, image_file)
-                    full_path_image_aug = os.path.join(class_dir_aug, image_file)
+                    full_path_image_aug = os.path.join(class_dir_tray_images_aug, image_file)
+
                     self.copy_original_image(full_path_image, full_path_image_aug)
-                    self.change_white_balance(full_path_image, full_path_image_aug, domain=(0.7, 1.2))
-                    self.gaussian_smooth(full_path_image, full_path_image_aug, kernel=(7, 7))
-                    self.change_brightness(full_path_image, full_path_image_aug, exposure_factor=random.uniform(0.5, 1.5))
-                    self.rotate_image(full_path_image, full_path_image_aug, angle=random.randint(35, 270))
-                    self.shift_image(full_path_image, full_path_image_aug, 150, 200)
-                    self.flip_image(full_path_image, full_path_image_aug, "horizontal")
-                    self.flip_image(full_path_image, full_path_image_aug, "vertical")
+                    self.change_white_balance(full_path_image, full_path_image_aug,
+                                              domain=(self.cfg.wb_low_thr, self.cfg.wb_high_thr))
+                    self.gaussian_smooth(full_path_image, full_path_image_aug,
+                                         kernel=(self.cfg.kernel_size, self.cfg.kernel_size))
+                    self.change_brightness(full_path_image, full_path_image_aug,
+                                           exposure_factor=random.uniform(self.cfg.brightness_low_thr,
+                                                                          self.cfg.brightness_high_thr))
+                    self.rotate_image(full_path_image, full_path_image_aug,
+                                      angle=random.randint(self.cfg.rotate_low_thr, self.cfg.rotate_high_thr))
+                    self.shift_image(full_path_image, full_path_image_aug,
+                                     shift_x=self.cfg.shift_low_thr, shift_y=self.cfg.shift_high_thr)
+                    self.flip_image(full_path_image, full_path_image_aug, flip_direction="horizontal")
+                    self.flip_image(full_path_image, full_path_image_aug, flip_direction="vertical")
 
             if second_phase:
-                # Second phase, place pills on the augmented images
-                for _, image_file in tqdm(enumerate(images_files_aug), total=len(images_files_aug)):
-                    full_path_image_aug = os.path.join(class_dir_aug, image_file)
+                # Second phase, we are placing pills on the augmented images
+                for _, image_file in tqdm(enumerate(image_files_tray_images_aug),
+                                          total=len(image_files_tray_images_aug),
+                                          desc="Placing pills on the augmented tray images"):
+                    full_path_tray_image_aug = os.path.join(class_dir_tray_images_aug, image_file)
+                    full_path_tray_image_aug_w_med = os.path.join(class_dir_tray_images_aug_w_med, image_file)
+
                     pill_image_file = random.choice(os.listdir(self.medicine_images))
                     pill_image_path = os.path.join(self.medicine_images, pill_image_file)
-                    pill_mask_path = os.path.join(self.medicine_mask, pill_image_file)
-                    self.place_medicine_on_tray(pill_image_path, pill_mask_path, full_path_image_aug)
+                    pill_mask_path = os.path.join(self.medicine_masks, pill_image_file)
+                    self.place_medicine_on_tray(
+                        pill_image_path, pill_mask_path, full_path_tray_image_aug, full_path_tray_image_aug_w_med,
+                        scaling_factor=self.cfg.scale_pill_img)
 
             if third_phase:
-                for _, image_file in tqdm(enumerate(images_files_aug_tray), total=len(images_files_aug_tray)):
-                    full_path_image_aug = os.path.join(class_image_on_tray, image_file)
-                    full_path_tray_aug = os.path.join(class_dir_tray_aug, image_file)
+                for _, image_file in tqdm(enumerate(image_files_tray_images_aug_w_med),
+                                          total=len(image_files_tray_images_aug_w_med),
+                                          desc='Augmenting augmented tray images with pills on them'):
+                    full_path_image_aug = os.path.join(class_dir_tray_images_aug_w_med, image_file)
+                    full_path_tray_aug = os.path.join(class_dir_tray_images_aug_w_med_aug, image_file)
 
-                    self.change_white_balance(full_path_image_aug, full_path_tray_aug, (0.9, 1.0))
+                    self.change_white_balance(full_path_image_aug, full_path_tray_aug, domain=(0.9, 1.0))
                     self.change_brightness(full_path_image_aug, full_path_tray_aug,
-                                           exposure_factor=random.uniform(0.5, 1.5))
+                                           exposure_factor=random.uniform(0.5, 1.2))
+
+            if fourth_phase:
+                for img_file_tray_img_aug in tqdm(image_files_tray_images_aug, total=len(image_files_tray_images_aug),
+                                                  desc="Selecting empty tray images"):
+                    if re.search(r"\d+\.png$", img_file_tray_img_aug) is None:
+                        # Ignore file names without a number before .png extension
+                        continue
+
+                    for img_file_tray_img_aug_w_med_aug in tqdm(image_files_tray_images_aug_w_med_aug,
+                                                                total=len(image_files_tray_images_aug_w_med_aug),
+                                                                desc=
+                                                                "Selecting augmented tray images with pills on them"):
+                        if re.search(r"\d+\.png$", img_file_tray_img_aug_w_med_aug) is None:
+                            # Ignore file names without a number before .png extension
+                            continue
+
+                        if img_file_tray_img_aug.split(".")[0] in img_file_tray_img_aug_w_med_aug.split(".")[0]:
+                            full_path_diff_images = os.path.join(class_dir_diff_images, img_file_tray_img_aug_w_med_aug)
+                            full_path_tray_image_aug = os.path.join(class_dir_tray_images_aug, img_file_tray_img_aug)
+                            full_path_tray_image_aug_w_med_aug = \
+                                os.path.join(class_dir_tray_images_aug_w_med_aug, img_file_tray_img_aug_w_med_aug)
+
+                            self.subtract_images(empty_tray_image_path=full_path_tray_image_aug,
+                                                 aug_tray_img_w_pill_aug=full_path_tray_image_aug_w_med_aug,
+                                                 save_path=full_path_diff_images)
 
 
 if __name__ == "__main__":
-    aug = AugmentTrayImages()
-    aug.main(create_class_dirs=False, first_phase=False, second_phase=False, third_phase=True)
+    try:
+        aug = AugmentTrayImages()
+        aug.main(create_class_dirs=False,
+                 first_phase=False,
+                 second_phase=False,
+                 third_phase=False,
+                 fourth_phase=True)
+    except KeyboardInterrupt as kie:
+        logging.error("Keyboard interrupt")
