@@ -58,10 +58,6 @@ class _Const(object):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Images(_Const):
     dirs_images = {
-        "train_masks": "images/masks/train_masks",
-        "test_masks": "images/masks/test_masks",
-        "valid_masks": "images/masks/validation",
-
         "unet_out": "images/unet/unet_out",
         "unet_compare": "images/unet/unet_compare",
 
@@ -184,6 +180,7 @@ class Data(_Const):
 
 class Datasets(_Const):
     dirs_dataset = {
+        # C U R E
         "cure_customer": "cure/Customer",
         "cure_customer_mask": "cure/Customer_mask",
         "cure_reference": "cure/Reference",
@@ -193,27 +190,49 @@ class Datasets(_Const):
         "cure_test": "cure/test",
         "cure_test_mask": "cure/test_mask",
 
+        # D T D
         "dtd_images": "dtd_images",
 
+        # O G Y I   V 2
+        # Unsplitted
         "ogyi_v2_unsplitted_images": "ogyi_v2/unsplitted/images",
         "ogyi_v2_unsplitted_labels": "ogyi_v2/unsplitted/labels",
+        "ogyi_v2_unsplitted_gt_masks": "ogyi_v2/unsplitted/gt_masks",
+        "ogyi_v2_unsplitted_pred_masks": "ogyi_v2/unsplitted/pred_masks",
 
+        # Train images, labels and masks
         "ogyi_v2_splitted_train_images": "ogyi_v2/splitted/train/images",
         "ogyi_v2_splitted_train_labels": "ogyi_v2/splitted/train/labels",
+        "ogyi_v2_splitted_gt_train_masks": "ogyi_v2/splitted/train/gt_train_masks",
+        "ogyi_v2_splitted_pred_train_masks": "ogyi_v2/splitted/train/pred_train_masks",
+        # Validation images, labels and masks
         "ogyi_v2_splitted_valid_images": "ogyi_v2/splitted/valid/images",
         "ogyi_v2_splitted_valid_labels": "ogyi_v2/splitted/valid/labels",
+        "ogyi_v2_splitted_gt_valid_masks": "ogyi_v2/splitted/valid/gt_valid_masks",
+        "ogyi_v2_splitted_pred_valid_masks": "ogyi_v2/splitted/valid/pred_valid_masks",
+        # Test images, labels and masks
         "ogyi_v2_splitted_test_images": "ogyi_v2/splitted/test/images",
         "ogyi_v2_splitted_test_labels": "ogyi_v2/splitted/test/labels",
+        "ogyi_v2_splitted_gt_test_masks": "ogyi_v2/splitted/test/gt_test_masks",
+        "ogyi_v2_splitted_pred_test_masks": "ogyi_v2/splitted/test/pred_test_masks",
 
+        # O G Y I   V 3
         "ogyi_v3_unsplitted_images": "ogyi_v3/unsplitted/images",
         "ogyi_v3_unsplitted_labels": "ogyi_v3/unsplitted/labels",
-
         "ogyi_v3_splitted_train_images": "ogyi_v3/splitted/train/images",
         "ogyi_v3_splitted_train_labels": "ogyi_v3/splitted/train/labels",
         "ogyi_v3_splitted_test_images": "ogyi_v3/splitted/test/images",
         "ogyi_v3_splitted_test_labels": "ogyi_v3/splitted/test/labels",
         "ogyi_v3_splitted_valid_images": "ogyi_v3/splitted/valid/images",
-        "ogyi_v3_splitted_valid_labels": "ogyi_v3/splitted/valid/labels"
+        "ogyi_v3_splitted_valid_labels": "ogyi_v3/splitted/valid/labels",
+
+        # T R A Y
+        "tray_original_images": "tray/original_images",
+        "tray_diff_images": "tray/diff_images",
+        "tray_plots": "tray/plots",
+        "tray_images_aug": "tray/tray_images_aug",
+        "tray_images_aug_w_med": "tray/tray_images_aug_w_med",
+        "tray_images_aug_w_med_aug": "tray/tray_images_aug_w_med_aug"
     }
 
     # ------------------------------------------------------------------------------------------------------------------

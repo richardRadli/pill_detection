@@ -2,7 +2,6 @@ import cv2
 import gc
 import logging
 import matplotlib.pyplot as plt
-import numpy as np
 import os
 import random
 import pandas as pd

@@ -18,7 +18,7 @@ from pathlib import Path
 from tqdm import tqdm
 from typing import Tuple, List, Dict
 
-from config.const import DATASET_PATH, IMAGES_PATH
+from config.const import DATASET_PATH
 from config.logger_setup import setup_logger
 
 
@@ -31,26 +31,32 @@ def path_selector(operation):
 
     :param operation: A string indicating the operation mode (train or test).
     :return: A dictionary containing directory paths for images, masks, and other related files.
-    :raises ValueError: If the operation string is not "train", "valid" or "test".
+    :raises ValueError: If the operation string is not "train", "valid", "test" or "whole".
     """
 
     if operation.lower() == "train":
         path_to_images = {
             "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images"),
             "labels": DATASET_PATH.get_data_path("ogyi_v2_splitted_train_labels"),
-            "masks": IMAGES_PATH.get_data_path("train_masks")
+            "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_train_masks")
         }
     elif operation.lower() == "valid":
         path_to_images = {
             "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_images"),
             "labels": DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_labels"),
-            "masks": IMAGES_PATH.get_data_path("valid_masks")
+            "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_valid_masks")
         }
     elif operation.lower() == "test":
         path_to_images = {
             "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images"),
             "labels": DATASET_PATH.get_data_path("ogyi_v2_splitted_test_labels"),
-            "masks": IMAGES_PATH.get_data_path("test_masks")
+            "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_test_masks")
+        }
+    elif operation.lower() == "whole":
+        path_to_images = {
+            "images": DATASET_PATH.get_data_path("ogyi_v2_unsplitted_images"),
+            "labels": DATASET_PATH.get_data_path("ogyi_v2_unsplitted_labels"),
+            "masks": DATASET_PATH.get_data_path("ogyi_v2_unsplitted_gt_masks")
         }
     else:
         raise ValueError("Wrong operation!")
@@ -182,4 +188,7 @@ def main(operation: str = "Train") -> None:
 # --------------------------------------------------- __M A I N__ ------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    main(operation="train")
+    try:
+        main(operation="whole")
+    except KeyboardInterrupt as kie:
+        logging.error(f"The following error has occurred: {kie}")

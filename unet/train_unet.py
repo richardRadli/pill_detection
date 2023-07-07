@@ -1,4 +1,5 @@
 import logging
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,6 +13,7 @@ from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 
 from config.config import ConfigTrainingUnet
+from config.const import DATA_PATH, DATASET_PATH
 from data_loader_unet import BasicDataset, UNetDataLoader
 from utils.utils import multiclass_dice_coefficient, dice_coefficient, dice_loss, measure_execution_time
 
@@ -26,11 +28,13 @@ class TrainUnet:
     def __init__(self):
         self.cfg = ConfigTrainingUnet().parse()
 
-        self.dir_img = Path('C:/Users/ricsi/Desktop/cure/images/')
-        self.dir_mask = Path('C:/Users/ricsi/Desktop/cure/masks/')
-        self.dir_checkpoint = Path('C:/Users/ricsi/Desktop/cure/saves')
+        self.dir_img = "C:/Users/ricsi/Desktop/ogyi/images"
+        # DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images")
+        self.dir_mask = "C:/Users/ricsi/Desktop/ogyi/masks"
+        # DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_train_masks")
+        self.dir_checkpoint = DATA_PATH.get_data_path("weights_unet")
 
-        # 1. Create dataset
+        # Create dataset
         try:
             self.dataset = UNetDataLoader(str(self.dir_img), str(self.dir_mask), self.cfg.img_scale)
         except (AssertionError, RuntimeError, IndexError):
@@ -47,8 +51,9 @@ class TrainUnet:
         self.train_loader = DataLoader(train_set, shuffle=True, **loader_args)
         self.val_loader = DataLoader(val_set, shuffle=False, drop_last=True, **loader_args)
 
-        # (Initialize logging)
-        self.experiment = wandb.init(project='U-Net', resume='allow', anonymous='must')
+        # Initialize logging
+        self.experiment = wandb.init(project='U-Net', dir=DATA_PATH.get_data_path("logs_unet"), resume='allow',
+                                     anonymous='must')
         self.experiment.config.update(
             dict(epochs=self.cfg.epochs, batch_size=self.cfg.batch_size, learning_rate=self.cfg.learning_rate,
                  val_percent=self.cfg.val, save_checkpoint=self.cfg.save_checkpoint, img_scale=self.cfg.img_scale,
@@ -106,37 +111,51 @@ class TrainUnet:
     # ------------------------------------------------ E V A L U A T E -------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @torch.inference_mode()
-    def evaluate(self):
+    def evaluate(self) -> float:
+        """
+        Evaluate the model on the validation set and compute the Dice score.
+
+        This function sets the model to evaluation mode and computes the Dice score for each batch in the validation
+        set. The Dice score is a common evaluation metric for semantic segmentation tasks. It measures the overlap
+        between the predicted mask and the true mask.
+
+        Returns:
+            float: Average Dice score across the validation set.
+        """
+
         self.model.eval()
         num_val_batches = len(self.val_loader)
         dice_score = 0
 
-        # iterate over the validation set
+        # Iterate over the validation set
         with torch.autocast(self.device.type if self.device.type != 'mps' else 'cpu', enabled=self.cfg.amp):
             for batch in tqdm(self.val_loader, total=num_val_batches, desc='Validation round', unit='batch',
                               leave=False):
                 image, mask_true = batch['image'], batch['mask']
 
-                # move images and labels to correct device and type
+                # Move images and labels to correct device and type
                 image = image.to(device=self.device, dtype=torch.float32, memory_format=torch.channels_last)
                 mask_true = mask_true.to(device=self.device, dtype=torch.long)
 
-                # predict the mask
+                # Predict the mask
                 mask_pred = self.model(image)
 
                 if self.cfg.classes == 1:
                     assert mask_true.min() >= 0 and mask_true.max() <= 1, \
                         'True mask indices should be in [0, 1]'
                     mask_pred = (F.sigmoid(mask_pred) > 0.5).float()
-                    # compute the Dice score
+
+                    # Compute the Dice score
                     dice_score += dice_coefficient(mask_pred, mask_true, reduce_batch_first=False)
                 else:
                     assert mask_true.min() >= 0 and mask_true.max() < self.cfg.classes, \
                         'True mask indices should be in [0, n_classes['
-                    # convert to one-hot format
+
+                    # Convert to one-hot format
                     mask_true = F.one_hot(mask_true, self.cfg.classes).permute(0, 3, 1, 2).float()
                     mask_pred = F.one_hot(mask_pred.argmax(dim=1), self.cfg.classes).permute(0, 3, 1, 2).float()
-                    # compute the Dice score, ignoring background
+
+                    # Compute the Dice score, ignoring background
                     dice_score += multiclass_dice_coefficient(mask_pred[:, 1:], mask_true[:, 1:],
                                                               reduce_batch_first=False)
 
@@ -147,11 +166,24 @@ class TrainUnet:
     # ---------------------------------------------------- T R A I N ---------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @measure_execution_time
-    def train(self):
-        # 5. Begin training
+    def train(self) -> None:
+        """
+        Train the model.
+
+        This function trains the model for the specified number of epochs.
+        It iterates over the training data and performs forward and backward passes to update the model's parameters.
+        After each epoch, it also performs model evaluation on the validation set and logs the results.
+
+        The training process includes calculating the loss, optimizing the parameters using the optimizer,
+        logging the training loss and step, and saving checkpoints.
+
+        """
+
+        # Begin training
         for epoch in range(1, self.cfg.epochs + 1):
             self.model.train()
             epoch_loss = 0
+
             with tqdm(total=self.n_train, desc=f'Epoch {epoch}/{self.cfg.epochs}', unit='img') as pbar:
                 for batch in self.train_loader:
                     images, true_masks = batch['image'], batch['mask']
@@ -224,11 +256,11 @@ class TrainUnet:
                                 **histograms
                             })
 
+            # Save weights
             if self.cfg.save_checkpoint:
-                Path(self.dir_checkpoint).mkdir(parents=True, exist_ok=True)
                 state_dict = self.model.state_dict()
                 state_dict['mask_values'] = self.dataset.mask_values
-                torch.save(state_dict, str(self.dir_checkpoint / 'checkpoint_epoch{}.pth'.format(epoch)))
+                torch.save(state_dict, os.path.join(self.dir_checkpoint, "epoch_" + str(epoch) + ".pt"))
                 logging.info(f'Checkpoint {epoch} saved!')
 
 
