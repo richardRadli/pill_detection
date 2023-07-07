@@ -12,7 +12,7 @@ from PIL import Image
 from config.const import DATA_PATH, IMAGES_PATH
 from config.config import ConfigFusionNetwork
 from config.logger_setup import setup_logger
-from fusion_network import FusionNet
+from models.fusion_network import FusionNet
 from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory, \
     plot_ref_query_images
 
@@ -335,7 +335,7 @@ class PredictFusionNetwork:
         gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vectors, query_vectors)
 
         stream_net_pred = \
-            self.find_latest_file_in_directory(DATA_PATH.get_data_path("predictions_stream_network"), "txt")
+            self.find_latest_file_in_directory(DATA_PATH.get_data_path("predictions_cnn_network"), "txt")
         fusion_net_pred = \
             self.find_latest_file_in_directory(DATA_PATH.get_data_path("predictions_fusion_network"), "txt")
         self.prediction_statistics(stream_net_pred, fusion_net_pred)

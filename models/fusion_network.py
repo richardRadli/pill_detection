@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from stream_network_phase.CNN import CNN
+from models.CNN import CNN
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -26,6 +26,7 @@ class FusionNet(nn.Module):
         self.texture_network = CNN(list_of_channels_con_tex_lbp)
         self.lbp_network = CNN(list_of_channels_con_tex_lbp)
         self.fc1 = nn.Linear(640, 640)
+        self.dropout = nn.Dropout(p=0.5)
         self.fc2 = nn.Linear(640, 640)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -49,6 +50,7 @@ class FusionNet(nn.Module):
         x4 = self.lbp_network(x4)
         x = torch.cat((x1, x2, x3, x4), dim=1)
         x = self.fc1(x)
+        x = self.dropout(x)
         x = self.fc2(x)
 
         return x

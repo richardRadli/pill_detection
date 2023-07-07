@@ -88,6 +88,7 @@ def dice_loss(input_tensor: Tensor, target: Tensor, multiclass: bool = False) ->
     fn = multiclass_dice_coefficient if multiclass else dice_coefficient
     return 1 - fn(input_tensor, target, reduce_batch_first=True)
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 # --------------------------------------------- N U M E R I C A L   S O R T --------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------

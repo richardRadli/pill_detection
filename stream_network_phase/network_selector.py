@@ -2,9 +2,10 @@ import torch
 
 from abc import ABC, abstractmethod
 
-from efficient_net_b0 import EfficientNet
-from efficient_net_b0_self_attention import EfficientNetSelfAttention
-from CNN import CNN
+from models.efficient_net_b0 import EfficientNet
+from models.efficient_net_v2_b0 import EfficientNetV2
+from models.efficient_net_b0_self_attention import EfficientNetSelfAttention
+from models.CNN import CNN
 
 
 class BaseNetwork(ABC):
@@ -19,8 +20,15 @@ class BaseNetwork(ABC):
 
 class EfficientNetWrapper(BaseNetwork):
     def __init__(self, network_cfg):
-        self.model = EfficientNet(loc=network_cfg.get('channels'),
-                                  grayscale=network_cfg.get('grayscale'))
+        self.model = EfficientNet(loc=network_cfg.get('channels'), grayscale=network_cfg.get('grayscale'))
+
+    def forward(self, x):
+        return self.model(x)
+
+
+class EfficientNetV2Wrapper(BaseNetwork):
+    def __init__(self, network_cfg):
+        self.model = EfficientNetV2(loc=network_cfg.get("channels"), grayscale=network_cfg.get('grayscale'))
 
     def forward(self, x):
         return self.model(x)
@@ -28,8 +36,7 @@ class EfficientNetWrapper(BaseNetwork):
 
 class EfficientNetSelfAttentionWrapper(BaseNetwork):
     def __init__(self, network_cfg):
-        self.model = EfficientNetSelfAttention(loc=network_cfg.get('channels'),
-                                               grayscale=network_cfg.get('grayscale'))
+        self.model = EfficientNetSelfAttention(loc=network_cfg.get('channels'), grayscale=network_cfg.get('grayscale'))
 
     def forward(self, x):
         return self.model(x)
@@ -48,9 +55,11 @@ class NetworkFactory:
     def create_network(network_type, network_cfg, device=None):
         if network_type == "EfficientNet":
             model = EfficientNetWrapper(network_cfg).model
+        elif network_type == "EfficientNetV2":
+            model = EfficientNetV2Wrapper(network_cfg).model
         elif network_type == "EfficientNetSelfAttention":
             model = EfficientNetSelfAttentionWrapper(network_cfg).model
-        elif network_type == "StreamNetwork":
+        elif network_type == "CNN":
             model = StreamNetworkWrapper(network_cfg).model
         else:
             raise ValueError("Wrong type was given!")

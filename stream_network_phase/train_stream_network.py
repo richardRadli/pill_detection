@@ -22,7 +22,7 @@ from torchsummary import summary
 from config.config import ConfigStreamNetwork
 from config.const import DATA_PATH, IMAGES_PATH
 from network_selector import NetworkFactory
-from dataloader_stream_network_ba import StreamDataset
+from dataloader_stream_network import StreamDataset
 from triplet_loss import TripletLossWithHardMining
 from config.logger_setup import setup_logger
 from utils.utils import create_timestamp, measure_execution_time, print_network_config, use_gpu_if_available
@@ -278,6 +278,8 @@ class TrainModel:
         valid_losses = []
         # to mine the hard negative samples
         hard_neg_images = []
+        # to mine the hard positive samples
+        hard_pos_images = []
 
         # Variables to save only the best weights and model
         best_valid_loss = float('inf')
@@ -285,7 +287,7 @@ class TrainModel:
 
         for epoch in tqdm(range(self.cfg.epochs), desc="Epochs"):
             # Train loop
-            for idx, (anchor, positive, negative, negative_img_path) in \
+            for idx, (anchor, positive, negative, negative_img_path, positive_img_path) in \
                     tqdm(enumerate(self.train_data_loader), total=len(self.train_data_loader), desc="Train"):
                 # Upload data to the GPU
                 anchor = anchor.to(self.device)
@@ -301,7 +303,7 @@ class TrainModel:
                 negative_emb = self.model(negative)
 
                 # Compute triplet loss
-                loss, hard_neg = self.criterion(anchor_emb, positive_emb, negative_emb)
+                loss, hard_neg, hard_pos = self.criterion(anchor_emb, positive_emb, negative_emb)
 
                 # Backward pass, optimize and scheduler
                 loss.backward()
@@ -312,12 +314,13 @@ class TrainModel:
 
                 # Collect hardest positive and negative samples
                 hard_neg_images = self.record_hard_samples(hard_neg, negative_img_path, hard_neg_images)
+                hard_pos_images = self.record_hard_samples(hard_pos, positive_img_path, hard_pos_images)
 
             # Validation loop
             with torch.no_grad():
-                for idx, (anchor, positive, negative, _) in tqdm(enumerate(self.valid_data_loader),
-                                                                 total=len(self.valid_data_loader),
-                                                                 desc="Validation"):
+                for idx, (anchor, positive, negative, _, _) in tqdm(enumerate(self.valid_data_loader),
+                                                                    total=len(self.valid_data_loader),
+                                                                    desc="Validation"):
                     # Upload data to GPU
                     anchor = anchor.to(self.device)
                     positive = positive.to(self.device)
@@ -329,7 +332,7 @@ class TrainModel:
                     negative_emb = self.model(negative)
 
                     # Compute triplet loss
-                    val_loss, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
+                    val_loss, _, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
 
                     # Accumulate loss
                     valid_losses.append(val_loss.item())
@@ -343,11 +346,13 @@ class TrainModel:
 
             # Loop over the hard negative tensors
             self.get_hardest_samples(epoch, hard_neg_images, DATA_PATH.get_data_path("negative"), "negative")
+            self.get_hardest_samples(epoch, hard_pos_images, DATA_PATH.get_data_path("positive"), "positive")
 
             # Clear lists to track next epoch
             train_losses.clear()
             valid_losses.clear()
             hard_neg_images.clear()
+            hard_pos_images.clear()
 
             # Save the model and weights
             if valid_loss < best_valid_loss:

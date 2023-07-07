@@ -20,7 +20,7 @@ from utils.utils import measure_execution_time, numerical_sort
 # ++++++++++++++++++++++++++++++++++++++ C R E A T E   S T R E A M   I M A G E S +++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CreateStreamImages:
-    def __init__(self, op: str = "test"):
+    def __init__(self, op: str = "train"):
         setup_logger()
         logging.info("Selected operation: %s" % op)
         self.cfg = ConfigGeneral().parse()
@@ -42,7 +42,7 @@ class CreateStreamImages:
         if op.lower() == "train":
             path_to_images = {
                 "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images"),
-                "masks": IMAGES_PATH.get_data_path("train_masks"),
+                "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_train_masks"),
                 "contour": IMAGES_PATH.get_data_path("ref_train_contour"),
                 "lbp": IMAGES_PATH.get_data_path("ref_train_lbp"),
                 "rgb": IMAGES_PATH.get_data_path("ref_train_rgb"),
@@ -51,7 +51,7 @@ class CreateStreamImages:
         elif op.lower() == "valid":
             path_to_images = {
                 "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_images"),
-                "masks": IMAGES_PATH.get_data_path("valid_masks"),
+                "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_valid_masks"),
                 "contour": IMAGES_PATH.get_data_path("ref_valid_contour"),
                 "lbp": IMAGES_PATH.get_data_path("ref_valid_lbp"),
                 "rgb": IMAGES_PATH.get_data_path("ref_valid_rgb"),
@@ -60,7 +60,7 @@ class CreateStreamImages:
         elif op.lower() == "test":
             path_to_images = {
                 "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images"),
-                "masks": IMAGES_PATH.get_data_path("test_masks"),
+                "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_test_masks"),
                 "contour": IMAGES_PATH.get_data_path("query_contour"),
                 "lbp": IMAGES_PATH.get_data_path("query_lbp"),
                 "rgb": IMAGES_PATH.get_data_path("query_rgb"),
@@ -398,9 +398,8 @@ class CreateStreamImages:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
-        operations = ["Train", "Valid", "Test"]
-        for operation in operations:
-            proc_unet_imgs = CreateStreamImages(op=operation)
-            proc_unet_imgs.main()
+        operation = "Test"
+        proc_unet_imgs = CreateStreamImages(op=operation)
+        proc_unet_imgs.main()
     except KeyboardInterrupt as kie:
-        logging.error(kie)
+        logging.error(f'{kie}')

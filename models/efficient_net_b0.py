@@ -46,3 +46,5 @@ class EfficientNet(nn.Module):
 
         model.classifier[1] = nn.Linear(in_features=1280, out_features=self.loc[4])
         return model
+
+

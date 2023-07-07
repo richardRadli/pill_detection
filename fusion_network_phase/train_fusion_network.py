@@ -1,17 +1,20 @@
+import logging
+
 import numpy as np
 import os
 import torch
 import torch.nn as nn
 
 from tqdm import tqdm
+from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config.config import ConfigFusionNetwork
 from config.const import DATA_PATH
-# from fusion_network import FusionNet
-from mssanetwork import MSSANetwork
+from config.logger_setup import setup_logger
+from models.fusion_network import FusionNet
 from fusion_dataset_loader import FusionDataset
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
     use_gpu_if_available
@@ -25,6 +28,8 @@ class TrainFusionNet:
     # --------------------------------------------------- __I N I T__ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
+        setup_logger()
+
         # Set up configuration
         self.cfg = ConfigFusionNetwork().parse()
 
@@ -38,30 +43,30 @@ class TrainFusionNet:
         self.device = use_gpu_if_available()
 
         # Load datasets using FusionDataset
-        dataset = FusionDataset()
+        dataset = FusionDataset(image_size=self.cfg.img_size)
         train_size = int(self.cfg.train_split * len(dataset))
         valid_size = len(dataset) - train_size
-        print(f"Size of the train set: {train_size}, size of the validation set: {valid_size}")
+        logging.info(f"Size of the train set: {train_size}, size of the validation set: {valid_size}")
         train_dataset, valid_dataset = random_split(dataset, [train_size, valid_size])
         self.train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
         self.valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
 
         # # Initialize the fusion network
-        self.model = MSSANetwork()
+        self.model = FusionNet()
 
         # Load the saved state dictionaries of the stream networks
         stream_con_state_dict = \
             (torch.load(find_latest_file_in_latest_directory(
-                DATA_PATH.get_data_path("weights_efficient_net_self_attention_contour"))))
+                DATA_PATH.get_data_path("weights_cnn_network_contour"))))
         stream_rgb_state_dict = \
             (torch.load(find_latest_file_in_latest_directory(
-                DATA_PATH.get_data_path("weights_efficient_net_self_attention_rgb"))))
+                DATA_PATH.get_data_path("weights_cnn_network_rgb"))))
         stream_tex_state_dict = \
             (torch.load(find_latest_file_in_latest_directory(
-                DATA_PATH.get_data_path("weights_efficient_net_self_attention_texture"))))
+                DATA_PATH.get_data_path("weights_cnn_network_texture"))))
         stream_lbp_state_dict = \
             (torch.load(find_latest_file_in_latest_directory(
-                DATA_PATH.get_data_path("weights_efficient_net_self_attention_lbp"))))
+                DATA_PATH.get_data_path("weights_cnn_network_lbp"))))
 
         # Update the state dictionaries of the fusion network's stream networks
         self.model.contour_network.load_state_dict(stream_con_state_dict)
@@ -95,6 +100,9 @@ class TrainFusionNet:
         # Specify optimizer
         self.optimizer = torch.optim.Adam(list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
                                           lr=self.cfg.learning_rate, weight_decay=self.cfg.weight_decay)
+
+        # LR scheduler
+        self.scheduler = StepLR(self.optimizer, step_size=self.cfg.step_size, gamma=self.cfg.gamma)
 
         # Tensorboard
         tensorboard_log_dir = os.path.join(DATA_PATH.get_data_path("logs_fusion_net"), self.timestamp)
@@ -192,10 +200,13 @@ class TrainFusionNet:
                     # Accumulate loss
                     valid_losses.append(v_loss.item())
 
+            # Decay the learning rate
+            self.scheduler.step()
+
             # Print loss for epoch
             train_loss = np.average(train_losses)
             valid_loss = np.average(valid_losses)
-            print(f'train_loss: {train_loss:.5f} ' + f'valid_loss: {valid_loss:.5f}')
+            logging.info(f'train_loss: {train_loss:.5f} ' + f'valid_loss: {valid_loss:.5f}')
 
             # Record to tensorboard
             self.writer.add_scalars("Loss", {"train": train_loss, "validation": valid_loss}, epoch)
@@ -222,4 +233,4 @@ if __name__ == "__main__":
         tm = TrainFusionNet()
         tm.train()
     except KeyboardInterrupt as kbe:
-        print(f'{kbe}')
+        logging.error(f'{kbe}')

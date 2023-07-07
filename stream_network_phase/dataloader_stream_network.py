@@ -14,7 +14,7 @@ class StreamDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- _ I N I T _ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self, dataset_dir: str, type_of_stream: str) -> None:
+    def __init__(self, dataset_dir: str, type_of_stream: str, image_size: int) -> None:
         self.labels_set = None
         self.label_to_indices = None
         self.labels = None
@@ -23,15 +23,15 @@ class StreamDataset(Dataset):
 
         if self.type_of_stream == "RGB":
             self.transform = transforms.Compose([
-                transforms.Resize(128),
-                transforms.CenterCrop(128),
+                transforms.Resize(image_size),
+                transforms.CenterCrop(image_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
             ])
         elif self.type_of_stream in ["Contour", "Texture", "LBP"]:
             self.transform = transforms.Compose([
-                transforms.Resize(128),
-                transforms.CenterCrop(128),
+                transforms.Resize(image_size),
+                transforms.CenterCrop(image_size),
                 transforms.Grayscale(),
                 transforms.ToTensor(),
             ])

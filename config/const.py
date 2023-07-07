@@ -162,6 +162,7 @@ class Data(_Const):
 
         # Hardest samples
         "negative": "data/hardest_samples/negative",
+        "positive": "data/hardest_samples/positive",
 
         # Other
         "augmented_train_data_labels": "data/other/augmented_train_data_labels",

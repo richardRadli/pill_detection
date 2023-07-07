@@ -135,7 +135,7 @@ def copy_hardest_samples(new_dir: str, src_dir: str, hardest_sample_images: list
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------------- G E T   L A T E S T   T X T   F I L E S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def get_latest_txt_files():
+def get_latest_txt_files(operation: str):
     """
     Retrieves the latest .txt files for contour, RGB, and texture data in the specified directories
     for either positive or negative operations.
@@ -143,6 +143,10 @@ def get_latest_txt_files():
     :return: A tuple of the paths to the latest contour, RGB, and texture .txt files, respectively.
     :raises ValueError: If the specified operation is neither "positive" nor "negative".
     """
+
+    if operation not in ["positive", "negative"]:
+        raise ValueError("Wrong operation!")
+
     path = DATA_PATH.get_data_path("negative")
     d = find_stream_folders(path)
 
@@ -164,15 +168,30 @@ def main() -> None:
     """
     setup_logger()
 
-    latest_neg_contour_txt, latest_neg_rgb_txt, latest_neg_texture_txt, latest_neg_lbp_txt = get_latest_txt_files()
+    latest_neg_contour_txt, latest_neg_rgb_txt, latest_neg_texture_txt, latest_neg_lbp_txt = \
+        get_latest_txt_files("negative")
+    latest_pos_contour_txt, latest_pos_rgb_txt, latest_pos_texture_txt, latest_pos_lbp_txt = \
+        get_latest_txt_files("negative")
 
     hardest_neg_samples_contour = process_txt(latest_neg_contour_txt)
     hardest_neg_samples_rgb = process_txt(latest_neg_rgb_txt)
     hardest_neg_samples_texture = process_txt(latest_neg_texture_txt)
+    hardest_neg_sample_lbp = process_txt(latest_neg_lbp_txt)
 
-    hardest_neg_samples_union = hardest_neg_samples_contour | hardest_neg_samples_rgb | hardest_neg_samples_texture
+    hardest_pos_samples_contour = process_txt(latest_pos_contour_txt)
+    hardest_pos_samples_rgb = process_txt(latest_pos_rgb_txt)
+    hardest_pos_samples_texture = process_txt(latest_pos_texture_txt)
+    hardest_pos_sample_lbp = process_txt(latest_pos_lbp_txt)
 
-    result = {os.path.basename(x) for x in hardest_neg_samples_union}
+    hardest_neg_samples_union = \
+        hardest_neg_samples_contour | hardest_neg_samples_rgb | hardest_neg_samples_texture | hardest_neg_sample_lbp
+
+    hardest_pos_samples_union = \
+        hardest_pos_samples_contour | hardest_pos_samples_rgb | hardest_pos_samples_texture | hardest_pos_sample_lbp
+
+    hardest_samples_union = hardest_pos_samples_union | hardest_neg_samples_union
+
+    result = {os.path.basename(x) for x in hardest_samples_union}
 
     # Move hardest contour images
     files_to_move_contour = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_contour"))

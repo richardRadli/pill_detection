@@ -3,7 +3,7 @@ import glob
 
 from tqdm import tqdm
 
-from config.const import DATA_PATH, DATASET_PATH, IMAGES_PATH
+from config.const import DATA_PATH, DATASET_PATH
 from utils.utils import find_latest_file_in_latest_directory
 
 
@@ -41,8 +41,7 @@ def predict_single_image(input_image_file_path: str, output_image_file_path: str
     :return: None
     """
 
-    # model_path = find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_unet"))
-    model_path = "C:/Users/ricsi/Desktop/ogyi/saves/checkpoint_epoch5.pth"
+    model_path = find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_unet"))
     os.system("python predict_unet.py "
               f"-i {input_image_file_path} "
               f"-o {output_image_file_path} "
@@ -63,9 +62,10 @@ def main(operation: str = "multi") -> None:
 
     if operation.lower() == "multi":
         predict_multiple_images(input_dir=DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images"),
-                                output_dir=IMAGES_PATH.get_data_path("unet_out"))
+                                output_dir=DATASET_PATH.get_data_path("ogyi_v2_splitted_pred_test_masks"))
     elif operation.lower() == "single":
-        predict_single_image(input_image_file_path="C:/Users/ricsi/Documents/project/storage/IVM/datasets/ogyi_v2/splitted/test/images/id_009_algopyrin_037.png",
+        predict_single_image(input_image_file_path="C:/Users/ricsi/Documents/project/storage/IVM/datasets/ogyi_v2/"
+                                                   "splitted/test/images/id_009_algopyrin_037.png",
                              output_image_file_path="C:/Users/ricsi/Desktop/out.jpg")
     else:
         raise ValueError("Wrong operation!")
@@ -75,4 +75,4 @@ def main(operation: str = "multi") -> None:
 # ---------------------------------------------------- __M A I N__ -----------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    main(operation="single")
+    main(operation="multi")
