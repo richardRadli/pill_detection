@@ -16,12 +16,13 @@ import torch
 from glob import glob
 from torchvision import transforms
 from tqdm import tqdm
-from typing import List, Tuple, Dict
+from typing import List, Tuple
 from PIL import Image
 
-from config.const import DATA_PATH, IMAGES_PATH
+from config.const import IMAGES_PATH
 from config.config import ConfigStreamNetwork
 from config.logger_setup import setup_logger
+from config.network_configs import subnetwork_config_inference, get_main_network_config
 from network_selector import NetworkFactory
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, \
     plot_ref_query_images, use_gpu_if_available
@@ -48,8 +49,8 @@ class PredictStreamNetwork:
         self.preprocess_con_tex = None
 
         # Load configs
-        self.main_network_config = self.get_main_network_config()
-        self.sub_network_config = self.get_subnetwork_config()
+        self.main_network_config = get_main_network_config(self.cfg)
+        self.sub_network_config = subnetwork_config_inference(self.cfg)
 
         # Load networks
         self.network_con, self.network_rgb, self.network_tex, self.network_lbp = self.load_networks()
@@ -75,116 +76,6 @@ class PredictStreamNetwork:
 
         # Select device
         self.device = use_gpu_if_available()
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ---------------------------------- G E T   M A I N   N E T W O R K   C O N F I G ---------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def get_main_network_config(self) -> Dict:
-        """
-        Returns a dictionary containing the prediction and plotting folder paths for different types of networks
-        based on the type_of_net parameter in self.cfg.
-        :return: Dictionary containing the prediction and plotting folder paths.
-        """
-
-        network_type = self.cfg.type_of_net
-        logging.info(network_type)
-        network_configs = {
-            'CNN': {
-                'prediction_folder': DATA_PATH.get_data_path("predictions_cnn_network"),
-                'plotting_folder': IMAGES_PATH.get_data_path("plotting_cnn_network"),
-                'ref_vectors_folder': DATA_PATH.get_data_path("reference_vectors_cnn_network")
-            },
-            'EfficientNet': {
-                'prediction_folder': DATA_PATH.get_data_path("predictions_efficient_net"),
-                'plotting_folder': IMAGES_PATH.get_data_path("plotting_efficient_net"),
-                'ref_vectors_folder': DATA_PATH.get_data_path("reference_vectors_efficient_net")
-            },
-            'EfficientNetSelfAttention': {
-                'prediction_folder': DATA_PATH.get_data_path("predictions_efficient_self_attention_net"),
-                'plotting_folder': IMAGES_PATH.get_data_path("plotting_efficient_net_self_attention"),
-                'ref_vectors_folder': DATA_PATH.get_data_path("reference_vectors_efficient_net_self_attention")
-            }
-        }
-        if network_type not in network_configs:
-            raise ValueError(f'Invalid network type: {network_type}')
-
-        return network_configs[network_type]
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ----------------------------------- G E T   S U B   N E T W O R K   C O N F I G ----------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def get_subnetwork_config(self) -> Dict:
-        """
-        Returns the configuration of subnetworks
-
-        :return: dictionary containing subnetwork configuration
-        """
-
-        network_config = {
-            "Contour": {
-                "channels": [1, 32, 48, 64, 128, 192, 256],
-                "model_weights_dir": {
-                    "CNN": DATA_PATH.get_data_path("weights_cnn_network_contour"),
-                    "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_contour"),
-                    "EfficientNetSelfAttention":
-                        DATA_PATH.get_data_path("weights_efficient_net_self_attention_contour"),
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_contour")),
-                "image_size": {
-                    "CNN": self.cfg.img_size_cnn,
-                    "EfficientNet": self.cfg.img_size_en,
-                    "EfficientNetSelfAttention": self.cfg.img_size_ensa
-                }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
-                "grayscale": True
-            },
-
-            "LBP": {
-                "channels": [1, 32, 48, 64, 128, 192, 256],
-                "model_weights_dir": {
-                    "CNN": DATA_PATH.get_data_path("weights_cnn_network_lbp"),
-                    "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_lbp"),
-                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_lbp"),
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_lbp")),
-                "image_size": {
-                    "CNN": self.cfg.img_size_cnn,
-                    "EfficientNet": self.cfg.img_size_en,
-                    "EfficientNetSelfAttention": self.cfg.img_size_ensa
-                }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
-                "grayscale": True
-            },
-
-            "RGB": {
-                "channels": [3, 64, 96, 128, 256, 384, 512],
-                "model_weights_dir": {
-                    "CNN": DATA_PATH.get_data_path("weights_cnn_network_rgb"),
-                    "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_rgb"),
-                    "EfficientNetSelfAttention": DATA_PATH.get_data_path("weights_efficient_net_self_attention_rgb"),
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_rgb")),
-                "image_size": {
-                    "CNN": self.cfg.img_size_cnn,
-                    "EfficientNet": self.cfg.img_size_en,
-                    "EfficientNetSelfAttention": self.cfg.img_size_ensa
-                }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
-                "grayscale": False
-            },
-
-            "Texture": {
-                "channels": [1, 32, 48, 64, 128, 192, 256],
-                "model_weights_dir": {
-                    "CNN": DATA_PATH.get_data_path("weights_cnn_network_texture"),
-                    "EfficientNet": DATA_PATH.get_data_path("weights_efficient_net_texture"),
-                    "EfficientNetSelfAttention":
-                        DATA_PATH.get_data_path("weights_efficient_net_self_attention_texture"),
-                }.get(self.cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_texture")),
-                "image_size": {
-                    "CNN": self.cfg.img_size_cnn,
-                    "EfficientNet": self.cfg.img_size_en,
-                    "EfficientNetSelfAttention": self.cfg.img_size_ensa
-                }.get(self.cfg.type_of_net, self.cfg.img_size_cnn),
-                "grayscale": True
-            },
-        }
-
-        return network_config
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------

@@ -83,6 +83,7 @@ class Images(_Const):
 
         "plotting_cnn_network": "images/plotting/plotting_cnn_network",
         "plotting_efficient_net": "images/plotting/plotting_efficient_net",
+        "plotting_efficient_net_v2": "images/plotting/plotting_efficient_net_v2",
         "plotting_fusion_network": "images/plotting/plotting_fusion_network",
         "plotting_efficient_net_self_attention": "images/plotting/plotting_efficient_net_self_attention",
 
@@ -109,55 +110,71 @@ class Images(_Const):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Data(_Const):
     dirs_data = {
-        # Weights
+        # ----------------------------------------------- W E I G H T S ------------------------------------------------
+        # UNet
         "weights_unet": "data/weights/weights_unet",
-
+        # Fusion net
         "weights_fusion_net": "data/weights/weights_fusion_net",
-
+        # CNN
         "weights_cnn_network_contour": "data/weights/weights_cnn_network_contour",
         "weights_cnn_network_lbp": "data/weights/weights_cnn_network_lbp",
         "weights_cnn_network_rgb": "data/weights/weights_cnn_network_rgb",
         "weights_cnn_network_texture": "data/weights/weights_cnn_network_texture",
-
+        # EfficientNet b0
         "weights_efficient_net_contour": "data/weights/weights_efficient_net_contour",
         "weights_efficient_net_lbp": "data/weights/weights_efficient_net_lbp",
         "weights_efficient_net_rgb": "data/weights/weights_efficient_net_rgb",
         "weights_efficient_net_texture": "data/weights/weights_efficient_net_texture",
-
+        # EfficientNet b0 + self-attention
         "weights_efficient_net_self_attention_contour": "data/weights/weights_efficient_self_attention_net_contour",
         "weights_efficient_net_self_attention_lbp": "data/weights/weights_efficient_self_attention_net_lbp",
         "weights_efficient_net_self_attention_rgb": "data/weights/weights_efficient_self_attention_net_rgb",
         "weights_efficient_net_self_attention_texture": "data/weights/weights_efficient_self_attention_net_texture",
+        # EfficientNet V2
+        "weights_efficient_net_v2_contour": "data/weights/weights_efficient_v2_net_contour",
+        "weights_efficient_net_v2_lbp": "data/weights/weights_efficient_v2_net_lbp",
+        "weights_efficient_net_v2_rgb": "data/weights/weights_efficient_v2_net_rgb",
+        "weights_efficient_net_v2_texture": "data/weights/weights_efficient_v2_net_texture",
 
-        # Logs
+        # -------------------------------------------------- L O G S ---------------------------------------------------
+        # UNet
         "logs_unet": "data/logs/logs_unet",
-
+        # Fusion net
         "logs_fusion_net": "data/logs/logs_fusion_net",
-
+        # CNN
         "logs_cnn_contour": "data/logs/logs_cnn_contour",
         "logs_cnn_lbp": "data/logs/logs_cnn_lbp",
         "logs_cnn_rgb": "data/logs/logs_cnn_rgb",
         "logs_cnn_texture": "data/logs/logs_cnn_texture",
-
+        # EfficientNet b0
         "logs_efficient_net_contour": "data/logs/logs_efficient_net_contour",
         "logs_efficient_net_lbp": "data/logs/logs_efficient_net_lbp",
         "logs_efficient_net_rgb": "data/logs/logs_efficient_net_rgb",
         "logs_efficient_net_texture": "data/logs/logs_efficient_net_texture",
-
+        # EfficientNet b0 + self-attention
         "logs_efficient_net_self_attention_contour": "data/logs/logs_efficient_net_self_attention_contour",
         "logs_efficient_net_self_attention_lbp": "data/logs/logs_efficient_net_self_attention_lbp",
         "logs_efficient_net_self_attention_rgb": "data/logs/logs_efficient_net_self_attention_rgb",
         "logs_efficient_net_self_attention_texture": "data/logs/logs_efficient_net_self_attention_texture",
+        # EfficientNet V2
+        "logs_efficient_net_v2_contour": "data/logs/logs_efficient_net_v2_contour",
+        "logs_efficient_net_v2_lbp": "data/logs/logs_efficient_net_v2_lbp",
+        "logs_efficient_net_v2_rgb": "data/logs/logs_efficient_net_v2_rgb",
+        "logs_efficient_net_v2_texture": "data/logs/logs_efficient_net_v2_texture",
 
+        # -------------------------------------------- P R E D I C T I O N S -------------------------------------------
         # Predictions
         "predictions_cnn_network": "data/predictions/predictions_cnn_network",
         "predictions_fusion_network": "data/predictions/predictions_fusion_network",
         "predictions_efficient_net": "data/predictions/predictions_efficient_net",
+        "predictions_efficient_net_v2": "data/predictions/predictions_efficient_net_v2",
         "predictions_efficient_self_attention_net": "data/predictions/predictions_efficient_self_attention_net",
 
+        # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
         # Reference vectors
         "reference_vectors_cnn_network": "data/ref_vec/reference_vectors_cnn_network",
         "reference_vectors_efficient_net": "data/ref_vec/reference_vectors_efficient_net",
+        "reference_vectors_efficient_net_v2": "data/ref_vec/reference_vectors_efficient_net_v2",
         "reference_vectors_efficient_net_self_attention": "data/ref_vec/reference_vectors_efficient_net_self_attention",
 
         # Hardest samples

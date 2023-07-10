@@ -135,7 +135,7 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
                                  help="CNN | EfficientNet | EfficientNetV2 | EfficientNetSelfAttention")
-        self.parser.add_argument("--type_of_stream", type=str, default="RGB", help="RGB | Contour | Texture | LBP")
+        self.parser.add_argument("--type_of_stream", type=str, default="LBP", help="RGB | Contour | Texture | LBP")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=30)
         self.parser.add_argument("--batch_size", type=int, default=128)

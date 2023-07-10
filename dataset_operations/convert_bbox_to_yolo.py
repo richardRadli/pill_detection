@@ -3,8 +3,6 @@ import cv2
 
 from glob import glob
 
-from config.const import DATASET_PATH
-
 
 def get_bounding_box(mask):
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -64,8 +62,8 @@ def display_annotations(image_path, annotation_path):
         # Parse annotation lines and extract relevant information
         annotations = [line.strip().split() for line in lines]
         annotations = [
-            [int(annotation[0]), float(annotation[1]), float(annotation[2]), float(annotation[3]), float(annotation[4])] for
-            annotation in annotations]
+            [int(annotation[0]), float(annotation[1]), float(annotation[2]), float(annotation[3]),
+             float(annotation[4])] for annotation in annotations]
 
         for annotation in annotations:
             class_index, x_center, y_center, box_width, box_height = annotation
