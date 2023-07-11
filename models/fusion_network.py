@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-from config.config import ConfigStreamNetwork
 from models.network_selector import NetworkFactory
 
 
@@ -58,17 +57,3 @@ class FusionNet(nn.Module):
         x = self.fc2(x)
 
         return x
-
-
-# from config.network_configs import subnetwork_configs_training
-# from torchsummary import summary
-#
-# cfg = ConfigStreamNetwork().parse()
-# network_config = subnetwork_configs_training(cfg)
-# network_cfg_contour = network_config.get("Contour")
-# network_cfg_lbp = network_config.get("LBP")
-# network_cfg_rgb = network_config.get("RGB")
-# network_cfg_texture = network_config.get("Texture")
-#
-#
-# fusion_net = FusionNet(cfg.type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture).to("cuda")

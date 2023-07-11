@@ -28,18 +28,6 @@ class FusionDataset(Dataset):
         self.labels = None
 
         # Transforms for each dataset
-        self.rgb_transform = transforms.Compose([
-            transforms.Resize(image_size),
-            transforms.CenterCrop(image_size),
-            transforms.ToTensor(),
-            transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
-        ])
-        self.texture_transform = transforms.Compose([
-            transforms.Resize(image_size),
-            transforms.CenterCrop(image_size),
-            transforms.Grayscale(),
-            transforms.ToTensor()
-        ])
         self.contour_transform = transforms.Compose([
             transforms.Resize(image_size),
             transforms.CenterCrop(image_size),
@@ -52,12 +40,24 @@ class FusionDataset(Dataset):
             transforms.Grayscale(),
             transforms.ToTensor()
         ])
+        self.rgb_transform = transforms.Compose([
+            transforms.Resize(image_size),
+            transforms.CenterCrop(image_size),
+            transforms.ToTensor(),
+            transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        ])
+        self.texture_transform = transforms.Compose([
+            transforms.Resize(image_size),
+            transforms.CenterCrop(image_size),
+            transforms.Grayscale(),
+            transforms.ToTensor()
+        ])
 
         # Load datasets
-        self.rgb_dataset = self.load_dataset(IMAGES_PATH.get_data_path("rgb_hardest"))
-        self.texture_dataset = self.load_dataset(IMAGES_PATH.get_data_path("texture_hardest"))
         self.contour_dataset = self.load_dataset(IMAGES_PATH.get_data_path("contour_hardest"))
         self.lbp_dataset = self.load_dataset(IMAGES_PATH.get_data_path("lbp_hardest"))
+        self.rgb_dataset = self.load_dataset(IMAGES_PATH.get_data_path("rgb_hardest"))
+        self.texture_dataset = self.load_dataset(IMAGES_PATH.get_data_path("texture_hardest"))
         self.labels_set = set(label for _, label in self.rgb_dataset)
         self.prepare_labels()
 
@@ -77,37 +77,29 @@ class FusionDataset(Dataset):
         """
 
         # Load corresponding images from all datasets
-        rgb_anchor_img_path, anchor_label = self.rgb_dataset[index]
-        texture_anchor_img_path, _ = self.texture_dataset[index]
         contour_anchor_img_path, _ = self.contour_dataset[index]
         lbp_anchor_img_path, _ = self.lbp_dataset[index]
+        rgb_anchor_img_path, anchor_label = self.rgb_dataset[index]
+        texture_anchor_img_path, _ = self.texture_dataset[index]
 
         # Load positive sample from the same class as anchor
         positive_index = index
         while positive_index == index:
             positive_index = np.random.choice(self.label_to_indices[anchor_label])
-        rgb_positive_img_path, _ = self.rgb_dataset[positive_index]
-        texture_positive_img_path, _ = self.texture_dataset[positive_index]
         contour_positive_img_path, _ = self.contour_dataset[positive_index]
         lbp_positive_img_path, _ = self.lbp_dataset[positive_index]
+        rgb_positive_img_path, _ = self.rgb_dataset[positive_index]
+        texture_positive_img_path, _ = self.texture_dataset[positive_index]
 
         # Load negative sample from a different class
         negative_label = np.random.choice(list(self.labels_set - {anchor_label}))
         negative_index = np.random.choice(self.label_to_indices[negative_label])
-        rgb_negative_img_path, _ = self.rgb_dataset[negative_index]
-        texture_negative_img_path, _ = self.texture_dataset[negative_index]
         contour_negative_img_path, _ = self.contour_dataset[negative_index]
         lbp_negative_img_path, _ = self.lbp_dataset[negative_index]
+        rgb_negative_img_path, _ = self.rgb_dataset[negative_index]
+        texture_negative_img_path, _ = self.texture_dataset[negative_index]
 
         # Load images and apply transforms
-        rgb_anchor_img = Image.open(rgb_anchor_img_path)
-        rgb_positive_img = Image.open(rgb_positive_img_path)
-        rgb_negative_img = Image.open(rgb_negative_img_path)
-
-        texture_anchor_img = Image.open(texture_anchor_img_path)
-        texture_positive_img = Image.open(texture_positive_img_path)
-        texture_negative_img = Image.open(texture_negative_img_path)
-
         contour_anchor_img = Image.open(contour_anchor_img_path)
         contour_positive_img = Image.open(contour_positive_img_path)
         contour_negative_img = Image.open(contour_negative_img_path)
@@ -116,13 +108,13 @@ class FusionDataset(Dataset):
         lbp_positive_img = Image.open(lbp_positive_img_path)
         lbp_negative_img = Image.open(lbp_negative_img_path)
 
-        rgb_anchor_img = self.rgb_transform(rgb_anchor_img)
-        rgb_positive_img = self.rgb_transform(rgb_positive_img)
-        rgb_negative_img = self.rgb_transform(rgb_negative_img)
+        rgb_anchor_img = Image.open(rgb_anchor_img_path)
+        rgb_positive_img = Image.open(rgb_positive_img_path)
+        rgb_negative_img = Image.open(rgb_negative_img_path)
 
-        texture_anchor_img = self.texture_transform(texture_anchor_img)
-        texture_positive_img = self.texture_transform(texture_positive_img)
-        texture_negative_img = self.texture_transform(texture_negative_img)
+        texture_anchor_img = Image.open(texture_anchor_img_path)
+        texture_positive_img = Image.open(texture_positive_img_path)
+        texture_negative_img = Image.open(texture_negative_img_path)
 
         contour_anchor_img = self.contour_transform(contour_anchor_img)
         contour_positive_img = self.contour_transform(contour_positive_img)
@@ -132,9 +124,17 @@ class FusionDataset(Dataset):
         lbp_positive_img = self.lbp_transform(lbp_positive_img)
         lbp_negative_img = self.lbp_transform(lbp_negative_img)
 
-        return (rgb_anchor_img, texture_anchor_img, contour_anchor_img, lbp_anchor_img,
-                rgb_positive_img, texture_positive_img, contour_positive_img, lbp_positive_img,
-                rgb_negative_img, texture_negative_img, contour_negative_img,lbp_negative_img)
+        rgb_anchor_img = self.rgb_transform(rgb_anchor_img)
+        rgb_positive_img = self.rgb_transform(rgb_positive_img)
+        rgb_negative_img = self.rgb_transform(rgb_negative_img)
+
+        texture_anchor_img = self.texture_transform(texture_anchor_img)
+        texture_positive_img = self.texture_transform(texture_positive_img)
+        texture_negative_img = self.texture_transform(texture_negative_img)
+
+        return (contour_anchor_img, lbp_anchor_img, rgb_anchor_img, texture_anchor_img,
+                contour_positive_img, lbp_positive_img, rgb_positive_img, texture_positive_img,
+                contour_negative_img, lbp_negative_img, rgb_negative_img, texture_negative_img)
 
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- __ L E N __ --------------------------------------------------

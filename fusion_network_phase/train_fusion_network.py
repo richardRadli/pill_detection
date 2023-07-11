@@ -34,7 +34,7 @@ class TrainFusionNet:
         self.cfg_fusion_net = ConfigFusionNetwork().parse()
         self.cfg_stream_net = ConfigStreamNetwork().parse()
 
-        network_type = self.cfg_stream_net.type_of_net
+        network_type = self.cfg_fusion_net.type_of_net
         main_network_config = main_network_config_fusion_training(network_type=network_type)
         subnetwork_config = subnetwork_configs_training(self.cfg_stream_net)
         network_cfg_contour = subnetwork_config.get("Contour")
@@ -43,7 +43,7 @@ class TrainFusionNet:
         network_cfg_texture = subnetwork_config.get("Texture")
 
         # Print network configurations
-        # print_network_config(self.cfg_fusion_net)
+        print_network_config(self.cfg_fusion_net)
 
         # Create time stamp
         self.timestamp = create_timestamp()
@@ -97,6 +97,7 @@ class TrainFusionNet:
         # Load model and upload it to the GPU
         self.model.to(self.device)
 
+        # Display model
         summary(self.model,
                 input_size=[(network_cfg_contour.get("channels")[0], network_cfg_contour.get("image_size"),
                              network_cfg_contour.get("image_size")),
@@ -111,12 +112,12 @@ class TrainFusionNet:
         self.criterion = nn.TripletMarginLoss(margin=self.cfg_fusion_net.margin)
 
         # Specify optimizer
-        self.optimizer = torch.optim.Adam(list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
+        self.optimizer = torch.optim.Adam(params=list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
                                           lr=self.cfg_fusion_net.learning_rate,
                                           weight_decay=self.cfg_fusion_net.weight_decay)
 
         # LR scheduler
-        self.scheduler = StepLR(self.optimizer,
+        self.scheduler = StepLR(optimizer=self.optimizer,
                                 step_size=self.cfg_fusion_net.step_size,
                                 gamma=self.cfg_fusion_net.gamma)
 
@@ -146,24 +147,24 @@ class TrainFusionNet:
 
         for epoch in tqdm(range(self.cfg_fusion_net.epochs), desc="Epochs"):
             # Train loop
-            for a_rgb, a_con, a_tex, a_lbp, p_rgb, p_con, p_tex, p_lbp, n_rgb, n_con, n_tex, n_lbp in \
+            for a_con, a_lbp, a_rgb, a_tex, p_con, p_lbp, p_rgb, p_tex, n_con, n_lbp, n_rgb, n_tex in \
                     tqdm(self.train_data_loader, total=len(self.train_data_loader), desc="Training"):
                 # Uploading data to the GPU
-                anchor_rgb = a_rgb.to(self.device)
-                positive_rgb = p_rgb.to(self.device)
-                negative_rgb = n_rgb.to(self.device)
-
                 anchor_contour = a_con.to(self.device)
                 positive_contour = p_con.to(self.device)
                 negative_contour = n_con.to(self.device)
 
-                anchor_texture = a_tex.to(self.device)
-                positive_texture = p_tex.to(self.device)
-                negative_texture = n_tex.to(self.device)
-
                 anchor_lbp = a_lbp.to(self.device)
                 positive_lbp = p_lbp.to(self.device)
                 negative_lbp = n_lbp.to(self.device)
+
+                anchor_rgb = a_rgb.to(self.device)
+                positive_rgb = p_rgb.to(self.device)
+                negative_rgb = n_rgb.to(self.device)
+
+                anchor_texture = a_tex.to(self.device)
+                positive_texture = p_tex.to(self.device)
+                negative_texture = n_tex.to(self.device)
 
                 self.optimizer.zero_grad()
 
@@ -184,24 +185,24 @@ class TrainFusionNet:
 
             # Validation loop
             with torch.no_grad():
-                for a_rgb, a_con, a_tex, a_lbp, p_rgb, p_con, p_tex, p_lbp, n_rgb, n_con, n_tex, n_lbp in \
+                for a_con, a_lbp, a_rgb, a_tex, p_con, p_lbp, p_rgb, p_tex, n_con, n_lbp, n_rgb, n_tex in \
                         tqdm(self.valid_data_loader, total=len(self.valid_data_loader), desc="Validation"):
                     # Uploading data to the GPU
-                    anchor_rgb = a_rgb.to(self.device)
-                    positive_rgb = p_rgb.to(self.device)
-                    negative_rgb = n_rgb.to(self.device)
-
                     anchor_contour = a_con.to(self.device)
                     positive_contour = p_con.to(self.device)
                     negative_contour = n_con.to(self.device)
 
-                    anchor_texture = a_tex.to(self.device)
-                    positive_texture = p_tex.to(self.device)
-                    negative_texture = n_tex.to(self.device)
-
                     anchor_lbp = a_lbp.to(self.device)
                     positive_lbp = p_lbp.to(self.device)
                     negative_lbp = n_lbp.to(self.device)
+
+                    anchor_rgb = a_rgb.to(self.device)
+                    positive_rgb = p_rgb.to(self.device)
+                    negative_rgb = n_rgb.to(self.device)
+
+                    anchor_texture = a_tex.to(self.device)
+                    positive_texture = p_tex.to(self.device)
+                    negative_texture = n_tex.to(self.device)
 
                     self.optimizer.zero_grad()
 
@@ -248,5 +249,5 @@ if __name__ == "__main__":
     try:
         tm = TrainFusionNet()
         tm.train()
-    except KeyboardInterrupt as kbe:
-        logging.error(f'{kbe}')
+    except KeyboardInterrupt:
+        logging.error('Keyboard interrupt has been occurred!')

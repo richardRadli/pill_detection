@@ -228,15 +228,18 @@ def use_gpu_if_available() -> torch.device:
     :return: A torch device for either "cuda" or "cpu".
     """
 
-    cuda_info = {
-        'CUDA Available': [torch.cuda.is_available()],
-        'CUDA Device Count': [torch.cuda.device_count()],
-        'Current CUDA Device': [torch.cuda.current_device()],
-        'CUDA Device Name': [torch.cuda.get_device_name(0)]
-    }
+    if torch.cuda.is_available():
+        cuda_info = {
+            'CUDA Available': [torch.cuda.is_available()],
+            'CUDA Device Count': [torch.cuda.device_count()],
+            'Current CUDA Device': [torch.cuda.current_device()],
+            'CUDA Device Name': [torch.cuda.get_device_name(0)]
+        }
 
-    df = pd.DataFrame(cuda_info)
-    logging.info(df)
+        df = pd.DataFrame(cuda_info)
+        logging.info(df)
+    else:
+        logging.info("Only CPU is available!")
 
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
