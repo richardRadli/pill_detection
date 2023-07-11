@@ -11,9 +11,9 @@ from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
-from config.config import ConfigFusionNetwork
-from config.const import DATA_PATH
+from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
+from config.network_configs import subnetwork_configs_training, main_network_config_fusion_training
 from models.fusion_network import FusionNet
 from fusion_dataset_loader import FusionDataset
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
@@ -31,10 +31,19 @@ class TrainFusionNet:
         setup_logger()
 
         # Set up configuration
-        self.cfg = ConfigFusionNetwork().parse()
+        self.cfg_fusion_net = ConfigFusionNetwork().parse()
+        self.cfg_stream_net = ConfigStreamNetwork().parse()
+
+        network_type = self.cfg_stream_net.type_of_net
+        main_network_config = main_network_config_fusion_training(network_type=network_type)
+        subnetwork_config = subnetwork_configs_training(self.cfg_stream_net)
+        network_cfg_contour = subnetwork_config.get("Contour")
+        network_cfg_lbp = subnetwork_config.get("LBP")
+        network_cfg_rgb = subnetwork_config.get("RGB")
+        network_cfg_texture = subnetwork_config.get("Texture")
 
         # Print network configurations
-        print_network_config(self.cfg)
+        # print_network_config(self.cfg_fusion_net)
 
         # Create time stamp
         self.timestamp = create_timestamp()
@@ -43,30 +52,31 @@ class TrainFusionNet:
         self.device = use_gpu_if_available()
 
         # Load datasets using FusionDataset
-        dataset = FusionDataset(image_size=self.cfg.img_size)
-        train_size = int(self.cfg.train_split * len(dataset))
+        dataset = FusionDataset(image_size=network_cfg_contour.get("image_size"))
+        train_size = int(self.cfg_fusion_net.train_split * len(dataset))
         valid_size = len(dataset) - train_size
         logging.info(f"Size of the train set: {train_size}, size of the validation set: {valid_size}")
         train_dataset, valid_dataset = random_split(dataset, [train_size, valid_size])
-        self.train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
-        self.valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
+        self.train_data_loader = DataLoader(train_dataset, batch_size=self.cfg_fusion_net.batch_size, shuffle=True)
+        self.valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg_fusion_net.batch_size, shuffle=True)
 
-        # # Initialize the fusion network
-        self.model = FusionNet()
+        # Initialize the fusion network
+        self.model = \
+            FusionNet(type_of_net=self.cfg_stream_net.type_of_net,
+                      network_cfg_contour=network_cfg_contour,
+                      network_cfg_lbp=network_cfg_lbp,
+                      network_cfg_rgb=network_cfg_rgb,
+                      network_cfg_texture=network_cfg_texture)
 
         # Load the saved state dictionaries of the stream networks
         stream_con_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(
-                DATA_PATH.get_data_path("weights_cnn_network_contour"))))
-        stream_rgb_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(
-                DATA_PATH.get_data_path("weights_cnn_network_rgb"))))
-        stream_tex_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(
-                DATA_PATH.get_data_path("weights_cnn_network_texture"))))
+            (torch.load(find_latest_file_in_latest_directory(network_cfg_contour.get("model_weights_dir"))))
         stream_lbp_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(
-                DATA_PATH.get_data_path("weights_cnn_network_lbp"))))
+            (torch.load(find_latest_file_in_latest_directory(network_cfg_lbp.get("model_weights_dir"))))
+        stream_rgb_state_dict = \
+            (torch.load(find_latest_file_in_latest_directory(network_cfg_rgb.get("model_weights_dir"))))
+        stream_tex_state_dict = \
+            (torch.load(find_latest_file_in_latest_directory(network_cfg_texture.get("model_weights_dir"))))
 
         # Update the state dictionaries of the fusion network's stream networks
         self.model.contour_network.load_state_dict(stream_con_state_dict)
@@ -87,31 +97,37 @@ class TrainFusionNet:
         # Load model and upload it to the GPU
         self.model.to(self.device)
 
-        list_of_channels_con_tex_lbp = [1, 32, 48, 64, 128, 192, 256]
-        list_of_channels_rgb = [3, 64, 96, 128, 256, 384, 512]
-        summary(self.model, input_size=[(list_of_channels_con_tex_lbp[0], self.cfg.img_size, self.cfg.img_size),
-                                        (list_of_channels_rgb[0], self.cfg.img_size, self.cfg.img_size),
-                                        (list_of_channels_con_tex_lbp[0], self.cfg.img_size, self.cfg.img_size),
-                                        (list_of_channels_con_tex_lbp[0], self.cfg.img_size, self.cfg.img_size)])
+        summary(self.model,
+                input_size=[(network_cfg_contour.get("channels")[0], network_cfg_contour.get("image_size"),
+                             network_cfg_contour.get("image_size")),
+                            (network_cfg_lbp.get("channels")[0], network_cfg_lbp.get("image_size"),
+                             network_cfg_lbp.get("image_size")),
+                            (network_cfg_rgb.get("channels")[0], network_cfg_rgb.get("image_size"),
+                             network_cfg_rgb.get("image_size")),
+                            (network_cfg_texture.get("channels")[0], network_cfg_texture.get("image_size"),
+                             network_cfg_texture.get("image_size"))])
 
         # Specify loss function
-        self.criterion = nn.TripletMarginLoss(margin=self.cfg.margin)
+        self.criterion = nn.TripletMarginLoss(margin=self.cfg_fusion_net.margin)
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
-                                          lr=self.cfg.learning_rate, weight_decay=self.cfg.weight_decay)
+                                          lr=self.cfg_fusion_net.learning_rate,
+                                          weight_decay=self.cfg_fusion_net.weight_decay)
 
         # LR scheduler
-        self.scheduler = StepLR(self.optimizer, step_size=self.cfg.step_size, gamma=self.cfg.gamma)
+        self.scheduler = StepLR(self.optimizer,
+                                step_size=self.cfg_fusion_net.step_size,
+                                gamma=self.cfg_fusion_net.gamma)
 
         # Tensorboard
-        tensorboard_log_dir = os.path.join(DATA_PATH.get_data_path("logs_fusion_net"), self.timestamp)
+        tensorboard_log_dir = os.path.join(main_network_config.get("logs_folder"), self.timestamp)
         if not os.path.exists(tensorboard_log_dir):
             os.makedirs(tensorboard_log_dir)
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
 
         # Create save path
-        self.save_path = os.path.join(DATA_PATH.get_data_path("weights_fusion_net"), self.timestamp)
+        self.save_path = os.path.join(main_network_config.get("weights_folder"), self.timestamp)
         os.makedirs(self.save_path, exist_ok=True)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -128,7 +144,7 @@ class TrainFusionNet:
         best_valid_loss = float('inf')
         best_model_path = None
 
-        for epoch in tqdm(range(self.cfg.epochs), desc="Epochs"):
+        for epoch in tqdm(range(self.cfg_fusion_net.epochs), desc="Epochs"):
             # Train loop
             for a_rgb, a_con, a_tex, a_lbp, p_rgb, p_con, p_tex, p_lbp, n_rgb, n_con, n_tex, n_lbp in \
                     tqdm(self.train_data_loader, total=len(self.train_data_loader), desc="Training"):
@@ -152,9 +168,9 @@ class TrainFusionNet:
                 self.optimizer.zero_grad()
 
                 # Forward pass
-                anchor_out = self.model(anchor_contour, anchor_rgb, anchor_texture, anchor_lbp)
-                positive_out = self.model(positive_contour, positive_rgb, positive_texture, positive_lbp)
-                negative_out = self.model(negative_contour, negative_rgb, negative_texture, negative_lbp)
+                anchor_out = self.model(anchor_contour, anchor_lbp, anchor_rgb, anchor_texture)
+                positive_out = self.model(positive_contour, positive_lbp, positive_rgb, positive_texture)
+                negative_out = self.model(negative_contour, negative_lbp, negative_rgb, negative_texture)
 
                 # Compute triplet loss
                 t_loss = self.criterion(anchor_out, positive_out, negative_out)
@@ -190,9 +206,9 @@ class TrainFusionNet:
                     self.optimizer.zero_grad()
 
                     # Forward pass
-                    anchor_out = self.model(anchor_contour, anchor_rgb, anchor_texture, anchor_lbp)
-                    positive_out = self.model(positive_contour, positive_rgb, positive_texture, positive_lbp)
-                    negative_out = self.model(negative_contour, negative_rgb, negative_texture, negative_lbp)
+                    anchor_out = self.model(anchor_contour, anchor_lbp, anchor_rgb, anchor_texture)
+                    positive_out = self.model(positive_contour, positive_lbp, positive_rgb, positive_texture)
+                    negative_out = self.model(negative_contour, negative_lbp, negative_rgb, negative_texture)
 
                     # Compute triplet loss
                     v_loss = self.criterion(anchor_out, positive_out, negative_out)

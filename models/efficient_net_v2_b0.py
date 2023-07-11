@@ -40,7 +40,7 @@ class EfficientNetV2(nn.Module):
         :return: EfficientNetV2 model with custom linear layer.
         """
 
-        model = models.efficientnet_v2_m(weights='DEFAULT')
+        model = models.efficientnet_v2_s(weights='DEFAULT')
         for params in model.parameters():
             params.requires_grad = False
 
