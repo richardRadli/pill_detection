@@ -11,6 +11,7 @@ import torch
 
 from datetime import datetime
 from functools import wraps
+from glob import glob
 from PIL import Image
 from torch import Tensor
 from typing import List, Union
@@ -273,3 +274,21 @@ def scale_down_image(image_dir, scale_factor):
     image = cv2.imread(image_path)
     scaled_image = cv2.resize(image, None, fx=scale_factor, fy=scale_factor)
     return scaled_image.shape
+
+
+# ------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------- F I N D   L A T E S T   F I L E --------------------------------------
+# ------------------------------------------------------------------------------------------------------------------
+@staticmethod
+def find_latest_file_in_directory(path: str, extension: str) -> str:
+    """
+    Finds the latest file in a directory with a given extension.
+
+    :param path: The path to the directory to search for files.
+    :param extension: The file extension to look for (e.g. "txt").
+    :return: The full path of the latest file with the given extension in the directory.
+    """
+
+    files = glob(os.path.join(path, "*.%s" % extension))
+    latest_file = max(files, key=os.path.getctime)
+    return latest_file

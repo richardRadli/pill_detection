@@ -3,18 +3,18 @@ import os
 import pandas as pd
 import torch
 
-from glob import glob
 from torchvision import transforms
 from tqdm import tqdm
 from typing import List, Tuple
 from PIL import Image
 
 from config.const import DATA_PATH, IMAGES_PATH
-from config.config import ConfigFusionNetwork
+from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
+from config.network_configs import subnetwork_configs_training, main_network_config_fusion_network
 from models.fusion_network import FusionNet
 from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory, \
-    plot_ref_query_images
+    plot_ref_query_images, find_latest_file_in_directory
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -29,46 +29,44 @@ class PredictFusionNetwork:
         setup_logger()
 
         # Load config
-        self.cfg = ConfigFusionNetwork().parse()
+        self.cfg_fusion_net = ConfigFusionNetwork().parse()
+        self.cfg_stream_net = ConfigStreamNetwork().parse()
 
         # Create time stamp
         self.timestamp = create_timestamp()
 
+        # Set up class variables
         self.preprocess_rgb = None
         self.preprocess_con_tex_lbp = None
         self.query_image_tex = None
         self.query_image_rgb = None
         self.query_image_con = None
 
+        # Load network
+        network_type = self.cfg_fusion_net.type_of_net
+        self.main_network_config = main_network_config_fusion_network(network_type=network_type)
+        subnetwork_config = subnetwork_configs_training(self.cfg_stream_net)
+        self.network_cfg_contour = subnetwork_config.get("Contour")
+        self.network_cfg_lbp = subnetwork_config.get("LBP")
+        self.network_cfg_rgb = subnetwork_config.get("RGB")
+        self.network_cfg_texture = subnetwork_config.get("Texture")
+
         self.network = self.load_networks()
         self.network.eval()
 
-        self.preprocess_rgb = transforms.Compose([transforms.Resize((self.cfg.img_size, self.cfg.img_size)),
+        # Set up transforms
+        self.preprocess_rgb = transforms.Compose([transforms.Resize((self.network_cfg_rgb.get("image_size"),
+                                                                     self.network_cfg_rgb.get("image_size"))),
                                                   transforms.ToTensor(),
                                                   transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
 
-        self.preprocess_con_tex_lbp = transforms.Compose([transforms.Resize((self.cfg.img_size, self.cfg.img_size)),
-                                                          transforms.Grayscale(),
-                                                          transforms.ToTensor()])
+        self.preprocess_con_tex_lbp = \
+            transforms.Compose([transforms.Resize((self.network_cfg_contour.get("image_size"),
+                                                   self.network_cfg_contour.get("image_size"))),
+                                transforms.Grayscale(),
+                                transforms.ToTensor()])
 
         self.device = use_gpu_if_available()
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------- F I N D   L A T E S T   F I L E --------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def find_latest_file_in_directory(path: str, extension: str) -> str:
-        """
-        Finds the latest file in a directory with a given extension.
-
-        :param path: The path to the directory to search for files.
-        :param extension: The file extension to look for (e.g. "txt").
-        :return: The full path of the latest file with the given extension in the directory.
-        """
-
-        files = glob(os.path.join(path, "*.%s" % extension))
-        latest_file = max(files, key=os.path.getctime)
-        return latest_file
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------- P R E D I C T I O N   S T A T I S T I C S ---------------------------------
@@ -129,16 +127,19 @@ class PredictFusionNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def load_networks():
+    def load_networks(self):
         """
         This function finds and loads the latest FusionNetwork.
 
         :return: <class 'fusion_network.FusionNet'>
         """
 
-        latest_con_pt_file = find_latest_file_in_latest_directory(DATA_PATH.get_data_path("weights_fusion_net"))
-        network_fusion = FusionNet()
+        latest_con_pt_file = find_latest_file_in_latest_directory(self.main_network_config.get("weights_folder"))
+        network_fusion = FusionNet(type_of_net=self.cfg_fusion_net.type_of_net,
+                                   network_cfg_contour=self.network_cfg_contour,
+                                   network_cfg_lbp=self.network_cfg_lbp,
+                                   network_cfg_rgb=self.network_cfg_rgb,
+                                   network_cfg_texture=self.network_cfg_texture)
         network_fusion.load_state_dict(torch.load(latest_con_pt_file))
 
         return network_fusion
@@ -146,7 +147,7 @@ class PredictFusionNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def get_vectors(self, contour_dir: str, rgb_dir: str, texture_dir: str, lbp_dir: str, operation: str) -> \
+    def get_vectors(self, contour_dir: str, lbp_dir: str, rgb_dir: str, texture_dir: str, operation: str) -> \
             Tuple[List, List, List]:
         """
         Get feature vectors for images.
@@ -168,14 +169,17 @@ class PredictFusionNetwork:
 
         for med_class in tqdm(medicine_classes, desc="Process %s images" % operation):
             image_paths_con = os.listdir(os.path.join(contour_dir, med_class))
+            image_paths_lbp = os.listdir(os.path.join(lbp_dir, med_class))
             image_paths_rgb = os.listdir(os.path.join(rgb_dir, med_class))
             image_paths_tex = os.listdir(os.path.join(texture_dir, med_class))
-            image_paths_lbp = os.listdir(os.path.join(lbp_dir, med_class))
 
-            for idx, (con, rgb, tex, lbp) in \
-                    enumerate(zip(image_paths_con, image_paths_rgb, image_paths_tex, image_paths_lbp)):
+            for idx, (con, lbp, rgb, tex) in \
+                    enumerate(zip(image_paths_con, image_paths_lbp, image_paths_rgb, image_paths_tex)):
                 con_image = Image.open(os.path.join(contour_dir, med_class, con))
                 con_image = self.preprocess_con_tex_lbp(con_image)
+
+                lbp_image = Image.open(os.path.join(lbp_dir, med_class, lbp))
+                lbp_image = self.preprocess_con_tex_lbp(lbp_image)
 
                 rgb_image = Image.open(os.path.join(rgb_dir, med_class, rgb))
                 images_path.append(os.path.join(rgb_dir, med_class, rgb))
@@ -184,18 +188,14 @@ class PredictFusionNetwork:
                 tex_image = Image.open(os.path.join(texture_dir, med_class, tex))
                 tex_image = self.preprocess_con_tex_lbp(tex_image)
 
-                lbp_image = Image.open(os.path.join(lbp_dir, med_class, lbp))
-                lbp_image = self.preprocess_con_tex_lbp(lbp_image)
-
                 with torch.no_grad():
                     # Move input to GPU
                     con_image = con_image.unsqueeze(0).to(self.device)
+                    lbp_image = lbp_image.unsqueeze(0).to(self.device)
                     rgb_image = rgb_image.unsqueeze(0).to(self.device)
                     tex_image = tex_image.unsqueeze(0).to(self.device)
-                    lbp_image = lbp_image.unsqueeze(0).to(self.device)
 
-                    vector = \
-                        self.network(con_image, rgb_image, tex_image, lbp_image).squeeze().cpu()
+                    vector = self.network(con_image, lbp_image, rgb_image, tex_image).squeeze().cpu()
 
                 vectors.append(vector)
                 labels.append(med_class)
@@ -303,9 +303,8 @@ class PredictFusionNetwork:
         df_combined = pd.concat([df, df_stat], ignore_index=True)
 
         df_combined.to_csv(
-            os.path.join(DATA_PATH.get_data_path("predictions_fusion_network"), self.timestamp +
-                         "_fusion_network_prediction.txt"),
-            sep='\t', index=True)
+            os.path.join(self.main_network_config.get("prediction_folder"), self.timestamp +
+                         "_fusion_network_prediction.txt"), sep='\t', index=True)
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
 
@@ -320,28 +319,28 @@ class PredictFusionNetwork:
 
         query_vectors, q_labels, q_images_path = \
             self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("query_contour"),
+                             lbp_dir=IMAGES_PATH.get_data_path("query_lbp"),
                              rgb_dir=IMAGES_PATH.get_data_path("query_rgb"),
                              texture_dir=IMAGES_PATH.get_data_path("query_texture"),
-                             lbp_dir=IMAGES_PATH.get_data_path("query_lbp"),
                              operation="query")
 
         ref_vectors, r_labels, r_images_path = \
             self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("ref_train_contour"),
+                             lbp_dir=IMAGES_PATH.get_data_path("ref_train_lbp"),
                              rgb_dir=IMAGES_PATH.get_data_path("ref_train_rgb"),
                              texture_dir=IMAGES_PATH.get_data_path("ref_train_texture"),
-                             lbp_dir=IMAGES_PATH.get_data_path("ref_train_lbp"),
                              operation="reference")
 
         gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vectors, query_vectors)
 
-        stream_net_pred = \
-            self.find_latest_file_in_directory(DATA_PATH.get_data_path("predictions_cnn_network"), "txt")
-        fusion_net_pred = \
-            self.find_latest_file_in_directory(DATA_PATH.get_data_path("predictions_fusion_network"), "txt")
-        self.prediction_statistics(stream_net_pred, fusion_net_pred)
+        # stream_net_pred = \
+        #     find_latest_file_in_directory(DATA_PATH.get_data_path("predictions_cnn_network"), "txt")
+        # fusion_net_pred = \
+        #     find_latest_file_in_directory(self.main_network_config.get("prediction_folder"), "txt")
+        # self.prediction_statistics(stream_net_pred, fusion_net_pred)
 
         plot_ref_query_images(indices=indices, q_images_path=q_images_path, r_images_path=r_images_path, gt=gt,
-                              pred_ed=pred_ed, out_path=IMAGES_PATH.get_data_path("plotting_fusion_network"))
+                              pred_ed=pred_ed, out_path=self.main_network_config.get("plotting_folder"))
 
 
 if __name__ == "__main__":

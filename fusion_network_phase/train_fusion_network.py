@@ -13,7 +13,7 @@ from torchsummary import summary
 
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
-from config.network_configs import subnetwork_configs_training, main_network_config_fusion_training
+from config.network_configs import subnetwork_configs_training, main_network_config_fusion_network
 from models.fusion_network import FusionNet
 from fusion_dataset_loader import FusionDataset
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
@@ -35,7 +35,7 @@ class TrainFusionNet:
         self.cfg_stream_net = ConfigStreamNetwork().parse()
 
         network_type = self.cfg_fusion_net.type_of_net
-        main_network_config = main_network_config_fusion_training(network_type=network_type)
+        main_network_config = main_network_config_fusion_network(network_type=network_type)
         subnetwork_config = subnetwork_configs_training(self.cfg_stream_net)
         network_cfg_contour = subnetwork_config.get("Contour")
         network_cfg_lbp = subnetwork_config.get("LBP")

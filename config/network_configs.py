@@ -391,52 +391,13 @@ def main_network_config_stream_net_inference(cfg) -> Dict:
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------ M A I N   N E T W O R K   C O N F I G   F U S I O N   T R A I N I N G -----------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def main_network_config_fusion_training(network_type) -> Dict:
+def main_network_config_fusion_network(network_type) -> Dict:
     network_configs = {
         'CNN': {
             'logs_folder':
                 DATA_PATH.get_data_path("logs_fusion_network_cnn"),
             'weights_folder':
-                DATA_PATH.get_data_path("weights_fusion_network_cnn")
-        },
-        'EfficientNet': {
-            'logs_folder':
-                DATA_PATH.get_data_path("logs_fusion_network_efficient_net"),
-            'weights_folder':
-                DATA_PATH.get_data_path("weights_fusion_network_efficient_net")
-        },
-        'EfficientNetV2': {
-            'logs_folder':
-                DATA_PATH.get_data_path("logs_fusion_network_efficient_net_v2"),
-            'weights_folder':
-                DATA_PATH.get_data_path("weights_fusion_network_efficient_net_v2")
-        },
-        'EfficientNetSelfAttention': {
-            'logs_folder':
-                DATA_PATH.get_data_path("logs_fusion_network_efficient_net_self_attention"),
-            'weights_folder':
-                DATA_PATH.get_data_path("weights_fusion_network_efficient_net_self_attention")
-        }
-    }
-    if network_type not in network_configs:
-        raise ValueError(f'Invalid network type: {network_type}')
-
-    return network_configs[network_type]
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ----------------------- M A I N   N E T W O R K   C O N F I G   F U S I O N   I N F E R E N C E ----------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def main_network_config_fusion_inference(network_type) -> Dict:
-    """
-    Returns a dictionary containing the prediction and plotting folder paths for different types of networks
-    based on the network type
-    :return: Dictionary containing the prediction and plotting folder paths.
-    """
-
-    logging.info(network_type)
-    network_configs = {
-        'CNN': {
+                DATA_PATH.get_data_path("weights_fusion_network_cnn"),
             'prediction_folder':
                 DATA_PATH.get_data_path("predictions_fusion_network_cnn"),
             'plotting_folder':
@@ -445,6 +406,10 @@ def main_network_config_fusion_inference(network_type) -> Dict:
                 DATA_PATH.get_data_path("reference_vectors_fusion_network_cnn")
         },
         'EfficientNet': {
+            'logs_folder':
+                DATA_PATH.get_data_path("logs_fusion_network_efficient_net"),
+            'weights_folder':
+                DATA_PATH.get_data_path("weights_fusion_network_efficient_net"),
             'prediction_folder':
                 DATA_PATH.get_data_path("predictions_fusion_network_efficient_net"),
             'plotting_folder':
@@ -453,6 +418,10 @@ def main_network_config_fusion_inference(network_type) -> Dict:
                 DATA_PATH.get_data_path("reference_vectors_fusion_network_efficient_net")
         },
         'EfficientNetV2': {
+            'logs_folder':
+                DATA_PATH.get_data_path("logs_fusion_network_efficient_net_v2"),
+            'weights_folder':
+                DATA_PATH.get_data_path("weights_fusion_network_efficient_net_v2"),
             'prediction_folder':
                 DATA_PATH.get_data_path("predictions_fusion_network_efficient_net_v2"),
             'plotting_folder':
@@ -461,6 +430,10 @@ def main_network_config_fusion_inference(network_type) -> Dict:
                 DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_v2")
         },
         'EfficientNetSelfAttention': {
+            'logs_folder':
+                DATA_PATH.get_data_path("logs_fusion_network_efficient_net_self_attention"),
+            'weights_folder':
+                DATA_PATH.get_data_path("weights_fusion_network_efficient_net_self_attention"),
             'prediction_folder':
                 DATA_PATH.get_data_path("predictions_fusion_network_efficient_self_attention_net"),
             'plotting_folder':
