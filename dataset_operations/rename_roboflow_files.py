@@ -50,9 +50,18 @@ def rename_files(images_dir: str, labels_dir: str) -> None:
         index = 0
         while image_file_name in existing_files:
             index += 1
-            image_file_name = "{}_{:03d}.png".format(original_file_name.rsplit('_', 1)[0], index)
+            image_file_name = "{}_{:d}.png".format(original_file_name.rsplit('_', 1)[0], index)
 
         existing_files.append(image_file_name)
+
+        # Check if the text file name already exists
+        original_file_name = txt_file_name
+        index = 0
+        while txt_file_name in existing_files:
+            index += 1
+            txt_file_name = "{}_{:d}.txt".format(original_file_name.rsplit('_', 1)[0], index)
+
+        existing_files.append(txt_file_name)
 
         # Rename the corresponding text file
         os.rename(img, os.path.join(images_dir, image_file_name))

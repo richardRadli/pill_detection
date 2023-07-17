@@ -60,7 +60,7 @@ class CreateStreamImages:
         elif op.lower() == "test":
             path_to_images = {
                 "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images"),
-                "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_test_masks"),
+                "masks": IMAGES_PATH.get_data_path("unet_out"),
                 "contour": IMAGES_PATH.get_data_path("query_contour"),
                 "lbp": IMAGES_PATH.get_data_path("query_lbp"),
                 "rgb": IMAGES_PATH.get_data_path("query_rgb"),
@@ -99,6 +99,7 @@ class CreateStreamImages:
                 match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
                 if match:
                     value = match.group(1)
+                    # value = os.path.basename(file_rgb).split("_")[0]
                     out_path_rgb = os.path.join(rgb_path, value)
                     out_path_contour = os.path.join(contour_path, value)
                     out_path_texture = os.path.join(texture_path, value)
@@ -307,30 +308,6 @@ class CreateStreamImages:
         return new_value
 
     # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------- L B P   C A L C U L A T E D   P I X E L ------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def lbp_calculated_pixel(self, img: np.ndarray, x: int, y: int) -> int:
-        """
-        Calculate the LBP value for a given pixel in the image.
-
-        :param img: The image as a numpy array.
-        :param x: The x-coordinate of the pixel.
-        :param y: The y-coordinate of the pixel.
-        :return: The calculated LBP value.
-        """
-
-        center = img[x][y]
-        val_ar = [self.get_pixel(img, center, x - 1, y - 1), self.get_pixel(img, center, x - 1, y),
-                  self.get_pixel(img, center, x - 1, y + 1), self.get_pixel(img, center, x, y + 1),
-                  self.get_pixel(img, center, x + 1, y + 1), self.get_pixel(img, center, x + 1, y),
-                  self.get_pixel(img, center, x + 1, y - 1), self.get_pixel(img, center, x, y - 1)]
-        power_val = [1, 2, 4, 8, 16, 32, 64, 128]
-        val = 0
-        for i in range(len(val_ar)):
-            val += val_ar[i] * power_val[i]
-        return val
-
-    # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------- P R O C E S S   L B P   I M A G E S --------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def process_lbp_image(self, img_gray: np.ndarray, dest_image_path: str) -> None:
@@ -344,9 +321,19 @@ class CreateStreamImages:
 
         height, width = img_gray.shape
         img_lbp = np.zeros((height, width), np.uint8)
-        for i in range(height):
-            for j in range(width):
-                img_lbp[i, j] = self.lbp_calculated_pixel(img_gray, i, j)
+        for i in range(1, height - 1):
+            for j in range(1, width - 1):
+                center = img_gray[i, j]
+                val_ar = [self.get_pixel(img_gray, center, i - 1, j - 1), self.get_pixel(img_gray, center, i - 1, j),
+                          self.get_pixel(img_gray, center, i - 1, j + 1), self.get_pixel(img_gray, center, i, j + 1),
+                          self.get_pixel(img_gray, center, i + 1, j + 1), self.get_pixel(img_gray, center, i + 1, j),
+                          self.get_pixel(img_gray, center, i + 1, j - 1), self.get_pixel(img_gray, center, i, j - 1)]
+                power_val = [1, 2, 4, 8, 16, 32, 64, 128]
+                val = 0
+                for k in range(len(val_ar)):
+                    val += val_ar[k] * power_val[k]
+                img_lbp[i, j] = val
+
         cv2.imwrite(dest_image_path, img_lbp)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -366,6 +353,7 @@ class CreateStreamImages:
                 output_name = "lbp_" + os.path.basename(img_path)
                 output_file = os.path.join(self.path_to_images.get("lbp"), output_name)
                 bbox_imgs = cv2.imread(img_path, 0)
+                bbox_imgs = cv2.resize(bbox_imgs, (224, 224))
                 future = executor.submit(self.process_lbp_image, bbox_imgs, output_file)
                 futures.append(future)
 
@@ -398,7 +386,7 @@ class CreateStreamImages:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
-        operation = "Test"
+        operation = "test"
         proc_unet_imgs = CreateStreamImages(op=operation)
         proc_unet_imgs.main()
     except KeyboardInterrupt as kie:

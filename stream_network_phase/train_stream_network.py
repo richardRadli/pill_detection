@@ -14,7 +14,7 @@ import os
 import torch
 
 from tqdm import tqdm
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
@@ -58,10 +58,13 @@ class TrainModel:
         network_cfg = network_config.get(self.cfg.type_of_stream)
 
         # Load dataset
-        train_dataset = \
-            StreamDataset(network_cfg.get('train_dataset_dir'), self.cfg.type_of_stream, network_cfg.get("image_size"))
-        valid_dataset = \
-            StreamDataset(network_cfg.get('valid_dataset_dir'), self.cfg.type_of_stream, network_cfg.get("image_size"))
+        dataset = StreamDataset([network_cfg.get('train_dataset_dir'), network_cfg.get('valid_dataset_dir')],
+                                self.cfg.type_of_stream, network_cfg.get("image_size"))
+
+        # Calculate the number of samples for each set
+        train_size = int(len(dataset) * self.cfg.train_valid_ratio)
+        val_size = len(dataset) - train_size
+        train_dataset, valid_dataset = random_split(dataset, [train_size, val_size])
         logging.info(f"Number of images in the train set: {len(train_dataset)}")
         logging.info(f"Number of images in the validation set: {len(valid_dataset)}")
         self.train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)

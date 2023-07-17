@@ -14,11 +14,11 @@ class StreamDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- _ I N I T _ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self, dataset_dir: str, type_of_stream: str, image_size: int) -> None:
+    def __init__(self, dataset_dirs: List[str], type_of_stream: str, image_size: int) -> None:
         self.labels_set = None
         self.label_to_indices = None
         self.labels = None
-        self.dataset_path = dataset_dir
+        self.dataset_paths = dataset_dirs
         self.type_of_stream = type_of_stream
 
         if self.type_of_stream == "RGB":
@@ -44,26 +44,31 @@ class StreamDataset(Dataset):
     # ---------------------------------------- L O A D   T H E   D A T A S E T -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def load_dataset(self) -> List[Tuple[str, str]]:
-        """
-        Load the dataset.
-
-        :return: A list of tuples, where each tuple contains the path to an image and its corresponding label.
-        """
-
         dataset = []
         labels = set()
-        for label_name in os.listdir(self.dataset_path):
-            label_path = os.path.join(self.dataset_path, label_name)
-            if not os.path.isdir(label_path):
-                continue
-            label = label_name
-            labels.add(label)
-            for image_name in os.listdir(label_path):
-                image_path = os.path.join(label_path, image_name)
-                dataset.append((image_path, label))
+
+        # Iterate over the dataset directories
+        for dataset_path in self.dataset_paths:
+            # Iterate over the label directories in each dataset directory
+            for label_name in os.listdir(dataset_path):
+                label_path = os.path.join(dataset_path, label_name)
+
+                # Skip non-directory files
+                if not os.path.isdir(label_path):
+                    continue
+
+                label = label_name
+                labels.add(label)
+
+                # Iterate over the image files in the label directory
+                for image_name in os.listdir(label_path):
+                    image_path = os.path.join(label_path, image_name)
+                    dataset.append((image_path, label))
+
         self.labels = np.array([x[1] for x in dataset])
         self.labels_set = set(self.labels)
         self.label_to_indices = {label: np.where(self.labels == label)[0] for label in self.labels_set}
+
         return dataset
 
     # ------------------------------------------------------------------------------------------------------------------

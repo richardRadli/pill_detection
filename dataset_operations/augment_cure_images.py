@@ -62,6 +62,7 @@ class AugmentCUREDataset:
                                dataset_path=self.dataset_path, masks_dir=self.test_masks, masks_path=self.mask_path)
 
         for class_name in self.training_classes:
+            print(class_name)
             class_dir = os.path.join(self.training_images, class_name)
             class_dir_mask = os.path.join(self.training_masks, class_name)
 
@@ -108,4 +109,4 @@ class AugmentCUREDataset:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     aug = AugmentCUREDataset()
-    aug.main(split_dataset=False, do_aug=True, change_background=False)
+    aug.main(split_dataset=False, do_aug=False, change_background=False)

@@ -8,7 +8,7 @@ from tqdm import tqdm
 from typing import List, Tuple
 from PIL import Image
 
-from config.const import DATA_PATH, IMAGES_PATH
+from config.const import IMAGES_PATH
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
 from config.network_configs import subnetwork_configs_training, main_network_config_fusion_network
@@ -167,7 +167,7 @@ class PredictFusionNetwork:
 
         self.network = self.network.to(device=self.device)
 
-        for med_class in tqdm(medicine_classes, desc="Process %s images" % operation):
+        for med_class in tqdm(medicine_classes, desc="Processing classes of the %s images" % operation):
             image_paths_con = os.listdir(os.path.join(contour_dir, med_class))
             image_paths_lbp = os.listdir(os.path.join(lbp_dir, med_class))
             image_paths_rgb = os.listdir(os.path.join(rgb_dir, med_class))

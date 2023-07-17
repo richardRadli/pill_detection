@@ -2,6 +2,7 @@ import os
 import cv2
 
 from glob import glob
+from tqdm import tqdm
 
 
 def get_bounding_box(mask):
@@ -19,7 +20,7 @@ def masks_to_yolo_format(masks_dir, output_dir):
     # Get list of mask files
     mask_files = [f for f in os.listdir(masks_dir) if f.endswith('.png')]
 
-    for mask_file in mask_files:
+    for mask_file in tqdm(mask_files, total=len(mask_files), desc="Converting to bounding box annotations"):
         # Load the mask image
         mask_path = os.path.join(masks_dir, mask_file)
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
@@ -84,9 +85,9 @@ def display_annotations(image_path, annotation_path):
 
 def main():
     # Example usage
-    masks_directory = "C:/Users/ricsi/Desktop/test/images/"
-    output_directory = "C:/Users/ricsi/Desktop/test/labels/"  # Replace with your desired output directory
-    # masks_to_yolo_format(masks_directory, output_directory)
+    masks_directory = "C:/Users/ricsi/Desktop/train/masks/"
+    output_directory = "C:/Users/ricsi/Desktop/train/labels/"  # Replace with your desired output directory
+    masks_to_yolo_format(masks_directory, output_directory)
     display_annotations(masks_directory, output_directory)
 
 

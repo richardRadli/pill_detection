@@ -65,6 +65,9 @@ class StreamDataset(Dataset):
         self.label_to_indices = {label: np.where(self.labels == label)[0] for label in self.labels_set}
         return dataset
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------- G E N E R A T E   T R I P L E T S ----------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def generate_triplets(self) -> List[Tuple[int, int, int]]:
         triplets = []
         for label in self.labels_set:
