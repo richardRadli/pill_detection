@@ -2,48 +2,38 @@ import os
 import random
 import shutil
 
-from config.const import DATASET_PATH
+
+def split_dataset(input_directory, output_val_directory, split_ratio=0.25):
+    # Create output validation directory if it doesn't exist
+    os.makedirs(output_val_directory, exist_ok=True)
+
+    # Get a list of all subdirectories (class folders) in the input directory
+    class_folders = [f for f in os.listdir(input_directory) if os.path.isdir(os.path.join(input_directory, f))]
+
+    for class_folder in class_folders:
+        # Get the list of images in the current class folder
+        class_images = [f for f in os.listdir(os.path.join(input_directory, class_folder)) if f.endswith('.png')]
+        num_images = len(class_images)
+
+        # Shuffle the list of images
+        random.shuffle(class_images)
+
+        # Calculate the split point based on the split ratio
+        split_point = int(num_images * split_ratio)
+
+        # Split the images into validation set
+        val_images = class_images[:split_point]
+
+        # Move the validation images to the corresponding output validation directory
+        for img_file in val_images:
+            src_path = os.path.join(input_directory, class_folder, img_file)
+            dst_path = os.path.join(output_val_directory, class_folder, img_file)
+            os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+            shutil.move(src_path, dst_path)
 
 
-def split_files(source_dir, train_dir, valid_dir, test_dir, ratio=(0.6, 0.2, 0.2)):
-    os.makedirs(train_dir, exist_ok=True)
-    os.makedirs(valid_dir, exist_ok=True)
-    os.makedirs(test_dir, exist_ok=True)
+# Example usage:
+input_dir = "C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/train"
+output_val_dir = "C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/valid"
 
-    files = os.listdir(source_dir)
-    random.shuffle(files)
-
-    total_files = len(files)
-    train_files = files[:int(total_files * ratio[0])]
-    valid_files = files[int(total_files * ratio[0]):int(total_files * (ratio[0] + ratio[1]))]
-    test_files = files[int(total_files * (ratio[0] + ratio[1])):]
-
-    for file in train_files:
-        src = os.path.join(source_dir, file)
-        dst = os.path.join(train_dir, file)
-        shutil.copy(src, dst)
-
-    for file in valid_files:
-        src = os.path.join(source_dir, file)
-        dst = os.path.join(valid_dir, file)
-        shutil.copy(src, dst)
-
-    for file in test_files:
-        src = os.path.join(source_dir, file)
-        dst = os.path.join(test_dir, file)
-        shutil.copy(src, dst)
-
-
-if __name__ == "__main__":
-    source_dir = "C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/Customer_bbox/"
-    train_dir = DATASET_PATH.get_data_path("cure_train")
-    valid_dir = DATASET_PATH.get_data_path("cure_valid")
-    test_dir = DATASET_PATH.get_data_path("cure_test")
-
-    # Create the train, valid, and test directories if they don't exist
-    os.makedirs(train_dir, exist_ok=True)
-    os.makedirs(valid_dir, exist_ok=True)
-    os.makedirs(test_dir, exist_ok=True)
-
-    # Split the files by class and copy them to the corresponding directories
-    split_files(source_dir, train_dir, valid_dir, test_dir)
+split_dataset(input_dir, output_val_dir, split_ratio=0.25)

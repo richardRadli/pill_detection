@@ -133,12 +133,13 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
-                                 help="CNN | EfficientNet | EfficientNetV2 | EfficientNetSelfAttention")
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MultiHeadAttention",
+                                 help="CNN | EfficientNet | EfficientNetV2 | EfficientNetSelfAttention "
+                                      "| EfficientNetV2MultiHeadAttention")
         self.parser.add_argument("--type_of_stream", type=str, default="RGB", help="RGB | Contour | Texture | LBP")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=30)
-        self.parser.add_argument("--batch_size", type=int, default=128)
+        self.parser.add_argument("--batch_size", type=int, default=32)
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
         self.parser.add_argument("--learning_rate_cnn_rgb", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_cnn_con", type=float, default=3e-4)
@@ -156,7 +157,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--img_size_cnn", type=int, default=128)
         self.parser.add_argument("--img_size_en", type=int, default=224)
         self.parser.add_argument("--img_size_ensa", type=int, default=224)
-        self.parser.add_argument("--load_ref_vector", type=bool, default=False)
+        self.parser.add_argument("--load_ref_vector", type=bool, default=True)
 
     def parse(self):
         self.opt = self.parser.parse_args()
@@ -171,7 +172,8 @@ class ConfigFusionNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetSelfAttention",
-                                 help="CNN | EfficientNet | EfficientNetV2 | EfficientNetSelfAttention")
+                                 help="CNN | EfficientNet | EfficientNetV2 | EfficientNetSelfAttention "
+                                      "| EfficientNetV2MultiHeadAttention")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_split", type=float, default=0.8)
         self.parser.add_argument("--epochs", type=int, default=10)
