@@ -284,6 +284,69 @@ class PredictStreamNetwork:
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
 
+    def zero_shot_classification(self, q_labels, reference_vectors, query_vectors, k=5):
+        similarity_scores_euc_dist = []
+        predicted_medicine_euc_dist = []
+        corresp_sim_euc_dist = []
+        num_correct_top1 = 0
+        num_correct_top5 = 0
+
+        # Move vectors to CPU (if you want to do the calculations on the CPU)
+        reference_vectors_tensor = torch.stack([torch.as_tensor(vec).to(self.device) for vec in reference_vectors])
+        query_vectors_tensor = torch.stack([torch.as_tensor(vec).to(self.device) for vec in query_vectors])
+
+        for idx_query, query_vector in tqdm(enumerate(query_vectors_tensor), total=len(query_vectors_tensor),
+                                            desc="Comparing process"):
+            scores_e = torch.norm(query_vector - reference_vectors_tensor, dim=1)
+
+            # Move scores to CPU for further processing
+            similarity_scores_euc_dist.append(scores_e.cpu().tolist())
+
+            # Calculate and store the top-k most similar reference vectors and their scores for each query vector
+            top_k_indices = torch.argsort(scores_e)[:k]
+            top_k_scores = scores_e[top_k_indices]
+            top_k_similarities = [(reference_vectors_tensor[idx], score) for idx, score in
+                                  zip(top_k_indices, top_k_scores)]
+            corresp_sim_euc_dist.append(top_k_similarities)
+
+        # For each query vector, calculate the predicted medicine labels and top-1 accuracy
+        for idx_query in range(len(query_vectors)):
+            top_k_similarities = corresp_sim_euc_dist[idx_query]
+            predicted_medicine = "N/A"  # Initialize to a special value
+            for reference_vector, _ in top_k_similarities:
+                idx_reference = (reference_vectors_tensor == reference_vector).all(dim=1).nonzero()
+                if len(idx_reference) > 0:
+                    idx_reference = idx_reference.item()  # Extract the index from the tensor
+                    if idx_reference < len(q_labels):
+                        predicted_medicine = q_labels[idx_reference]
+                        if predicted_medicine == q_labels[idx_query]:
+                            num_correct_top1 += 1
+                            break
+
+            predicted_medicine_euc_dist.append(predicted_medicine)
+
+        # Calculate top-5 accuracy
+        for idx_query in range(len(query_vectors)):
+            top_k_similarities = corresp_sim_euc_dist[idx_query]
+            top5_predicted_medicines = [None] * k
+            for i, (reference_vector, _) in enumerate(top_k_similarities):
+                idx_reference = (reference_vectors_tensor == reference_vector).all(dim=1).nonzero()
+                if len(idx_reference) > 0:
+                    idx_reference = idx_reference.item()  # Extract the index from the tensor
+                    if idx_reference < len(q_labels):
+                        top5_predicted_medicines[i] = q_labels[idx_reference]
+
+            correct_label = q_labels[idx_query]
+            if correct_label in top5_predicted_medicines:
+                num_correct_top5 += 1
+
+        # Calculate accuracies only for query vectors with corresponding reference vectors
+        valid_query_count = len([pred for pred in predicted_medicine_euc_dist if pred != "N/A"])
+        accuracy_top1 = num_correct_top1 / valid_query_count
+        accuracy_top5 = num_correct_top5 / valid_query_count
+        print(accuracy_top1, accuracy_top5)
+        return accuracy_top1, accuracy_top5
+
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------- M A I N ----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -318,12 +381,13 @@ class PredictStreamNetwork:
                                  texture_dir=IMAGES_PATH.get_data_path("ref_train_texture"),
                                  operation="reference")
 
-        # Compare query and reference vectors
-        gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
-
-        # Plot query and reference medicines
-        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed,
-                              self.main_network_config['plotting_folder'])
+        self.zero_shot_classification(q_labels, ref_vecs, query_vecs)
+        # # Compare query and reference vectors
+        # gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
+        #
+        # # Plot query and reference medicines
+        # plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed,
+        #                       self.main_network_config['plotting_folder'])
 
 
 # ----------------------------------------------------------------------------------------------------------------------

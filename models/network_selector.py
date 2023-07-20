@@ -73,7 +73,7 @@ class NetworkFactory:
         elif network_type == "EfficientNetV2":
             model = EfficientNetV2SelfAttentionWrapper(network_cfg).model
         elif network_type == "EfficientNetV2MultiHeadAttention":
-            model = EfficientNetV2SelfAttentionWrapper(network_cfg).model
+            model = EfficientNetV2MultiHeadAttentionWrapper(network_cfg).model
         else:
             raise ValueError("Wrong type was given!")
 

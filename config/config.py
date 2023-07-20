@@ -136,7 +136,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MultiHeadAttention",
                                  help="CNN | EfficientNet | EfficientNetV2 | EfficientNetSelfAttention "
                                       "| EfficientNetV2MultiHeadAttention")
-        self.parser.add_argument("--type_of_stream", type=str, default="RGB", help="RGB | Contour | Texture | LBP")
+        self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="RGB | Contour | Texture | LBP")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=30)
         self.parser.add_argument("--batch_size", type=int, default=32)
@@ -157,7 +157,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--img_size_cnn", type=int, default=128)
         self.parser.add_argument("--img_size_en", type=int, default=224)
         self.parser.add_argument("--img_size_ensa", type=int, default=224)
-        self.parser.add_argument("--load_ref_vector", type=bool, default=True)
+        self.parser.add_argument("--load_ref_vector", type=bool, default=False)
 
     def parse(self):
         self.opt = self.parser.parse_args()

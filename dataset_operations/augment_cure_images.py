@@ -13,8 +13,8 @@ class AugmentCUREDataset:
     def __init__(self):
         setup_logger()
 
-        self.dataset_path = DATASET_PATH.get_data_path("cure_reference")
-        self.mask_path = DATASET_PATH.get_data_path("cure_reference_mask")
+        self.dataset_path = DATASET_PATH.get_data_path("cure_customer")
+        self.mask_path = DATASET_PATH.get_data_path("cure_customer_mask")
         self.backgrounds = DATASET_PATH.get_data_path("dtd_images")
 
         self.training_images = DATASET_PATH.get_data_path("cure_train")
@@ -55,11 +55,11 @@ class AugmentCUREDataset:
         if split_dataset:
             # Create directories for the train images
             create_directories(classes=self.training_classes, images_dir=self.training_images,
-                               dataset_path=self.dataset_path, masks_dir=self.training_masks, masks_path=self.mask_path)
+                               dataset_path=self.dataset_path, masks_dir=None, masks_path=None)
 
             # Create directories for the test images
             create_directories(classes=self.test_classes, images_dir=self.test_images,
-                               dataset_path=self.dataset_path, masks_dir=self.test_masks, masks_path=self.mask_path)
+                               dataset_path=self.dataset_path, masks_dir=None, masks_path=None)
 
         for class_name in self.training_classes:
             print(class_name)
@@ -109,4 +109,4 @@ class AugmentCUREDataset:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     aug = AugmentCUREDataset()
-    aug.main(split_dataset=False, do_aug=False, change_background=False)
+    aug.main(split_dataset=True, do_aug=False, change_background=False)
