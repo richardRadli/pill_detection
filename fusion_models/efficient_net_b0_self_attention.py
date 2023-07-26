@@ -8,15 +8,12 @@ class EfficientNetSelfAttention(nn.Module):
         super(EfficientNetSelfAttention, self).__init__()
         self.loc = loc
         self.grayscale = grayscale
-        self.model = models.efficientnet_b0(weights='DEFAULT')  # self.build_model()
+        self.model = self.build_model()
         if self.grayscale:
             self.model.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
         self.linear = nn.Linear(1000, loc[4])  # loc[6]
 
-        self.input_dim = loc[4]
-        self.query = nn.Linear(self.input_dim, self.input_dim)
-        self.key = nn.Linear(self.input_dim, self.input_dim)
-        self.value = nn.Linear(self.input_dim, self.input_dim)
+
 
     def forward(self, x):
         if self.grayscale:

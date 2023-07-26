@@ -12,9 +12,8 @@ from config.const import IMAGES_PATH
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
 from config.network_configs import subnetwork_configs_training, main_network_config_fusion_network
-from models.fusion_network import FusionNet
-from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory, \
-    plot_ref_query_images, find_latest_file_in_directory
+from fusion_models.fusion_network import FusionNet
+from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -339,8 +338,8 @@ class PredictFusionNetwork:
         #     find_latest_file_in_directory(self.main_network_config.get("prediction_folder"), "txt")
         # self.prediction_statistics(stream_net_pred, fusion_net_pred)
 
-        plot_ref_query_images(indices=indices, q_images_path=q_images_path, r_images_path=r_images_path, gt=gt,
-                              pred_ed=pred_ed, out_path=self.main_network_config.get("plotting_folder"))
+        # plot_ref_query_images(indices=indices, q_images_path=q_images_path, r_images_path=r_images_path, gt=gt,
+        #                       pred_ed=pred_ed, out_path=self.main_network_config.get("plotting_folder"))
 
 
 if __name__ == "__main__":

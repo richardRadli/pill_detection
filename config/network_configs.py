@@ -29,12 +29,8 @@ def subnetwork_configs_training(cfg) -> Dict:
                     DATA_PATH.get_data_path("weights_cnn_network_contour"),
                 "EfficientNet":
                     DATA_PATH.get_data_path("weights_efficient_net_contour"),
-                "EfficientNetSelfAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_self_attention_contour"),
                 "EfficientNetV2":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_contour"),
-                "EfficientNetV2MultiHeadAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_multi_head_attention_contour")
+                    DATA_PATH.get_data_path("weights_efficient_net_v2_contour")
             }.get(cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_contour")),
             "logs_dir": {
                 "CNN":
@@ -43,22 +39,30 @@ def subnetwork_configs_training(cfg) -> Dict:
                     DATA_PATH.get_data_path("logs_efficient_net_contour"),
                 "EfficientNetV2":
                     DATA_PATH.get_data_path("logs_efficient_net_v2_contour"),
-                "EfficientNetSelfAttention":
-                    DATA_PATH.get_data_path("logs_efficient_net_self_attention_contour"),
-                "EfficientNetV2MultiHeadAttention":
-                    DATA_PATH.get_data_path("logs_efficient_net_v2_multi_head_attention_contour")
             }.get(cfg.type_of_net, DATA_PATH.get_data_path("logs_cnn_contour")),
+            "hardest_negative_samples": {
+                "CNN":
+                    DATA_PATH.get_data_path("negative_cnn_network"),
+                "EfficientNet":
+                    DATA_PATH.get_data_path("negative_efficient_net"),
+                "EfficientNetV2":
+                    DATA_PATH.get_data_path("negative_efficient_net_v2")
+            }.get(cfg.type_of_net, DATA_PATH.get_data_path("negative_cnn_network")),
+            "hardest_positive_samples": {
+                "CNN":
+                    DATA_PATH.get_data_path("positive_cnn_network"),
+                "EfficientNet":
+                    DATA_PATH.get_data_path("positive_efficient_net"),
+                "EfficientNetV2":
+                    DATA_PATH.get_data_path("positive_efficient_net_v2")
+            }.get(cfg.type_of_net, DATA_PATH.get_data_path("positive_cnn_network")),
             "learning_rate": {
                 "CNN":
                     cfg.learning_rate_cnn_con,
                 "EfficientNet":
                     cfg.learning_rate_en_con,
                 "EfficientNetV2":
-                    cfg.learning_rate_en_con,
-                "EfficientNetSelfAttention":
-                    cfg.learning_rate_ensa_con,
-                "EfficientNetV2MultiHeadAttention":
-                    cfg.learning_rate_ensa_con
+                    cfg.learning_rate_en_con
             }.get(cfg.type_of_net, cfg.learning_rate_cnn_con),
             "image_size": {
                 "CNN":
@@ -66,11 +70,7 @@ def subnetwork_configs_training(cfg) -> Dict:
                 "EfficientNet":
                     cfg.img_size_en,
                 "EfficientNetV2":
-                    cfg.img_size_en,
-                "EfficientNetSelfAttention":
-                    cfg.img_size_ensa,
-                "EfficientNetV2MultiHeadAttention":
-                    cfg.img_size_ensa
+                    cfg.img_size_en
             }.get(cfg.type_of_net, cfg.img_size_cnn),
             "grayscale": True
         },
@@ -88,11 +88,7 @@ def subnetwork_configs_training(cfg) -> Dict:
                 "EfficientNet":
                     DATA_PATH.get_data_path("weights_efficient_net_lbp"),
                 "EfficientNetV2":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_lbp"),
-                "EfficientNetSelfAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_self_attention_lbp"),
-                "EfficientNetV2MultiHeadAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_multi_head_attention_lbp")
+                    DATA_PATH.get_data_path("weights_efficient_net_v2_lbp")
             }.get(cfg.type_of_net, DATA_PATH.get_data_path("weights_stream_network_lbp")),
             "logs_dir": {
                 "CNN":
@@ -100,23 +96,31 @@ def subnetwork_configs_training(cfg) -> Dict:
                 "EfficientNet":
                     DATA_PATH.get_data_path("logs_efficient_net_lbp"),
                 "EfficientNetV2":
-                    DATA_PATH.get_data_path("logs_efficient_net_v2_lbp"),
-                "EfficientNetSelfAttention":
-                    DATA_PATH.get_data_path("logs_efficient_net_self_attention_lbp"),
-                "EfficientNetV2MultiHeadAttention":
-                    DATA_PATH.get_data_path("logs_efficient_net_v2_multi_head_attention_lbp")
+                    DATA_PATH.get_data_path("logs_efficient_net_v2_lbp")
             }.get(cfg.type_of_net, DATA_PATH.get_data_path("logs_cnn_lbp")),
+            "hardest_negative_samples": {
+                "CNN":
+                    DATA_PATH.get_data_path("negative_cnn_network"),
+                "EfficientNet":
+                    DATA_PATH.get_data_path("negative_efficient_net"),
+                "EfficientNetV2":
+                    DATA_PATH.get_data_path("negative_efficient_net_v2")
+            }.get(cfg.type_of_net, DATA_PATH.get_data_path("negative_cnn_network")),
+            "hardest_positive_samples": {
+                "CNN":
+                    DATA_PATH.get_data_path("positive_cnn_network"),
+                "EfficientNet":
+                    DATA_PATH.get_data_path("positive_efficient_net"),
+                "EfficientNetV2":
+                    DATA_PATH.get_data_path("positive_efficient_net_v2")
+            }.get(cfg.type_of_net, DATA_PATH.get_data_path("positive_cnn_network")),
             "learning_rate": {
                 "CNN":
                     cfg.learning_rate_cnn_lbp,
                 "EfficientNet":
                     cfg.learning_rate_en_lbp,
                 "EfficientNetV2":
-                    cfg.learning_rate_en_lbp,
-                "EfficientNetSelfAttention":
-                    cfg.learning_rate_ensa_lbp,
-                "EfficientNetV2MultiHeadAttention":
-                    cfg.learning_rate_ensa_lbp
+                    cfg.learning_rate_en_lbp
             }.get(cfg.type_of_net, cfg.learning_rate_cnn_lbp),
             "image_size": {
                 "CNN":
@@ -124,11 +128,7 @@ def subnetwork_configs_training(cfg) -> Dict:
                 "EfficientNet":
                     cfg.img_size_en,
                 "EfficientNetV2":
-                    cfg.img_size_en,
-                "EfficientNetSelfAttention":
-                    cfg.img_size_ensa,
-                "EfficientNetV2MultiHeadAttention":
-                    cfg.img_size_ensa
+                    cfg.img_size_en
             }.get(cfg.type_of_net, cfg.img_size_cnn),
             "grayscale": True
         },
@@ -146,11 +146,7 @@ def subnetwork_configs_training(cfg) -> Dict:
                 "EfficientNet":
                     DATA_PATH.get_data_path("weights_efficient_net_rgb"),
                 "EfficientNetV2":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_rgb"),
-                "EfficientNetSelfAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_self_attention_rgb"),
-                "EfficientNetV2MultiHeadAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_multi_head_attention_rgb")
+                    DATA_PATH.get_data_path("weights_efficient_net_v2_rgb")
             }.get(cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_rgb")),
             "logs_dir": {
                 "CNN":
@@ -158,23 +154,31 @@ def subnetwork_configs_training(cfg) -> Dict:
                 "EfficientNet":
                     DATA_PATH.get_data_path("logs_efficient_net_rgb"),
                 "EfficientNetV2":
-                    DATA_PATH.get_data_path("logs_efficient_net_v2_rgb"),
-                "EfficientNetSelfAttention":
-                    DATA_PATH.get_data_path("logs_efficient_net_self_attention_rgb"),
-                "EfficientNetV2MultiHeadAttention":
-                    DATA_PATH.get_data_path("logs_efficient_net_v2_multi_head_attention_rgb")
+                    DATA_PATH.get_data_path("logs_efficient_net_v2_rgb")
             }.get(cfg.type_of_net, DATA_PATH.get_data_path("logs_cnn_rgb")),
+            "hardest_negative_samples": {
+                "CNN":
+                    DATA_PATH.get_data_path("negative_cnn_network"),
+                "EfficientNet":
+                    DATA_PATH.get_data_path("negative_efficient_net"),
+                "EfficientNetV2":
+                    DATA_PATH.get_data_path("negative_efficient_net_v2")
+            }.get(cfg.type_of_net, DATA_PATH.get_data_path("negative_cnn_network")),
+            "hardest_positive_samples": {
+                "CNN":
+                    DATA_PATH.get_data_path("positive_cnn_network"),
+                "EfficientNet":
+                    DATA_PATH.get_data_path("positive_efficient_net"),
+                "EfficientNetV2":
+                    DATA_PATH.get_data_path("positive_efficient_net_v2")
+            }.get(cfg.type_of_net, DATA_PATH.get_data_path("positive_cnn_network")),
             "learning_rate": {
                 "CNN":
                     cfg.learning_rate_cnn_rgb,
                 "EfficientNet":
                     cfg.learning_rate_en_rgb,
                 "EfficientNetV2":
-                    cfg.learning_rate_en_rgb,
-                "EfficientNetSelfAttention":
-                    cfg.learning_rate_ensa_rgb,
-                "EfficientNetV2MultiHeadAttention":
-                    cfg.learning_rate_ensa_rgb
+                    cfg.learning_rate_en_rgb
             }.get(cfg.type_of_net, cfg.learning_rate_cnn_rgb),
             "image_size": {
                 "CNN":
@@ -182,11 +186,7 @@ def subnetwork_configs_training(cfg) -> Dict:
                 "EfficientNet":
                     cfg.img_size_en,
                 "EfficientNetV2":
-                    cfg.img_size_en,
-                "EfficientNetSelfAttention":
-                    cfg.img_size_ensa,
-                "EfficientNetV2MultiHeadAttention":
-                    cfg.img_size_ensa
+                    cfg.img_size_en
             }.get(cfg.type_of_net, cfg.img_size_cnn),
             "grayscale": False
         },
@@ -204,11 +204,7 @@ def subnetwork_configs_training(cfg) -> Dict:
                 "EfficientNet":
                     DATA_PATH.get_data_path("weights_efficient_net_texture"),
                 "EfficientNetV2":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_texture"),
-                "EfficientNetSelfAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_self_attention_texture"),
-                "EfficientNetV2MultiHeadAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_multi_head_attention_texture")
+                    DATA_PATH.get_data_path("weights_efficient_net_v2_texture")
             }.get(cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_texture")),
             "logs_dir": {
                 "CNN":
@@ -216,23 +212,31 @@ def subnetwork_configs_training(cfg) -> Dict:
                 "EfficientNet":
                     DATA_PATH.get_data_path("logs_efficient_net_texture"),
                 "EfficientNetV2":
-                    DATA_PATH.get_data_path("logs_efficient_net_v2_texture"),
-                "EfficientNetSelfAttention":
-                    DATA_PATH.get_data_path("logs_efficient_net_self_attention_texture"),
-                "EfficientNetV2MultiHeadAttention":
-                    DATA_PATH.get_data_path("logs_efficient_net_v2_multi_head_attention_texture")
+                    DATA_PATH.get_data_path("logs_efficient_net_v2_texture")
             }.get(cfg.type_of_net, DATA_PATH.get_data_path("logs_cnn_texture")),
+            "hardest_negative_samples": {
+                "CNN":
+                    DATA_PATH.get_data_path("negative_cnn_network"),
+                "EfficientNet":
+                    DATA_PATH.get_data_path("negative_efficient_net"),
+                "EfficientNetV2":
+                    DATA_PATH.get_data_path("negative_efficient_net_v2")
+            }.get(cfg.type_of_net, DATA_PATH.get_data_path("negative_cnn_network")),
+            "hardest_positive_samples": {
+                "CNN":
+                    DATA_PATH.get_data_path("positive_cnn_network"),
+                "EfficientNet":
+                    DATA_PATH.get_data_path("positive_efficient_net"),
+                "EfficientNetV2":
+                    DATA_PATH.get_data_path("positive_efficient_net_v2")
+            }.get(cfg.type_of_net, DATA_PATH.get_data_path("positive_cnn_network")),
             "learning_rate": {
                 "CNN":
                     cfg.learning_rate_cnn_tex,
                 "EfficientNet":
                     cfg.learning_rate_en_tex,
                 "EfficientNetV2":
-                    cfg.learning_rate_en_tex,
-                "EfficientNetSelfAttention":
-                    cfg.learning_rate_ensa_tex,
-                "EfficientNetV2MultiHeadAttention":
-                    cfg.learning_rate_ensa_tex
+                    cfg.learning_rate_en_tex
             }.get(cfg.type_of_net, cfg.learning_rate_cnn_tex),
             "image_size": {
                 "CNN":
@@ -240,11 +244,7 @@ def subnetwork_configs_training(cfg) -> Dict:
                 "EfficientNet":
                     cfg.img_size_en,
                 "EfficientNetV2":
-                    cfg.img_size_en,
-                "EfficientNetSelfAttention":
-                    cfg.img_size_ensa,
-                "EfficientNetV2MultiHeadAttention":
-                    cfg.img_size_ensa
+                    cfg.img_size_en
             }.get(cfg.type_of_net, cfg.img_size_cnn),
             "grayscale": True
         }
@@ -272,11 +272,7 @@ def subnetwork_config_inference(cfg) -> Dict:
                 "EfficientNet":
                     DATA_PATH.get_data_path("weights_efficient_net_contour"),
                 "EfficientNetV2":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_contour"),
-                "EfficientNetSelfAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_self_attention_contour"),
-                "EfficientNetV2MultiHeadAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_multi_head_attention_contour")
+                    DATA_PATH.get_data_path("weights_efficient_net_v2_contour")
             }.get(cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_contour")),
             "image_size": {
                 "CNN":
@@ -284,11 +280,7 @@ def subnetwork_config_inference(cfg) -> Dict:
                 "EfficientNet":
                     cfg.img_size_en,
                 "EfficientNetV2":
-                    cfg.img_size_en,
-                "EfficientNetSelfAttention":
-                    cfg.img_size_ensa,
-                "EfficientNetV2MultiHeadAttention":
-                    cfg.img_size_ensa
+                    cfg.img_size_en
             }.get(cfg.type_of_net, cfg.img_size_cnn),
             "grayscale": True
         },
@@ -301,11 +293,7 @@ def subnetwork_config_inference(cfg) -> Dict:
                 "EfficientNet":
                     DATA_PATH.get_data_path("weights_efficient_net_lbp"),
                 "EfficientNetV2":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_lbp"),
-                "EfficientNetSelfAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_self_attention_lbp"),
-                "EfficientNetV2MultiHeadAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_multi_head_attention_lbp")
+                    DATA_PATH.get_data_path("weights_efficient_net_v2_lbp")
             }.get(cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_lbp")),
             "image_size": {
                 "CNN":
@@ -313,11 +301,7 @@ def subnetwork_config_inference(cfg) -> Dict:
                 "EfficientNet":
                     cfg.img_size_en,
                 "EfficientNetV2":
-                    cfg.img_size_en,
-                "EfficientNetSelfAttention":
-                    cfg.img_size_ensa,
-                "EfficientNetV2MultiHeadAttention":
-                    cfg.img_size_ensa
+                    cfg.img_size_en
             }.get(cfg.type_of_net, cfg.img_size_cnn),
             "grayscale": True
         },
@@ -330,11 +314,7 @@ def subnetwork_config_inference(cfg) -> Dict:
                 "EfficientNet":
                     DATA_PATH.get_data_path("weights_efficient_net_rgb"),
                 "EfficientNetV2":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_rgb"),
-                "EfficientNetSelfAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_self_attention_rgb"),
-                "EfficientNetV2MultiHeadAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_multi_head_attention_rgb")
+                    DATA_PATH.get_data_path("weights_efficient_net_v2_rgb")
             }.get(cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_rgb")),
             "image_size": {
                 "CNN":
@@ -342,11 +322,7 @@ def subnetwork_config_inference(cfg) -> Dict:
                 "EfficientNet":
                     cfg.img_size_en,
                 "EfficientNetV2":
-                    cfg.img_size_en,
-                "EfficientNetSelfAttention":
-                    cfg.img_size_ensa,
-                "EfficientNetV2MultiHeadAttention":
-                    cfg.img_size_ensa
+                    cfg.img_size_en
             }.get(cfg.type_of_net, cfg.img_size_cnn),
             "grayscale": False
         },
@@ -359,11 +335,7 @@ def subnetwork_config_inference(cfg) -> Dict:
                 "EfficientNet":
                     DATA_PATH.get_data_path("weights_efficient_net_texture"),
                 "EfficientNetV2":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_texture"),
-                "EfficientNetSelfAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_self_attention_texture"),
-                "EfficientNetV2MultiHeadAttention":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_multi_head_attention_texture")
+                    DATA_PATH.get_data_path("weights_efficient_net_v2_texture")
             }.get(cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_texture")),
             "image_size": {
                 "CNN":
@@ -371,11 +343,7 @@ def subnetwork_config_inference(cfg) -> Dict:
                 "EfficientNet":
                     cfg.img_size_en,
                 "EfficientNetV2":
-                    cfg.img_size_en,
-                "EfficientNetSelfAttention":
-                    cfg.img_size_ensa,
-                "EfficientNetV2MultiHeadAttention":
-                    cfg.img_size_ensa
+                    cfg.img_size_en
             }.get(cfg.type_of_net, cfg.img_size_cnn),
             "grayscale": True
         },
@@ -420,22 +388,6 @@ def main_network_config_stream_net_inference(cfg) -> Dict:
                 IMAGES_PATH.get_data_path("plotting_efficient_net_v2"),
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_efficient_net_v2")
-        },
-        'EfficientNetSelfAttention': {
-            'prediction_folder':
-                DATA_PATH.get_data_path("predictions_efficient_self_attention_net"),
-            'plotting_folder':
-                IMAGES_PATH.get_data_path("plotting_efficient_net_self_attention"),
-            'ref_vectors_folder':
-                DATA_PATH.get_data_path("reference_vectors_efficient_net_self_attention")
-        },
-        "EfficientNetV2MultiHeadAttention": {
-            'prediction_folder':
-                DATA_PATH.get_data_path("predictions_efficient_net_v2_multi_head_attention"),
-            'plotting_folder':
-                IMAGES_PATH.get_data_path("plotting_efficient_net_v2_multi_head_attention"),
-            'ref_vectors_folder':
-                DATA_PATH.get_data_path("reference_vectors_efficient_net_v2_multi_head_attention")
         }
     }
     if network_type not in network_configs:
@@ -461,30 +413,6 @@ def main_network_config_fusion_network(network_type) -> Dict:
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_fusion_network_cnn")
         },
-        'EfficientNet': {
-            'logs_folder':
-                DATA_PATH.get_data_path("logs_fusion_network_efficient_net"),
-            'weights_folder':
-                DATA_PATH.get_data_path("weights_fusion_network_efficient_net"),
-            'prediction_folder':
-                DATA_PATH.get_data_path("predictions_fusion_network_efficient_net"),
-            'plotting_folder':
-                IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net"),
-            'ref_vectors_folder':
-                DATA_PATH.get_data_path("reference_vectors_fusion_network_efficient_net")
-        },
-        'EfficientNetV2': {
-            'logs_folder':
-                DATA_PATH.get_data_path("logs_fusion_network_efficient_net_v2"),
-            'weights_folder':
-                DATA_PATH.get_data_path("weights_fusion_network_efficient_net_v2"),
-            'prediction_folder':
-                DATA_PATH.get_data_path("predictions_fusion_network_efficient_net_v2"),
-            'plotting_folder':
-                IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_self_attention"),
-            'ref_vectors_folder':
-                DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_v2")
-        },
         'EfficientNetSelfAttention': {
             'logs_folder':
                 DATA_PATH.get_data_path("logs_fusion_network_efficient_net_self_attention"),
@@ -496,6 +424,18 @@ def main_network_config_fusion_network(network_type) -> Dict:
                 IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_v2"),
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_self_attention")
+        },
+        'EfficientNetV2SelfAttention': {
+            'logs_folder':
+                DATA_PATH.get_data_path("logs_fusion_network_efficient_net_v2"),
+            'weights_folder':
+                DATA_PATH.get_data_path("weights_fusion_network_efficient_net_v2"),
+            'prediction_folder':
+                DATA_PATH.get_data_path("predictions_fusion_network_efficient_net_v2"),
+            'plotting_folder':
+                IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_self_attention"),
+            'ref_vectors_folder':
+                DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_v2")
         },
         "EfficientNetV2MultiHeadAttention": {
             'logs_folder':

@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import random
 
 from itertools import combinations
 from PIL import Image
@@ -12,11 +13,11 @@ from torchvision.transforms import transforms
 # +++++++++++++++++++++++++++++++++++++++++++++ S T R E A M   D A T A S E T ++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class StreamDataset(Dataset):
-    def __init__(self, dataset_dir: str, type_of_stream: str, image_size: int) -> None:
+    def __init__(self, dataset_dirs: List[str], type_of_stream: str, image_size: int, num_triplets: int = -1) -> None:
         self.labels_set = None
         self.label_to_indices = None
         self.labels = None
-        self.dataset_path = dataset_dir
+        self.dataset_paths = dataset_dirs
         self.type_of_stream = type_of_stream
 
         if self.type_of_stream == "RGB":
@@ -37,38 +38,54 @@ class StreamDataset(Dataset):
             raise ValueError("Wrong kind of network")
 
         self.dataset = self.load_dataset()
-        self.triplets = self.generate_triplets()
+        self.triplets = self.generate_triplets(num_triplets)
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   D A T A S E T ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def load_dataset(self) -> List[Tuple[str, str]]:
         """
-        Load the dataset.
 
-        :return: A list of tuples, where each tuple contains the path to an image and its corresponding label.
+        :return:
         """
 
         dataset = []
         labels = set()
-        for label_name in os.listdir(self.dataset_path):
-            label_path = os.path.join(self.dataset_path, label_name)
-            if not os.path.isdir(label_path):
-                continue
-            label = label_name
-            labels.add(label)
-            for image_name in os.listdir(label_path):
-                image_path = os.path.join(label_path, image_name)
-                dataset.append((image_path, label))
+
+        # Iterate over the dataset directories
+        for dataset_path in self.dataset_paths:
+            # Iterate over the label directories in each dataset directory
+            for label_name in os.listdir(dataset_path):
+                label_path = os.path.join(dataset_path, label_name)
+
+                # Skip non-directory files
+                if not os.path.isdir(label_path):
+                    continue
+
+                label = label_name
+                labels.add(label)
+
+                # Iterate over the image files in the label directory
+                for image_name in os.listdir(label_path):
+                    image_path = os.path.join(label_path, image_name)
+                    dataset.append((image_path, label))
+
         self.labels = np.array([x[1] for x in dataset])
         self.labels_set = set(self.labels)
         self.label_to_indices = {label: np.where(self.labels == label)[0] for label in self.labels_set}
+
         return dataset
 
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------- G E N E R A T E   T R I P L E T S ----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def generate_triplets(self) -> List[Tuple[int, int, int]]:
+    def generate_triplets(self, num_triplets: int = 1000) -> List[Tuple[int, int, int]]:
+        """
+
+        :param num_triplets:
+        :return:
+        """
+
         triplets = []
         for label in self.labels_set:
             label_indices = self.label_to_indices[label]
@@ -79,12 +96,24 @@ class StreamDataset(Dataset):
                 negative_label = np.random.choice(list(self.labels_set - {label}))
                 negative_index = np.random.choice(self.label_to_indices[negative_label])
                 triplets.append((anchor_index, positive_index, negative_index))
+
+        # Shuffle the triplets and select a fixed number
+        random.shuffle(triplets)
+        triplets = triplets[:num_triplets]
+
         return triplets
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- __ G E T I T E M __ ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> Tuple[Image.Image, Image.Image, Image.Image, str, str]:
+        """
+        Retrieve a triplet of images (anchor, positive, negative) and their paths for a given index.
+
+        :param index: The index of the anchor image.
+        :return: A tuple of three images (anchor, positive, negative) and their paths.
+        """
+
         anchor_index, positive_index, negative_index = self.triplets[index]
 
         anchor_img_path, _ = self.dataset[anchor_index]
@@ -100,7 +129,16 @@ class StreamDataset(Dataset):
             positive_img = self.transform(positive_img)
             negative_img = self.transform(negative_img)
 
-        return anchor_img, positive_img, negative_img, negative_img_path
+        return anchor_img, positive_img, negative_img, negative_img_path, positive_img_path
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------- __ L E N __ --------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def __len__(self) -> int:
+        """
+        This is the __len__ method of a dataset loader class.
+
+        :return: The length of the dataset
+        """
+
         return len(self.triplets)

@@ -4,21 +4,20 @@ import torchvision.models as models
 
 
 class EfficientNet(nn.Module):
-    def __init__(self, loc: list[int], grayscale=True):
+    def __init__(self, num_out_feature: int = 128, grayscale=True):
         """
         EfficientNet model with custom linear layer.
 
-        :param loc: List of integers representing the number of channels at each layer.
+        :param num_out_feature: Number of output features.
         :param grayscale: Whether the input is grayscale or not. Defaults to True.
         """
 
         super(EfficientNet, self).__init__()
-        self.loc = loc
+        self.num_out_feature = num_out_feature
         self.grayscale = grayscale
         self.model = self.build_model()
         if self.grayscale:
             self.model.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
-        self.model.fc = nn.Linear(self.loc[6], self.loc[4])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -44,7 +43,5 @@ class EfficientNet(nn.Module):
         for params in model.parameters():
             params.requires_grad = False
 
-        model.classifier[1] = nn.Linear(in_features=1280, out_features=self.loc[4])
+        model.classifier[1] = nn.Linear(in_features=1280, out_features=self.num_out_feature)
         return model
-
-

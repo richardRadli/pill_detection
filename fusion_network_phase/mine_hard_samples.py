@@ -93,7 +93,6 @@ def files_to_move(hardest_sample_images: set, src_dir: str) -> list:
     :param src_dir: The path to the source directory.
     :return: A list of paths to files in the source directory that match the hardest sample image names.
     """
-
     list_of_files_to_move = []
     for root, dirs, files in os.walk(src_dir):
         for file in files:
@@ -119,8 +118,9 @@ def copy_hardest_samples(new_dir: str, src_dir: str, hardest_sample_images: list
     """
 
     for src_paths in tqdm(hardest_sample_images, total=len(hardest_sample_images), desc=os.path.basename(new_dir)):
+        print(src_paths)
         source_path = os.path.join(src_dir, src_paths.split("\\")[2])
-
+        print(source_path)
         dest_path = src_paths.split("\\")[2]
         dest_path = os.path.join(new_dir, dest_path)
 
@@ -195,8 +195,10 @@ def main() -> None:
 
     # Move hardest contour images
     files_to_move_contour = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_contour"))
-    copy_hardest_samples(IMAGES_PATH.get_data_path("contour_hardest"), IMAGES_PATH.get_data_path("ref_train_contour"),
-                         files_to_move_contour)
+
+    copy_hardest_samples(new_dir=IMAGES_PATH.get_data_path("contour_hardest"),
+                         src_dir=IMAGES_PATH.get_data_path("ref_train_contour"),
+                         hardest_sample_images=files_to_move_contour)
 
     # Move hardest rgb images
     files_to_move_rgb = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_rgb"))

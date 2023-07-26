@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from models.network_selector import NetworkFactory
+from feature_extraction_models.network_selector import NetworkFactory
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -28,9 +28,16 @@ class FusionNet(nn.Module):
         self.lbp_network = NetworkFactory.create_network(type_of_net, network_cfg_lbp)
         self.rgb_network = NetworkFactory.create_network(type_of_net, network_cfg_rgb)
         self.texture_network = NetworkFactory.create_network(type_of_net, network_cfg_texture)
-        self.fc1 = nn.Linear(640, 640)
+        self.fc1 = nn.Linear(4000, 4000)
         self.dropout = nn.Dropout(p=0.5)
-        self.fc2 = nn.Linear(640, 640)
+        self.fc2 = nn.Linear(4000, 4000)
+
+        self.input_dim = loc[4]
+        self.query = nn.Linear(self.input_dim, self.input_dim)
+        self.key = nn.Linear(self.input_dim, self.input_dim)
+        self.value = nn.Linear(self.input_dim, self.input_dim)
+
+        self.multi_head_attention = nn.MultiheadAttention(embed_dim=4000, num_heads=4)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
@@ -44,7 +51,7 @@ class FusionNet(nn.Module):
         :param x3: input tensor for texture stream, with shape [batch_size, 1, height, width]
         :param x4: input tensor for LBP stream, with shape [batch_size, 1, height, width]
 
-        :return: output tensor with shape [batch_size, 640] after passing through fully connected layers.
+        :return: output tensor with shape [batch_size, 4000] after passing through fully connected layers.
         """
 
         x1 = self.contour_network(x1)

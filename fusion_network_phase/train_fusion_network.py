@@ -14,7 +14,7 @@ from torchsummary import summary
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
 from config.network_configs import subnetwork_configs_training, main_network_config_fusion_network
-from models.fusion_network import FusionNet
+from fusion_models.fusion_network import FusionNet
 from fusion_dataset_loader import FusionDataset
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
     use_gpu_if_available

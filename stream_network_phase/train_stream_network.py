@@ -19,10 +19,9 @@ from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config.config import ConfigStreamNetwork
-from config.const import DATA_PATH
 from config.network_configs import subnetwork_configs_training
-from models.network_selector import NetworkFactory
-from dataloader_stream_network import StreamDataset
+from feature_extraction_models.network_selector import NetworkFactory
+from dataloader_stream_network_ba import StreamDataset
 from triplet_loss import TripletLossWithHardMining
 from config.logger_setup import setup_logger
 from utils.utils import create_timestamp, measure_execution_time, print_network_config, use_gpu_if_available
@@ -58,8 +57,11 @@ class TrainModel:
         network_cfg = network_config.get(self.cfg.type_of_stream)
 
         # Load dataset
-        dataset = StreamDataset([network_cfg.get('train_dataset_dir'), network_cfg.get('valid_dataset_dir')],
-                                self.cfg.type_of_stream, network_cfg.get("image_size"))
+        dataset = \
+            StreamDataset(dataset_dirs=[network_cfg.get('train_dataset_dir'), network_cfg.get('valid_dataset_dir')],
+                          type_of_stream=self.cfg.type_of_stream,
+                          image_size=network_cfg.get("image_size"),
+                          num_triplets=self.cfg.num_triplets)
 
         # Calculate the number of samples for each set
         train_size = int(len(dataset) * self.cfg.train_valid_ratio)
@@ -95,6 +97,10 @@ class TrainModel:
         self.save_path = os.path.join(network_cfg.get('model_weights_dir'), self.timestamp)
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
+
+        # Hard sample paths
+        self.hardest_negative_samples_path = network_cfg.get("hardest_negative_samples")
+        self.hardest_positive_samples_path = network_cfg.get("hardest_positive_samples")
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- G E T   H A R D  S A M P L E S -----------------------------------------
@@ -145,7 +151,7 @@ class TrainModel:
     # ------------------------------------------------------ F I T -----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @measure_execution_time
-    def fit(self) -> None:
+    def train(self) -> None:
         """
         This function is responsible for the training of the network.
 
@@ -225,8 +231,8 @@ class TrainModel:
             logging.info(f'train_loss: {train_loss:.5f} valid_loss: {valid_loss:.5f}')
 
             # Loop over the hard negative tensors
-            self.get_hardest_samples(epoch, hard_neg_images, DATA_PATH.get_data_path("negative"), "negative")
-            self.get_hardest_samples(epoch, hard_pos_images, DATA_PATH.get_data_path("positive"), "positive")
+            self.get_hardest_samples(epoch, hard_neg_images, self.hardest_negative_samples_path, "negative")
+            self.get_hardest_samples(epoch, hard_pos_images, self.hardest_positive_samples_path, "positive")
 
             # Clear lists to track next epoch
             train_losses.clear()
@@ -254,6 +260,6 @@ class TrainModel:
 if __name__ == "__main__":
     try:
         tm = TrainModel()
-        tm.fit()
+        tm.train()
     except KeyboardInterrupt as kbe:
         logging.error("Keyboard interrupt, program has been shut down!")
