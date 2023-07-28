@@ -2,9 +2,9 @@ import torch
 
 from abc import ABC, abstractmethod
 
-from feature_extraction_models.CNN import CNN
-from feature_extraction_models.efficient_net_b0 import EfficientNet
-from feature_extraction_models.efficient_net_v2_s import EfficientNetV2SelfAttention
+from stream_network_models.CNN import CNN
+from stream_network_models.efficient_net_b0 import EfficientNet
+from stream_network_models.efficient_net_v2_s import EfficientNetV2SelfAttention
 
 
 class BaseNetwork(ABC):

@@ -20,7 +20,7 @@ from torchsummary import summary
 
 from config.config import ConfigStreamNetwork
 from config.network_configs import subnetwork_configs_training
-from feature_extraction_models.network_selector import NetworkFactory
+from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network_ba import StreamDataset
 from triplet_loss import TripletLossWithHardMining
 from config.logger_setup import setup_logger

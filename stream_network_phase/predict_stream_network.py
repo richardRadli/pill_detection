@@ -23,7 +23,7 @@ from config.const import IMAGES_PATH
 from config.config import ConfigStreamNetwork
 from config.logger_setup import setup_logger
 from config.network_configs import subnetwork_config_inference, main_network_config_stream_net_inference
-from feature_extraction_models.network_selector import NetworkFactory
+from stream_network_models.stream_network_selector import NetworkFactory
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, \
     plot_ref_query_images, use_gpu_if_available
 
@@ -121,6 +121,7 @@ class PredictStreamNetwork:
         :param operation: name of the operation being performed
         :return: tuple containing three lists - vectors, labels, and images_path
         """
+        logging.info("Processing %s images" % operation)
 
         medicine_classes = os.listdir(rgb_dir)
         vectors = []
@@ -179,6 +180,7 @@ class PredictStreamNetwork:
                            os.path.join(self.main_network_config['ref_vectors_folder'],
                                         self.timestamp + "_ref_vectors.pt"))
 
+        logging.info("Processing of %s images is done" % operation)
         return vectors, labels, images_path
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -199,6 +201,7 @@ class PredictStreamNetwork:
         :return: the original query labels, predicted medicine labels, indices of the most similar medicines in the
         reference set, and mAP
         """
+        logging.info("Comparing query and reference vectors")
 
         similarity_scores_euc_dist = []
         predicted_medicine_euc_dist = []
@@ -284,20 +287,6 @@ class PredictStreamNetwork:
                                         self.timestamp + "_stream_network_prediction.txt"), sep='\t', index=True)
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
-
-    @staticmethod
-    def calculate_top_k_accuracy(predicted_labels, ground_truth_labels, k):
-        num_samples = len(ground_truth_labels)
-        correct_predictions = 0
-
-        for i in range(num_samples):
-            if ground_truth_labels[i] == predicted_labels[i]:
-                correct_predictions += 1
-            elif predicted_labels[i] in ground_truth_labels[i + 1:i + k]:
-                correct_predictions += 1
-
-        accuracy = correct_predictions / num_samples
-        return accuracy
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------- M A I N ----------------------------------------------------

@@ -1,9 +1,7 @@
-import cv2
 import gc
 import logging
 import matplotlib.pyplot as plt
 import os
-import random
 import pandas as pd
 import re
 import time
@@ -180,6 +178,10 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
 
     new_list = [i for i in range(len(indices))]
 
+    timestamp = create_timestamp()
+    output_folder = os.path.join(out_path, timestamp)
+    os.makedirs(output_folder, exist_ok=True)
+
     for idx, (i, j, k, l) in tqdm(enumerate(zip(indices, new_list, gt, pred_ed)), total=len(new_list),
                                   desc="Plotting ref and query images"):
         img_path_query = q_images_path[j]
@@ -195,7 +197,7 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
         ax[1].imshow(img_ref)
         ax[1].set_title(l + "_ref")
 
-        output_path = os.path.join(out_path, str(idx) + ".png")
+        output_path = os.path.join(output_folder, str(idx) + ".png")
         plt.savefig(output_path)
         plt.close()
 
@@ -267,19 +269,9 @@ def measure_execution_time(func):
     return wrapper
 
 
-def scale_down_image(image_dir, scale_factor):
-    image_files = os.listdir(image_dir)
-    image_file = random.choice(image_files)
-    image_path = os.path.join(image_dir, image_file)
-    image = cv2.imread(image_path)
-    scaled_image = cv2.resize(image, None, fx=scale_factor, fy=scale_factor)
-    return scaled_image.shape
-
-
-# ------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------- F I N D   L A T E S T   F I L E --------------------------------------
-# ------------------------------------------------------------------------------------------------------------------
-@staticmethod
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------- F I N D   L A T E S T   F I L E ------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def find_latest_file_in_directory(path: str, extension: str) -> str:
     """
     Finds the latest file in a directory with a given extension.

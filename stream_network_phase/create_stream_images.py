@@ -96,27 +96,27 @@ class CreateStreamImages:
         for idx, (file_rgb, file_contour, file_texture, file_lbp) in \
                 tqdm(enumerate(zip(files_rgb, files_contour, files_texture, files_lbp)), desc="Copying image files"):
             if file_rgb.endswith(".png"):
-                # match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
-                # if match:
-                #     value = match.group(1)
-                value = os.path.basename(file_rgb).split("_")[0]
-                out_path_rgb = os.path.join(rgb_path, value)
-                out_path_contour = os.path.join(contour_path, value)
-                out_path_texture = os.path.join(texture_path, value)
-                out_path_lbp = os.path.join(lbp_path, value)
+                match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
+                if match:
+                    value = match.group(1)
+                # value = os.path.basename(file_rgb).split("_")[0]
+                    out_path_rgb = os.path.join(rgb_path, value)
+                    out_path_contour = os.path.join(contour_path, value)
+                    out_path_texture = os.path.join(texture_path, value)
+                    out_path_lbp = os.path.join(lbp_path, value)
 
-                os.makedirs(out_path_rgb, exist_ok=True)
-                os.makedirs(out_path_contour, exist_ok=True)
-                os.makedirs(out_path_texture, exist_ok=True)
-                os.makedirs(out_path_lbp, exist_ok=True)
+                    os.makedirs(out_path_rgb, exist_ok=True)
+                    os.makedirs(out_path_contour, exist_ok=True)
+                    os.makedirs(out_path_texture, exist_ok=True)
+                    os.makedirs(out_path_lbp, exist_ok=True)
 
-                try:
-                    shutil.move(os.path.join(rgb_path, file_rgb), out_path_rgb)
-                    shutil.move(os.path.join(contour_path, file_contour), out_path_contour)
-                    shutil.move(os.path.join(texture_path, file_texture), out_path_texture)
-                    shutil.move(os.path.join(lbp_path, file_lbp), out_path_lbp)
-                except shutil.Error as se:
-                    logging.error(f"Error moving file: {se.args[0]}")
+                    try:
+                        shutil.move(os.path.join(rgb_path, file_rgb), out_path_rgb)
+                        shutil.move(os.path.join(contour_path, file_contour), out_path_contour)
+                        shutil.move(os.path.join(texture_path, file_texture), out_path_texture)
+                        shutil.move(os.path.join(lbp_path, file_lbp), out_path_lbp)
+                    except shutil.Error as se:
+                        logging.error(f"Error moving file: {se.args[0]}")
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- D R A W   B O U N D I N G   B O X ---------------------------------------
@@ -353,7 +353,6 @@ class CreateStreamImages:
                 output_name = "lbp_" + os.path.basename(img_path)
                 output_file = os.path.join(self.path_to_images.get("lbp"), output_name)
                 bbox_imgs = cv2.imread(img_path, 0)
-                bbox_imgs = cv2.resize(bbox_imgs, (224, 224))
                 future = executor.submit(self.process_lbp_image, bbox_imgs, output_file)
                 futures.append(future)
 
@@ -371,10 +370,10 @@ class CreateStreamImages:
         :return: None
         """
 
-        # self.save_rgb_images()
-        # self.save_contour_images()
-        # self.save_texture_images()
-        # self.save_lbp_images()
+        self.save_rgb_images()
+        self.save_contour_images()
+        self.save_texture_images()
+        self.save_lbp_images()
         self.create_label_dirs(rgb_path=self.path_to_images.get("rgb"),
                                contour_path=self.path_to_images.get("contour"),
                                texture_path=self.path_to_images.get("texture"),
