@@ -137,7 +137,7 @@ class Images(_Const):
         "plotting_fusion_network_efficient_net_self_attention":
             "images/plotting/fusion_net/plotting_fusion_network_efficient_net_self_attention",
         "plotting_fusion_network_efficient_net_v2_self_attention":
-            "images/plotting/fusion_net/plotting_fusion_network_efficient_net_v2",
+            "images/plotting/fusion_net/plotting_fusion_network_efficient_net_v2_self_attention",
         "plotting_fusion_network_efficient_net_v2_multi_head_attention":
             "images/plotting/fusion_net/plotting_fusion_network_efficient_net_v2_multi_head_attention",
 
@@ -209,7 +209,7 @@ class Data(_Const):
         "weights_fusion_network_efficient_net_self_attention":
             "data/weights/fusion_net/efficient_net_self_attention",
         "weights_fusion_network_efficient_net_v2_self_attention":
-            "data/weights/fusion_net/efficient_net_v2",
+            "data/weights/fusion_net/efficient_net_v2_self_attention",
         "weights_fusion_network_efficient_net_v2_multi_head_attention":
             "data/weights/fusion_net/efficient_net_v2_multi_head_attention",
 
@@ -255,7 +255,7 @@ class Data(_Const):
         "logs_fusion_network_efficient_net_self_attention":
             "data/logs/fusion_net/efficient_net_self_attention",
         "logs_fusion_network_efficient_net_v2_self_attention":
-            "data/logs/fusion_net/efficient_net_v2",
+            "data/logs/fusion_net/efficient_net_v2_self_attention",
         "logs_fusion_network_efficient_net_v2_multi_head_attention":
             "data/logs/fusion_net/efficient_net_v2_multi_head",
 
@@ -272,10 +272,10 @@ class Data(_Const):
         # Predictions
         "predictions_fusion_network_cnn":
             "data/predictions/fusion_net/predictions_fusion_network_cnn",
-        "predictions_fusion_network_efficient_self_attention_net":
-            "data/predictions/fusion_net/predictions_fusion_network_efficient_self_attention_net",
+        "predictions_fusion_network_efficient_net_self_attention_net":
+            "data/predictions/fusion_net/predictions_fusion_network_efficient_net_self_attention_net",
         "predictions_fusion_network_efficient_net_v2_self_attention_net":
-            "data/predictions/fusion_net/predictions_fusion_network_efficient_net_v2",
+            "data/predictions/fusion_net/predictions_fusion_network_efficient_net_v2_self_attention",
         "predictions_fusion_network_efficient_net_v2_multi_head_attention":
             "data/predictions/fusion_net/predictions_fusion_network_efficient_net_v2_multi_head_attention",
 
@@ -293,7 +293,7 @@ class Data(_Const):
         "reference_vectors_fusion_net_efficient_net_self_attention":
             "data/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_self_attention",
         "reference_vectors_fusion_net_efficient_net_v2_self_attention":
-            "data/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_v2",
+            "data/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_v2_self_attention",
         "reference_vectors_fusion_net_efficient_net_v2_multi_head_attention":
             "data/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_v2_multi_head_attention",
 

@@ -13,8 +13,8 @@ from torchsummary import summary
 
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
-from config.network_configs import subnetwork_configs_training, main_network_config_fusion_network
-from fusion_models.fusion_network import FusionNet
+from config.network_configs import sub_stream_network_configs_training, fusion_network_config
+from fusion_models.efficient_net_self_attention import EfficientNetSelfAttention
 from fusion_dataset_loader import FusionDataset
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
     use_gpu_if_available
@@ -35,8 +35,8 @@ class TrainFusionNet:
         self.cfg_stream_net = ConfigStreamNetwork().parse()
 
         network_type = self.cfg_fusion_net.type_of_net
-        main_network_config = main_network_config_fusion_network(network_type=network_type)
-        subnetwork_config = subnetwork_configs_training(self.cfg_stream_net)
+        main_network_config = fusion_network_config(network_type=network_type)
+        subnetwork_config = sub_stream_network_configs_training(self.cfg_stream_net)
         network_cfg_contour = subnetwork_config.get("Contour")
         network_cfg_lbp = subnetwork_config.get("LBP")
         network_cfg_rgb = subnetwork_config.get("RGB")
@@ -62,11 +62,11 @@ class TrainFusionNet:
 
         # Initialize the fusion network
         self.model = \
-            FusionNet(type_of_net=self.cfg_stream_net.type_of_net,
-                      network_cfg_contour=network_cfg_contour,
-                      network_cfg_lbp=network_cfg_lbp,
-                      network_cfg_rgb=network_cfg_rgb,
-                      network_cfg_texture=network_cfg_texture)
+            EfficientNetSelfAttention(type_of_net=self.cfg_stream_net.type_of_net,
+                                      network_cfg_contour=network_cfg_contour,
+                                      network_cfg_lbp=network_cfg_lbp,
+                                      network_cfg_rgb=network_cfg_rgb,
+                                      network_cfg_texture=network_cfg_texture)
 
         # Load the saved state dictionaries of the stream networks
         stream_con_state_dict = \

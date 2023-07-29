@@ -19,7 +19,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config.config import ConfigStreamNetwork
-from config.network_configs import subnetwork_configs_training
+from config.network_configs import sub_stream_network_configs_training
 from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network_ba import StreamDataset
 from triplet_loss import TripletLossWithHardMining
@@ -53,7 +53,7 @@ class TrainModel:
         # Setup network config
         if self.cfg.type_of_stream not in ["RGB", "Texture", "Contour", "LBP"]:
             raise ValueError("Wrong type was given!")
-        network_config = subnetwork_configs_training(self.cfg)
+        network_config = sub_stream_network_configs_training(self.cfg)
         network_cfg = network_config.get(self.cfg.type_of_stream)
 
         # Load dataset

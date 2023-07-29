@@ -54,10 +54,10 @@ class FusionDataset(Dataset):
         ])
 
         # Load datasets
-        self.contour_dataset = self.load_dataset(IMAGES_PATH.get_data_path("contour_hardest"))
-        self.lbp_dataset = self.load_dataset(IMAGES_PATH.get_data_path("lbp_hardest"))
-        self.rgb_dataset = self.load_dataset(IMAGES_PATH.get_data_path("rgb_hardest"))
-        self.texture_dataset = self.load_dataset(IMAGES_PATH.get_data_path("texture_hardest"))
+        self.contour_dataset = self.load_dataset(IMAGES_PATH.get_data_path("contour_hardest_efficient_net_v2"))
+        self.lbp_dataset = self.load_dataset(IMAGES_PATH.get_data_path("lbp_hardest_efficient_net_v2"))
+        self.rgb_dataset = self.load_dataset(IMAGES_PATH.get_data_path("rgb_hardest_efficient_net_v2"))
+        self.texture_dataset = self.load_dataset(IMAGES_PATH.get_data_path("texture_hardest_efficient_net_v2"))
         self.labels_set = set(label for _, label in self.rgb_dataset)
         self.prepare_labels()
 

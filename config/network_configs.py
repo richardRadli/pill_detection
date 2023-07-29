@@ -8,7 +8,7 @@ from config.const import DATA_PATH, IMAGES_PATH
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------- S U B N E T W O R K   C O N F I G S   T R A I N I N G -------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def subnetwork_configs_training(cfg) -> Dict:
+def sub_stream_network_configs_training(cfg) -> Dict:
     """
     Returns the dictionary containing the configuration details for the three different subnetworks
     (RGB, Texture, and Contour) used in the TripletLossModel.
@@ -256,7 +256,7 @@ def subnetwork_configs_training(cfg) -> Dict:
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------- S U B N E T W O R K   C O N F I G S   I N F E R E N C E ------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def subnetwork_config_inference(cfg) -> Dict:
+def sub_stream_network_config_inference(cfg) -> Dict:
     """
     Returns the configuration of subnetworks
 
@@ -355,7 +355,7 @@ def subnetwork_config_inference(cfg) -> Dict:
 # ------------------------------------------------------------------------------------------------------------------
 # ---------------------------------- G E T   M A I N   N E T W O R K   C O N F I G ---------------------------------
 # ------------------------------------------------------------------------------------------------------------------
-def main_network_config_stream_net_inference(cfg) -> Dict:
+def stream_network_config_inference(cfg) -> Dict:
     """
     Returns a dictionary containing the prediction and plotting folder paths for different types of networks
     based on the type_of_net parameter in cfg.
@@ -399,9 +399,9 @@ def main_network_config_stream_net_inference(cfg) -> Dict:
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------ M A I N   N E T W O R K   C O N F I G   F U S I O N   T R A I N I N G -----------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def main_network_config_fusion_network(network_type) -> Dict:
+def fusion_network_config(network_type) -> Dict:
     network_configs = {
-        'CNN': {
+        'CNNFusionNet': {
             'logs_folder':
                 DATA_PATH.get_data_path("logs_fusion_network_cnn"),
             'weights_folder':
@@ -419,29 +419,29 @@ def main_network_config_fusion_network(network_type) -> Dict:
             'weights_folder':
                 DATA_PATH.get_data_path("weights_fusion_network_efficient_net_self_attention"),
             'prediction_folder':
-                DATA_PATH.get_data_path("predictions_fusion_network_efficient_self_attention_net"),
+                DATA_PATH.get_data_path("predictions_fusion_network_efficient_net_self_attention_net"),
             'plotting_folder':
-                IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_v2"),
+                IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_self_attention"),
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_self_attention")
         },
         'EfficientNetV2SelfAttention': {
             'logs_folder':
-                DATA_PATH.get_data_path("logs_fusion_network_efficient_net_v2"),
+                DATA_PATH.get_data_path("logs_fusion_network_efficient_net_v2_self_attention"),
             'weights_folder':
-                DATA_PATH.get_data_path("weights_fusion_network_efficient_net_v2"),
+                DATA_PATH.get_data_path("weights_fusion_network_efficient_net_v2_self_attention"),
             'prediction_folder':
-                DATA_PATH.get_data_path("predictions_fusion_network_efficient_net_v2"),
+                DATA_PATH.get_data_path("predictions_fusion_network_efficient_net_v2_self_attention_net"),
             'plotting_folder':
-                IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_self_attention"),
+                IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_v2_self_attention"),
             'ref_vectors_folder':
-                DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_v2")
+                DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_v2_self_attention")
         },
         "EfficientNetV2MultiHeadAttention": {
             'logs_folder':
                 DATA_PATH.get_data_path("logs_fusion_network_efficient_net_v2_multi_head_attention"),
             'weights_folder':
-                DATA_PATH.get_data_path("weights_fusion_network_efficient_net_multi_head_attention"),
+                DATA_PATH.get_data_path("weights_fusion_network_efficient_net_v2_multi_head_attention"),
             'prediction_folder':
                 DATA_PATH.get_data_path("predictions_fusion_network_efficient_net_v2_multi_head_attention"),
             'plotting_folder':

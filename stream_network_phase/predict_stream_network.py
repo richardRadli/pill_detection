@@ -22,7 +22,7 @@ from PIL import Image
 from config.const import IMAGES_PATH
 from config.config import ConfigStreamNetwork
 from config.logger_setup import setup_logger
-from config.network_configs import subnetwork_config_inference, main_network_config_stream_net_inference
+from config.network_configs import sub_stream_network_config_inference, stream_network_config_inference
 from stream_network_models.stream_network_selector import NetworkFactory
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, \
     plot_ref_query_images, use_gpu_if_available
@@ -49,8 +49,8 @@ class PredictStreamNetwork:
         self.preprocess_con_tex = None
 
         # Load configs
-        self.main_network_config = main_network_config_stream_net_inference(self.cfg)
-        self.sub_network_config = subnetwork_config_inference(self.cfg)
+        self.main_network_config = stream_network_config_inference(self.cfg)
+        self.sub_network_config = sub_stream_network_config_inference(self.cfg)
 
         # Load networks
         self.network_con, self.network_rgb, self.network_tex, self.network_lbp = self.load_networks()

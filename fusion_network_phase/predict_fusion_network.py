@@ -11,8 +11,8 @@ from PIL import Image
 from config.const import IMAGES_PATH
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
-from config.network_configs import subnetwork_configs_training, main_network_config_fusion_network
-from fusion_models.fusion_network import FusionNet
+from config.network_configs import sub_stream_network_configs_training, fusion_network_config
+from fusion_models.efficient_net_self_attention import EfficientNetSelfAttention
 from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory
 
 
@@ -29,7 +29,6 @@ class PredictFusionNetwork:
 
         # Load config
         self.cfg_fusion_net = ConfigFusionNetwork().parse()
-        self.cfg_stream_net = ConfigStreamNetwork().parse()
 
         # Create time stamp
         self.timestamp = create_timestamp()
@@ -41,10 +40,10 @@ class PredictFusionNetwork:
         self.query_image_rgb = None
         self.query_image_con = None
 
-        # Load network
-        network_type = self.cfg_fusion_net.type_of_net
-        self.main_network_config = main_network_config_fusion_network(network_type=network_type)
-        subnetwork_config = subnetwork_configs_training(self.cfg_stream_net)
+        # Load networks
+        self.fusion_network_config = fusion_network_config(network_type=self.cfg_fusion_net.type_of_net)
+        self.cfg_stream_net = ConfigStreamNetwork().parse()
+        subnetwork_config = sub_stream_network_configs_training(self.cfg_stream_net)
         self.network_cfg_contour = subnetwork_config.get("Contour")
         self.network_cfg_lbp = subnetwork_config.get("LBP")
         self.network_cfg_rgb = subnetwork_config.get("RGB")
@@ -68,62 +67,6 @@ class PredictFusionNetwork:
         self.device = use_gpu_if_available()
 
     # ------------------------------------------------------------------------------------------------------------------
-    # -------------------------------------- P R E D I C T I O N   S T A T I S T I C S ---------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def prediction_statistics(stream_network_prediction_file: str, fusion_network_prediction_file: str):
-        """
-
-        :param stream_network_prediction_file:
-        :param fusion_network_prediction_file:
-        :return:
-        """
-
-        with open(stream_network_prediction_file, 'r') as f1, open(fusion_network_prediction_file, 'r') as f2:
-            f1_lines = f1.readlines()[1:-3]
-            f2_lines = f2.readlines()[1:-3]
-
-            differ_list = []
-
-            for line1, line2 in zip(f1_lines, f2_lines):
-                cols1 = line1.strip().split('\t')
-                cols2 = line2.strip().split('\t')
-
-                if cols1[1] != cols1[2] or cols2[1] != cols2[2]:
-                    differ_list.append([cols1[1], cols1[2], cols2[2]])
-
-        sn_cnt, fn_cnt, n_count = 0, 0, 0
-        sn_list, fn_list, n_list = [], [], []
-
-        for _, (gt, sn, fn) in enumerate(differ_list):
-            if gt == sn and gt != fn:
-                sn_cnt += 1
-                sn_list.append([gt, sn, fn])
-
-            if gt == fn and gt != sn:
-                fn_cnt += 1
-                fn_list.append([gt, sn, fn])
-
-            if gt != sn and gt != fn:
-                n_count += 1
-                n_list.append([gt, sn, fn])
-
-        df = pd.DataFrame(differ_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
-        df_sn = pd.DataFrame(sn_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
-        df_fn = pd.DataFrame(fn_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
-        df_n = pd.DataFrame(n_list, columns=['Ground Truth', 'StreamNetwork Prediction', 'FusionNetwork Prediction'])
-
-        pd.set_option('display.max_rows', None)
-        pd.set_option('display.max_columns', None)
-        pd.set_option('display.width', None)
-        pd.set_option('display.max_colwidth', None)
-
-        print("Medicines where either StreamNetwork or FusionNetwork predicted well", df)
-        print("Medicines where FusionNetwork predicted wrong and StreamNetwork predicted well", df_sn)
-        print("Medicines where StreamNetwork predicted wrong and FusionNetwork predicted well", df_fn)
-        print("Medicines where neither StreamNetwork nor FusionNetwork predicted well", df_n)
-
-    # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def load_networks(self):
@@ -133,12 +76,12 @@ class PredictFusionNetwork:
         :return: <class 'fusion_network.FusionNet'>
         """
 
-        latest_con_pt_file = find_latest_file_in_latest_directory(self.main_network_config.get("weights_folder"))
-        network_fusion = FusionNet(type_of_net=self.cfg_fusion_net.type_of_net,
-                                   network_cfg_contour=self.network_cfg_contour,
-                                   network_cfg_lbp=self.network_cfg_lbp,
-                                   network_cfg_rgb=self.network_cfg_rgb,
-                                   network_cfg_texture=self.network_cfg_texture)
+        latest_con_pt_file = find_latest_file_in_latest_directory(self.fusion_network_config.get("weights_folder"))
+        network_fusion = EfficientNetSelfAttention(type_of_net=self.cfg_stream_net.type_of_net,
+                                                   network_cfg_contour=self.network_cfg_contour,
+                                                   network_cfg_lbp=self.network_cfg_lbp,
+                                                   network_cfg_rgb=self.network_cfg_rgb,
+                                                   network_cfg_texture=self.network_cfg_texture)
         network_fusion.load_state_dict(torch.load(latest_con_pt_file))
 
         return network_fusion
@@ -302,7 +245,7 @@ class PredictFusionNetwork:
         df_combined = pd.concat([df, df_stat], ignore_index=True)
 
         df_combined.to_csv(
-            os.path.join(self.main_network_config.get("prediction_folder"), self.timestamp +
+            os.path.join(self.fusion_network_config.get("prediction_folder"), self.timestamp +
                          "_fusion_network_prediction.txt"), sep='\t', index=True)
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
@@ -331,12 +274,6 @@ class PredictFusionNetwork:
                              operation="reference")
 
         gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vectors, query_vectors)
-
-        # stream_net_pred = \
-        #     find_latest_file_in_directory(DATA_PATH.get_data_path("predictions_cnn_network"), "txt")
-        # fusion_net_pred = \
-        #     find_latest_file_in_directory(self.main_network_config.get("prediction_folder"), "txt")
-        # self.prediction_statistics(stream_net_pred, fusion_net_pred)
 
         # plot_ref_query_images(indices=indices, q_images_path=q_images_path, r_images_path=r_images_path, gt=gt,
         #                       pred_ed=pred_ed, out_path=self.main_network_config.get("plotting_folder"))

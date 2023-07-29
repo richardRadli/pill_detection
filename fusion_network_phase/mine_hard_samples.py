@@ -6,6 +6,7 @@ from glob import glob
 from tqdm import tqdm
 
 from config.const import DATA_PATH, IMAGES_PATH
+from config.config import ConfigStreamNetwork
 from config.logger_setup import setup_logger
 
 
@@ -135,27 +136,83 @@ def copy_hardest_samples(new_dir: str, src_dir: str, hardest_sample_images: list
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------------- G E T   L A T E S T   T X T   F I L E S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def get_latest_txt_files(operation: str):
+def get_latest_txt_files(path: str):
     """
     Retrieves the latest .txt files for contour, RGB, and texture data in the specified directories
     for either positive or negative operations.
 
-    :return: A tuple of the paths to the latest contour, RGB, and texture .txt files, respectively.
-    :raises ValueError: If the specified operation is neither "positive" nor "negative".
+    :return: A tuple of the paths to the latest contour, LBP, RGB, and texture .txt files, respectively.
     """
 
-    if operation not in ["positive", "negative"]:
-        raise ValueError("Wrong operation!")
+    sub_folders = find_stream_folders(path)
 
-    path = DATA_PATH.get_data_path("negative")
-    d = find_stream_folders(path)
-
-    latest_rgb_txt = get_hardest_samples(path, os.path.join(os.path.basename(d[0]), "RGB"))
-    latest_contour_txt = get_hardest_samples(path, os.path.join(os.path.basename(d[1]), "Contour"))
-    latest_texture_txt = get_hardest_samples(path, os.path.join(os.path.basename(d[2]), "Texture"))
-    latest_lbp_txt = get_hardest_samples(path, os.path.join(os.path.basename(d[3]), "lbp"))
+    latest_rgb_txt = get_hardest_samples(path, os.path.join(os.path.basename(sub_folders[0]), "RGB"))
+    latest_contour_txt = get_hardest_samples(path, os.path.join(os.path.basename(sub_folders[1]), "Contour"))
+    latest_texture_txt = get_hardest_samples(path, os.path.join(os.path.basename(sub_folders[2]), "Texture"))
+    latest_lbp_txt = get_hardest_samples(path, os.path.join(os.path.basename(sub_folders[3]), "lbp"))
 
     return latest_contour_txt, latest_rgb_txt, latest_texture_txt, latest_lbp_txt
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------- G E T   P A T H S --------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def get_paths(network_type):
+    """
+
+    :param network_type:
+    :return:
+    """
+
+    hard_samples_paths = {
+        'CNN': {
+            'hard_negative':
+                DATA_PATH.get_data_path("negative_cnn_network"),
+            'hard_positive':
+                DATA_PATH.get_data_path("positive_cnn_network"),
+            'contour_hardest':
+                IMAGES_PATH.get_data_path("contour_hardest_cnn_network"),
+            "lbp_hardest":
+                IMAGES_PATH.get_data_path("lbp_hardest_cnn_network"),
+            "rgb_hardest":
+                IMAGES_PATH.get_data_path("rgb_hardest_cnn_network"),
+            "texture_hardest":
+                IMAGES_PATH.get_data_path("texture_hardest_cnn_network")
+        },
+        'EfficientNet': {
+            'hard_negative':
+                DATA_PATH.get_data_path("negative_efficient_net"),
+            'hard_positive':
+                DATA_PATH.get_data_path("positive_efficient_net"),
+            'contour_hardest':
+                IMAGES_PATH.get_data_path("contour_hardest_efficient_net"),
+            "lbp_hardest":
+                IMAGES_PATH.get_data_path("lbp_hardest_efficient_net"),
+            "rgb_hardest":
+                IMAGES_PATH.get_data_path("rgb_hardest_efficient_net"),
+            "texture_hardest":
+                IMAGES_PATH.get_data_path("texture_hardest_efficient_net")
+        },
+        "EfficientNetV2": {
+            'hard_negative':
+                DATA_PATH.get_data_path("negative_efficient_net_v2"),
+            'hard_positive':
+                DATA_PATH.get_data_path("positive_efficient_net_v2"),
+            'contour_hardest':
+                IMAGES_PATH.get_data_path("contour_hardest_efficient_net_v2"),
+            "lbp_hardest":
+                IMAGES_PATH.get_data_path("lbp_hardest_efficient_net_v2"),
+            "rgb_hardest":
+                IMAGES_PATH.get_data_path("rgb_hardest_efficient_net_v2"),
+            "texture_hardest":
+                IMAGES_PATH.get_data_path("texture_hardest_efficient_net_v2")
+        }
+    }
+
+    if network_type not in hard_samples_paths:
+        raise ValueError(f'Invalid network type: {network_type}')
+
+    return hard_samples_paths[network_type]
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -166,12 +223,15 @@ def main() -> None:
 
     :return:
     """
+
     setup_logger()
+    cfg = ConfigStreamNetwork().parse()
+    hard_sample_paths = get_paths(cfg.type_of_net)
 
     latest_neg_contour_txt, latest_neg_rgb_txt, latest_neg_texture_txt, latest_neg_lbp_txt = \
-        get_latest_txt_files("negative")
+        get_latest_txt_files(hard_sample_paths.get("hard_negative"))
     latest_pos_contour_txt, latest_pos_rgb_txt, latest_pos_texture_txt, latest_pos_lbp_txt = \
-        get_latest_txt_files("negative")
+        get_latest_txt_files(hard_sample_paths.get("hard_positive"))
 
     hardest_neg_samples_contour = process_txt(latest_neg_contour_txt)
     hardest_neg_samples_rgb = process_txt(latest_neg_rgb_txt)
@@ -195,25 +255,27 @@ def main() -> None:
 
     # Move hardest contour images
     files_to_move_contour = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_contour"))
-
-    copy_hardest_samples(new_dir=IMAGES_PATH.get_data_path("contour_hardest"),
+    copy_hardest_samples(new_dir=hard_sample_paths.get("contour_hardest"),
                          src_dir=IMAGES_PATH.get_data_path("ref_train_contour"),
                          hardest_sample_images=files_to_move_contour)
 
+    # Move hardest lbp images
+    files_to_move_lbp = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_lbp"))
+    copy_hardest_samples(new_dir=hard_sample_paths.get("lbp_hardest"),
+                         src_dir=IMAGES_PATH.get_data_path("ref_train_lbp"),
+                         hardest_sample_images=files_to_move_lbp)
+
     # Move hardest rgb images
     files_to_move_rgb = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_rgb"))
-    copy_hardest_samples(IMAGES_PATH.get_data_path("rgb_hardest"), IMAGES_PATH.get_data_path("ref_train_rgb"),
-                         files_to_move_rgb)
+    copy_hardest_samples(new_dir=hard_sample_paths.get("rgb_hardest"),
+                         src_dir=IMAGES_PATH.get_data_path("ref_train_rgb"),
+                         hardest_sample_images=files_to_move_rgb)
 
     # Move hardest texture images
     files_to_move_texture = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_texture"))
-    copy_hardest_samples(IMAGES_PATH.get_data_path("texture_hardest"), IMAGES_PATH.get_data_path("ref_train_texture"),
-                         files_to_move_texture)
-
-    # Move hardest lbp images
-    files_to_move_lbp = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_lbp"))
-    copy_hardest_samples(IMAGES_PATH.get_data_path("lbp_hardest"), IMAGES_PATH.get_data_path("ref_train_lbp"),
-                         files_to_move_lbp)
+    copy_hardest_samples(new_dir=hard_sample_paths.get("texture_hardest"),
+                         src_dir=IMAGES_PATH.get_data_path("ref_train_texture"),
+                         hardest_sample_images=files_to_move_texture)
 
 
 if __name__ == "__main__":
