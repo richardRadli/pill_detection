@@ -119,9 +119,8 @@ def copy_hardest_samples(new_dir: str, src_dir: str, hardest_sample_images: list
     """
 
     for src_paths in tqdm(hardest_sample_images, total=len(hardest_sample_images), desc=os.path.basename(new_dir)):
-        print(src_paths)
+        logging.info(f"{os.path.basename(src_paths)} has been moved!")
         source_path = os.path.join(src_dir, src_paths.split("\\")[2])
-        print(source_path)
         dest_path = src_paths.split("\\")[2]
         dest_path = os.path.join(new_dir, dest_path)
 
@@ -282,4 +281,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt as kie:
-        print(kie)
+        logging.error("Keyboard interrupt has happened!")

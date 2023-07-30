@@ -133,7 +133,7 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
+        self.parser.add_argument("--type_of_net", type=str, default="CNN",
                                  help="CNN | EfficientNet | EfficientNetV2")
         self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--num_triplets", type=int, default=4000, help="Number of triplets to be generated")
@@ -169,13 +169,13 @@ class ConfigFusionNetwork:
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2SelfAttention",
                                  help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
                                       "| EfficientNetV2MultiHeadAttention ")
-        self.parser.add_argument("--margin", type=float, default=1.0)
+        self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_split", type=float, default=0.8)
-        self.parser.add_argument("--epochs", type=int, default=30)
+        self.parser.add_argument("--epochs", type=int, default=5)
         self.parser.add_argument("--batch_size", type=int, default=128)
         self.parser.add_argument("--learning_rate", type=float, default=2e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-8)
-        self.parser.add_argument('--step_size', type=int, default=5,
+        self.parser.add_argument('--step_size', type=int, default=2,
                                  help="Number of epochs after which to decay the learning rate")
         self.parser.add_argument('--gamma', type=float, default=0.1,
                                  help="Factor by which to decay the learning rate")

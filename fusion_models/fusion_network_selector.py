@@ -16,11 +16,7 @@ class BaseNetwork(ABC):
 
 class EfficientNetSelfAttentionWrapper(BaseNetwork):
     def __init__(self):
-        self.model = EfficientNetSelfAttention(type_of_net=,
-                                               network_cfg_contour=,
-                                               network_cfg_lbp=,
-                                               network_cfg_rgb=,
-                                               network_cfg_texture=)
+        pass
 
     def forward(self, x):
         return self.model(x)

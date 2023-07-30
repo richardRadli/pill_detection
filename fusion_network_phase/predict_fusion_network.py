@@ -12,7 +12,7 @@ from config.const import IMAGES_PATH
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
 from config.network_configs import sub_stream_network_configs_training, fusion_network_config
-from fusion_models.efficient_net_self_attention import EfficientNetSelfAttention
+from fusion_models.efficient_net_v2_s_multihead_attention import EfficientNetV2MultiHeadAttention
 from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory
 
 
@@ -77,7 +77,7 @@ class PredictFusionNetwork:
         """
 
         latest_con_pt_file = find_latest_file_in_latest_directory(self.fusion_network_config.get("weights_folder"))
-        network_fusion = EfficientNetSelfAttention(type_of_net=self.cfg_stream_net.type_of_net,
+        network_fusion = EfficientNetV2MultiHeadAttention(type_of_net=self.cfg_stream_net.type_of_net,
                                                    network_cfg_contour=self.network_cfg_contour,
                                                    network_cfg_lbp=self.network_cfg_lbp,
                                                    network_cfg_rgb=self.network_cfg_rgb,
@@ -108,7 +108,6 @@ class PredictFusionNetwork:
         images_path = []
 
         self.network = self.network.to(device=self.device)
-
         for med_class in tqdm(medicine_classes, desc="Processing classes of the %s images" % operation):
             image_paths_con = os.listdir(os.path.join(contour_dir, med_class))
             image_paths_lbp = os.listdir(os.path.join(lbp_dir, med_class))

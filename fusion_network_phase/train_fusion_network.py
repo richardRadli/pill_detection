@@ -14,7 +14,7 @@ from torchsummary import summary
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
 from config.network_configs import sub_stream_network_configs_training, fusion_network_config
-from fusion_models.efficient_net_self_attention import EfficientNetSelfAttention
+from fusion_models.efficient_net_v2_s_multihead_attention import EfficientNetV2MultiHeadAttention
 from fusion_dataset_loader import FusionDataset
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
     use_gpu_if_available
@@ -62,7 +62,7 @@ class TrainFusionNet:
 
         # Initialize the fusion network
         self.model = \
-            EfficientNetSelfAttention(type_of_net=self.cfg_stream_net.type_of_net,
+            EfficientNetV2MultiHeadAttention(type_of_net=self.cfg_stream_net.type_of_net,
                                       network_cfg_contour=network_cfg_contour,
                                       network_cfg_lbp=network_cfg_lbp,
                                       network_cfg_rgb=network_cfg_rgb,
@@ -85,14 +85,14 @@ class TrainFusionNet:
         self.model.lbp_network.load_state_dict(stream_lbp_state_dict)
 
         # Freeze the weights of the stream networks
-        for param in self.model.contour_network.parameters():
-            param.requires_grad = False
-        for param in self.model.rgb_network.parameters():
-            param.requires_grad = False
-        for param in self.model.texture_network.parameters():
-            param.requires_grad = False
-        for param in self.model.lbp_network.parameters():
-            param.requires_grad = False
+        # for param in self.model.contour_network.parameters():
+        #     param.requires_grad = False
+        # for param in self.model.rgb_network.parameters():
+        #     param.requires_grad = False
+        # for param in self.model.texture_network.parameters():
+        #     param.requires_grad = False
+        # for param in self.model.lbp_network.parameters():
+        #     param.requires_grad = False
 
         # Load model and upload it to the GPU
         self.model.to(self.device)

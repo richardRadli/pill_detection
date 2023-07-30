@@ -28,20 +28,29 @@ class EfficientNetSelfAttention(nn.Module):
         self.lbp_network = NetworkFactory.create_network(type_of_net, network_cfg_lbp)
         self.rgb_network = NetworkFactory.create_network(type_of_net, network_cfg_rgb)
         self.texture_network = NetworkFactory.create_network(type_of_net, network_cfg_texture)
-        self.fc1 = nn.Linear(640, 640)
+
+        self.input_dim = (network_cfg_contour.get("channels")[4] +
+                          network_cfg_lbp.get("channels")[4] +
+                          network_cfg_rgb.get("channels")[4] +
+                          network_cfg_texture.get("channels")[4])
+
+        assert (network_cfg_contour.get("channels")[4] ==
+                network_cfg_lbp.get("channels")[4] ==
+                network_cfg_texture.get("channels")[4])
+        con_lbp_tex_dimension = network_cfg_contour.get("channels")[4]
+        rgb_dimension = network_cfg_rgb.get("channels")[4]
+
+        self.query = nn.Linear(con_lbp_tex_dimension, con_lbp_tex_dimension)
+        self.key = nn.Linear(con_lbp_tex_dimension, con_lbp_tex_dimension)
+        self.value = nn.Linear(con_lbp_tex_dimension, con_lbp_tex_dimension)
+
+        self.query_rgb = nn.Linear(rgb_dimension, rgb_dimension)
+        self.key_rgb = nn.Linear(rgb_dimension, rgb_dimension)
+        self.value_rgb = nn.Linear(rgb_dimension, rgb_dimension)
+
+        self.fc1 = nn.Linear(self.input_dim, self.input_dim)
         self.dropout = nn.Dropout(p=0.5)
-        self.fc2 = nn.Linear(640, 640)
-
-        self.input_dim = 640
-        self.query = nn.Linear(128, 128)
-        self.key = nn.Linear(128, 128)
-        self.value = nn.Linear(128, 128)
-
-        self.query_rgb = nn.Linear(256, 256)
-        self.key_rgb = nn.Linear(256, 256)
-        self.value_rgb = nn.Linear(256, 256)
-
-        self.multi_head_attention = nn.MultiheadAttention(embed_dim=640, num_heads=4)
+        self.fc2 = nn.Linear(self.input_dim, self.input_dim)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
@@ -76,6 +85,12 @@ class EfficientNetSelfAttention(nn.Module):
         return x
 
     def self_attention(self, x):
+        """
+
+        :param x:
+        :return:
+        """
+
         queries = self.query(x)
         keys = self.key(x)
         values = self.value(x)
@@ -92,6 +107,12 @@ class EfficientNetSelfAttention(nn.Module):
         return weighted.squeeze(1)
 
     def self_attention_rgb(self, x):
+        """
+
+        :param x:
+        :return:
+        """
+
         queries = self.query_rgb(x)
         keys = self.key_rgb(x)
         values = self.value_rgb(x)
