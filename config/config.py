@@ -133,7 +133,7 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_net", type=str, default="CNN",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
                                  help="CNN | EfficientNet | EfficientNetV2")
         self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--num_triplets", type=int, default=4000, help="Number of triplets to be generated")
