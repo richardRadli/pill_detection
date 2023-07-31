@@ -14,7 +14,7 @@ from torchsummary import summary
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
 from config.network_configs import sub_stream_network_configs_training, fusion_network_config
-from fusion_models.efficient_net_v2_s_multihead_attention import EfficientNetV2MultiHeadAttention
+from fusion_models.fusion_network_selector import NetworkFactory
 from fusion_dataset_loader import FusionDataset
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
     use_gpu_if_available
@@ -61,12 +61,12 @@ class TrainFusionNet:
         self.valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg_fusion_net.batch_size, shuffle=True)
 
         # Initialize the fusion network
-        self.model = \
-            EfficientNetV2MultiHeadAttention(type_of_net=self.cfg_stream_net.type_of_net,
-                                      network_cfg_contour=network_cfg_contour,
-                                      network_cfg_lbp=network_cfg_lbp,
-                                      network_cfg_rgb=network_cfg_rgb,
-                                      network_cfg_texture=network_cfg_texture)
+        self.model = NetworkFactory.create_network(fusion_network_type=self.cfg_fusion_net.type_of_net,
+                                                   type_of_net=self.cfg_stream_net.type_of_net,
+                                                   network_cfg_contour=network_cfg_contour,
+                                                   network_cfg_lbp=network_cfg_lbp,
+                                                   network_cfg_rgb=network_cfg_rgb,
+                                                   network_cfg_texture=network_cfg_texture)
 
         # Load the saved state dictionaries of the stream networks
         stream_con_state_dict = \

@@ -12,7 +12,7 @@ from config.const import IMAGES_PATH
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
 from config.network_configs import sub_stream_network_configs_training, fusion_network_config
-from fusion_models.efficient_net_v2_s_multihead_attention import EfficientNetV2MultiHeadAttention
+from fusion_models.fusion_network_selector import NetworkFactory
 from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory
 
 
@@ -77,11 +77,12 @@ class PredictFusionNetwork:
         """
 
         latest_con_pt_file = find_latest_file_in_latest_directory(self.fusion_network_config.get("weights_folder"))
-        network_fusion = EfficientNetV2MultiHeadAttention(type_of_net=self.cfg_stream_net.type_of_net,
-                                                   network_cfg_contour=self.network_cfg_contour,
-                                                   network_cfg_lbp=self.network_cfg_lbp,
-                                                   network_cfg_rgb=self.network_cfg_rgb,
-                                                   network_cfg_texture=self.network_cfg_texture)
+        network_fusion = NetworkFactory.create_network(fusion_network_type=self.cfg_fusion_net.type_of_net,
+                                                       type_of_net=self.cfg_stream_net.type_of_net,
+                                                       network_cfg_contour=self.network_cfg_contour,
+                                                       network_cfg_lbp=self.network_cfg_lbp,
+                                                       network_cfg_rgb=self.network_cfg_rgb,
+                                                       network_cfg_texture=self.network_cfg_texture)
         network_fusion.load_state_dict(torch.load(latest_con_pt_file))
 
         return network_fusion
