@@ -20,6 +20,8 @@ def sub_stream_network_configs_training(cfg) -> Dict:
         "Contour": {
             "channels":
                 [1, 32, 48, 64, 128, 192, 256],
+            "embedded_dim":
+                1000,
             "train_dataset_dir":
                 IMAGES_PATH.get_data_path("ref_train_contour"),
             "valid_dataset_dir":
@@ -78,6 +80,8 @@ def sub_stream_network_configs_training(cfg) -> Dict:
         "LBP": {
             "channels":
                 [1, 32, 48, 64, 128, 192, 256],
+            "embedded_dim":
+                1000,
             "train_dataset_dir":
                 IMAGES_PATH.get_data_path("ref_train_lbp"),
             "valid_dataset_dir":
@@ -136,6 +140,8 @@ def sub_stream_network_configs_training(cfg) -> Dict:
         "RGB": {
             "channels":
                 [3, 64, 96, 128, 256, 384, 512],
+            "embedded_dim":
+                1000,
             "train_dataset_dir":
                 IMAGES_PATH.get_data_path("ref_train_rgb"),
             "valid_dataset_dir":
@@ -194,6 +200,8 @@ def sub_stream_network_configs_training(cfg) -> Dict:
         "Texture": {
             "channels":
                 [1, 32, 48, 64, 128, 192, 256],
+            "embedded_dim":
+                1000,
             "train_dataset_dir":
                 IMAGES_PATH.get_data_path("ref_train_texture"),
             "valid_dataset_dir":
@@ -265,7 +273,10 @@ def sub_stream_network_config_inference(cfg) -> Dict:
 
     network_config = {
         "Contour": {
-            "channels": [1, 32, 48, 64, 128, 192, 256],
+            "channels":
+                [1, 32, 48, 64, 128, 192, 256],
+            "embedded_dim":
+                1000,
             "model_weights_dir": {
                 "CNN":
                     DATA_PATH.get_data_path("weights_cnn_network_contour"),
@@ -286,7 +297,10 @@ def sub_stream_network_config_inference(cfg) -> Dict:
         },
 
         "LBP": {
-            "channels": [1, 32, 48, 64, 128, 192, 256],
+            "channels":
+                [1, 32, 48, 64, 128, 192, 256],
+            "embedded_dim":
+                1000,
             "model_weights_dir": {
                 "CNN":
                     DATA_PATH.get_data_path("weights_cnn_network_lbp"),
@@ -307,7 +321,10 @@ def sub_stream_network_config_inference(cfg) -> Dict:
         },
 
         "RGB": {
-            "channels": [3, 64, 96, 128, 256, 384, 512],
+            "channels":
+                [3, 64, 96, 128, 256, 384, 512],
+            "embedded_dim":
+                1000,
             "model_weights_dir": {
                 "CNN":
                     DATA_PATH.get_data_path("weights_cnn_network_rgb"),
@@ -328,7 +345,10 @@ def sub_stream_network_config_inference(cfg) -> Dict:
         },
 
         "Texture": {
-            "channels": [1, 32, 48, 64, 128, 192, 256],
+            "channels":
+                [1, 32, 48, 64, 128, 192, 256],
+            "embedded_dim":
+                1000,
             "model_weights_dir": {
                 "CNN":
                     DATA_PATH.get_data_path("weights_cnn_network_texture"),

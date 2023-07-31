@@ -22,10 +22,10 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
         self.rgb_network = NetworkFactory.create_network(type_of_net, network_cfg_rgb)
         self.texture_network = NetworkFactory.create_network(type_of_net, network_cfg_texture)
 
-        self.multi_head_con = nn.MultiheadAttention(embed_dim=network_cfg_contour.get("channels")[4], num_heads=4)
-        self.multi_head_lbp = nn.MultiheadAttention(embed_dim=network_cfg_lbp.get("channels")[4], num_heads=4)
-        self.multi_head_rgb = nn.MultiheadAttention(embed_dim=network_cfg_rgb.get("channels")[4], num_heads=4)
-        self.multi_head_tex = nn.MultiheadAttention(embed_dim=network_cfg_texture.get("channels")[4], num_heads=4)
+        self.multi_head_con = nn.MultiheadAttention(embed_dim=network_cfg_contour.get("embedded_dim"), num_heads=4)
+        self.multi_head_lbp = nn.MultiheadAttention(embed_dim=network_cfg_lbp.get("embedded_dim"), num_heads=4)
+        self.multi_head_rgb = nn.MultiheadAttention(embed_dim=network_cfg_rgb.get("embedded_dim"), num_heads=4)
+        self.multi_head_tex = nn.MultiheadAttention(embed_dim=network_cfg_texture.get("embedded_dim"), num_heads=4)
 
         self.multi_head_modules = {
             "contour": self.multi_head_con,
@@ -34,10 +34,10 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
             "texture": self.multi_head_tex
         }
 
-        input_dim = (network_cfg_contour.get("channels")[4] +
-                     network_cfg_lbp.get("channels")[4] +
-                     network_cfg_rgb.get("channels")[4] +
-                     network_cfg_texture.get("channels")[4])
+        input_dim = (network_cfg_contour.get("embedded_dim") +
+                     network_cfg_lbp.get("embedded_dim") +
+                     network_cfg_rgb.get("embedded_dim") +
+                     network_cfg_texture.get("embedded_dim"))
 
         self.fc1 = nn.Linear(input_dim, input_dim)
         self.dropout = nn.Dropout(p=0.5)

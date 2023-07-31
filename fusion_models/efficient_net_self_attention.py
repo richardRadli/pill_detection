@@ -29,16 +29,16 @@ class EfficientNetSelfAttention(nn.Module):
         self.rgb_network = NetworkFactory.create_network(type_of_net, network_cfg_rgb)
         self.texture_network = NetworkFactory.create_network(type_of_net, network_cfg_texture)
 
-        self.input_dim = (network_cfg_contour.get("channels")[4] +
-                          network_cfg_lbp.get("channels")[4] +
-                          network_cfg_rgb.get("channels")[4] +
-                          network_cfg_texture.get("channels")[4])
+        self.input_dim = (network_cfg_contour.get("embedded_dim") +
+                          network_cfg_lbp.get("embedded_dim") +
+                          network_cfg_rgb.get("embedded_dim") +
+                          network_cfg_texture.get("embedded_dim"))
 
-        assert (network_cfg_contour.get("channels")[4] ==
-                network_cfg_lbp.get("channels")[4] ==
-                network_cfg_texture.get("channels")[4])
-        con_lbp_tex_dimension = network_cfg_contour.get("channels")[4]
-        rgb_dimension = network_cfg_rgb.get("channels")[4]
+        assert (network_cfg_contour.get("embedded_dim") ==
+                network_cfg_lbp.get("embedded_dim") ==
+                network_cfg_texture.get("embedded_dim"))
+        con_lbp_tex_dimension = network_cfg_contour.get("embedded_dim")
+        rgb_dimension = network_cfg_rgb.get("embedded_dim")
 
         self.query = nn.Linear(con_lbp_tex_dimension, con_lbp_tex_dimension)
         self.key = nn.Linear(con_lbp_tex_dimension, con_lbp_tex_dimension)

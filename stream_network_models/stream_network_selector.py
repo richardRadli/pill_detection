@@ -27,7 +27,7 @@ class StreamNetworkWrapper(BaseNetwork):
 
 class EfficientNetWrapper(BaseNetwork):
     def __init__(self, network_cfg):
-        self.model = EfficientNet(num_out_feature=network_cfg.get('channels')[4],
+        self.model = EfficientNet(num_out_feature=network_cfg.get('embedded_dim'),
                                   grayscale=network_cfg.get('grayscale'))
 
     def forward(self, x):
@@ -37,7 +37,7 @@ class EfficientNetWrapper(BaseNetwork):
 class EfficientNetV2Wrapper(BaseNetwork):
     def __init__(self, network_cfg):
         self.model = \
-            EfficientNetV2SelfAttention(num_out_feature=network_cfg.get("channels")[4],
+            EfficientNetV2SelfAttention(num_out_feature=network_cfg.get("embedded_dim"),
                                         grayscale=network_cfg.get('grayscale'))
 
     def forward(self, x):
