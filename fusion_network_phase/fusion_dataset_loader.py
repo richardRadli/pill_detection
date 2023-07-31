@@ -8,6 +8,7 @@ from torchvision.transforms import transforms
 from typing import Tuple
 
 from config.const import IMAGES_PATH
+from config.config import ConfigStreamNetwork
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -23,6 +24,8 @@ class FusionDataset(Dataset):
 
         :return: None
         """
+
+        cfg = ConfigStreamNetwork().parse()
 
         self.label_to_indices = None
         self.labels = None
@@ -54,10 +57,11 @@ class FusionDataset(Dataset):
         ])
 
         # Load datasets
-        self.contour_dataset = self.load_dataset(IMAGES_PATH.get_data_path("contour_hardest_efficient_net_v2"))
-        self.lbp_dataset = self.load_dataset(IMAGES_PATH.get_data_path("lbp_hardest_efficient_net_v2"))
-        self.rgb_dataset = self.load_dataset(IMAGES_PATH.get_data_path("rgb_hardest_efficient_net_v2"))
-        self.texture_dataset = self.load_dataset(IMAGES_PATH.get_data_path("texture_hardest_efficient_net_v2"))
+        selected_network_config = self.path_selector(cfg)
+        self.contour_dataset = self.load_dataset(selected_network_config.get("hardest_contour_directory"))
+        self.lbp_dataset = self.load_dataset(selected_network_config.get("hardest_lbp_directory"))
+        self.rgb_dataset = self.load_dataset(selected_network_config.get("hardest_rgb_directory"))
+        self.texture_dataset = self.load_dataset(selected_network_config.get("hardest_lbp_directory"))
         self.labels_set = set(label for _, label in self.rgb_dataset)
         self.prepare_labels()
 
@@ -191,3 +195,45 @@ class FusionDataset(Dataset):
         for i in range(len(self.labels)):
             label = self.labels[i]
             self.label_to_indices[label].append(i)
+
+    @staticmethod
+    def path_selector(cfg):
+        network_type = cfg.type_of_net
+
+        network_config = {
+            'CNN': {
+                'hardest_contour_directory':
+                    IMAGES_PATH.get_data_path("contour_hardest_cnn_network"),
+                'hardest_lbp_directory':
+                    IMAGES_PATH.get_data_path("lbp_hardest_cnn_network"),
+                'hardest_rgb_directory':
+                    IMAGES_PATH.get_data_path("rgb_hardest_cnn_network"),
+                'hardest_texture_directory':
+                    IMAGES_PATH.get_data_path("texture_hardest_cnn_network")
+            },
+            'EfficientNet': {
+                'hardest_contour_directory':
+                    IMAGES_PATH.get_data_path("contour_hardest_efficient_net"),
+                'hardest_lbp_directory':
+                    IMAGES_PATH.get_data_path("lbp_hardest_efficient_net"),
+                'hardest_rgb_directory':
+                    IMAGES_PATH.get_data_path("rgb_hardest_efficient_net"),
+                'hardest_texture_directory':
+                    IMAGES_PATH.get_data_path("texture_hardest_efficient_net")
+            },
+            'EfficientNetV2': {
+                'hardest_contour_directory':
+                    IMAGES_PATH.get_data_path("contour_hardest_efficient_net_v2"),
+                'hardest_lbp_directory':
+                    IMAGES_PATH.get_data_path("lbp_hardest_efficient_net_v2"),
+                'hardest_rgb_directory':
+                    IMAGES_PATH.get_data_path("rgb_hardest_efficient_net_v2"),
+                'hardest_texture_directory':
+                    IMAGES_PATH.get_data_path("texture_hardest_efficient_net_v2")
+            }
+        }
+
+        if network_type not in network_config:
+            raise ValueError(f'Invalid network type: {network_type}')
+
+        return network_config[network_type]

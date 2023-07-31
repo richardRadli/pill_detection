@@ -96,6 +96,7 @@ class Images(_Const):
             "images/query/texture",
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
+        # CNN
         "contour_hardest_cnn_network":
             "images/hardest_samples/cnn_network/contour_hardest",
         "lbp_hardest_cnn_network":
@@ -104,7 +105,7 @@ class Images(_Const):
             "images/hardest_samples/cnn_network/rgb_hardest",
         "texture_hardest_cnn_network":
             "images/hardest_samples/cnn_network/texture_hardest",
-
+        # EfficientNet b0
         "contour_hardest_efficient_net":
             "images/hardest_samples/efficient_net/contour_hardest",
         "lbp_hardest_efficient_net":
@@ -113,7 +114,7 @@ class Images(_Const):
             "images/hardest_samples/efficient_net/rgb_hardest",
         "texture_hardest_efficient_net":
             "images/hardest_samples/efficient_net/texture_hardest",
-
+        # EfficientNetV2 small
         "contour_hardest_efficient_net_v2":
             "images/hardest_samples/efficient_net_v2/contour_hardest",
         "lbp_hardest_efficient_net_v2":
