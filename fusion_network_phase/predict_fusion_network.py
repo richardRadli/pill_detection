@@ -1,3 +1,4 @@
+import colorama
 import numpy as np
 import os
 import pandas as pd
@@ -29,6 +30,9 @@ class PredictFusionNetwork:
 
         # Load config
         self.cfg_fusion_net = ConfigFusionNetwork().parse()
+
+        # Set up tqdm colours
+        colorama.init()
 
         # Create time stamp
         self.timestamp = create_timestamp()
@@ -107,9 +111,10 @@ class PredictFusionNetwork:
         vectors = []
         labels = []
         images_path = []
+        color = colorama.Fore.BLUE if operation == "query" else colorama.Fore.RED
 
         self.network = self.network.to(device=self.device)
-        for med_class in tqdm(medicine_classes, desc="Processing classes of the %s images" % operation):
+        for med_class in tqdm(medicine_classes, desc=color + "Processing classes of the %s images" % operation):
             image_paths_con = os.listdir(os.path.join(contour_dir, med_class))
             image_paths_lbp = os.listdir(os.path.join(lbp_dir, med_class))
             image_paths_rgb = os.listdir(os.path.join(rgb_dir, med_class))
@@ -175,7 +180,7 @@ class PredictFusionNetwork:
         query_vectors_tensor = torch.stack([torch.as_tensor(vec).to(self.device) for vec in query_vectors])
 
         for idx_query, query_vector in tqdm(enumerate(query_vectors_tensor), total=len(query_vectors_tensor),
-                                            desc="Comparing process"):
+                                            desc=colorama.Fore.WHITE + "Comparing process"):
             scores_e = torch.norm(query_vector - reference_vectors_tensor, dim=1)
 
             # Move scores to CPU for further processing

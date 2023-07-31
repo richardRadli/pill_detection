@@ -85,26 +85,6 @@ class ConfigTestingUnet:
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++ C O N F I G   T R A I N I N G +++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class ConfigTrainingMaskRCNN:
-    def __init__(self):
-        self.opt = None
-        self.parser = argparse.ArgumentParser()
-
-        self.parser.add_argument('--epochs', type=int, default=200, help='Number of epochs')
-        self.parser.add_argument('--batch_size', type=int, default=1, help='Batch size')
-        self.parser.add_argument('--learning_rate', type=float, default=1e-5, help='Learning rate')
-        self.parser.add_argument('--weight_decay', type=float, default=1e-8)
-        self.parser.add_argument('--img_scale', '-s', type=float, default=0.4, help='Downscaling factor of the images')
-        self.parser.add_argument('--num_of_classes', type=int, default=2)
-
-    def parse(self):
-        self.opt = self.parser.parse_args()
-        return self.opt
-
-
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++ C O N F I G   G E N E R A L +++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class ConfigGeneral:
@@ -133,7 +113,7 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_net", type=str, default="CNN",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
                                  help="CNN | EfficientNet | EfficientNetV2")
         self.parser.add_argument("--type_of_stream", type=str, default="Contour", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--num_triplets", type=int, default=3000, help="Number of triplets to be generated")
@@ -166,7 +146,7 @@ class ConfigFusionNetwork:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument("--type_of_net", type=str, default="CNNFusionNet",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetSelfAttention",
                                  help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
                                       "| EfficientNetV2MultiHeadAttention ")
         self.parser.add_argument("--margin", type=float, default=0.5)

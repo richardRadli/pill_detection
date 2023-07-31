@@ -7,6 +7,7 @@ Date: Apr 12, 2023
 Description:
 """
 
+import colorama
 import json
 import logging
 import numpy as np
@@ -40,6 +41,9 @@ class TrainModel:
 
         # Set up configuration
         self.cfg = ConfigStreamNetwork().parse()
+
+        # Set up tqdm colour
+        colorama.init()
 
         # Print network configurations
         print_network_config(self.cfg)
@@ -171,10 +175,11 @@ class TrainModel:
         best_valid_loss = float('inf')
         best_model_path = None
 
-        for epoch in tqdm(range(self.cfg.epochs), desc="Epochs"):
+        for epoch in tqdm(range(self.cfg.epochs), desc=colorama.Fore.GREEN + "Epochs"):
             # Train loop
             for idx, (anchor, positive, negative, negative_img_path, positive_img_path) in \
-                    tqdm(enumerate(self.train_data_loader), total=len(self.train_data_loader), desc="Train"):
+                    tqdm(enumerate(self.train_data_loader), total=len(self.train_data_loader),
+                         desc=colorama.Fore.CYAN + "Train"):
                 # Upload data to the GPU
                 anchor = anchor.to(self.device)
                 positive = positive.to(self.device)
@@ -206,7 +211,7 @@ class TrainModel:
             with torch.no_grad():
                 for idx, (anchor, positive, negative, _, _) in tqdm(enumerate(self.valid_data_loader),
                                                                     total=len(self.valid_data_loader),
-                                                                    desc="Validation"):
+                                                                    desc=colorama.Fore.MAGENTA + "Validation"):
                     # Upload data to GPU
                     anchor = anchor.to(self.device)
                     positive = positive.to(self.device)

@@ -7,6 +7,7 @@ Date: Apr 12, 2023
 Description:
 """
 
+import colorama
 import logging
 import numpy as np
 import os
@@ -41,6 +42,9 @@ class PredictStreamNetwork:
 
         # Load config
         self.cfg = ConfigStreamNetwork().parse()
+
+        # Set up tqmd colours
+        colorama.init()
 
         # Create time stamp
         self.timestamp = create_timestamp()
@@ -123,6 +127,7 @@ class PredictStreamNetwork:
         """
         logging.info("Processing %s images" % operation)
 
+        color = colorama.Fore.BLUE if operation == "query" else colorama.Fore.RED
         medicine_classes = os.listdir(rgb_dir)
         vectors = []
         labels = []
@@ -134,7 +139,7 @@ class PredictStreamNetwork:
         self.network_rgb = self.network_rgb.to(self.device)
         self.network_tex = self.network_tex.to(self.device)
 
-        for image_name in tqdm(medicine_classes, desc="\nProcess %s images" % operation):
+        for image_name in tqdm(medicine_classes, desc=color + "\nProcess %s images" % operation):
             # Collecting images
             image_paths_con = os.listdir(os.path.join(contour_dir, image_name))
             image_paths_rgb = os.listdir(os.path.join(rgb_dir, image_name))

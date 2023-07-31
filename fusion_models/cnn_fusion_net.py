@@ -21,10 +21,10 @@ class CNNFusionNet(nn.Module):
         self.rgb_network = NetworkFactory.create_network(type_of_net, network_cfg_rgb)
         self.texture_network = NetworkFactory.create_network(type_of_net, network_cfg_texture)
 
-        self.input_dim = (network_cfg_contour.get("embedded_dim") +
-                          network_cfg_lbp.get("embedded_dim") +
-                          network_cfg_rgb.get("embedded_dim") +
-                          network_cfg_texture.get("embedded_dim"))
+        self.input_dim = (network_cfg_contour.get("channels")[4] +
+                          network_cfg_lbp.get("channels")[4] +
+                          network_cfg_rgb.get("channels")[4] +
+                          network_cfg_texture.get("channels")[4])
 
         self.fc1 = nn.Linear(self.input_dim, self.input_dim)
         self.dropout = nn.Dropout(p=0.5)
