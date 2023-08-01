@@ -14,7 +14,8 @@ from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.logger_setup import setup_logger
 from config.network_configs import sub_stream_network_configs_training, fusion_network_config
 from fusion_models.fusion_network_selector import NetworkFactory
-from utils.utils import use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory
+from utils.utils import (use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory,
+                         plot_ref_query_images)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -146,6 +147,11 @@ class PredictFusionNetwork:
 
                 vectors.append(vector)
                 labels.append(med_class)
+
+            if operation == "reference":
+                torch.save({"vectors": vectors, "labels": labels, "images_path": images_path},
+                           os.path.join(self.fusion_network_config.get("ref_vectors_folder"),
+                                        self.timestamp + "_ref_vectors.pt"))
 
         return vectors, labels, images_path
 
@@ -280,8 +286,8 @@ class PredictFusionNetwork:
 
         gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vectors, query_vectors)
 
-        # plot_ref_query_images(indices=indices, q_images_path=q_images_path, r_images_path=r_images_path, gt=gt,
-        #                       pred_ed=pred_ed, out_path=self.main_network_config.get("plotting_folder"))
+        plot_ref_query_images(indices=indices, q_images_path=q_images_path, r_images_path=r_images_path, gt=gt,
+                              pred_ed=pred_ed, out_path=self.fusion_network_config.get("plotting_folder"))
 
 
 if __name__ == "__main__":

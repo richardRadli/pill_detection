@@ -49,8 +49,6 @@ class EfficientNetSelfAttention(nn.Module):
         self.value_rgb = nn.Linear(rgb_dimension, rgb_dimension)
 
         self.fc1 = nn.Linear(self.input_dim, self.input_dim)
-        self.dropout = nn.Dropout(p=0.5)
-        self.fc2 = nn.Linear(self.input_dim, self.input_dim)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
@@ -79,8 +77,6 @@ class EfficientNetSelfAttention(nn.Module):
 
         x = torch.cat((x1, x2, x3, x4), dim=1)
         x = self.fc1(x)
-        x = self.dropout(x)
-        x = self.fc2(x)
 
         return x
 
@@ -95,16 +91,7 @@ class EfficientNetSelfAttention(nn.Module):
         keys = self.key(x)
         values = self.value(x)
 
-        keys = keys.unsqueeze(2)
-        values = values.unsqueeze(1)
-        queries = queries.unsqueeze(1)
-
-        result = torch.bmm(queries, keys)
-        scores = result / (self.input_dim ** 0.5)
-        attention = torch.softmax(scores, dim=2)
-        weighted = torch.bmm(attention, values)
-
-        return weighted.squeeze(1)
+        return self.self_attention_module(keys, values, queries)
 
     def self_attention_rgb(self, x):
         """
@@ -116,6 +103,17 @@ class EfficientNetSelfAttention(nn.Module):
         queries = self.query_rgb(x)
         keys = self.key_rgb(x)
         values = self.value_rgb(x)
+
+        return self.self_attention_module(keys, values, queries)
+
+    def self_attention_module(self, keys, values, queries):
+        """
+
+        :param keys:
+        :param values:
+        :param queries:
+        :return:
+        """
 
         keys = keys.unsqueeze(2)
         values = values.unsqueeze(1)

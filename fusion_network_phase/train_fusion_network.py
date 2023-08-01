@@ -1,3 +1,4 @@
+import colorama
 import logging
 
 import numpy as np
@@ -34,6 +35,10 @@ class TrainFusionNet:
         self.cfg_fusion_net = ConfigFusionNetwork().parse()
         self.cfg_stream_net = ConfigStreamNetwork().parse()
 
+        # Set up tqdm colours
+        colorama.init()
+
+        # Set up networks
         network_type = self.cfg_fusion_net.type_of_net
         main_network_config = fusion_network_config(network_type=network_type)
         subnetwork_config = sub_stream_network_configs_training(self.cfg_stream_net)
@@ -85,14 +90,14 @@ class TrainFusionNet:
         self.model.lbp_network.load_state_dict(stream_lbp_state_dict)
 
         # Freeze the weights of the stream networks
-        # for param in self.model.contour_network.parameters():
-        #     param.requires_grad = False
-        # for param in self.model.rgb_network.parameters():
-        #     param.requires_grad = False
-        # for param in self.model.texture_network.parameters():
-        #     param.requires_grad = False
-        # for param in self.model.lbp_network.parameters():
-        #     param.requires_grad = False
+        for param in self.model.contour_network.parameters():
+            param.requires_grad = False
+        for param in self.model.rgb_network.parameters():
+            param.requires_grad = False
+        for param in self.model.texture_network.parameters():
+            param.requires_grad = False
+        for param in self.model.lbp_network.parameters():
+            param.requires_grad = False
 
         # Load model and upload it to the GPU
         self.model.to(self.device)
@@ -112,7 +117,7 @@ class TrainFusionNet:
         self.criterion = nn.TripletMarginLoss(margin=self.cfg_fusion_net.margin)
 
         # Specify optimizer
-        self.optimizer = torch.optim.Adam(params=list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
+        self.optimizer = torch.optim.Adam(params=list(self.model.fc1.parameters()),
                                           lr=self.cfg_fusion_net.learning_rate,
                                           weight_decay=self.cfg_fusion_net.weight_decay)
 
@@ -145,10 +150,11 @@ class TrainFusionNet:
         best_valid_loss = float('inf')
         best_model_path = None
 
-        for epoch in tqdm(range(self.cfg_fusion_net.epochs), desc="Epochs"):
+        for epoch in tqdm(range(self.cfg_fusion_net.epochs), desc=colorama.Fore.LIGHTGREEN_EX + "Epochs"):
             # Train loop
             for a_con, a_lbp, a_rgb, a_tex, p_con, p_lbp, p_rgb, p_tex, n_con, n_lbp, n_rgb, n_tex in \
-                    tqdm(self.train_data_loader, total=len(self.train_data_loader), desc="Training"):
+                    tqdm(self.train_data_loader, total=len(self.train_data_loader),
+                         desc=colorama.Fore.LIGHTCYAN_EX + "Training"):
                 # Uploading data to the GPU
                 anchor_contour = a_con.to(self.device)
                 positive_contour = p_con.to(self.device)
@@ -186,7 +192,8 @@ class TrainFusionNet:
             # Validation loop
             with torch.no_grad():
                 for a_con, a_lbp, a_rgb, a_tex, p_con, p_lbp, p_rgb, p_tex, n_con, n_lbp, n_rgb, n_tex in \
-                        tqdm(self.valid_data_loader, total=len(self.valid_data_loader), desc="Validation"):
+                        tqdm(self.valid_data_loader, total=len(self.valid_data_loader),
+                             desc=colorama.Fore.LIGHTMAGENTA_EX + "Validation"):
                     # Uploading data to the GPU
                     anchor_contour = a_con.to(self.device)
                     positive_contour = p_con.to(self.device)

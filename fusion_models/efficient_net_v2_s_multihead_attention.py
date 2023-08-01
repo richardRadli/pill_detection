@@ -40,8 +40,6 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
                      network_cfg_texture.get("embedded_dim"))
 
         self.fc1 = nn.Linear(input_dim, input_dim)
-        self.dropout = nn.Dropout(p=0.5)
-        self.fc2 = nn.Linear(input_dim, input_dim)
 
     def forward(self, x1, x2, x3, x4):
         """
@@ -67,8 +65,6 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
 
         x = torch.cat((x1, x2, x3, x4), dim=1)
         x = self.fc1(x)
-        x = self.dropout(x)
-        x = self.fc2(x)
 
         return x
 
