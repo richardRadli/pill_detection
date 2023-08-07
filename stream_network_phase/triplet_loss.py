@@ -1,3 +1,12 @@
+"""
+File: triplet_loss.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description: This code implements the triplet loss.
+"""
+
 import torch
 import torch.nn.functional as functional
 
@@ -52,7 +61,6 @@ class TripletLossWithHardMining(torch.nn.Module):
             else:
                 hard_neg_idx = torch.argmax(dist_neg[i, candidate_idxs])
             hard_neg.append(negative[candidate_idxs[hard_neg_idx]].unsqueeze(0))
-        # hard_neg = torch.cat([x for x in hard_neg if x is not None], dim=0)
         hard_neg = [x for x in hard_neg if x is not None and x.shape[0] != 0]
         if hard_neg:
             hard_neg = torch.cat(hard_neg, dim=0)
@@ -77,7 +85,6 @@ class TripletLossWithHardMining(torch.nn.Module):
                 hard_pos.append(positive[candidate_idxs[hard_pos_idx]].unsqueeze(0))
 
         # Combine the hardest negative and hardest positive samples into a single tensor
-        # hard_pos = torch.cat([x for x in hard_pos if x is not None], dim=0)
         hard_pos = [x for x in hard_pos if x is not None and x.shape[0] != 0]
         if hard_pos:
             hard_pos = torch.cat(hard_pos, dim=0)

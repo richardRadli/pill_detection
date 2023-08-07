@@ -4,7 +4,7 @@ Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Apr 12, 2023
 
-Description:
+Description: This code implements the inference for the stream network phase.
 """
 
 import colorama
@@ -124,6 +124,7 @@ class PredictStreamNetwork:
         :param operation: name of the operation being performed
         :return: tuple containing three lists - vectors, labels, and images_path
         """
+
         logging.info("Processing %s images" % operation)
 
         color = colorama.Fore.BLUE if operation == "query" else colorama.Fore.RED
@@ -205,6 +206,7 @@ class PredictStreamNetwork:
         :return: the original query labels, predicted medicine labels, indices of the most similar medicines in the
         reference set, and mAP
         """
+
         logging.info("Comparing query and reference vectors")
 
         similarity_scores_euc_dist = []

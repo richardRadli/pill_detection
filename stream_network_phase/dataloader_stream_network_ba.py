@@ -1,3 +1,12 @@
+"""
+File: dataloader_stream_network_ba.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description: The program creates the different images (contour, lbp, rgb, texture) for the substreams.
+"""
+
 import numpy as np
 import os
 import random
@@ -14,6 +23,15 @@ from torchvision.transforms import transforms
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class StreamDataset(Dataset):
     def __init__(self, dataset_dirs: List[str], type_of_stream: str, image_size: int, num_triplets: int = -1) -> None:
+        """
+        Initialize the StreamDataset class.
+
+        :param dataset_dirs: A list of directory paths containing the dataset.
+        :param type_of_stream: The type of stream (RGB, Contour, Texture, LBP).
+        :param image_size: The size of the images.
+        :param num_triplets: The number of triplets to generate (-1 means all possible triplets).
+        """
+
         self.labels_set = None
         self.label_to_indices = None
         self.labels = None
@@ -45,8 +63,9 @@ class StreamDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     def load_dataset(self) -> List[Tuple[str, str]]:
         """
+        Load the dataset from the specified directory paths.
 
-        :return:
+        :return: A list of tuples containing the image paths and their corresponding labels.
         """
 
         dataset = []
@@ -81,9 +100,10 @@ class StreamDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     def generate_triplets(self, num_triplets: int = 1000) -> List[Tuple[int, int, int]]:
         """
+        Generate triplets of indices for anchor, positive, and negative images.
 
-        :param num_triplets:
-        :return:
+        :param num_triplets: The number of triplets to generate.
+        :return: A list of triplets, where each triplet contains the indices of anchor, positive, and negative images.
         """
 
         triplets = []

@@ -4,7 +4,7 @@ Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Apr 12, 2023
 
-Description:
+Description: This code implements the training for the stream network phase.
 """
 
 import colorama

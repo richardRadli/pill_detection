@@ -1,3 +1,12 @@
+"""
+File: create_stream_images.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description: The program creates the different images (contour, lbp, rgb, texture) for the substreams.
+"""
+
 import cv2
 import logging
 import numpy as np
