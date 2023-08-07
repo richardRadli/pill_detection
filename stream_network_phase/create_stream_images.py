@@ -12,8 +12,7 @@ from typing import Tuple
 
 from config.const import DATASET_PATH, IMAGES_PATH
 from config.config import ConfigGeneral
-from config.logger_setup import setup_logger
-from utils.utils import measure_execution_time, numerical_sort
+from utils.utils import measure_execution_time, numerical_sort, setup_logger
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

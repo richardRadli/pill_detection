@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from config.const import DATA_PATH, IMAGES_PATH
 from config.config import ConfigStreamNetwork
-from config.logger_setup import setup_logger
+from utils.utils import setup_logger
 
 
 # ----------------------------------------------------------------------------------------------------------------------

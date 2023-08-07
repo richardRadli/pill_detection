@@ -1,6 +1,18 @@
+"""
+File: config.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description: The program holds the configurations for different python files.
+"""
+
 import argparse
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++ C O N F I G   A U G M E N T A T I O N +++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class ConfigAugmentation:
     def __init__(self):
         self.opt = None
@@ -140,7 +152,7 @@ class ConfigStreamNetwork:
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++ C O N F I G   S T R E A M   N E T W O R K +++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++ C O N F I G   F U S I O N   N E T W O R K +++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class ConfigFusionNetwork:
     def __init__(self):
@@ -157,8 +169,7 @@ class ConfigFusionNetwork:
         self.parser.add_argument("--weight_decay", type=float, default=1e-8)
         self.parser.add_argument('--step_size', type=int, default=2,
                                  help="Number of epochs after which to decay the learning rate")
-        self.parser.add_argument('--gamma', type=float, default=0.1,
-                                 help="Factor by which to decay the learning rate")
+        self.parser.add_argument('--gamma', type=float, default=0.1, help="Factor by which to decay the learning rate")
 
     def parse(self):
         self.opt = self.parser.parse_args()

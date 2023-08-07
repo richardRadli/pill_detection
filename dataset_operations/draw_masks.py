@@ -19,13 +19,13 @@ from tqdm import tqdm
 from typing import Tuple, List, Dict
 
 from config.const import DATASET_PATH
-from config.logger_setup import setup_logger
+from utils.utils import setup_logger
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------- P A T H   S E L E C T O R -----------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def path_selector(operation):
+def path_selector(operation: str):
     """
     Selects the correct directory paths based on the given operation string.
 

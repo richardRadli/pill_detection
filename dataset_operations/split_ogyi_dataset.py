@@ -16,7 +16,7 @@ from typing import Dict, List, Tuple
 
 from config.const import DATASET_PATH
 from config.config import ConfigGeneral
-from config.logger_setup import setup_logger
+from utils.utils import setup_logger
 
 cfg = ConfigGeneral().parse()
 

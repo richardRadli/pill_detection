@@ -1,11 +1,36 @@
-import os
+"""
+File: convert_bbox_to_yolo.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Jul 04, 2023
+
+Description: This program converts bbox annotations to yolo format.
+"""
+
+
 import cv2
+import numpy as np
+import os
 
 from glob import glob
 from tqdm import tqdm
 
 
-def get_bounding_box(mask):
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------ G E T   B O U N D I N G   B O X -------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def get_bounding_box(mask: np.ndarray):
+    """
+    Get the bounding box coordinates of the largest contour in a binary mask.
+
+    Args:
+        mask: Binary mask image.
+
+    Returns:
+        Tuple of (x_min, y_min, x_max, y_max) representing the bounding box coordinates.
+        Returns None if no contours are found.
+    """
+
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if len(contours) > 0:
         x, y, w, h = cv2.boundingRect(contours[0])
@@ -13,7 +38,21 @@ def get_bounding_box(mask):
     return None
 
 
-def masks_to_yolo_format(masks_dir, output_dir):
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------- M A S K   T O   Y O L O   F O R M A T -----------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def masks_to_yolo_format(masks_dir: str, output_dir: str):
+    """
+    Convert mask images to YOLO format annotations.
+
+    Args:
+        masks_dir (str): Directory containing mask images.
+        output_dir (str): Directory to save the YOLO annotation files.
+
+    Returns:
+        None
+    """
+
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
 
@@ -49,7 +88,20 @@ def masks_to_yolo_format(masks_dir, output_dir):
     print('Conversion completed.')
 
 
-def display_annotations(image_path, annotation_path):
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------- D I S P L A Y   A N N O T A T I O N S -----------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def display_annotations(image_path: str, annotation_path: str):
+    """
+    Display annotated images with bounding box rectangles.
+
+    Args:
+        image_path: Path to the directory containing the images.
+        annotation_path: Path to the directory containing the annotation files.
+    Returns:
+        None
+    """
+
     images = sorted(glob(image_path + "*.png"))
     annotationz = sorted(glob(annotation_path + "*.txt"))
 
@@ -83,7 +135,15 @@ def display_annotations(image_path, annotation_path):
         cv2.destroyAllWindows()
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------- M A I N --------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def main():
+    """
+    The main function, executes the functions.
+    :return:
+    """
+
     # Example usage
     masks_directory = "C:/Users/ricsi/Desktop/train/masks/"
     output_directory = "C:/Users/ricsi/Desktop/train/labels/"  # Replace with your desired output directory
@@ -91,5 +151,8 @@ def main():
     display_annotations(masks_directory, output_directory)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------- __M A I N__ ------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     main()

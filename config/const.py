@@ -1,7 +1,17 @@
+"""
+File: const.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description: The program stores the const values of different variables. There is a main class, named _Const(), and 3
+other classes are inherited from that (Images, Data, Dataset).
+"""
+
 import logging
 import os
 
-from config.logger_setup import setup_logger
+from utils.utils import setup_logger
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -105,6 +115,7 @@ class Images(_Const):
             "images/hardest_samples/cnn_network/rgb_hardest",
         "texture_hardest_cnn_network":
             "images/hardest_samples/cnn_network/texture_hardest",
+
         # EfficientNet b0
         "contour_hardest_efficient_net":
             "images/hardest_samples/efficient_net/contour_hardest",
@@ -114,6 +125,7 @@ class Images(_Const):
             "images/hardest_samples/efficient_net/rgb_hardest",
         "texture_hardest_efficient_net":
             "images/hardest_samples/efficient_net/texture_hardest",
+
         # EfficientNetV2 small
         "contour_hardest_efficient_net_v2":
             "images/hardest_samples/efficient_net_v2/contour_hardest",
@@ -329,6 +341,9 @@ class Data(_Const):
         return os.path.join(self.PROJECT_ROOT, self.dirs_data.get(key, ""))
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++++++++++++++++++++++ D A T A S E T ++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Datasets(_Const):
     dirs_dataset = {
         # C U R E

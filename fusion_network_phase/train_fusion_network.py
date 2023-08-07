@@ -13,12 +13,11 @@ from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
-from config.logger_setup import setup_logger
-from config.network_configs import sub_stream_network_configs_training, fusion_network_config
+from config.network_configs import sub_stream_network_configs, fusion_network_config
 from fusion_models.fusion_network_selector import NetworkFactory
 from fusion_dataset_loader import FusionDataset
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
-    use_gpu_if_available
+    use_gpu_if_available, setup_logger
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -41,7 +40,7 @@ class TrainFusionNet:
         # Set up networks
         network_type = self.cfg_fusion_net.type_of_net
         main_network_config = fusion_network_config(network_type=network_type)
-        subnetwork_config = sub_stream_network_configs_training(self.cfg_stream_net)
+        subnetwork_config = sub_stream_network_configs(self.cfg_stream_net)
         network_cfg_contour = subnetwork_config.get("Contour")
         network_cfg_lbp = subnetwork_config.get("LBP")
         network_cfg_rgb = subnetwork_config.get("RGB")

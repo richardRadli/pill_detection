@@ -8,9 +8,8 @@ Description: This program reads in images and their corresponding YOLO format an
 annotations on the images in order to check the correctness of the annotations.
 """
 
-import logging
-
 import cv2
+import logging
 import numpy as np
 import os
 
@@ -18,9 +17,9 @@ from glob import glob
 from tqdm import tqdm
 from typing import List
 
-from config.logger_setup import setup_logger
 from config.const import DATA_PATH, IMAGES_PATH
 from convert_segmentation_to_yolo import convert_yolo_format_to_pixels, read_yolo_annotations_to_list
+from utils.utils import setup_logger
 
 
 # ----------------------------------------------------------------------------------------------------------------------

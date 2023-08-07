@@ -11,11 +11,10 @@ from PIL import Image
 
 from config.const import IMAGES_PATH
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
-from config.logger_setup import setup_logger
-from config.network_configs import sub_stream_network_configs_training, fusion_network_config
+from config.network_configs import sub_stream_network_configs, fusion_network_config
 from fusion_models.fusion_network_selector import NetworkFactory
 from utils.utils import (use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory,
-                         plot_ref_query_images)
+                         plot_ref_query_images, setup_logger)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -48,7 +47,7 @@ class PredictFusionNetwork:
         # Load networks
         self.fusion_network_config = fusion_network_config(network_type=self.cfg_fusion_net.type_of_net)
         self.cfg_stream_net = ConfigStreamNetwork().parse()
-        subnetwork_config = sub_stream_network_configs_training(self.cfg_stream_net)
+        subnetwork_config = sub_stream_network_configs(self.cfg_stream_net)
         self.network_cfg_contour = subnetwork_config.get("Contour")
         self.network_cfg_lbp = subnetwork_config.get("LBP")
         self.network_cfg_rgb = subnetwork_config.get("RGB")

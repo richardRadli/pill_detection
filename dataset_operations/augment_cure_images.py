@@ -1,16 +1,36 @@
+"""
+File: augment_cure_images.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Jun 27, 2023
+
+Description: The program  augments images for the CURE dataset. It can split the dataset, augment it and change
+background on the images.
+"""
+
 import os
 import random
 
 from tqdm import tqdm
 
-from config.const import DATASET_PATH
-from config.logger_setup import setup_logger
 from augmentation_utils import change_brightness, gaussian_smooth, rotate_image, create_directories, shift_image, \
     zoom_in_object, change_white_balance, flip_image, change_background_dtd
+from config.const import DATASET_PATH
+from utils.utils import setup_logger
 
 
 class AugmentCUREDataset:
     def __init__(self):
+        """
+        Initialize the AugmentCUREDataset object.
+
+        - Set up the logger.
+        - Set the paths for dataset, masks, backgrounds, training images, training masks, test images, and test masks.
+        - Set the number of training and test classes.
+        - Get the list of all images and collect the unique classes.
+        - Split the classes into training and test sets.
+        """
+
         setup_logger()
 
         self.dataset_path = DATASET_PATH.get_data_path("cure_customer")
@@ -45,11 +65,12 @@ class AugmentCUREDataset:
     # ------------------------------------------------------------------------------------------------------------------
     def main(self, split_dataset: bool, do_aug: bool, change_background: bool) -> None:
         """
+        Perform the main operations for augmenting the CURE dataset.
 
-        :param split_dataset:
-        :param do_aug:
-        :param change_background:
-        :return:
+        :param split_dataset: Flag indicating whether to split the dataset into training and test sets.
+        :param do_aug: Flag indicating whether to perform data augmentation.
+        :param change_background: Flag indicating whether to change the background of the images.
+        :return: None
         """
 
         if split_dataset:

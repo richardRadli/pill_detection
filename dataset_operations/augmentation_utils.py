@@ -1,3 +1,12 @@
+"""
+File: augmentation_utils.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Jul 05, 2023
+
+Description: The program stores the functions for the augmentation process.
+"""
+
 import cv2
 import gc
 import logging
@@ -330,7 +339,15 @@ def flip_image(image_path: str, aug_path: str, flip_direction: str, mask_path: s
 # ------------------------------------------------------------------------------------------------------------------
 def change_background_dtd(image_path: str, mask_path: str, backgrounds_path: str) -> None:
     """
+    Change the background of an image using images from a specified directory.
 
+    Args:
+        image_path (str): Path to the input image.
+        mask_path (str): Path to the mask image.
+        backgrounds_path (str): Path to the directory containing background images.
+
+    Returns:
+        None
     """
 
     image = cv2.imread(image_path)
@@ -441,6 +458,7 @@ def abs_diff_images(empty_tray_image_path: str, aug_tray_img_w_pill_aug: str, sa
         aug_tray_img_w_pill_aug (str): Path to the tray with pill image.
         save_results (bool): Either save the results (three images next to each other) or not.
         save_path (str): Path to the saving location.
+        save_plots_path (str): Path to save the plots.
     """
 
     img1 = cv2.imread(empty_tray_image_path, 1)

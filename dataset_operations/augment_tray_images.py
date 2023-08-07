@@ -1,3 +1,12 @@
+"""
+File: augment_tray_images.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Jul 04, 2023
+
+Description: The program creates the augmented tray images in four phases.
+"""
+
 import logging
 import os
 import random
@@ -5,15 +14,26 @@ import re
 
 from tqdm import tqdm
 
-from config.config import ConfigAugmentation
-from config.const import DATASET_PATH
-from config.logger_setup import setup_logger
 from augmentation_utils import gaussian_smooth, change_brightness, rotate_image, shift_image, abs_diff_images, \
     change_white_balance, copy_original_images, create_directories, flip_image, place_medicine_on_tray
+from config.config import ConfigAugmentation
+from config.const import DATASET_PATH
+from utils.utils import setup_logger
 
 
 class AugmentTrayImages:
     def __init__(self):
+        """
+        Initialize the AugmentTrayImages object.
+
+        - Set up the logger.
+        - Parse the configuration for augmentation.
+        - Set the paths for tray images, augmented tray images, augmented tray images with medicine,
+          augmented tray images with medicine and additional augmentation, difference images, and plots.
+        - Set the paths for medicine images and medicine masks.
+        - Get the list of all images and collect the unique classes.
+        """
+
         setup_logger()
 
         self.cfg = ConfigAugmentation().parse()
@@ -66,11 +86,11 @@ class AugmentTrayImages:
         Main function of the program. Executes the pipeline.
 
         Args:
-            create_class_dirs (bool):
-            first_phase (bool):
-            second_phase (bool):
-            third_phase (bool):
-            fourth_phase (bool):
+            create_class_dirs (bool): Flag indicating whether to create class directories.
+            first_phase (bool): Flag indicating whether to perform the first phase of augmentation.
+            second_phase (bool): Flag indicating whether to perform the second phase of augmentation.
+            third_phase (bool): Flag indicating whether to perform the third phase of augmentation.
+            fourth_phase (bool): Flag indicating whether to perform the fourth phase of augmentation.
         """
 
         if create_class_dirs:
@@ -175,6 +195,9 @@ class AugmentTrayImages:
                                             save_plots_path=self.plots)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------- __M A I N__ -------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
         aug = AugmentTrayImages()

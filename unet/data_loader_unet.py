@@ -12,7 +12,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from config.logger_setup import setup_logger
+from utils.utils import setup_logger
 
 
 class BasicDataset(Dataset):

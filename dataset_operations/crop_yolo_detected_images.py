@@ -1,3 +1,12 @@
+"""
+File: crop_yolo_detect_images.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Jul 15, 2023
+
+Description: Crop images based on bounding box annotations and save the cropped images.
+"""
+
 import cv2
 import os
 
@@ -7,7 +16,16 @@ from tqdm import tqdm
 from config.const import DATASET_PATH
 
 
-def display_annotations(image_path, annotation_path, out_path):
+def display_annotations(image_path: str, annotation_path: str, out_path: str):
+    """
+    Crop images based on bounding box annotations and save the cropped images.
+
+    :param image_path: Path to the directory containing the images.
+    :param annotation_path: Path to the directory containing the annotation files.
+    :param out_path: Path to the directory where the cropped images will be saved.
+    :return: None
+    """
+
     images = sorted(glob(image_path + "/*.png"))
 
     for img in tqdm(images, total=len(images)):

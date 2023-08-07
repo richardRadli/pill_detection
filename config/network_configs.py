@@ -1,3 +1,13 @@
+"""
+File: network_configs.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Jul 10, 2023
+
+Description:
+The program holds the different configurations for the substream network, stream network and fusion network.
+"""
+
 import logging
 
 from typing import Dict
@@ -8,15 +18,16 @@ from config.const import DATA_PATH, IMAGES_PATH
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------- S U B N E T W O R K   C O N F I G S   T R A I N I N G -------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def sub_stream_network_configs_training(cfg) -> Dict:
+def sub_stream_network_configs(cfg) -> Dict:
     """
-    Returns the dictionary containing the configuration details for the three different subnetworks
-    (RGB, Texture, and Contour) used in the TripletLossModel.
+    Returns the dictionary containing the configuration details for the four different subnetworks
+    (Contour, LBP, RGB, Texture) used in the StreamNetwork phase.
 
-    :return: A dictionary containing the configuration details for the three subnetworks.
+    :return: A dictionary containing the configuration details for the four subnetworks.
     """
 
     network_config = {
+        # ----------------------------------------------- C O N T O U R ------------------------------------------------
         "Contour": {
             "channels":
                 [1, 32, 48, 64, 128, 192, 256],
@@ -76,7 +87,7 @@ def sub_stream_network_configs_training(cfg) -> Dict:
             }.get(cfg.type_of_net, cfg.img_size_cnn),
             "grayscale": True
         },
-
+        # --------------------------------------------------- L B P ----------------------------------------------------
         "LBP": {
             "channels":
                 [1, 32, 48, 64, 128, 192, 256],
@@ -136,7 +147,7 @@ def sub_stream_network_configs_training(cfg) -> Dict:
             }.get(cfg.type_of_net, cfg.img_size_cnn),
             "grayscale": True
         },
-
+        # --------------------------------------------------- R G B ----------------------------------------------------
         "RGB": {
             "channels":
                 [3, 64, 96, 128, 256, 384, 512],
@@ -196,7 +207,7 @@ def sub_stream_network_configs_training(cfg) -> Dict:
             }.get(cfg.type_of_net, cfg.img_size_cnn),
             "grayscale": False
         },
-
+        # ----------------------------------------------- T E X T U R E ------------------------------------------------
         "Texture": {
             "channels":
                 [1, 32, 48, 64, 128, 192, 256],
@@ -261,124 +272,13 @@ def sub_stream_network_configs_training(cfg) -> Dict:
     return network_config
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------- S U B N E T W O R K   C O N F I G S   I N F E R E N C E ------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def sub_stream_network_config_inference(cfg) -> Dict:
-    """
-    Returns the configuration of subnetworks
-
-    :return: dictionary containing subnetwork configuration
-    """
-
-    network_config = {
-        "Contour": {
-            "channels":
-                [1, 32, 48, 64, 128, 192, 256],
-            "embedded_dim":
-                1000,
-            "model_weights_dir": {
-                "CNN":
-                    DATA_PATH.get_data_path("weights_cnn_network_contour"),
-                "EfficientNet":
-                    DATA_PATH.get_data_path("weights_efficient_net_contour"),
-                "EfficientNetV2":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_contour")
-            }.get(cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_contour")),
-            "image_size": {
-                "CNN":
-                    cfg.img_size_cnn,
-                "EfficientNet":
-                    cfg.img_size_en,
-                "EfficientNetV2":
-                    cfg.img_size_en
-            }.get(cfg.type_of_net, cfg.img_size_cnn),
-            "grayscale": True
-        },
-
-        "LBP": {
-            "channels":
-                [1, 32, 48, 64, 128, 192, 256],
-            "embedded_dim":
-                1000,
-            "model_weights_dir": {
-                "CNN":
-                    DATA_PATH.get_data_path("weights_cnn_network_lbp"),
-                "EfficientNet":
-                    DATA_PATH.get_data_path("weights_efficient_net_lbp"),
-                "EfficientNetV2":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_lbp")
-            }.get(cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_lbp")),
-            "image_size": {
-                "CNN":
-                    cfg.img_size_cnn,
-                "EfficientNet":
-                    cfg.img_size_en,
-                "EfficientNetV2":
-                    cfg.img_size_en
-            }.get(cfg.type_of_net, cfg.img_size_cnn),
-            "grayscale": True
-        },
-
-        "RGB": {
-            "channels":
-                [3, 64, 96, 128, 256, 384, 512],
-            "embedded_dim":
-                1000,
-            "model_weights_dir": {
-                "CNN":
-                    DATA_PATH.get_data_path("weights_cnn_network_rgb"),
-                "EfficientNet":
-                    DATA_PATH.get_data_path("weights_efficient_net_rgb"),
-                "EfficientNetV2":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_rgb")
-            }.get(cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_rgb")),
-            "image_size": {
-                "CNN":
-                    cfg.img_size_cnn,
-                "EfficientNet":
-                    cfg.img_size_en,
-                "EfficientNetV2":
-                    cfg.img_size_en
-            }.get(cfg.type_of_net, cfg.img_size_cnn),
-            "grayscale": False
-        },
-
-        "Texture": {
-            "channels":
-                [1, 32, 48, 64, 128, 192, 256],
-            "embedded_dim":
-                1000,
-            "model_weights_dir": {
-                "CNN":
-                    DATA_PATH.get_data_path("weights_cnn_network_texture"),
-                "EfficientNet":
-                    DATA_PATH.get_data_path("weights_efficient_net_texture"),
-                "EfficientNetV2":
-                    DATA_PATH.get_data_path("weights_efficient_net_v2_texture")
-            }.get(cfg.type_of_net, DATA_PATH.get_data_path("weights_cnn_network_texture")),
-            "image_size": {
-                "CNN":
-                    cfg.img_size_cnn,
-                "EfficientNet":
-                    cfg.img_size_en,
-                "EfficientNetV2":
-                    cfg.img_size_en
-            }.get(cfg.type_of_net, cfg.img_size_cnn),
-            "grayscale": True
-        },
-    }
-
-    return network_config
-
-
 # ------------------------------------------------------------------------------------------------------------------
 # ---------------------------------- G E T   M A I N   N E T W O R K   C O N F I G ---------------------------------
 # ------------------------------------------------------------------------------------------------------------------
 def stream_network_config_inference(cfg) -> Dict:
     """
-    Returns a dictionary containing the prediction and plotting folder paths for different types of networks
-    based on the type_of_net parameter in cfg.
+    Returns a dictionary containing the prediction, plotting, and reference vectors folder paths for different types of
+    networks based on the type_of_net parameter in cfg.
     :return: Dictionary containing the prediction and plotting folder paths.
     """
 
@@ -420,6 +320,12 @@ def stream_network_config_inference(cfg) -> Dict:
 # ------------------------ M A I N   N E T W O R K   C O N F I G   F U S I O N   T R A I N I N G -----------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def fusion_network_config(network_type) -> Dict:
+    """
+    Returns a dictionary containing the prediction, plotting, and reference vectors folder paths for different types of
+    networks based on the type_of_net parameter in cfg.
+    :return: Dictionary containing the prediction and plotting folder paths.
+    """
+
     network_configs = {
         'CNNFusionNet': {
             'logs_folder':

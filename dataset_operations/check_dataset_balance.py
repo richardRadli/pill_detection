@@ -1,3 +1,12 @@
+"""
+File: check_dataset_balance.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: May 03, 2023
+
+Description: The program checks the balance of the datasets.
+"""
+
 import logging
 import matplotlib.pyplot as plt
 import os
@@ -5,8 +14,8 @@ import pandas as pd
 
 from typing import Dict
 
-from config.logger_setup import setup_logger
 from config.const import DATASET_PATH
+from utils.utils import setup_logger
 
 
 # ------------------------------------------------------------------------------------------------------------------

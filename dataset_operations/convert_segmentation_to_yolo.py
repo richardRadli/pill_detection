@@ -20,9 +20,12 @@ from typing import List, Tuple
 from glob import glob
 from tqdm import tqdm
 
-from config.logger_setup import setup_logger
+from utils.utils import setup_logger
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------ C O N V E R T   Y O L O   F O R M A T   T O   P I X E L S -----------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def convert_yolo_format_to_pixels(image: np.ndarray, annotation: list) -> list:
     """
     Converts YOLO format annotation to pixel coordinates based on the provided image.
@@ -44,6 +47,9 @@ def convert_yolo_format_to_pixels(image: np.ndarray, annotation: list) -> list:
     return annotation_points
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------- C O N V E R T   C O O R D I N A T E S   T O   O R I G I N A L S --------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def convert_coordinates_to_original(cropped_coordinates: Tuple[int, int], cropped_width: int, cropped_height: int,
                                     original_width: int, original_height: int) -> Tuple[int, int]:
     """
@@ -74,6 +80,9 @@ def convert_coordinates_to_original(cropped_coordinates: Tuple[int, int], croppe
     return original_x, original_y
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------ C O N V E R T   P I X E L S   T O   Y O L O   F O R M A T -----------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def convert_pixels_to_yolo_format(image_width: int, image_height: int, coordinates: List[Tuple[int, int]],
                                   class_id: int) -> List[float]:
     """
@@ -94,6 +103,9 @@ def convert_pixels_to_yolo_format(image_width: int, image_height: int, coordinat
     return yolo_coordinates
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------- R E A D   I M A G E   T O   L I S T -----------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def read_image_to_list(dir_train_images: str) -> List[str]:
     """
     Reads image files from a directory and its subdirectories.
@@ -114,6 +126,9 @@ def read_image_to_list(dir_train_images: str) -> List[str]:
     return file_names
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------ R E A D   Y O L O   A N N O T A T I O N S   T O   L I S T -----------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def read_yolo_annotations_to_list(yolo_dir: str) -> List[str]:
     """
     Reads image files from a directory.
@@ -131,6 +146,9 @@ def read_yolo_annotations_to_list(yolo_dir: str) -> List[str]:
     return file_names
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------- S A V E   T E X T   T O   F I L E ------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def save_text_to_file(data_list: List[float], file_path: str) -> None:
     """
     Saves a list of data to a text file.
@@ -145,6 +163,9 @@ def save_text_to_file(data_list: List[float], file_path: str) -> None:
             file.write(str(item) + "\n")
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------ C R E A T E   S U B D I R S   A N D   C O P Y   F I L E S -----------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def create_subdirectories_and_copy_files(source_dir: str, target_dir: str) -> None:
     """
     Creates subdirectories in the target directory and copies corresponding files from the source directory.
@@ -178,6 +199,9 @@ def create_subdirectories_and_copy_files(source_dir: str, target_dir: str) -> No
                     logging.error(fnfe)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------- P R O C E S S   I M A G E ----------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def process_image(main_dir: str, ori: str, cropped: str, yolo_annotation: str) -> None:
     """
     Process an image by reading the cropped and original images, converting annotations, and saving the result.
@@ -212,6 +236,9 @@ def process_image(main_dir: str, ori: str, cropped: str, yolo_annotation: str) -
                       file_path=os.path.join(main_dir, "train_labels_undistorted", os.path.basename(yolo_annotation)))
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------ M A I N -------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def main():
     # Set up logger
     setup_logger()
@@ -244,6 +271,9 @@ def main():
     create_subdirectories_and_copy_files(images_dir, labels_dir)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------- __M A I N__ -----------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
         main()
