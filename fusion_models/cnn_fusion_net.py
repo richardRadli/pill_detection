@@ -1,3 +1,12 @@
+"""
+File: cnn_fusion_net.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Jul 30, 2023
+
+Description: The program implements the CNN Fusion Net.
+"""
+
 import torch
 import torch.nn as nn
 
@@ -5,15 +14,18 @@ from stream_network_models.stream_network_selector import NetworkFactory
 
 
 class CNNFusionNet(nn.Module):
-    def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture) -> None:
+    def __init__(self, type_of_net: str, network_cfg_contour: dict, network_cfg_lbp: dict,
+                 network_cfg_rgb: dict, network_cfg_texture: dict) -> None:
         """
-        This is the __init__ function of the FusionNet.
+        This is the initialization function of the FusionNet class.
 
-        :param type_of_net:
-        :param network_cfg_contour:
-        :param network_cfg_lbp:
-        :param network_cfg_rgb:
+        :param type_of_net: Type of network to create.
+        :param network_cfg_contour: Configuration for the contour network.
+        :param network_cfg_lbp: Configuration for the LBP network.
+        :param network_cfg_rgb: Configuration for the RGB network.
+        :param network_cfg_texture: Configuration for the texture network.
         """
+
         super(CNNFusionNet, self).__init__()
 
         self.contour_network = NetworkFactory.create_network(type_of_net, network_cfg_contour)
@@ -33,7 +45,17 @@ class CNNFusionNet(nn.Module):
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def forward(self, x1, x2, x3, x4) -> torch.Tensor:
+    def forward(self, x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass of the FusionNet.
+
+        :param x1: Input tensor for the contour network.
+        :param x2: Input tensor for the LBP network.
+        :param x3: Input tensor for the RGB network.
+        :param x4: Input tensor for the texture network.
+        :return: Output tensor after fusion and fully connected layers.
+        """
+
         x1 = self.contour_network(x1)
         x2 = self.lbp_network(x2)
         x3 = self.rgb_network(x3)

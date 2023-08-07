@@ -1,3 +1,12 @@
+"""
+File: efficient_net_self_attention.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description: The program implements the EfficientNet with Fusion Net.
+"""
+
 import torch
 import torch.nn as nn
 
@@ -5,21 +14,22 @@ from stream_network_models.stream_network_selector import NetworkFactory
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++ F U S I O N   N E T +++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++ E F F I C I E N T N E T S E L F A T T E N T I O N +++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class EfficientNetSelfAttention(nn.Module):
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- __ I N I T __ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture) -> None:
+    def __init__(self, type_of_net: str, network_cfg_contour: dict, network_cfg_lbp: dict,
+                 network_cfg_rgb: dict, network_cfg_texture: dict) -> None:
         """
-        This is the __init__ function of the FusionNet.
+        This is the initialization function of the EfficientNetSelfAttention class.
 
-        :param type_of_net:
-        :param network_cfg_contour:
-        :param network_cfg_lbp:
-        :param network_cfg_rgb:
-        :param network_cfg_texture:
+        :param type_of_net: Type of network to create.
+        :param network_cfg_contour: Configuration for the contour network.
+        :param network_cfg_lbp: Configuration for the LBP network.
+        :param network_cfg_rgb: Configuration for the RGB network.
+        :param network_cfg_texture: Configuration for the texture network.
         """
 
         super(EfficientNetSelfAttention, self).__init__()
@@ -53,7 +63,7 @@ class EfficientNetSelfAttention(nn.Module):
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def forward(self, x1, x2, x3, x4) -> torch.Tensor:
+    def forward(self, x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor) -> torch.Tensor:
         """
         This is the forward function of the FusionNet.
 
@@ -62,7 +72,7 @@ class EfficientNetSelfAttention(nn.Module):
         :param x3: input tensor for texture stream, with shape [batch_size, 1, height, width]
         :param x4: input tensor for LBP stream, with shape [batch_size, 1, height, width]
 
-        :return: output tensor with shape [batch_size, 640] after passing through fully connected layers.
+        :return: output tensor with shape [batch_size, 640] after passing through fully connected layer.
         """
 
         x1 = self.contour_network(x1)
@@ -80,11 +90,15 @@ class EfficientNetSelfAttention(nn.Module):
 
         return x
 
-    def self_attention(self, x):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------- S E L F   A T T E N T I O N ------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def self_attention(self, x: torch.Tensor) -> torch.Tensor:
         """
+        Apply self-attention mechanism to the input tensor.
 
-        :param x:
-        :return:
+        :param x: Input tensor with shape [batch_size, embedded_dim].
+        :return: Output tensor after applying self-attention with shape [batch_size, embedded_dim].
         """
 
         queries = self.query(x)
@@ -93,11 +107,15 @@ class EfficientNetSelfAttention(nn.Module):
 
         return self.self_attention_module(keys, values, queries)
 
-    def self_attention_rgb(self, x):
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------- S E L F   A T T E N T I O N   R G B --------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def self_attention_rgb(self, x: torch.Tensor):
         """
+        Apply self-attention mechanism to the input tensor.
 
-        :param x:
-        :return:
+        :param x: Input tensor with shape [batch_size, embedded_dim].
+        :return: Output tensor after applying self-attention with shape [batch_size, embedded_dim].
         """
 
         queries = self.query_rgb(x)
@@ -106,13 +124,17 @@ class EfficientNetSelfAttention(nn.Module):
 
         return self.self_attention_module(keys, values, queries)
 
-    def self_attention_module(self, keys, values, queries):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------ S E L F   A T T E N T I O N   M O D U L E -----------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def self_attention_module(self, keys: torch.Tensor, values: torch.Tensor, queries: torch.Tensor) -> torch.Tensor:
         """
+        Apply self-attention mechanism to the input tensors.
 
-        :param keys:
-        :param values:
-        :param queries:
-        :return:
+        :param keys: Tensor with shape [batch_size, embedded_dim, 1].
+        :param values: Tensor with shape [batch_size, 1, embedded_dim].
+        :param queries: Tensor with shape [batch_size, 1, embedded_dim].
+        :return: Output tensor after applying self-attention with shape [batch_size, embedded_dim].
         """
 
         keys = keys.unsqueeze(2)

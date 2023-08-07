@@ -1,20 +1,32 @@
+"""
+File: efficient_net_v2_s_multihead_attention.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Jul 19, 2023
+
+Description: The program implements the EfficientNetV2 small multi-head attention with Fusion Net.
+"""
+
 import torch
 import torch.nn as nn
 
 from stream_network_models.stream_network_selector import NetworkFactory
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++ E F F I C I E N T N E T V 2 M U L T I H E A D A T T E N T I O N +++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class EfficientNetV2MultiHeadAttention(nn.Module):
     def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture) -> None:
         """
+        This is the initialization function of the EfficientNetV2MultiHeadAttention class.
 
-        :param type_of_net:
-        :param network_cfg_contour:
-        :param network_cfg_lbp:
-        :param network_cfg_rgb:
-        :param network_cfg_texture:
+        :param type_of_net: Type of network to create.
+        :param network_cfg_contour: Configuration for the contour network.
+        :param network_cfg_lbp: Configuration for the LBP network.
+        :param network_cfg_rgb: Configuration for the RGB network.
+        :param network_cfg_texture: Configuration for the texture network.
         """
-
         super(EfficientNetV2MultiHeadAttention, self).__init__()
 
         self.contour_network = NetworkFactory.create_network(type_of_net, network_cfg_contour)
@@ -41,7 +53,10 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
 
         self.fc1 = nn.Linear(input_dim, input_dim)
 
-    def forward(self, x1, x2, x3, x4):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------- F O R W A R D --------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def forward(self, x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor):
         """
         This is the forward function of the FusionNet.
 
@@ -68,7 +83,18 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
 
         return x
 
-    def multi_head_attention(self, x, sub_stream: str):
+    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------- M U L T I H E A D A T T E N T I O N ---------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def multi_head_attention(self, x: torch.Tensor, sub_stream: str):
+        """
+        This function implements the multi-head attention
+
+        :param x: Input tensor
+        :param sub_stream: type of sub stream
+        :return:
+        """
+
         if len(x.shape) == 2:
             x = x.unsqueeze(2).unsqueeze(3)
 
@@ -84,6 +110,6 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
             raise ValueError("Invalid sub_stream value. I")
 
         attention_output, _ = multi_head_module(queries, keys, values)
-
         attention_output = attention_output.permute(1, 0, 2)
+
         return attention_output.squeeze(1)
