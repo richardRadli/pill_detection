@@ -1,3 +1,12 @@
+"""
+File: predict_fusion_network.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 18, 2023
+
+Description: This program implements the prediction for fusion networks.
+"""
+
 import colorama
 import numpy as np
 import os
@@ -68,6 +77,7 @@ class PredictFusionNetwork:
                                 transforms.Grayscale(),
                                 transforms.ToTensor()])
 
+        # Select device
         self.device = use_gpu_if_available()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -289,6 +299,9 @@ class PredictFusionNetwork:
                               pred_ed=pred_ed, out_path=self.fusion_network_config.get("plotting_folder"))
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------- __M A I N__ -----------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
         pfn = PredictFusionNetwork()

@@ -275,7 +275,7 @@ def sub_stream_network_configs(cfg) -> Dict:
 # ------------------------------------------------------------------------------------------------------------------
 # ---------------------------------- G E T   M A I N   N E T W O R K   C O N F I G ---------------------------------
 # ------------------------------------------------------------------------------------------------------------------
-def stream_network_config_inference(cfg) -> Dict:
+def stream_network_config(cfg) -> Dict:
     """
     Returns a dictionary containing the prediction, plotting, and reference vectors folder paths for different types of
     networks based on the type_of_net parameter in cfg.
@@ -291,7 +291,19 @@ def stream_network_config_inference(cfg) -> Dict:
             'plotting_folder':
                 IMAGES_PATH.get_data_path("plotting_cnn_network"),
             'ref_vectors_folder':
-                DATA_PATH.get_data_path("reference_vectors_cnn_network")
+                DATA_PATH.get_data_path("reference_vectors_cnn_network"),
+            'hardest_contour_directory':
+                IMAGES_PATH.get_data_path("contour_hardest_cnn_network"),
+            'hardest_lbp_directory':
+                IMAGES_PATH.get_data_path("lbp_hardest_cnn_network"),
+            'hardest_rgb_directory':
+                IMAGES_PATH.get_data_path("rgb_hardest_cnn_network"),
+            'hardest_texture_directory':
+                IMAGES_PATH.get_data_path("texture_hardest_cnn_network"),
+            'hard_negative':
+                DATA_PATH.get_data_path("negative_cnn_network"),
+            'hard_positive':
+                DATA_PATH.get_data_path("positive_cnn_network")
         },
         'EfficientNet': {
             'prediction_folder':
@@ -299,7 +311,19 @@ def stream_network_config_inference(cfg) -> Dict:
             'plotting_folder':
                 IMAGES_PATH.get_data_path("plotting_efficient_net"),
             'ref_vectors_folder':
-                DATA_PATH.get_data_path("reference_vectors_efficient_net")
+                DATA_PATH.get_data_path("reference_vectors_efficient_net"),
+            'hardest_contour_directory':
+                IMAGES_PATH.get_data_path("contour_hardest_efficient_net"),
+            'hardest_lbp_directory':
+                IMAGES_PATH.get_data_path("lbp_hardest_efficient_net"),
+            'hardest_rgb_directory':
+                IMAGES_PATH.get_data_path("rgb_hardest_efficient_net"),
+            'hardest_texture_directory':
+                IMAGES_PATH.get_data_path("texture_hardest_efficient_net"),
+            'hard_negative':
+                DATA_PATH.get_data_path("negative_efficient_net"),
+            'hard_positive':
+                DATA_PATH.get_data_path("positive_efficient_net")
         },
         'EfficientNetV2': {
             'prediction_folder':
@@ -307,7 +331,19 @@ def stream_network_config_inference(cfg) -> Dict:
             'plotting_folder':
                 IMAGES_PATH.get_data_path("plotting_efficient_net_v2"),
             'ref_vectors_folder':
-                DATA_PATH.get_data_path("reference_vectors_efficient_net_v2")
+                DATA_PATH.get_data_path("reference_vectors_efficient_net_v2"),
+            'hardest_contour_directory':
+                IMAGES_PATH.get_data_path("contour_hardest_efficient_net_v2"),
+            'hardest_lbp_directory':
+                IMAGES_PATH.get_data_path("lbp_hardest_efficient_net_v2"),
+            'hardest_rgb_directory':
+                IMAGES_PATH.get_data_path("rgb_hardest_efficient_net_v2"),
+            'hardest_texture_directory':
+                IMAGES_PATH.get_data_path("texture_hardest_efficient_net_v2"),
+            'hard_negative':
+                DATA_PATH.get_data_path("negative_efficient_net_v2"),
+            'hard_positive':
+                DATA_PATH.get_data_path("positive_efficient_net_v2")
         }
     }
     if network_type not in network_configs:

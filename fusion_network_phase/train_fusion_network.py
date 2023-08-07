@@ -1,6 +1,14 @@
+"""
+File: predict_fusion_network.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description: This program implements the training for fusion networks.
+"""
+
 import colorama
 import logging
-
 import numpy as np
 import os
 import torch
