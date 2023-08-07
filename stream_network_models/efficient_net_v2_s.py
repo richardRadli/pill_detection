@@ -1,3 +1,12 @@
+"""
+File: efficient_net_v2_s.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Jul 07, 2023
+
+Description: The program implements the EfficientNet V2 s with custom linear layer.
+"""
+
 import torch
 import torch.nn as nn
 import torchvision.models as models

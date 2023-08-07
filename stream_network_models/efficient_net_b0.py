@@ -1,3 +1,12 @@
+"""
+File: efficient_net_b0.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: May 06, 2023
+
+Description: The program implements the EfficientNet b0 with custom linear layer.
+"""
+
 import torch
 import torch.nn as nn
 import torchvision.models as models

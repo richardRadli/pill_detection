@@ -1,3 +1,13 @@
+"""
+File: cnn.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description: The program implements the CNN.
+"""
+
+import torch
 import torch.nn as nn
 
 
@@ -5,12 +15,19 @@ import torch.nn as nn
 # ++++++++++++++++++++++++++++++++++++++++++ S T R E A M   N E T +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CNN(nn.Module):
-    def __init__(self, loc):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------- __ I N I T __ --------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def __init__(self, loc: list) -> None:
         """
-        :param loc: list of number of channels 
+        Args:
+            loc: list of number of channels
+        Returns:
+            None
         """
         
         super(CNN, self).__init__()
+
         self.loc = loc
         self.conv1 = nn.Conv2d(loc[0], loc[1], kernel_size=7, stride=2, padding=3)
         self.conv2 = nn.Conv2d(loc[1], loc[1], kernel_size=3, stride=1, padding=1)
@@ -34,7 +51,19 @@ class CNN(nn.Module):
         self.fc = nn.Linear(loc[5] * 4 * 4, loc[6])
         self.reg = nn.Linear(loc[6], loc[4])
 
-    def forward(self, x):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------- F O R W A R D --------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        This is the forward function of the FusionNet.
+
+        Args:
+            x (torch.Tensor): input tensor.
+        Returns:
+            x (torch.Tensor): output tensor.
+        """
+
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
@@ -59,4 +88,3 @@ class CNN(nn.Module):
         x = self.reg(x)
 
         return x
-

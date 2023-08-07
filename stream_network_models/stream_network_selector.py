@@ -1,3 +1,12 @@
+"""
+File: stream_network_selector.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Jul 07, 2023
+
+Description: The program implements the EfficientNet V2 s with custom linear layer.
+"""
+
 import torch
 
 from abc import ABC, abstractmethod
@@ -7,6 +16,9 @@ from stream_network_models.efficient_net_b0 import EfficientNet
 from stream_network_models.efficient_net_v2_s import EfficientNetV2SelfAttention
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++++++++++++++ B A S E   N E T W O R K ++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class BaseNetwork(ABC):
     @abstractmethod
     def __init__(self):
@@ -17,6 +29,9 @@ class BaseNetwork(ABC):
         pass
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++ S T R E A M   N E T W O R K   W R A P P E R +++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class StreamNetworkWrapper(BaseNetwork):
     def __init__(self, network_cfg):
         self.model = CNN(network_cfg.get('channels'))
@@ -25,6 +40,9 @@ class StreamNetworkWrapper(BaseNetwork):
         return self.model(x)
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++ E F F I C I E N T N E T   W R A P P E R +++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class EfficientNetWrapper(BaseNetwork):
     def __init__(self, network_cfg):
         self.model = EfficientNet(num_out_feature=network_cfg.get('embedded_dim'),
@@ -34,6 +52,9 @@ class EfficientNetWrapper(BaseNetwork):
         return self.model(x)
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++ E F F I C I E N T N E T V 2   W R A P P E R +++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class EfficientNetV2Wrapper(BaseNetwork):
     def __init__(self, network_cfg):
         self.model = \
@@ -44,6 +65,9 @@ class EfficientNetV2Wrapper(BaseNetwork):
         return self.model(x)
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++ N E T   F A C T O R Y +++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class NetworkFactory:
     @staticmethod
     def create_network(network_type, network_cfg, device=None):
