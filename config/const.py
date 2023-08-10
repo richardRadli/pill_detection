@@ -153,6 +153,8 @@ class Images(_Const):
             "images/plotting/fusion_net/plotting_fusion_network_efficient_net_v2_self_attention",
         "plotting_fusion_network_efficient_net_v2_multi_head_attention":
             "images/plotting/fusion_net/plotting_fusion_network_efficient_net_v2_multi_head_attention",
+        "plotting_fusion_network_efficient_net_v2_mha_fmha":
+            "images/plotting/fusion_net/plotting_fusion_network_efficient_net_v2_mha_fmha",
 
         # ------------------------------------- I M A G E   A U G M E N T A T I O N ------------------------------------
         "images_aug":
@@ -225,6 +227,8 @@ class Data(_Const):
             "data/weights/fusion_net/efficient_net_v2_self_attention",
         "weights_fusion_network_efficient_net_v2_multi_head_attention":
             "data/weights/fusion_net/efficient_net_v2_multi_head_attention",
+        "weights_fusion_network_efficient_net_v2_mha_fmha":
+            "data/weights/fusion_net/efficient_net_v2_mha_fmha",
 
         # -------------------------------------------------- L O G S ---------------------------------------------------
         # UNet
@@ -271,6 +275,8 @@ class Data(_Const):
             "data/logs/fusion_net/efficient_net_v2_self_attention",
         "logs_fusion_network_efficient_net_v2_multi_head_attention":
             "data/logs/fusion_net/efficient_net_v2_multi_head",
+        "logs_fusion_network_efficient_net_v2_mha_fmha":
+            "data/logs/fusion_net/efficient_net_v2_mha_fmha",
 
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
@@ -291,6 +297,8 @@ class Data(_Const):
             "data/predictions/fusion_net/predictions_fusion_network_efficient_net_v2_self_attention",
         "predictions_fusion_network_efficient_net_v2_multi_head_attention":
             "data/predictions/fusion_net/predictions_fusion_network_efficient_net_v2_multi_head_attention",
+        "predictions_fusion_network_efficient_net_v2_mha_fmha":
+            "data/predictions/fusion_net/predictions_fusion_network_efficient_net_v2_mha_fmha",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
         "reference_vectors_cnn_network":
@@ -309,6 +317,8 @@ class Data(_Const):
             "data/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_v2_self_attention",
         "reference_vectors_fusion_net_efficient_net_v2_multi_head_attention":
             "data/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_v2_multi_head_attention",
+        "reference_vectors_fusion_net_efficient_net_v2_mha_fmha":
+            "data/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_v2_mha_fmha",
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
         # Hardest samples

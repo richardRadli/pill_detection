@@ -410,6 +410,18 @@ def fusion_network_config(network_type) -> Dict:
                 IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_v2_multi_head_attention"),
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_v2_multi_head_attention")
+        },
+        "EfficientNetV2MHAFMHA": {
+            'logs_folder':
+                DATA_PATH.get_data_path("logs_fusion_network_efficient_net_v2_mha_fmha"),
+            'weights_folder':
+                DATA_PATH.get_data_path("weights_fusion_network_efficient_net_v2_mha_fmha"),
+            'prediction_folder':
+                DATA_PATH.get_data_path("predictions_fusion_network_efficient_net_v2_mha_fmha"),
+            'plotting_folder':
+                IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_v2_mha_fmha"),
+            'ref_vectors_folder':
+                DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_v2_mha_fmha")
         }
     }
     if network_type not in network_configs:

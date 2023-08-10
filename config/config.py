@@ -158,9 +158,9 @@ class ConfigFusionNetwork:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2SelfAttention",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MHAFMHA",
                                  help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
-                                      "| EfficientNetV2MultiHeadAttention ")
+                                      "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA ")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_split", type=float, default=0.8)
         self.parser.add_argument("--epochs", type=int, default=5)

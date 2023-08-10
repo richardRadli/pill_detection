@@ -1,3 +1,12 @@
+"""
+File: utils.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: Apr 12, 2023
+
+Description: This code holds different function used all around the project files.
+"""
+
 import colorlog
 import gc
 import logging
@@ -17,6 +26,9 @@ from typing import List, Union
 from tqdm import tqdm
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------- S E T U P   L O G G E R ----------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def setup_logger():
     """
     Set up a colorized logger with the following log levels and colors:
