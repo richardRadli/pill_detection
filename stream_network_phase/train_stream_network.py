@@ -12,6 +12,7 @@ import json
 import logging
 import numpy as np
 import os
+import pandas as pd
 import torch
 
 from tqdm import tqdm
@@ -23,7 +24,7 @@ from config.config import ConfigStreamNetwork
 from config.network_configs import sub_stream_network_configs
 from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network_ba import StreamDataset
-from triplet_loss import TripletLossWithHardMining
+from triplet_loss_dynamic_margin import DynamicMarginTripletLoss
 from utils.utils import (create_timestamp, measure_execution_time, print_network_config, use_gpu_if_available,
                          setup_logger)
 
@@ -85,7 +86,11 @@ class TrainModel:
                 (network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size")))
 
         # Specify loss function
-        self.criterion = TripletLossWithHardMining(margin=self.cfg.margin)
+        excel_file_path = \
+            'C:/Users/ricsi/Downloads/Vektor_távolságok_szöveg_alapján_korábbi_gyógyszerekre.xlsx'
+        sheet_index = 1
+        df = pd.read_excel(excel_file_path, sheet_name=sheet_index, index_col=0)
+        self.criterion = DynamicMarginTripletLoss(df)
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=network_cfg.get("learning_rate"),
@@ -194,7 +199,8 @@ class TrainModel:
                 negative_emb = self.model(negative)
 
                 # Compute triplet loss
-                loss, hard_neg, hard_pos = self.criterion(anchor_emb, positive_emb, negative_emb)
+                loss, hard_neg, hard_pos = (
+                    self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path))
 
                 # Backward pass, optimize and scheduler
                 loss.backward()
@@ -208,10 +214,10 @@ class TrainModel:
                 hard_pos_images = self.record_hard_samples(hard_pos, positive_img_path, hard_pos_images)
 
             # Validation loop
-            with torch.no_grad():
-                for idx, (anchor, positive, negative, _, _) in tqdm(enumerate(self.valid_data_loader),
-                                                                    total=len(self.valid_data_loader),
-                                                                    desc=colorama.Fore.MAGENTA + "Validation"):
+            with ((torch.no_grad())):
+                for idx, (anchor, positive, negative, negative_img_path, positive_img_path) \
+                        in tqdm(enumerate(self.valid_data_loader), total=len(self.valid_data_loader),
+                                desc=colorama.Fore.MAGENTA + "Validation"):
                     # Upload data to GPU
                     anchor = anchor.to(self.device)
                     positive = positive.to(self.device)
@@ -223,7 +229,8 @@ class TrainModel:
                     negative_emb = self.model(negative)
 
                     # Compute triplet loss
-                    val_loss, _, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
+                    val_loss, _, _ = \
+                        self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path)
 
                     # Accumulate loss
                     valid_losses.append(val_loss.item())
