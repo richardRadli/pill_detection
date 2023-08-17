@@ -468,13 +468,27 @@ class Datasets(_Const):
 
 class NLPData(_Const):
     nlp_data = {
-        # C U R E
+        "pill_names":
+            "nlp/csv/pill_names",
         "full_sentence_csv":
             "nlp/csv/full_sentence_csv",
+
         "nlp_vector":
             "nlp/npy/nlp_vector",
+
         "word_vector_vis":
-            "nlp/plot/word_vector"
+            "nlp/plot/word_vector",
+        "elbow":
+            "nlp/plot/elbow",
+        "silhouette":
+            "nlp/plot/silhouette",
+
+        "patient_information_leaflet_doc":
+            "nlp/documents/patient_information_leaflet_doc",
+        "patient_information_leaflet_docx":
+            "nlp/documents/patient_information_leaflet_docx",
+        "extracted_features_files":
+            "nlp/documents/extracted_features_files"
     }
 
     # ------------------------------------------------------------------------------------------------------------------
