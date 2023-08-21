@@ -125,9 +125,9 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
                                  help="CNN | EfficientNet | EfficientNetV2")
-        self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="Contour | LBP | RGB | Texture")
+        self.parser.add_argument("--type_of_stream", type=str, default="RGB", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--num_triplets", type=int, default=3000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=30)
@@ -160,7 +160,7 @@ class ConfigFusionNetwork:
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MHAFMHA",
                                  help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
-                                      "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA ")
+                                      "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_split", type=float, default=0.8)
         self.parser.add_argument("--epochs", type=int, default=5)

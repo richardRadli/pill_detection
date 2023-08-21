@@ -1,5 +1,5 @@
 """
-File: triplet_loss.py
+File: triplet_loss_hard_mining.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Apr 12, 2023

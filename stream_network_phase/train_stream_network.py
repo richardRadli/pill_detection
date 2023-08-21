@@ -21,6 +21,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config.config import ConfigStreamNetwork
+from config.const import NLP_DATA_PATH
 from config.network_configs import sub_stream_network_configs
 from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network_ba import StreamDataset
@@ -86,8 +87,10 @@ class TrainModel:
                 (network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size")))
 
         # Specify loss function
-        excel_file_path = \
-            'C:/Users/ricsi/Downloads/Vektor_távolságok_szöveg_alapján_korábbi_gyógyszerekre.xlsx'
+        excel_file_path = (
+            os.path.join(NLP_DATA_PATH.get_data_path("vector_distances"),
+                         os.listdir(NLP_DATA_PATH.get_data_path("vector_distances"))[0]))
+
         sheet_index = 1
         df = pd.read_excel(excel_file_path, sheet_name=sheet_index, index_col=0)
         self.criterion = DynamicMarginTripletLoss(df)

@@ -472,6 +472,8 @@ class NLPData(_Const):
             "nlp/csv/pill_names",
         "full_sentence_csv":
             "nlp/csv/full_sentence_csv",
+        "vector_distances":
+            "nlp/csv/distances",
 
         "nlp_vector":
             "nlp/npy/nlp_vector",

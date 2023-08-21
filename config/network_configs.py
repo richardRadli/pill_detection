@@ -152,7 +152,7 @@ def sub_stream_network_configs(cfg) -> Dict:
             "channels":
                 [3, 64, 96, 128, 256, 384, 512],
             "embedded_dim":
-                1000,
+                256,
             "train_dataset_dir":
                 IMAGES_PATH.get_data_path("ref_train_rgb"),
             "valid_dataset_dir":

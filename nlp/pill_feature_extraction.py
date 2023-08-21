@@ -18,7 +18,8 @@ from utils.utils import setup_logger
 class PillFeatureExtraction:
     def __init__(self):
         setup_logger()
-        self.doc_files = sorted(glob(NLP_DATA_PATH.get_data_path("patient_information_leaflet_doc") + "/*"))
+        self.doc_files = (
+            sorted(glob(os.path.join(NLP_DATA_PATH.get_data_path("patient_information_leaflet_doc"),  "*"))))
         self.docx_path = NLP_DATA_PATH.get_data_path("patient_information_leaflet_docx")
         self.dictionary_of_drugs = {}
         self.dictionary_of_drugs_full_sentence = {}
@@ -45,7 +46,7 @@ class PillFeatureExtraction:
                  'felület', 'csaknem', 'hosszú', 'sárga', 'rózsaszín', 'méretű', 'kék', 'jelölés', 'zöld', 'lila',
                  'elefántcsont', 'alsórészű', 'felsőrészű', 'ovális', 'mélynyomás', 'ellátott', 'méret', 'halvány',
                  'barna'],
-            "color_reference_list" :
+            "color_reference_list":
                 ['színtelen', 'fehér', 'világoszöld', 'zöld', 'narancssárga', 'halványsárga', 'sötétsárga', 'sárga',
                  'sárgászöld', 'rózsaszín', 'világoskék', 'kék', 'sötétkék', 'piros', 'elefántcsont', 'barna', 'lila',
                  'bordó', 'tejkaramella', 'áttetsző', 'fekete', 'narancsvörös', 'szürke', 'vöröses-barna',
@@ -61,7 +62,9 @@ class PillFeatureExtraction:
             "sides_difference_reference_list":
                 ['egyik', 'másik', 'felső', 'alsó'],
             "sides_same_reference_list":
-                ['mindkét']
+                ['mindkét'],
+            "pharmaceutical_form_reference_list":
+                ['tabletta', 'kapszula']
         }
 
         return config
@@ -180,16 +183,16 @@ class PillFeatureExtraction:
         return cut
 
     def get_pharmaceutical_form(self, name_list, index):
-        pharmaceutical_form_reference_list = ['tabletta', 'kapszula']
         splitted_name = name_list[index].split(' ')
         pharmaceutical_form = \
-            [self.extract_with_fuzzy_wuzzy(pharmaceutical_form_reference_list, sub_row) for sub_row in splitted_name]
+            [self.extract_with_fuzzy_wuzzy(
+                self.config_lists.get("pharmaceutical_form_reference_list"), sub_row) for sub_row in splitted_name]
         return self.clean_list(pharmaceutical_form)
 
     def main(self):
         reference_name_list = self.get_ref_name_list()
         # self.convert_doc_files_to_docx()
-        docx_files = sorted(glob(os.path.join(NLP_DATA_PATH.get_data_path("patient_information_leaflet_docx") , "*")))
+        docx_files = sorted(glob(os.path.join(NLP_DATA_PATH.get_data_path("patient_information_leaflet_docx"), "*")))
 
         for i, docx in tqdm(enumerate(docx_files), total=len(docx_files), desc="Processing files"):
             text = docx2txt.process(docx)
@@ -251,12 +254,6 @@ class PillFeatureExtraction:
                         self.set_attribute_list(self.config_lists.get("edge_reference_list"), splitted_row, 80))
                     cut_list = (
                         self.set_attribute_list(self.config_lists.get("cut_reference_list"), splitted_row, 80))
-                    sides_difference_list = (
-                        self.set_attribute_list(
-                            self.config_lists.get("sides_difference_reference_list"), splitted_row, 80))
-                    sides_same_list = (
-                        self.set_attribute_list(self.config_lists.get("sides_same_reference_list"), splitted_row, 80))
-
                     imprint_list = self.set_imprint_list(row)
 
                     if all(len(lst) == 0 for lst in [shape_list, imprint_list, convexity_list]):

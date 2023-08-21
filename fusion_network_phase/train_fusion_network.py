@@ -12,7 +12,6 @@ import logging
 import numpy as np
 import os
 import torch
-import torch.nn as nn
 
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
@@ -24,6 +23,7 @@ from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.network_configs import sub_stream_network_configs, fusion_network_config
 from fusion_models.fusion_network_selector import NetworkFactory
 from fusion_dataset_loader import FusionDataset
+from triplet_loss import TripletMarginLoss
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
     use_gpu_if_available, setup_logger
 
@@ -121,7 +121,7 @@ class TrainFusionNet:
                              network_cfg_texture.get("image_size"))])
 
         # Specify loss function
-        self.criterion = nn.TripletMarginLoss(margin=self.cfg_fusion_net.margin)
+        self.criterion = TripletMarginLoss(margin=self.cfg_fusion_net.margin)
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(params=list(self.model.fc1.parameters()),
