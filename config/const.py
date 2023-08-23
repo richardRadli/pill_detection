@@ -76,34 +76,64 @@ class Images(_Const):
             "images/unet/unet_compare",
 
         # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
-        "ref_train_contour":
-            "images/references/contour/train",
-        "ref_train_lbp":
-            "images/references/lbp/train",
-        "ref_train_rgb":
-            "images/references/rgb/train",
-        "ref_train_texture":
-            "images/references/texture/train",
+        "ref_train_contour_ogyei":
+            "images/references/ogyei/contour/train",
+        "ref_train_lbp_ogyei":
+            "images/references/ogyei/lbp/train",
+        "ref_train_rgb_ogyei":
+            "images/references/ogyei/rgb/train",
+        "ref_train_texture_ogyei":
+            "images/references/ogyei/texture/train",
 
         # ---------------------------------------------- R E F   V A L I D ---------------------------------------------
-        "ref_valid_contour":
-            "images/references/contour/valid",
-        "ref_valid_lbp":
-            "images/references/lbp/valid",
-        "ref_valid_rgb":
-            "images/references/rgb/valid",
-        "ref_valid_texture":
-            "images/references/texture/valid",
+        "ref_valid_contour_ogyei":
+            "images/references/ogyei/contour/valid",
+        "ref_valid_lbp_ogyei":
+            "images/references/ogyei/lbp/valid",
+        "ref_valid_rgb_ogyei":
+            "images/references/ogyei/rgb/valid",
+        "ref_valid_texture_ogyei":
+            "images/references/ogyei/texture/valid",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
-        "query_contour":
-            "images/query/contour",
-        "query_lbp":
-            "images/query/lbp",
-        "query_rgb":
-            "images/query/rgb",
-        "query_texture":
-            "images/query/texture",
+        "query_contour_ogyei":
+            "images/query/ogyei/contour",
+        "query_lbp_ogyei":
+            "images/query/ogyei/lbp",
+        "query_rgb_ogyei":
+            "images/query/ogyei/rgb",
+        "query_texture_ogyei":
+            "images/query/ogyei/texture",
+
+        # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
+        "ref_train_contour_cure":
+            "images/references/cure/contour/train",
+        "ref_train_lbp_cure":
+            "images/references/cure/lbp/train",
+        "ref_train_rgb_cure":
+            "images/references/cure/rgb/train",
+        "ref_train_texture_cure":
+            "images/references/cure/texture/train",
+
+        # ---------------------------------------------- R E F   V A L I D ---------------------------------------------
+        "ref_valid_contour_cure":
+            "images/references/cure/contour/valid",
+        "ref_valid_lbp_cure":
+            "images/references/cure/lbp/valid",
+        "ref_valid_rgb_cure":
+            "images/references/cure/rgb/valid",
+        "ref_valid_texture_cure":
+            "images/references/cure/texture/valid",
+
+        # -------------------------------------------------- Q U E R Y -------------------------------------------------
+        "query_contour_cure":
+            "images/query/cure/contour",
+        "query_lbp_cure":
+            "images/query/cure/lbp",
+        "query_rgb_cure":
+            "images/query/cure/rgb",
+        "query_texture_cure":
+            "images/query/cure/texture",
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
         # CNN

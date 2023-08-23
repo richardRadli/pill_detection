@@ -104,6 +104,8 @@ class ConfigGeneral:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
+        self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
+        self.parser.add_argument("--dataset_operation", type=str, default="train", help="train | valid | test")
         self.parser.add_argument("--test_split_ratio", type=float, default=0.15)
         self.parser.add_argument("--valid_split_ratio", type=float, default=0.15)
         self.parser.add_argument("--threshold_area", type=int, default=100)
