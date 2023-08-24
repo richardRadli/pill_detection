@@ -24,6 +24,7 @@ from config.network_configs import sub_stream_network_configs, fusion_network_co
 from fusion_models.fusion_network_selector import NetworkFactory
 from fusion_dataset_loader import FusionDataset
 from triplet_loss import TripletMarginLoss
+from triplet_loss_dynamic_margin import DynamicMarginTripletLoss
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
     use_gpu_if_available, setup_logger
 

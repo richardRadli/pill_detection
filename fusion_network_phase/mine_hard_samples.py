@@ -208,30 +208,30 @@ def main() -> None:
     # Move hardest contour images
     files_to_move_contour = (
         files_to_move(hardest_sample_images=result,
-                      src_dir=ref_dir_paths.get("Contour").get("train_dataset_dir").get(cfg_stream_net.dataset_type)))
+                      src_dir=ref_dir_paths.get("Contour").get("train").get(cfg_stream_net.dataset_type)))
     copy_hardest_samples(new_dir=hard_sample_paths.get("hardest_contour_directory"),
-                         src_dir=ref_dir_paths.get("Contour").get("train_dataset_dir").get(cfg_stream_net.dataset_type),
+                         src_dir=ref_dir_paths.get("Contour").get("train").get(cfg_stream_net.dataset_type),
                          hardest_sample_images=files_to_move_contour)
 
     # Move hardest lbp images
     files_to_move_lbp = (
-        files_to_move(result, ref_dir_paths.get("LBP").get("train_dataset_dir").get(cfg_stream_net.dataset_type)))
+        files_to_move(result, ref_dir_paths.get("LBP").get("train").get(cfg_stream_net.dataset_type)))
     copy_hardest_samples(new_dir=hard_sample_paths.get("hardest_lbp_directory"),
-                         src_dir=ref_dir_paths.get("Contour").get("train_dataset_dir").get(cfg_stream_net.dataset_type),
+                         src_dir=ref_dir_paths.get("LBP").get("train").get(cfg_stream_net.dataset_type),
                          hardest_sample_images=files_to_move_lbp)
 
     # Move hardest rgb images
     files_to_move_rgb = (
-        files_to_move(result, ref_dir_paths.get("RGB").get("train_dataset_dir").get(cfg_stream_net.dataset_type)))
+        files_to_move(result, ref_dir_paths.get("RGB").get("train").get(cfg_stream_net.dataset_type)))
     copy_hardest_samples(new_dir=hard_sample_paths.get("hardest_rgb_directory"),
-                         src_dir=ref_dir_paths.get("RGB").get("train_dataset_dir").get(cfg_stream_net.dataset_type),
+                         src_dir=ref_dir_paths.get("RGB").get("train").get(cfg_stream_net.dataset_type),
                          hardest_sample_images=files_to_move_rgb)
 
     # Move hardest texture images
     files_to_move_texture = (
-        files_to_move(result, ref_dir_paths.get("Texture").get("train_dataset_dir").get(cfg_stream_net.dataset_type)))
+        files_to_move(result, ref_dir_paths.get("Texture").get("train").get(cfg_stream_net.dataset_type)))
     copy_hardest_samples(new_dir=hard_sample_paths.get("hardest_texture_directory"),
-                         src_dir=ref_dir_paths.get("Texture").get("train_dataset_dir").get(cfg_stream_net.dataset_type),
+                         src_dir=ref_dir_paths.get("Texture").get("train").get(cfg_stream_net.dataset_type),
                          hardest_sample_images=files_to_move_texture)
 
 

@@ -18,7 +18,6 @@ from tqdm import tqdm
 from typing import List, Tuple
 from PIL import Image
 
-from config.const import IMAGES_PATH
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.network_configs import sub_stream_network_configs, fusion_network_config
 from fusion_models.fusion_network_selector import NetworkFactory
@@ -56,11 +55,11 @@ class PredictFusionNetwork:
         # Load networks
         self.fusion_network_config = fusion_network_config(network_type=self.cfg_fusion_net.type_of_net)
         self.cfg_stream_net = ConfigStreamNetwork().parse()
-        subnetwork_config = sub_stream_network_configs(self.cfg_stream_net)
-        self.network_cfg_contour = subnetwork_config.get("Contour")
-        self.network_cfg_lbp = subnetwork_config.get("LBP")
-        self.network_cfg_rgb = subnetwork_config.get("RGB")
-        self.network_cfg_texture = subnetwork_config.get("Texture")
+        self.subnetwork_config = sub_stream_network_configs(self.cfg_stream_net)
+        self.network_cfg_contour = self.subnetwork_config.get("Contour")
+        self.network_cfg_lbp = self.subnetwork_config.get("LBP")
+        self.network_cfg_rgb = self.subnetwork_config.get("RGB")
+        self.network_cfg_texture = self.subnetwork_config.get("Texture")
 
         self.network = self.load_networks()
         self.network.eval()
@@ -279,19 +278,19 @@ class PredictFusionNetwork:
         :return: None
         """
 
-        query_vectors, q_labels, q_images_path = \
-            self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("query_contour"),
-                             lbp_dir=IMAGES_PATH.get_data_path("query_lbp"),
-                             rgb_dir=IMAGES_PATH.get_data_path("query_rgb"),
-                             texture_dir=IMAGES_PATH.get_data_path("query_texture"),
-                             operation="query")
+        query_vectors, q_labels, q_images_path = self.get_vectors(
+            contour_dir=self.subnetwork_config.get("Contour").get("query").get(self.cfg_stream_net.dataset_type),
+            lbp_dir=self.subnetwork_config.get("LBP").get("query").get(self.cfg_stream_net.dataset_type),
+            rgb_dir=self.subnetwork_config.get("RGB").get("query").get(self.cfg_stream_net.dataset_type),
+            texture_dir=self.subnetwork_config.get("Texture").get("query").get(self.cfg_stream_net.dataset_type),
+            operation="query")
 
-        ref_vectors, r_labels, r_images_path = \
-            self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("ref_train_contour"),
-                             lbp_dir=IMAGES_PATH.get_data_path("ref_train_lbp"),
-                             rgb_dir=IMAGES_PATH.get_data_path("ref_train_rgb"),
-                             texture_dir=IMAGES_PATH.get_data_path("ref_train_texture"),
-                             operation="reference")
+        ref_vectors, r_labels, r_images_path = self.get_vectors(
+            contour_dir=self.subnetwork_config.get("Contour").get("test").get(self.cfg_stream_net.dataset_type),
+            lbp_dir=self.subnetwork_config.get("LBP").get("test").get(self.cfg_stream_net.dataset_type),
+            rgb_dir=self.subnetwork_config.get("RGB").get("test").get(self.cfg_stream_net.dataset_type),
+            texture_dir=self.subnetwork_config.get("Texture").get("test").get(self.cfg_stream_net.dataset_type),
+            operation="reference")
 
         gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vectors, query_vectors)
 

@@ -105,12 +105,12 @@ class ConfigStreamNetwork:
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
                                  help="CNN | EfficientNet | EfficientNetV2")
-        self.parser.add_argument("--type_of_stream", type=str, default="RGB", help="Contour | LBP | RGB | Texture")
+        self.parser.add_argument("--type_of_stream", type=str, default="Contour", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
 
-        self.parser.add_argument("--dynamic_margin_loss", type=bool, default=False)
+        self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
         self.parser.add_argument("--num_triplets", type=int, default=4000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)
 
@@ -152,7 +152,7 @@ class ConfigFusionNetwork:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MHAFMHA",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MultiHeadAttention",
                                  help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
                                       "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA")
         self.parser.add_argument("--margin", type=float, default=0.5)
