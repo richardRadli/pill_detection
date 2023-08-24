@@ -221,10 +221,10 @@ class PredictStreamNetwork:
 
         for idx_query, query_vector in tqdm(enumerate(query_vectors_tensor), total=len(query_vectors_tensor),
                                             desc="Comparing process"):
-            scores_e = torch.norm(query_vector - reference_vectors_tensor, dim=1)
+            scores_euclidean_distance = torch.norm(query_vector - reference_vectors_tensor, dim=1)
 
             # Move scores to CPU for further processing
-            similarity_scores_euc_dist.append(scores_e.cpu().tolist())
+            similarity_scores_euc_dist.append(scores_euclidean_distance.cpu().tolist())
 
             # Calculate and store the most similar reference vector, predicted medicine label, and corresponding
             # minimum Euclidean distance for each query vector
@@ -241,7 +241,7 @@ class PredictStreamNetwork:
                 num_correct_top1 += 1
 
             # Calculate top-5 accuracy
-            top5_predicted_medicines = [r_labels[i] for i in torch.argsort(scores_e)[:5]]
+            top5_predicted_medicines = [r_labels[i] for i in torch.argsort(scores_euclidean_distance)[:5]]
             if q_labels[idx_query] in top5_predicted_medicines:
                 num_correct_top5 += 1
 
@@ -305,10 +305,10 @@ class PredictStreamNetwork:
         # Calculate query vectors
         query_vecs, q_labels, q_images_path = (
             self.get_vectors(
-                contour_dir=self.sub_network_config.get("Contour").get("test_dataset_dir").get(self.cfg.dataset_type),
-                lbp_dir=self.sub_network_config.get("LBP").get("test_dataset_dir").get(self.cfg.dataset_type),
-                rgb_dir=self.sub_network_config.get("RGB").get("test_dataset_dir").get(self.cfg.dataset_type),
-                texture_dir=self.sub_network_config.get("Texture").get("test_dataset_dir").get(self.cfg.dataset_type),
+                contour_dir=self.sub_network_config.get("Contour").get("query").get(self.cfg.dataset_type),
+                lbp_dir=self.sub_network_config.get("LBP").get("query").get(self.cfg.dataset_type),
+                rgb_dir=self.sub_network_config.get("RGB").get("query").get(self.cfg.dataset_type),
+                texture_dir=self.sub_network_config.get("Texture").get("query").get(self.cfg.dataset_type),
                 operation="query"))
 
         # Calculate reference vectors
@@ -324,12 +324,10 @@ class PredictStreamNetwork:
         else:
             ref_vecs, r_labels, r_images_path = \
                 self.get_vectors(
-                    contour_dir=self.sub_network_config.get("Contour").get("train_dataset_dir").get(
-                        self.cfg.dataset_type),
-                    lbp_dir=self.sub_network_config.get("LBP").get("train_dataset_dir").get(self.cfg.dataset_type),
-                    rgb_dir=self.sub_network_config.get("RGB").get("train_dataset_dir").get(self.cfg.dataset_type),
-                    texture_dir=self.sub_network_config.get("Texture").get("train_dataset_dir").get(
-                        self.cfg.dataset_type),
+                    contour_dir=self.sub_network_config.get("Contour").get("test").get(self.cfg.dataset_type),
+                    lbp_dir=self.sub_network_config.get("LBP").get("test").get(self.cfg.dataset_type),
+                    rgb_dir=self.sub_network_config.get("RGB").get("test").get(self.cfg.dataset_type),
+                    texture_dir=self.sub_network_config.get("Texture").get("test").get(self.cfg.dataset_type),
                     operation="reference")
 
         # Compare query and reference vectors
