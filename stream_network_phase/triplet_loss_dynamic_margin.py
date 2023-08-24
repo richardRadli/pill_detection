@@ -6,14 +6,26 @@ import torch.nn.functional as functional
 
 from typing import List, Tuple
 
+from config.config import ConfigGeneral
+
 
 class DynamicMarginTripletLoss(nn.Module):
     def __init__(self, euc_dist_mtx, upper_norm_limit: int = 2, margin: float = 0.5):
+        """
+
+        :param euc_dist_mtx:
+        :param upper_norm_limit:
+        :param margin:
+        """
+
         super(DynamicMarginTripletLoss, self).__init__()
 
-        self.margin = margin
         self.euc_dist_mtx = euc_dist_mtx
         self.upper_norm_limit = upper_norm_limit
+        self.margin = margin
+        self.dataset_type = ConfigGeneral().parse().dataset_type
+        self.regexp = {"cure": r'^(?:(texture|contour|lbp)_)?id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$',
+                       "ogyei": r'^(?:(texture|contour|lbp)_)?[0-9]+_(bottom|top)_[0-9]+_(bottom|top)_[0-9]+\.png$'}
 
     def forward(self, anchor_tensor: torch.Tensor, positive_tensor: torch.Tensor, negative_tensor: torch.Tensor,
                 anchor_file_names: List[str], negative_file_names: List[str]) -> (
@@ -101,8 +113,7 @@ class DynamicMarginTripletLoss(nn.Module):
 
         return hard_list
 
-    @staticmethod
-    def process_file_names(lines: list) -> list:
+    def process_file_names(self, lines: list) -> list:
         """
         Process the file names and extract the texture names.
 
@@ -117,8 +128,7 @@ class DynamicMarginTripletLoss(nn.Module):
 
             for filename in paths:
                 filename = filename.strip("'")
-                match = re.search(r'^(?:(texture|contour|lbp)_)?id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$',
-                                  os.path.basename(filename))
+                match = re.search(self.regexp.get(self.dataset_type), os.path.basename(filename))
                 texture_name = match.group(2) if match else print("Filename doesn't match the pattern")
                 texture_names.append(texture_name)
 

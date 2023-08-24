@@ -34,9 +34,19 @@ def sub_stream_network_configs(cfg) -> Dict:
             "embedded_dim":
                 1000,
             "train_dataset_dir":
-                IMAGES_PATH.get_data_path("ref_train_contour"),
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("ref_train_contour_cure"),
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("ref_train_contour_ogyei"),
+                },
             "valid_dataset_dir":
-                IMAGES_PATH.get_data_path("ref_valid_contour"),
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("ref_valid_contour_cure"),
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("ref_valid_contour_ogyei"),
+                },
             "model_weights_dir": {
                 "CNN":
                     DATA_PATH.get_data_path("weights_cnn_network_contour"),
@@ -94,9 +104,19 @@ def sub_stream_network_configs(cfg) -> Dict:
             "embedded_dim":
                 1000,
             "train_dataset_dir":
-                IMAGES_PATH.get_data_path("ref_train_lbp"),
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("ref_train_lpb_cure"),
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("ref_train_lbp_ogyei"),
+                },
             "valid_dataset_dir":
-                IMAGES_PATH.get_data_path("ref_valid_lbp"),
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("ref_valid_lbp_cure"),
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("ref_valid_lbp_ogyei"),
+                },
             "model_weights_dir": {
                 "CNN":
                     DATA_PATH.get_data_path("weights_cnn_network_lbp"),
@@ -154,9 +174,19 @@ def sub_stream_network_configs(cfg) -> Dict:
             "embedded_dim":
                 256,
             "train_dataset_dir":
-                IMAGES_PATH.get_data_path("ref_train_rgb"),
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("ref_train_rgb_cure"),
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("ref_train_rgb_ogyei"),
+                },
             "valid_dataset_dir":
-                IMAGES_PATH.get_data_path("ref_valid_rgb"),
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("ref_valid_rgb_cure"),
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("ref_valid_rgb_ogyei"),
+                },
             "model_weights_dir": {
                 "CNN":
                     DATA_PATH.get_data_path("weights_cnn_network_rgb"),
@@ -214,9 +244,19 @@ def sub_stream_network_configs(cfg) -> Dict:
             "embedded_dim":
                 1000,
             "train_dataset_dir":
-                IMAGES_PATH.get_data_path("ref_train_texture"),
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("ref_train_texture_cure"),
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("ref_train_texture_ogyei"),
+                },
             "valid_dataset_dir":
-                IMAGES_PATH.get_data_path("ref_valid_texture"),
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("ref_valid_texture_cure"),
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("ref_valid_texture_ogyei"),
+                },
             "model_weights_dir": {
                 "CNN":
                     DATA_PATH.get_data_path("weights_cnn_network_texture"),

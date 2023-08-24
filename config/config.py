@@ -127,13 +127,14 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
                                  help="CNN | EfficientNet | EfficientNetV2")
-        self.parser.add_argument("--type_of_stream", type=str, default="RGB", help="Contour | LBP | RGB | Texture")
-        self.parser.add_argument("--num_triplets", type=int, default=3000, help="Number of triplets to be generated")
+        self.parser.add_argument("--type_of_stream", type=str, default="Contour", help="Contour | LBP | RGB | Texture")
+        self.parser.add_argument("--dynamic_margin_loss", type=bool, default=False)
+        self.parser.add_argument("--num_triplets", type=int, default=8000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=30)
-        self.parser.add_argument("--batch_size", type=int, default=128)
+        self.parser.add_argument("--batch_size", type=int, default=32)
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
         self.parser.add_argument("--learning_rate_cnn_rgb", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_cnn_con", type=float, default=3e-4)

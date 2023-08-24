@@ -25,6 +25,7 @@ from config.const import NLP_DATA_PATH
 from config.network_configs import sub_stream_network_configs
 from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network_ba import StreamDataset
+from triplet_loss_hard_mining import TripletLossWithHardMining
 from triplet_loss_dynamic_margin import DynamicMarginTripletLoss
 from utils.utils import (create_timestamp, measure_execution_time, print_network_config, use_gpu_if_available,
                          setup_logger)
@@ -64,7 +65,8 @@ class TrainModel:
 
         # Load dataset
         dataset = \
-            StreamDataset(dataset_dirs=[network_cfg.get('train_dataset_dir'), network_cfg.get('valid_dataset_dir')],
+            StreamDataset(dataset_dirs=[network_cfg.get("train_dataset_dir").get("cure"),
+                                        network_cfg.get("valid_dataset_dir").get("cure")],
                           type_of_stream=self.cfg.type_of_stream,
                           image_size=network_cfg.get("image_size"),
                           num_triplets=self.cfg.num_triplets)
@@ -87,13 +89,15 @@ class TrainModel:
                 (network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size")))
 
         # Specify loss function
-        excel_file_path = (
-            os.path.join(NLP_DATA_PATH.get_data_path("vector_distances"),
-                         os.listdir(NLP_DATA_PATH.get_data_path("vector_distances"))[0]))
-
-        sheet_index = 1
-        df = pd.read_excel(excel_file_path, sheet_name=sheet_index, index_col=0)
-        self.criterion = DynamicMarginTripletLoss(df)
+        if self.cfg.dynamic_margin_loss:
+            excel_file_path = (
+                os.path.join(NLP_DATA_PATH.get_data_path("vector_distances"),
+                             os.listdir(NLP_DATA_PATH.get_data_path("vector_distances"))[0]))
+            sheet_index = 1
+            df = pd.read_excel(excel_file_path, sheet_name=sheet_index, index_col=0)
+            self.criterion = DynamicMarginTripletLoss(df)
+        else:
+            self.criterion = TripletLossWithHardMining(margin=self.cfg.margin)
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=network_cfg.get("learning_rate"),
@@ -202,8 +206,12 @@ class TrainModel:
                 negative_emb = self.model(negative)
 
                 # Compute triplet loss
-                loss, hard_neg, hard_pos = (
-                    self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path))
+                if self.cfg.dynamic_margin_loss:
+                    loss, hard_neg, hard_pos = (
+                        self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path))
+                else:
+                    loss, hard_neg, hard_pos = (
+                        self.criterion(anchor_emb, positive_emb, negative_emb))
 
                 # Backward pass, optimize and scheduler
                 loss.backward()
@@ -232,8 +240,11 @@ class TrainModel:
                     negative_emb = self.model(negative)
 
                     # Compute triplet loss
-                    val_loss, _, _ = \
-                        self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path)
+                    if self.cfg.dynamic_margin_loss:
+                        val_loss, _, _ = \
+                            self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path)
+                    else:
+                        val_loss, _, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
 
                     # Accumulate loss
                     valid_losses.append(val_loss.item())
