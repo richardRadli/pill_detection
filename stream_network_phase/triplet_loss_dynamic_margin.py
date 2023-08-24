@@ -6,7 +6,7 @@ import torch.nn.functional as functional
 
 from typing import List, Tuple
 
-from config.config import ConfigGeneral
+from config.config import ConfigStreamNetwork
 
 
 class DynamicMarginTripletLoss(nn.Module):
@@ -23,7 +23,7 @@ class DynamicMarginTripletLoss(nn.Module):
         self.euc_dist_mtx = euc_dist_mtx
         self.upper_norm_limit = upper_norm_limit
         self.margin = margin
-        self.dataset_type = ConfigGeneral().parse().dataset_type
+        self.dataset_type = ConfigStreamNetwork().parse().dataset_type
         self.regexp = {"cure": r'^(?:(texture|contour|lbp)_)?id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$',
                        "ogyei": r'^(?:(texture|contour|lbp)_)?[0-9]+_(bottom|top)_[0-9]+_(bottom|top)_[0-9]+\.png$'}
 

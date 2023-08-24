@@ -12,7 +12,7 @@ import logging
 
 from typing import Dict
 
-from config.const import DATA_PATH, IMAGES_PATH
+from config.const import DATA_PATH, DATASET_PATH, IMAGES_PATH
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -33,19 +33,34 @@ def sub_stream_network_configs(cfg) -> Dict:
                 [1, 32, 48, 64, 128, 192, 256],
             "embedded_dim":
                 1000,
-            "train_dataset_dir":
+            "train":
                 {
                     "cure":
-                        IMAGES_PATH.get_data_path("ref_train_contour_cure"),
+                        IMAGES_PATH.get_data_path("train_contour_stream_cure"),
                     "ogyei":
-                        IMAGES_PATH.get_data_path("ref_train_contour_ogyei"),
+                        IMAGES_PATH.get_data_path("train_contour_stream_ogyei"),
                 },
-            "valid_dataset_dir":
+            "valid":
                 {
                     "cure":
-                        IMAGES_PATH.get_data_path("ref_valid_contour_cure"),
+                        IMAGES_PATH.get_data_path("valid_contour_stream_cure"),
                     "ogyei":
-                        IMAGES_PATH.get_data_path("ref_valid_contour_ogyei"),
+                        IMAGES_PATH.get_data_path("valid_contour_stream_ogyei"),
+                },
+            "test":
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("test_contour_stream_ref_cure"),
+
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("test_contour_stream_ref_ogyei"),
+                },
+            "query":
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("test_contour_stream_query_cure"),
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("test_contour_stream_query_ogyei")
                 },
             "model_weights_dir": {
                 "CNN":
@@ -103,19 +118,34 @@ def sub_stream_network_configs(cfg) -> Dict:
                 [1, 32, 48, 64, 128, 192, 256],
             "embedded_dim":
                 1000,
-            "train_dataset_dir":
+            "train":
                 {
                     "cure":
-                        IMAGES_PATH.get_data_path("ref_train_lpb_cure"),
+                        IMAGES_PATH.get_data_path("train_lbp_stream_cure"),
                     "ogyei":
-                        IMAGES_PATH.get_data_path("ref_train_lbp_ogyei"),
+                        IMAGES_PATH.get_data_path("train_lbp_stream_ogyei"),
                 },
-            "valid_dataset_dir":
+            "valid":
                 {
                     "cure":
-                        IMAGES_PATH.get_data_path("ref_valid_lbp_cure"),
+                        IMAGES_PATH.get_data_path("valid_lbp_stream_cure"),
                     "ogyei":
-                        IMAGES_PATH.get_data_path("ref_valid_lbp_ogyei"),
+                        IMAGES_PATH.get_data_path("valid_lbp_stream_ogyei"),
+                },
+            "test":
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("test_lbp_stream_ref_cure"),
+
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("test_lbp_stream_ref_ogyei"),
+                },
+            "query":
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("test_lbp_stream_query_cure"),
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("test_lbp_stream_query_ogyei")
                 },
             "model_weights_dir": {
                 "CNN":
@@ -173,19 +203,34 @@ def sub_stream_network_configs(cfg) -> Dict:
                 [3, 64, 96, 128, 256, 384, 512],
             "embedded_dim":
                 256,
-            "train_dataset_dir":
+            "train":
                 {
                     "cure":
-                        IMAGES_PATH.get_data_path("ref_train_rgb_cure"),
+                        IMAGES_PATH.get_data_path("train_rgb_stream_cure"),
                     "ogyei":
-                        IMAGES_PATH.get_data_path("ref_train_rgb_ogyei"),
+                        IMAGES_PATH.get_data_path("train_rgb_stream_ogyei"),
                 },
-            "valid_dataset_dir":
+            "valid":
                 {
                     "cure":
-                        IMAGES_PATH.get_data_path("ref_valid_rgb_cure"),
+                        IMAGES_PATH.get_data_path("valid_rgb_stream_cure"),
                     "ogyei":
-                        IMAGES_PATH.get_data_path("ref_valid_rgb_ogyei"),
+                        IMAGES_PATH.get_data_path("valid_rgb_stream_ogyei"),
+                },
+            "test":
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("test_rgb_stream_ref_cure"),
+
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("test_rgb_stream_ref_ogyei"),
+                },
+            "query":
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("test_rgb_stream_query_cure"),
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("test_rgb_stream_query_ogyei")
                 },
             "model_weights_dir": {
                 "CNN":
@@ -243,19 +288,34 @@ def sub_stream_network_configs(cfg) -> Dict:
                 [1, 32, 48, 64, 128, 192, 256],
             "embedded_dim":
                 1000,
-            "train_dataset_dir":
+            "train":
                 {
                     "cure":
-                        IMAGES_PATH.get_data_path("ref_train_texture_cure"),
+                        IMAGES_PATH.get_data_path("train_texture_stream_cure"),
                     "ogyei":
-                        IMAGES_PATH.get_data_path("ref_train_texture_ogyei"),
+                        IMAGES_PATH.get_data_path("train_texture_stream_ogyei"),
                 },
-            "valid_dataset_dir":
+            "valid":
                 {
                     "cure":
-                        IMAGES_PATH.get_data_path("ref_valid_texture_cure"),
+                        IMAGES_PATH.get_data_path("valid_texture_stream_cure"),
                     "ogyei":
-                        IMAGES_PATH.get_data_path("ref_valid_texture_ogyei"),
+                        IMAGES_PATH.get_data_path("valid_texture_stream_ogyei"),
+                },
+            "test":
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("test_texture_stream_ref_cure"),
+
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("test_texture_stream_ref_ogyei"),
+                },
+            "query":
+                {
+                    "cure":
+                        IMAGES_PATH.get_data_path("test_texture_stream_query_cure"),
+                    "ogyei":
+                        IMAGES_PATH.get_data_path("test_texture_stream_query_ogyei")
                 },
             "model_weights_dir": {
                 "CNN":
@@ -468,3 +528,47 @@ def fusion_network_config(network_type) -> Dict:
         raise ValueError(f'Invalid network type: {network_type}')
 
     return network_configs[network_type]
+
+
+def dataset_images_path_selector():
+    """
+    Selects the correct directory paths based on the given operation string.
+
+    :return: A dictionary containing directory paths for images, masks, and other related files.
+    :raises ValueError: If the operation string is not "train" or "test".
+    """
+
+    path_to_images = {
+        "ogyei": {
+            "train": {
+                "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images"),
+                "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_train_masks"),
+            },
+            "valid": {
+                "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_images"),
+                "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_valid_masks"),
+            },
+            "test": {
+                "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images"),
+                "masks": IMAGES_PATH.get_data_path("unet_out"),
+            }
+        },
+        "cure": {
+            "train": {
+                "images": DATASET_PATH.get_data_path(""),
+                "masks": DATASET_PATH.get_data_path(""),
+
+            },
+            "valid": {
+                "images": DATASET_PATH.get_data_path(""),
+                "masks": DATASET_PATH.get_data_path(""),
+
+            },
+            "test": {
+                "images": DATASET_PATH.get_data_path(""),
+                "masks": IMAGES_PATH.get_data_path(""),
+            }
+        }
+    }
+
+    return path_to_images

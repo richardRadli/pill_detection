@@ -15,10 +15,7 @@ from tqdm import tqdm
 from typing import Dict, List, Tuple
 
 from config.const import DATASET_PATH
-from config.config import ConfigGeneral
 from utils.utils import setup_logger
-
-cfg = ConfigGeneral().parse()
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
@@ -50,11 +47,12 @@ def get_classes(images_path) -> \
     return class_counts, train_images, validation_images, test_images
 
 
-# ------------------------------------------------------------------------------------------------------------------- #
-# ---------------------------------------- S P L I T   D A T A S E T ---------------------------------------- #
-# ------------------------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------------------------------------- #
+# ---------------------------------------- S P L I T   D A T A S E T ------------------------------------------------- #
+# -------------------------------------------------------------------------------------------------------------------- #
 def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str]],
-                  validation_images: Dict[str, List[str]], test_images: Dict[str, List[str]], images_path) -> \
+                  validation_images: Dict[str, List[str]], test_images: Dict[str, List[str]], images_path,
+                  valid_split_ratio: float = 0.15, test_split_ratio: float = 0.15) -> \
         Tuple[Dict[str, int], Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]]]:
     """
     Split the dataset into train, validation, and test sets based on the class counts.
@@ -64,6 +62,8 @@ def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str
     :param validation_images: A dictionary containing the validation images for each class.
     :param test_images: A dictionary containing the test images for each class.
     :param images_path: Path to the train images.
+    :param valid_split_ratio:
+    :param test_split_ratio:
     :return: A tuple containing dictionaries for class counts, train images, validation images, and test images.
     """
 
@@ -71,9 +71,9 @@ def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str
         if filename.endswith('.png'):
             class_name = '_'.join(filename.split('_')[2:-1])
             class_counts[class_name] += 1
-            if len(validation_images[class_name]) < round(class_counts[class_name] * cfg.valid_split_ratio):
+            if len(validation_images[class_name]) < round(class_counts[class_name] * valid_split_ratio):
                 validation_images[class_name].append(filename)
-            elif len(test_images[class_name]) < round(class_counts[class_name] * cfg.test_split_ratio):
+            elif len(test_images[class_name]) < round(class_counts[class_name] * test_split_ratio):
                 test_images[class_name].append(filename)
             else:
                 train_images[class_name].append(filename)

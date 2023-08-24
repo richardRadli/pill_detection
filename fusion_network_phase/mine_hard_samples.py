@@ -16,9 +16,8 @@ from glob import glob
 from tqdm import tqdm
 from typing import List
 
-from config.const import IMAGES_PATH
 from config.config import ConfigStreamNetwork
-from config.network_configs import stream_network_config
+from config.network_configs import stream_network_config, sub_stream_network_configs
 from utils.utils import setup_logger
 
 
@@ -177,8 +176,9 @@ def main() -> None:
     """
 
     setup_logger()
-    cfg = ConfigStreamNetwork().parse()
-    hard_sample_paths = stream_network_config(cfg)
+    cfg_stream_net = ConfigStreamNetwork().parse()
+    hard_sample_paths = stream_network_config(cfg_stream_net)
+    ref_dir_paths = sub_stream_network_configs(cfg_stream_net)
 
     latest_neg_contour_txt, latest_neg_rgb_txt, latest_neg_texture_txt, latest_neg_lbp_txt = \
         get_latest_txt_files(hard_sample_paths.get("hard_negative"))
@@ -206,27 +206,32 @@ def main() -> None:
     result = {os.path.basename(x) for x in hardest_samples_union}
 
     # Move hardest contour images
-    files_to_move_contour = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_contour"))
+    files_to_move_contour = (
+        files_to_move(hardest_sample_images=result,
+                      src_dir=ref_dir_paths.get("Contour").get("train_dataset_dir").get(cfg_stream_net.dataset_type)))
     copy_hardest_samples(new_dir=hard_sample_paths.get("hardest_contour_directory"),
-                         src_dir=IMAGES_PATH.get_data_path("ref_train_contour"),
+                         src_dir=ref_dir_paths.get("Contour").get("train_dataset_dir").get(cfg_stream_net.dataset_type),
                          hardest_sample_images=files_to_move_contour)
 
     # Move hardest lbp images
-    files_to_move_lbp = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_lbp"))
+    files_to_move_lbp = (
+        files_to_move(result, ref_dir_paths.get("LBP").get("train_dataset_dir").get(cfg_stream_net.dataset_type)))
     copy_hardest_samples(new_dir=hard_sample_paths.get("hardest_lbp_directory"),
-                         src_dir=IMAGES_PATH.get_data_path("ref_train_lbp"),
+                         src_dir=ref_dir_paths.get("Contour").get("train_dataset_dir").get(cfg_stream_net.dataset_type),
                          hardest_sample_images=files_to_move_lbp)
 
     # Move hardest rgb images
-    files_to_move_rgb = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_rgb"))
+    files_to_move_rgb = (
+        files_to_move(result, ref_dir_paths.get("RGB").get("train_dataset_dir").get(cfg_stream_net.dataset_type)))
     copy_hardest_samples(new_dir=hard_sample_paths.get("hardest_rgb_directory"),
-                         src_dir=IMAGES_PATH.get_data_path("ref_train_rgb"),
+                         src_dir=ref_dir_paths.get("RGB").get("train_dataset_dir").get(cfg_stream_net.dataset_type),
                          hardest_sample_images=files_to_move_rgb)
 
     # Move hardest texture images
-    files_to_move_texture = files_to_move(result, IMAGES_PATH.get_data_path("ref_train_texture"))
+    files_to_move_texture = (
+        files_to_move(result, ref_dir_paths.get("Texture").get("train_dataset_dir").get(cfg_stream_net.dataset_type)))
     copy_hardest_samples(new_dir=hard_sample_paths.get("hardest_texture_directory"),
-                         src_dir=IMAGES_PATH.get_data_path("ref_train_texture"),
+                         src_dir=ref_dir_paths.get("Texture").get("train_dataset_dir").get(cfg_stream_net.dataset_type),
                          hardest_sample_images=files_to_move_texture)
 
 

@@ -75,65 +75,83 @@ class Images(_Const):
         "unet_compare":
             "images/unet/unet_compare",
 
+        # --------------------------------------------------- O G Y E I ------------------------------------------------
         # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
-        "ref_train_contour_ogyei":
-            "images/references/ogyei/contour/train",
-        "ref_train_lbp_ogyei":
-            "images/references/ogyei/lbp/train",
-        "ref_train_rgb_ogyei":
-            "images/references/ogyei/rgb/train",
-        "ref_train_texture_ogyei":
-            "images/references/ogyei/texture/train",
+        "train_contour_stream_ogyei":
+            "images/stream_images/ogyei/contour/train",
+        "train_lbp_stream_ogyei":
+            "images/stream_images/ogyei/lbp/train",
+        "train_rgb_stream_ogyei":
+            "images/stream_images/ogyei/rgb/train",
+        "train_texture_stream_ogyei":
+            "images/stream_images/ogyei/texture/train",
 
         # ---------------------------------------------- R E F   V A L I D ---------------------------------------------
-        "ref_valid_contour_ogyei":
-            "images/references/ogyei/contour/valid",
-        "ref_valid_lbp_ogyei":
-            "images/references/ogyei/lbp/valid",
-        "ref_valid_rgb_ogyei":
-            "images/references/ogyei/rgb/valid",
-        "ref_valid_texture_ogyei":
-            "images/references/ogyei/texture/valid",
+        "valid_contour_stream_ogyei":
+            "images/stream_images/ogyei/contour/valid",
+        "valid_lbp_stream_ogyei":
+            "images/stream_images/ogyei/lbp/valid",
+        "valid_rgb_stream_ogyei":
+            "images/stream_images/ogyei/rgb/valid",
+        "valid_texture_stream_ogyei":
+            "images/stream_images/ogyei/texture/valid",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
-        "query_contour_ogyei":
-            "images/query/ogyei/contour",
-        "query_lbp_ogyei":
-            "images/query/ogyei/lbp",
-        "query_rgb_ogyei":
-            "images/query/ogyei/rgb",
-        "query_texture_ogyei":
-            "images/query/ogyei/texture",
+        "test_contour_stream_ref_ogyei":
+            "images/test/ogyei/ref/contour",
+        "test_contour_stream_query_ogyei":
+            "images/test/ogyei/query/contour",
+        "test_lbp_stream_ref_ogyei":
+            "images/test/ogyei/ref/lbp",
+        "test_lbp_stream_query_ogyei":
+            "images/test/ogyei/query/lbp",
+        "test_rgb_stream_ref_ogyei":
+            "images/test/ogyei/ref/rgb",
+        "test_rgb_stream_query_ogyei":
+            "images/test/ogyei/query/rgb",
+        "test_texture_stream_ref_ogyei":
+            "images/test/ogyei/ref/texture",
+        "test_texture_stream_query_ogyei":
+            "images/test/ogyei/query/texture",
 
+        # ---------------------------------------------------- C U R E -------------------------------------------------
         # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
-        "ref_train_contour_cure":
-            "images/references/cure/contour/train",
-        "ref_train_lbp_cure":
-            "images/references/cure/lbp/train",
-        "ref_train_rgb_cure":
-            "images/references/cure/rgb/train",
-        "ref_train_texture_cure":
-            "images/references/cure/texture/train",
+        "train_contour_stream_cure":
+            "images/stream_images/cure/contour/train",
+        "train_lbp_stream_cure":
+            "images/stream_images/cure/lbp/train",
+        "train_rgb_stream_cure":
+            "images/stream_images/cure/rgb/train",
+        "train_texture_stream_cure":
+            "images/stream_images/cure/texture/train",
 
         # ---------------------------------------------- R E F   V A L I D ---------------------------------------------
-        "ref_valid_contour_cure":
-            "images/references/cure/contour/valid",
-        "ref_valid_lbp_cure":
-            "images/references/cure/lbp/valid",
-        "ref_valid_rgb_cure":
-            "images/references/cure/rgb/valid",
-        "ref_valid_texture_cure":
-            "images/references/cure/texture/valid",
+        "valid_contour_stream_cure":
+            "images/stream_images/cure/contour/valid",
+        "valid_lbp_stream_cure":
+            "images/stream_images/cure/lbp/valid",
+        "valid_rgb_stream_cure":
+            "images/stream_images/cure/rgb/valid",
+        "valid_texture_stream_cure":
+            "images/stream_images/cure/texture/valid",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
-        "query_contour_cure":
-            "images/query/cure/contour",
-        "query_lbp_cure":
-            "images/query/cure/lbp",
-        "query_rgb_cure":
-            "images/query/cure/rgb",
-        "query_texture_cure":
-            "images/query/cure/texture",
+        "test_contour_stream_ref_cure":
+            "images/test/cure/ref/contour",
+        "test_contour_stream_query_cure":
+            "images/test/cure/query/contour",
+        "test_lbp_stream_ref_cure":
+            "images/test/cure/ref/lbp",
+        "test_lbp_stream_query_cure":
+            "images/test/cure/query/lbp",
+        "test_rgb_stream_ref_cure":
+            "images/test/cure/ref/rgb",
+        "test_rgb_stream_query_cure":
+            "images/test/cure/query/rgb",
+        "test_texture_stream_ref_cure":
+            "images/test/cure/ref/texture",
+        "test_texture_stream_query_cure":
+            "images/test/cure/query/texture",
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
         # CNN

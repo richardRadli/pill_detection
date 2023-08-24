@@ -20,7 +20,6 @@ from tqdm import tqdm
 from typing import List, Tuple
 from PIL import Image
 
-from config.const import IMAGES_PATH
 from config.config import ConfigStreamNetwork
 from config.network_configs import sub_stream_network_configs, stream_network_config
 from stream_network_models.stream_network_selector import NetworkFactory
@@ -304,11 +303,13 @@ class PredictStreamNetwork:
         """
 
         # Calculate query vectors
-        query_vecs, q_labels, q_images_path = self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("query_contour"),
-                                                               lbp_dir=IMAGES_PATH.get_data_path("query_lbp"),
-                                                               rgb_dir=IMAGES_PATH.get_data_path("query_rgb"),
-                                                               texture_dir=IMAGES_PATH.get_data_path("query_texture"),
-                                                               operation="query")
+        query_vecs, q_labels, q_images_path = (
+            self.get_vectors(
+                contour_dir=self.sub_network_config.get("Contour").get("test_dataset_dir").get(self.cfg.dataset_type),
+                lbp_dir=self.sub_network_config.get("LBP").get("test_dataset_dir").get(self.cfg.dataset_type),
+                rgb_dir=self.sub_network_config.get("RGB").get("test_dataset_dir").get(self.cfg.dataset_type),
+                texture_dir=self.sub_network_config.get("Texture").get("test_dataset_dir").get(self.cfg.dataset_type),
+                operation="query"))
 
         # Calculate reference vectors
         if self.cfg.load_ref_vector:
@@ -322,11 +323,14 @@ class PredictStreamNetwork:
             logging.info("Reference vectors has been loaded!")
         else:
             ref_vecs, r_labels, r_images_path = \
-                self.get_vectors(contour_dir=IMAGES_PATH.get_data_path("ref_train_contour"),
-                                 lbp_dir=IMAGES_PATH.get_data_path("ref_train_lbp"),
-                                 rgb_dir=IMAGES_PATH.get_data_path("ref_train_rgb"),
-                                 texture_dir=IMAGES_PATH.get_data_path("ref_train_texture"),
-                                 operation="reference")
+                self.get_vectors(
+                    contour_dir=self.sub_network_config.get("Contour").get("train_dataset_dir").get(
+                        self.cfg.dataset_type),
+                    lbp_dir=self.sub_network_config.get("LBP").get("train_dataset_dir").get(self.cfg.dataset_type),
+                    rgb_dir=self.sub_network_config.get("RGB").get("train_dataset_dir").get(self.cfg.dataset_type),
+                    texture_dir=self.sub_network_config.get("Texture").get("train_dataset_dir").get(
+                        self.cfg.dataset_type),
+                    operation="reference")
 
         # Compare query and reference vectors
         gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)

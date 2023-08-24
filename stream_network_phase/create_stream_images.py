@@ -22,8 +22,8 @@ from skimage.feature import local_binary_pattern
 from tqdm import tqdm
 from typing import Tuple
 
-from config.const import DATASET_PATH, IMAGES_PATH
-from config.config import ConfigGeneral
+from config.network_configs import dataset_images_path_selector, sub_stream_network_configs
+from config.config import ConfigStreamNetwork
 from utils.utils import measure_execution_time, setup_logger, numerical_sort
 
 
@@ -33,81 +33,21 @@ from utils.utils import measure_execution_time, setup_logger, numerical_sort
 class CreateStreamImages:
     def __init__(self):
         setup_logger()
-        self.cfg = ConfigGeneral().parse()
+
+        self.cfg = ConfigStreamNetwork().parse()
+
+        path_to_stream_images = sub_stream_network_configs(self.cfg)
+        self.rgb_images_path = (
+            path_to_stream_images.get("RGB").get(self.cfg.dataset_operation).get(self.cfg.dataset_type))
+        self.contour_images_path =\
+            path_to_stream_images.get("Contour").get(self.cfg.dataset_operation).get(self.cfg.dataset_type)
+        self.texture_images_path = (
+            path_to_stream_images.get("Texture").get(self.cfg.dataset_operation).get(self.cfg.dataset_type))
+        self.lbp_images_path = (
+            path_to_stream_images.get("LBP").get(self.cfg.dataset_operation).get(self.cfg.dataset_type))
 
         df = pd.DataFrame.from_dict(vars(self.cfg), orient='index', columns=['value'])
         logging.info(df)
-
-        self.path_to_images = self.path_selector()
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # -------------------------------------------- P A T H   S E L E C T O R -------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def path_selector():
-        """
-        Selects the correct directory paths based on the given operation string.
-
-        :return: A dictionary containing directory paths for images, masks, and other related files.
-        :raises ValueError: If the operation string is not "train" or "test".
-        """
-
-        path_to_images = {
-            "ogyei": {
-                "train": {
-                    "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images"),
-                    "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_train_masks"),
-                    "contour": IMAGES_PATH.get_data_path("ref_train_contour_ogyei"),
-                    "lbp": IMAGES_PATH.get_data_path("ref_train_lbp_ogyei"),
-                    "rgb": IMAGES_PATH.get_data_path("ref_train_rgb_ogyei"),
-                    "texture": IMAGES_PATH.get_data_path("ref_train_texture_ogyei")
-                },
-                "valid": {
-                    "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_images"),
-                    "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_valid_masks"),
-                    "contour": IMAGES_PATH.get_data_path("ref_valid_contour_ogyei"),
-                    "lbp": IMAGES_PATH.get_data_path("ref_valid_lbp_ogyei"),
-                    "rgb": IMAGES_PATH.get_data_path("ref_valid_rgb_ogyei"),
-                    "texture": IMAGES_PATH.get_data_path("ref_valid_texture_ogyei")
-                },
-                "test": {
-                    "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images"),
-                    "masks": IMAGES_PATH.get_data_path("unet_out"),
-                    "contour": IMAGES_PATH.get_data_path("query_contour_ogyei"),
-                    "lbp": IMAGES_PATH.get_data_path("query_lbp_ogyei"),
-                    "rgb": IMAGES_PATH.get_data_path("query_rgb_ogyei"),
-                    "texture": IMAGES_PATH.get_data_path("query_texture_ogyei"),
-                }
-            },
-            "cure": {
-                "train": {
-                    "images": DATASET_PATH.get_data_path(""),
-                    "masks": DATASET_PATH.get_data_path(""),
-                    "contour": IMAGES_PATH.get_data_path("ref_train_contour_cure"),
-                    "lbp": IMAGES_PATH.get_data_path("ref_train_lbp_cure"),
-                    "rgb": IMAGES_PATH.get_data_path("ref_train_rgb_cure"),
-                    "texture": IMAGES_PATH.get_data_path("ref_train_texture_cure")
-                },
-                "valid": {
-                    "images": DATASET_PATH.get_data_path(""),
-                    "masks": DATASET_PATH.get_data_path(""),
-                    "contour": IMAGES_PATH.get_data_path("ref_valid_contour_cure"),
-                    "lbp": IMAGES_PATH.get_data_path("ref_valid_lbp_cure"),
-                    "rgb": IMAGES_PATH.get_data_path("ref_valid_rgb_cure"),
-                    "texture": IMAGES_PATH.get_data_path("ref_valid_texture_cure")
-                },
-                "test": {
-                    "images": DATASET_PATH.get_data_path(""),
-                    "masks": IMAGES_PATH.get_data_path(""),
-                    "contour": IMAGES_PATH.get_data_path("query_contour_cure"),
-                    "lbp": IMAGES_PATH.get_data_path("query_lbp_cure"),
-                    "rgb": IMAGES_PATH.get_data_path("query_rgb_cure"),
-                    "texture": IMAGES_PATH.get_data_path("query_texture_cure"),
-                }
-            }
-        }
-
-        return path_to_images
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------ C R E A T E   L A B E L   D I R S -------------------------------------
@@ -208,12 +148,10 @@ class CreateStreamImages:
 
         color_path, mask_path = image_paths
         output_name = os.path.basename(color_path)
-        output_file = (
-            os.path.join(
-                self.path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("rgb"), output_name))
-        c_imgs = cv2.imread(str(color_path), 1)
-        m_imgs = cv2.imread(str(mask_path), 0)
-        self.draw_bounding_box(c_imgs, m_imgs, output_file)
+        output_file = (os.path.join(self.rgb_images_path, output_name))
+        color_imgs = cv2.imread(str(color_path), 1)
+        mask_imgs = cv2.imread(str(mask_path), 0)
+        self.draw_bounding_box(color_imgs, mask_imgs, output_file)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------- S A V E   B O U N D I N G   B O X   I M G S ----------------------------------
@@ -224,12 +162,12 @@ class CreateStreamImages:
         :return: None
         """
 
-        color_images_dir = Path(
-            self.path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("images"))
+        path_to_images = dataset_images_path_selector()
+
+        color_images_dir = Path(path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("images"))
         color_images = sorted(color_images_dir.glob("*.png"))
 
-        mask_images_dir = Path(
-            self.path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("masks"))
+        mask_images_dir = Path(path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("masks"))
         mask_images = sorted(mask_images_dir.glob("*.png"))
 
         with ThreadPoolExecutor() as executor:
@@ -269,15 +207,12 @@ class CreateStreamImages:
         :return: None
         """
 
-        image_path = self.path_to_images[self.cfg.dataset_type][self.cfg.dataset_operation]["rgb"]
-        rgb_images = sorted(glob(str(image_path) + "/*.png"), key=numerical_sort)
+        rgb_images = sorted(glob(str(self.rgb_images_path) + "/*.png"), key=numerical_sort)
         args_list = []
 
         for img_path in tqdm(rgb_images, desc="Contour images"):
             output_name = "contour_" + os.path.basename(img_path)
-            output_file = os.path.join(
-                self.path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("contour"),
-                output_name)
+            output_file = os.path.join(self.contour_images_path, output_name)
             bbox_imgs = cv2.imread(img_path, 0)
             args_list.append((bbox_imgs, output_file, self.cfg.kernel_median_contour, self.cfg.canny_low_thr,
                               self.cfg.canny_high_thr))
@@ -321,15 +256,12 @@ class CreateStreamImages:
         :return: None
         """
 
-        image_path = self.path_to_images[self.cfg.dataset_type][self.cfg.dataset_operation]["rgb"]
-        rgb_images = sorted(glob(str(image_path) + "/*.png"), key=numerical_sort)
+        rgb_images = sorted(glob(self.rgb_images_path + "/*.png"), key=numerical_sort)
         args_list = []
 
         for img_path in tqdm(rgb_images, desc="Texture images"):
             output_name = "texture_" + os.path.basename(img_path)
-            output_file = os.path.join(
-                self.path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("texture"),
-                output_name)
+            output_file = os.path.join(self.texture_images_path, output_name)
             bbox_imgs = cv2.imread(img_path, 0)
             args_list.append((bbox_imgs, output_file,
                               (self.cfg.kernel_gaussian_texture, self.cfg.kernel_gaussian_texture)))
@@ -363,22 +295,53 @@ class CreateStreamImages:
         :return: None
         """
 
-        image_path = self.path_to_images[self.cfg.dataset_type][self.cfg.dataset_operation]["rgb"]
-        rgb_images = sorted(glob(str(image_path) + "/*.png"), key=numerical_sort)
+        rgb_images = sorted(glob(self.rgb_images_path + "/*.png"), key=numerical_sort)
 
         with ThreadPoolExecutor() as executor:
             futures = []
             for img_path in tqdm(rgb_images, desc="LBP images"):
                 output_name = "lbp_" + os.path.basename(img_path)
-                output_file = os.path.join(
-                    self.path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("lbp"),
-                    output_name)
+                output_file = os.path.join(self.lbp_images_path, output_name)
                 bbox_imgs = cv2.imread(img_path, 0)
                 future = executor.submit(self.process_lbp_image, bbox_imgs, output_file)
                 futures.append(future)
 
             for future in futures:
                 future.result()
+
+    @staticmethod
+    def copy_query_images():
+        source_root = r'C:/Users/ricsi/Documents/project/storage/IVM/images/test/ogyei/ref'
+        destination_root = r'C:/Users/ricsi/Documents/project/storage/IVM/images/test/ogyei/query'
+
+        # Get the list of class label directories in the source root
+        class_label_dirs = [d for d in os.listdir(source_root) if os.path.isdir(os.path.join(source_root, d))]
+
+        # Iterate through each class label directory
+        for class_label_dir in class_label_dirs:
+            class_label_path = os.path.join(source_root, class_label_dir)
+
+            # Get the list of subdirectories within each class label directory
+            subdirs = os.listdir(class_label_path)
+
+            # Iterate through each subdirectory
+            for subdir in subdirs:
+                subdir_path = os.path.join(class_label_path, subdir)
+
+                # Get the list of image files in the current subdirectory
+                image_files = [f for f in os.listdir(subdir_path) if
+                               f.endswith('.jpg') or f.endswith('.png')]  # Adjust file extensions as needed
+
+                # Create the destination subdirectory if it doesn't exist
+                destination_subdir = os.path.join(destination_root, class_label_dir, subdir)
+                os.makedirs(destination_subdir, exist_ok=True)
+
+                # Iterate through the image files and copy every third image
+                for i, image_file in enumerate(image_files):
+                    if (i + 1) % 3 == 0:
+                        source_image_path = os.path.join(subdir_path, image_file)
+                        destination_image_path = os.path.join(destination_subdir, image_file)
+                        shutil.move(source_image_path, destination_image_path)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------- M A I N ----------------------------------------------------
@@ -391,15 +354,21 @@ class CreateStreamImages:
         :return: None
         """
 
-        # self.save_rgb_images()
-        # self.save_contour_images()
-        # self.save_texture_images()
-        # self.save_lbp_images()
+        if self.cfg.dataset_type == "ogyei":
+            self.save_rgb_images()
+        self.save_contour_images()
+        self.save_texture_images()
+        self.save_lbp_images()
+
         self.create_label_dirs(
-            rgb_path=self.path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("rgb"),
-            contour_path=self.path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("contour"),
-            texture_path=self.path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("texture"),
-            lbp_path=self.path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("lbp"))
+            rgb_path=self.rgb_images_path,
+            contour_path=self.contour_images_path,
+            texture_path=self.texture_images_path,
+            lbp_path=self.lbp_images_path
+        )
+
+        if self.cfg.dataset_operation == "test":
+            self.copy_query_images()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -407,7 +376,6 @@ class CreateStreamImages:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
-        operation = "train"
         proc_unet_imgs = CreateStreamImages()
         proc_unet_imgs.main()
     except KeyboardInterrupt as kie:

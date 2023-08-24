@@ -97,29 +97,6 @@ class ConfigTestingUnet:
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++ C O N F I G   G E N E R A L +++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class ConfigGeneral:
-    def __init__(self):
-        self.opt = None
-        self.parser = argparse.ArgumentParser()
-
-        self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
-        self.parser.add_argument("--dataset_operation", type=str, default="train", help="train | valid | test")
-        self.parser.add_argument("--test_split_ratio", type=float, default=0.15)
-        self.parser.add_argument("--valid_split_ratio", type=float, default=0.15)
-        self.parser.add_argument("--threshold_area", type=int, default=100)
-        self.parser.add_argument("--kernel_median_contour", type=int, default=7)
-        self.parser.add_argument("--canny_low_thr", type=int, default=10)
-        self.parser.add_argument("--canny_high_thr", type=int, default=40)
-        self.parser.add_argument("--kernel_gaussian_texture", type=int, default=7)
-
-    def parse(self):
-        self.opt = self.parser.parse_args()
-        return self.opt
-
-
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++ C O N F I G   S T R E A M   N E T W O R K +++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class ConfigStreamNetwork:
@@ -127,15 +104,21 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
+        self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
                                  help="CNN | EfficientNet | EfficientNetV2")
-        self.parser.add_argument("--type_of_stream", type=str, default="Contour", help="Contour | LBP | RGB | Texture")
+        self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="Contour | LBP | RGB | Texture")
+        self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
+
         self.parser.add_argument("--dynamic_margin_loss", type=bool, default=False)
-        self.parser.add_argument("--num_triplets", type=int, default=8000, help="Number of triplets to be generated")
+        self.parser.add_argument("--num_triplets", type=int, default=4000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)
+
         self.parser.add_argument("--epochs", type=int, default=30)
         self.parser.add_argument("--batch_size", type=int, default=32)
+
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
+
         self.parser.add_argument("--learning_rate_cnn_rgb", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_cnn_con", type=float, default=3e-4)
         self.parser.add_argument("--learning_rate_cnn_lbp", type=float, default=3e-4)
@@ -145,9 +128,17 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--learning_rate_en_lbp", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_tex", type=float, default=1e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)
+
         self.parser.add_argument("--img_size_cnn", type=int, default=128)
         self.parser.add_argument("--img_size_en", type=int, default=224)
+
         self.parser.add_argument("--load_ref_vector", type=bool, default=False)
+
+        self.parser.add_argument("--threshold_area", type=int, default=100)
+        self.parser.add_argument("--kernel_median_contour", type=int, default=7)
+        self.parser.add_argument("--canny_low_thr", type=int, default=30)
+        self.parser.add_argument("--canny_high_thr", type=int, default=70)
+        self.parser.add_argument("--kernel_gaussian_texture", type=int, default=7)
 
     def parse(self):
         self.opt = self.parser.parse_args()
