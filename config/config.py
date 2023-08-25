@@ -105,9 +105,9 @@ class ConfigStreamNetwork:
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
                                  help="CNN | EfficientNet | EfficientNetV2")
-        self.parser.add_argument("--type_of_stream", type=str, default="Contour", help="Contour | LBP | RGB | Texture")
+        self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
 
         self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
@@ -152,18 +152,19 @@ class ConfigFusionNetwork:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MultiHeadAttention",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetSelfAttention",
                                  help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
                                       "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_split", type=float, default=0.8)
-        self.parser.add_argument("--epochs", type=int, default=5)
+        self.parser.add_argument("--epochs", type=int, default=10)
         self.parser.add_argument("--batch_size", type=int, default=128)
-        self.parser.add_argument("--learning_rate", type=float, default=2e-4)
-        self.parser.add_argument("--weight_decay", type=float, default=1e-8)
-        self.parser.add_argument('--step_size', type=int, default=2,
+        self.parser.add_argument("--learning_rate", type=float, default=3e-4)
+        self.parser.add_argument("--weight_decay", type=float, default=1e-5)
+        self.parser.add_argument('--step_size', type=int, default=5,
                                  help="Number of epochs after which to decay the learning rate")
         self.parser.add_argument('--gamma', type=float, default=0.1, help="Factor by which to decay the learning rate")
+        self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
 
     def parse(self):
         self.opt = self.parser.parse_args()

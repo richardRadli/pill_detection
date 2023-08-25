@@ -206,9 +206,8 @@ class PredictFusionNetwork:
             predicted_medicine = r_labels[most_similar_indices_euc_dist[idx_query]]
             predicted_medicine_euc_dist.append(predicted_medicine)
 
-            most_similar_indices_and_scores_e = [(i, min(scores)) for i, scores in
-                                                 enumerate(similarity_scores_euc_dist)]
-            corresp_sim_euc_dist.append(most_similar_indices_and_scores_e[idx_query][1])
+            most_similar_indices_and_scores = [(i, min(scores)) for i, scores in enumerate(similarity_scores_euc_dist)]
+            corresp_sim_euc_dist.append(most_similar_indices_and_scores[idx_query][1])
 
             # Calculate top-1 accuracy
             if predicted_medicine == q_labels[idx_query]:
@@ -286,10 +285,10 @@ class PredictFusionNetwork:
             operation="query")
 
         ref_vectors, r_labels, r_images_path = self.get_vectors(
-            contour_dir=self.subnetwork_config.get("Contour").get("test").get(self.cfg_stream_net.dataset_type),
-            lbp_dir=self.subnetwork_config.get("LBP").get("test").get(self.cfg_stream_net.dataset_type),
-            rgb_dir=self.subnetwork_config.get("RGB").get("test").get(self.cfg_stream_net.dataset_type),
-            texture_dir=self.subnetwork_config.get("Texture").get("test").get(self.cfg_stream_net.dataset_type),
+            contour_dir=self.subnetwork_config.get("Contour").get("train").get(self.cfg_stream_net.dataset_type),
+            lbp_dir=self.subnetwork_config.get("LBP").get("train").get(self.cfg_stream_net.dataset_type),
+            rgb_dir=self.subnetwork_config.get("RGB").get("train").get(self.cfg_stream_net.dataset_type),
+            texture_dir=self.subnetwork_config.get("Texture").get("train").get(self.cfg_stream_net.dataset_type),
             operation="reference")
 
         gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vectors, query_vectors)

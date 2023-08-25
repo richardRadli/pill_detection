@@ -81,7 +81,7 @@ class FusionDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor,
                                                torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor,
-                                               torch.Tensor, torch.Tensor]:
+                                               torch.Tensor, torch.Tensor, str, str]:
         """
         This is the __getitem__ method of a dataset loader class. Given an index, it loads the corresponding images from
         three different datasets (RGB, texture, contour, LBP), and applies some data augmentation (transforms) to each
@@ -149,7 +149,8 @@ class FusionDataset(Dataset):
 
         return (contour_anchor_img, lbp_anchor_img, rgb_anchor_img, texture_anchor_img,
                 contour_positive_img, lbp_positive_img, rgb_positive_img, texture_positive_img,
-                contour_negative_img, lbp_negative_img, rgb_negative_img, texture_negative_img)
+                contour_negative_img, lbp_negative_img, rgb_negative_img, texture_negative_img,
+                rgb_positive_img_path, rgb_negative_img_path)
 
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- __ L E N __ --------------------------------------------------

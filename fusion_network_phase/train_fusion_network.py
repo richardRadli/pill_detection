@@ -11,6 +11,7 @@ import colorama
 import logging
 import numpy as np
 import os
+import pandas as pd
 import torch
 
 from tqdm import tqdm
@@ -20,6 +21,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
+from config.const import NLP_DATA_PATH
 from config.network_configs import sub_stream_network_configs, fusion_network_config
 from fusion_models.fusion_network_selector import NetworkFactory
 from fusion_dataset_loader import FusionDataset
@@ -111,7 +113,7 @@ class TrainFusionNet:
         self.model.to(self.device)
 
         # Display model
-        summary(self.model,
+        summary(model=self.model,
                 input_size=[(network_cfg_contour.get("channels")[0], network_cfg_contour.get("image_size"),
                              network_cfg_contour.get("image_size")),
                             (network_cfg_lbp.get("channels")[0], network_cfg_lbp.get("image_size"),
@@ -122,7 +124,15 @@ class TrainFusionNet:
                              network_cfg_texture.get("image_size"))])
 
         # Specify loss function
-        self.criterion = TripletMarginLoss(margin=self.cfg_fusion_net.margin)
+        if self.cfg_fusion_net.dynamic_margin_loss:
+            excel_file_path = (
+                os.path.join(NLP_DATA_PATH.get_data_path("vector_distances"),
+                             os.listdir(NLP_DATA_PATH.get_data_path("vector_distances"))[0]))
+            sheet_index = 1
+            df = pd.read_excel(excel_file_path, sheet_name=sheet_index, index_col=0)
+            self.criterion = DynamicMarginTripletLoss(df)
+        else:
+            self.criterion = TripletMarginLoss(margin=self.cfg_fusion_net.margin)
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(params=list(self.model.fc1.parameters()),
@@ -160,9 +170,9 @@ class TrainFusionNet:
 
         for epoch in tqdm(range(self.cfg_fusion_net.epochs), desc=colorama.Fore.LIGHTGREEN_EX + "Epochs"):
             # Train loop
-            for a_con, a_lbp, a_rgb, a_tex, p_con, p_lbp, p_rgb, p_tex, n_con, n_lbp, n_rgb, n_tex in \
-                    tqdm(self.train_data_loader, total=len(self.train_data_loader),
-                         desc=colorama.Fore.LIGHTCYAN_EX + "Training"):
+            for a_con, a_lbp, a_rgb, a_tex, p_con, p_lbp, p_rgb, p_tex, n_con, n_lbp, n_rgb, n_tex, positive_img_path, \
+                    negative_img_path in tqdm(self.train_data_loader, total=len(self.train_data_loader),
+                                              desc=colorama.Fore.LIGHTCYAN_EX + "Training"):
                 # Uploading data to the GPU
                 anchor_contour = a_con.to(self.device)
                 positive_contour = p_con.to(self.device)
@@ -183,12 +193,17 @@ class TrainFusionNet:
                 self.optimizer.zero_grad()
 
                 # Forward pass
-                anchor_out = self.model(anchor_contour, anchor_lbp, anchor_rgb, anchor_texture)
-                positive_out = self.model(positive_contour, positive_lbp, positive_rgb, positive_texture)
-                negative_out = self.model(negative_contour, negative_lbp, negative_rgb, negative_texture)
+                anchor_emb = self.model(anchor_contour, anchor_lbp, anchor_rgb, anchor_texture)
+                positive_emb = self.model(positive_contour, positive_lbp, positive_rgb, positive_texture)
+                negative_emb = self.model(negative_contour, negative_lbp, negative_rgb, negative_texture)
 
                 # Compute triplet loss
-                t_loss = self.criterion(anchor_out, positive_out, negative_out)
+                if self.cfg_fusion_net.dynamic_margin_loss:
+                    t_loss = (
+                        self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path))
+                else:
+                    t_loss = (
+                        self.criterion(anchor_emb, positive_emb, negative_emb))
 
                 # Backward pass
                 t_loss.backward()
@@ -198,10 +213,11 @@ class TrainFusionNet:
                 train_losses.append(t_loss.item())
 
             # Validation loop
-            with torch.no_grad():
-                for a_con, a_lbp, a_rgb, a_tex, p_con, p_lbp, p_rgb, p_tex, n_con, n_lbp, n_rgb, n_tex in \
-                        tqdm(self.valid_data_loader, total=len(self.valid_data_loader),
-                             desc=colorama.Fore.LIGHTMAGENTA_EX + "Validation"):
+            with (torch.no_grad()):
+                for a_con, a_lbp, a_rgb, a_tex, p_con, p_lbp, p_rgb, p_tex, n_con, n_lbp, n_rgb, n_tex,\
+                    positive_img_path, negative_img_path in tqdm(self.valid_data_loader,
+                                                                 total=len(self.valid_data_loader),
+                                                                 desc=colorama.Fore.LIGHTMAGENTA_EX + "Validation"):
                     # Uploading data to the GPU
                     anchor_contour = a_con.to(self.device)
                     positive_contour = p_con.to(self.device)
@@ -222,12 +238,16 @@ class TrainFusionNet:
                     self.optimizer.zero_grad()
 
                     # Forward pass
-                    anchor_out = self.model(anchor_contour, anchor_lbp, anchor_rgb, anchor_texture)
-                    positive_out = self.model(positive_contour, positive_lbp, positive_rgb, positive_texture)
-                    negative_out = self.model(negative_contour, negative_lbp, negative_rgb, negative_texture)
+                    anchor_emb = self.model(anchor_contour, anchor_lbp, anchor_rgb, anchor_texture)
+                    positive_emb = self.model(positive_contour, positive_lbp, positive_rgb, positive_texture)
+                    negative_emb = self.model(negative_contour, negative_lbp, negative_rgb, negative_texture)
 
                     # Compute triplet loss
-                    v_loss = self.criterion(anchor_out, positive_out, negative_out)
+                    if self.cfg_fusion_net.dynamic_margin_loss:
+                        v_loss = self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path,
+                                                negative_img_path)
+                    else:
+                        v_loss = self.criterion(anchor_emb, positive_emb, negative_emb)
 
                     # Accumulate loss
                     valid_losses.append(v_loss.item())
