@@ -32,31 +32,42 @@ def is_directory_empty(directory):
     return not any(os.scandir(directory))
 
 
-def download_images(ref_list, download_directory, root_url):
+def download_images(list_to_process, download_directory, root_url, operation):
     if not os.path.exists(download_directory):
         os.makedirs(download_directory)
 
-    for item in tqdm(ref_list):
+    for item in tqdm(list_to_process):
         image_url = root_url + item[1]
         response = requests.get(image_url)
 
         if response.status_code == 200:
             image_filename = os.path.basename(item[1])
+
+            if image_filename.endswith("WMV"):
+                logging.warning(f"WMV file detected, skipped: {image_filename}")
+                continue
+
             pill_name = item[3]
             pill_directory = os.path.join(download_directory, pill_name)
 
             if not os.path.exists(pill_directory):
                 os.makedirs(pill_directory)
 
-            if is_directory_empty(pill_directory):
+            if operation == "reference":
+                if is_directory_empty(pill_directory):
+                    full_path = os.path.join(pill_directory, image_filename)
+
+                    with open(full_path, 'wb') as file:
+                        file.write(response.content)
+                    logging.info(f"Downloaded: {image_filename} to {pill_name}")
+                else:
+                    logging.warning(f"Skipped download: {image_filename} (Directory not empty)")
+            else:
                 full_path = os.path.join(pill_directory, image_filename)
 
                 with open(full_path, 'wb') as file:
                     file.write(response.content)
                 logging.info(f"Downloaded: {image_filename} to {pill_name}")
-            else:
-                logging.warning(f"Skipped download: {image_filename} (Directory not empty)")
-
         else:
             logging.error(f"Failed to download: {image_url}")
 
@@ -85,34 +96,37 @@ def process_xml(xml_url, given_ndc11):
         return None, None, None, None, None, None, None
 
 
-def main():
-    setup_logger()
-
-    ref_list, test_list = get_image_data()
-    # root_url = "https://data.lhncbc.nlm.nih.gov/public/Pills/"
-    #
-    # download_directory_ref = "C:/Users/ricsi/Desktop/nih/ref"
-    # download_images(test_list, download_directory_ref, root_url)
-    #
-    # download_directory_test = "C:/Users/ricsi/Desktop/nih/test"
-    # download_images(test_list, download_directory_test, root_url)
-    #
-
+def write_attributes_to_csv(list_to_process):
     printed_values = set()
 
-    with open('C:/Users/ricsi/Desktop/nih/ref/output.csv', "w", newline='') as csvfile:
+    with open('C:/Users/ricsi/Desktop/nih/ref/ref_output.csv', "w", newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=",")
 
-        for item in ref_list:
+        for item in tqdm(list_to_process, desc="Acquiring features from the xml files"):
             directory_name = item[1].split("/")[0]
             if item[0] not in printed_values:
                 printed_values.add(item[0])
                 imprint, imprinttype, color, shape, score, symbol, size_of_pill = process_xml(
                     "https://data.lhncbc.nlm.nih.gov/public/Pills/ALLXML/%s.xml" % directory_name, item[0])
-                imprint_parts = imprint.split(';')
+                imprint_parts = imprint.split(';') if imprint else []
                 imprint_parts = '_'.join(imprint_parts)
                 imprint_parts_list = [imprint_parts]
                 writer.writerow(imprint_parts_list + [imprinttype, color, shape, score, symbol, size_of_pill])
+
+
+def main():
+    setup_logger()
+
+    ref_list, test_list = get_image_data()
+    root_url = "https://data.lhncbc.nlm.nih.gov/public/Pills/"
+
+    download_directory_ref = "C:/Users/ricsi/Desktop/nih/ref"
+    download_images(test_list, download_directory_ref, root_url, "reference")
+
+    download_directory_test = "C:/Users/ricsi/Desktop/nih/test"
+    download_images(test_list, download_directory_test, root_url, "test")
+
+    write_attributes_to_csv(ref_list)
 
 
 if __name__ == "__main__":
