@@ -4,6 +4,11 @@ import os
 import pandas as pd
 import spacy
 
+from scipy.spatial.distance import pdist, squareform
+from collections import OrderedDict
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+
 from config.const import NLP_DATA_PATH
 from nlp_utils import four_word_label, label_cleaning
 from utils.utils import create_timestamp, measure_execution_time, setup_logger
@@ -67,6 +72,31 @@ class TextNLPAnalysis:
     @measure_execution_time
     def vectorization(self, clean_sentences, nlp):
         return np.array([nlp(sentence).vector for sentence in clean_sentences])
+
+    @staticmethod
+    def create_matrix(list_of_labels, matrix):
+        dict_words = {}
+
+        for i, matrix_values in enumerate(matrix):
+            dict_words[list_of_labels[i]] = matrix_values
+
+        sorted_dict = OrderedDict(sorted(dict_words.items()))
+        sorted_matrix = list(sorted_dict.values())
+        labels = list(sorted_dict.keys())
+
+        pairwise_distances = pdist(sorted_matrix, metric='euclidean')
+        distance_matrix = squareform(pairwise_distances)
+
+        df = pd.DataFrame(distance_matrix)
+        df.columns = labels
+        df.index = labels
+        wb = Workbook()
+        ws = wb.active
+
+        for r in dataframe_to_rows(df, header=True, index=True):
+            ws.append(r)
+            ws.delete_rows(2)
+            ws.freeze_panes = ws["B2"]
 
     def main(self):
         setup_logger()

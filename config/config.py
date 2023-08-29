@@ -105,12 +105,14 @@ class ConfigStreamNetwork:
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
                                  help="CNN | EfficientNet | EfficientNetV2")
         self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
 
         self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
+        self.parser.add_argument("--upper_norm_limit", type=int, default=5)
+
         self.parser.add_argument("--num_triplets", type=int, default=4000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)
 
@@ -127,6 +129,10 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--learning_rate_en_con", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_lbp", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_tex", type=float, default=1e-4)
+        self.parser.add_argument("--learning_rate_env2_rgb", type=float, default=3e-4)
+        self.parser.add_argument("--learning_rate_env2_con", type=float, default=3e-4)
+        self.parser.add_argument("--learning_rate_env2_lbp", type=float, default=3e-4)
+        self.parser.add_argument("--learning_rate_env2_tex", type=float, default=3e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)
 
         self.parser.add_argument("--img_size_cnn", type=int, default=128)
@@ -156,8 +162,8 @@ class ConfigFusionNetwork:
                                  help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
                                       "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA")
         self.parser.add_argument("--margin", type=float, default=0.5)
-        self.parser.add_argument("--train_split", type=float, default=0.8)
-        self.parser.add_argument("--epochs", type=int, default=10)
+        self.parser.add_argument("--train_split", type=float, default=0.5)
+        self.parser.add_argument("--epochs", type=int, default=15)
         self.parser.add_argument("--batch_size", type=int, default=128)
         self.parser.add_argument("--learning_rate", type=float, default=3e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)

@@ -53,4 +53,5 @@ class EfficientNetV2SelfAttention(nn.Module):
             params.requires_grad = False
 
         model.classifier[1] = nn.Linear(in_features=1280, out_features=self.num_out_feature)
+
         return model

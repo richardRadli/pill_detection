@@ -127,7 +127,8 @@ class EfficientNetSelfAttention(nn.Module):
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------ S E L F   A T T E N T I O N   M O D U L E -----------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def self_attention_module(self, keys: torch.Tensor, values: torch.Tensor, queries: torch.Tensor) -> torch.Tensor:
+    @staticmethod
+    def self_attention_module(keys: torch.Tensor, values: torch.Tensor, queries: torch.Tensor) -> torch.Tensor:
         """
         Apply self-attention mechanism to the input tensors.
 
@@ -137,13 +138,8 @@ class EfficientNetSelfAttention(nn.Module):
         :return: Output tensor after applying self-attention with shape [batch_size, embedded_dim].
         """
 
-        keys = keys.unsqueeze(2)
-        values = values.unsqueeze(1)
-        queries = queries.unsqueeze(1)
+        scores = torch.matmul(queries, keys.transpose(-2, -1))
+        attention_weights = torch.softmax(scores, dim=-1)
+        attended_values = torch.matmul(attention_weights, values)
 
-        result = torch.bmm(queries, keys)
-        scores = result / (self.input_dim ** 0.5)
-        attention = torch.softmax(scores, dim=2)
-        weighted = torch.bmm(attention, values)
-
-        return weighted.squeeze(1)
+        return attended_values

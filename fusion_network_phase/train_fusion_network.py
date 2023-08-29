@@ -135,9 +135,9 @@ class TrainFusionNet:
             self.criterion = TripletMarginLoss(margin=self.cfg_fusion_net.margin)
 
         # Specify optimizer
-        self.optimizer = torch.optim.Adam(params=list(self.model.fc1.parameters()),
-                                          lr=self.cfg_fusion_net.learning_rate,
-                                          weight_decay=self.cfg_fusion_net.weight_decay)
+        self.optimizer = torch.optim.SGD(params=list(self.model.fc1.parameters()),
+                                         lr=self.cfg_fusion_net.learning_rate,
+                                         weight_decay=self.cfg_fusion_net.weight_decay)
 
         # LR scheduler
         self.scheduler = StepLR(optimizer=self.optimizer,

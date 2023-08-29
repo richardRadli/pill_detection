@@ -32,7 +32,7 @@ def sub_stream_network_configs(cfg) -> Dict:
             "channels":
                 [1, 32, 48, 64, 128, 192, 256],
             "embedded_dim":
-                1000,
+                1024,
             "train":
                 {
                     "cure":
@@ -100,7 +100,7 @@ def sub_stream_network_configs(cfg) -> Dict:
                 "EfficientNet":
                     cfg.learning_rate_en_con,
                 "EfficientNetV2":
-                    cfg.learning_rate_en_con
+                    cfg.learning_rate_env2_con
             }.get(cfg.type_of_net, cfg.learning_rate_cnn_con),
             "image_size": {
                 "CNN":
@@ -117,7 +117,7 @@ def sub_stream_network_configs(cfg) -> Dict:
             "channels":
                 [1, 32, 48, 64, 128, 192, 256],
             "embedded_dim":
-                1000,
+                1024,
             "train":
                 {
                     "cure":
@@ -185,7 +185,7 @@ def sub_stream_network_configs(cfg) -> Dict:
                 "EfficientNet":
                     cfg.learning_rate_en_lbp,
                 "EfficientNetV2":
-                    cfg.learning_rate_en_lbp
+                    cfg.learning_rate_env2_lbp
             }.get(cfg.type_of_net, cfg.learning_rate_cnn_lbp),
             "image_size": {
                 "CNN":
@@ -202,7 +202,7 @@ def sub_stream_network_configs(cfg) -> Dict:
             "channels":
                 [3, 64, 96, 128, 256, 384, 512],
             "embedded_dim":
-                256,
+                1024,
             "train":
                 {
                     "cure":
@@ -270,7 +270,7 @@ def sub_stream_network_configs(cfg) -> Dict:
                 "EfficientNet":
                     cfg.learning_rate_en_rgb,
                 "EfficientNetV2":
-                    cfg.learning_rate_en_rgb
+                    cfg.learning_rate_env2_rgb
             }.get(cfg.type_of_net, cfg.learning_rate_cnn_rgb),
             "image_size": {
                 "CNN":
@@ -287,7 +287,7 @@ def sub_stream_network_configs(cfg) -> Dict:
             "channels":
                 [1, 32, 48, 64, 128, 192, 256],
             "embedded_dim":
-                1000,
+                1024,
             "train":
                 {
                     "cure":
@@ -355,7 +355,7 @@ def sub_stream_network_configs(cfg) -> Dict:
                 "EfficientNet":
                     cfg.learning_rate_en_tex,
                 "EfficientNetV2":
-                    cfg.learning_rate_en_tex
+                    cfg.learning_rate_env2_tex
             }.get(cfg.type_of_net, cfg.learning_rate_cnn_tex),
             "image_size": {
                 "CNN":
