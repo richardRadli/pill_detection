@@ -8,6 +8,7 @@ Date: Apr 12, 2023
 import logging
 import matplotlib.pyplot as plt
 import os
+import random
 import pandas as pd
 import shutil
 
@@ -52,7 +53,8 @@ def get_classes(images_path) -> \
 # -------------------------------------------------------------------------------------------------------------------- #
 def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str]],
                   validation_images: Dict[str, List[str]], test_images: Dict[str, List[str]], images_path,
-                  valid_split_ratio: float = 0.15, test_split_ratio: float = 0.15) -> \
+                  valid_split_ratio: float = 0.15, test_split_ratio: float = 0.15, segregated_split: bool = False,
+                  num_test_classes: int = 12) -> \
         Tuple[Dict[str, int], Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]]]:
     """
     Split the dataset into train, validation, and test sets based on the class counts.
@@ -64,6 +66,9 @@ def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str
     :param images_path: Path to the train images.
     :param valid_split_ratio:
     :param test_split_ratio:
+    :param segregated_split:
+    :param num_test_classes:
+
     :return: A tuple containing dictionaries for class counts, train images, validation images, and test images.
     """
 
@@ -71,13 +76,23 @@ def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str
         if filename.endswith('.png'):
             class_name = '_'.join(filename.split('_')[2:-1])
             class_counts[class_name] += 1
-            if len(validation_images[class_name]) < round(class_counts[class_name] * valid_split_ratio):
-                validation_images[class_name].append(filename)
-            elif len(test_images[class_name]) < round(class_counts[class_name] * test_split_ratio):
-                test_images[class_name].append(filename)
+            if not segregated_split:
+                if len(validation_images[class_name]) < round(class_counts[class_name] * valid_split_ratio):
+                    validation_images[class_name].append(filename)
+                elif len(test_images[class_name]) < round(class_counts[class_name] * test_split_ratio):
+                    test_images[class_name].append(filename)
+                else:
+                    train_images[class_name].append(filename)
             else:
-                train_images[class_name].append(filename)
+                list_of_keys = list(class_counts.keys())
+                test_classes = random.sample(population=list_of_keys, k=num_test_classes)
 
+                if class_name in test_classes:
+                    test_images[class_name].append(filename)
+                elif len(validation_images[class_name]) < round(class_counts[class_name] * valid_split_ratio):
+                    validation_images[class_name].append(filename)
+                else:
+                    train_images[class_name].append(filename)
     return class_counts, train_images, validation_images, test_images
 
 
@@ -160,20 +175,26 @@ def main(replace_files: bool = False) -> None:
 
     setup_logger()
 
-    images_path = DATASET_PATH.get_data_path("ogyei_v2_unsplitted_images")
-    labels_path = DATASET_PATH.get_data_path("ogyei_v2_unsplitted_labels")
+    images_path = DATASET_PATH.get_data_path("ogyei_v1_single_unsplitted_images")
+    labels_path = DATASET_PATH.get_data_path("ogyei_v1_single_unsplitted_labels")
 
-    train_images_path = DATASET_PATH.get_data_path("ogyei_v2_splitted_train_images")
-    train_labels_path = DATASET_PATH.get_data_path("ogyei_v2_splitted_train_labels")
-    val_images_path = DATASET_PATH.get_data_path("ogyei_v2_splitted_valid_images")
-    val_labels_path = DATASET_PATH.get_data_path("ogyei_v2_splitted_valid_labels")
-    test_images_path = DATASET_PATH.get_data_path("ogyei_v2_splitted_test_images")
-    test_labels_path = DATASET_PATH.get_data_path("ogyei_v2_splitted_test_labels")
+    train_images_path = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_images")
+    train_labels_path = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_labels")
+    val_images_path = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_valid_images")
+    val_labels_path = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_valid_labels")
+    test_images_path = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_images")
+    test_labels_path = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_labels")
 
     class_counts, train_images, validation_images, test_images = get_classes(images_path)
-    class_counts, train_images, validation_images, test_images = split_dataset(class_counts, train_images,
-                                                                               validation_images, test_images,
-                                                                               images_path)
+
+    class_counts, train_images, validation_images, test_images = (
+        split_dataset(class_counts=class_counts,
+                      train_images=train_images,
+                      validation_images=validation_images,
+                      test_images=test_images,
+                      images_path=images_path,
+                      segregated_split=True
+                      ))
 
     statistics_of_dataset(class_counts, train_images, validation_images, test_images)
 
