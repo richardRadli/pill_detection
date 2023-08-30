@@ -1,7 +1,10 @@
 import cv2
 import json
 import os
+import pandas as pd
 import tkinter as tk
+
+from tkinter import OptionMenu
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -11,22 +14,22 @@ class ImageRecordingGUI:
     def __init__(self, root):
         root.title("Image Recording GUI")
 
-        self.id_num_label = tk.Label(root, text="ID Number:")
-        self.id_num_label.pack()
-        self.id_num_entry = tk.Entry(root)
-        self.id_num_entry.pack()
+        self.pill_names = self.load_pill_names()
+        self.selected_pill_name = tk.StringVar(root)
+        self.selected_pill_name.set(self.pill_names[0])
 
         self.pill_name_label = tk.Label(root, text="Pill Name:")
         self.pill_name_label.pack()
-        self.pill_name_entry = tk.Entry(root)
-        self.pill_name_entry.pack()
+
+        self.pill_name_option_menu = OptionMenu(root, self.selected_pill_name, *self.pill_names)
+        self.pill_name_option_menu.pack()
 
         self.lamp_mode_label = tk.Label(root, text="Lamp Mode:")
         self.lamp_mode_label.pack()
         self.lamp_mode_var = tk.StringVar(root)
         self.lamp_mode_var.set("upper")
-        self.lamp_mode_optionmenu = tk.OptionMenu(root, self.lamp_mode_var, "upper", "side", "around")
-        self.lamp_mode_optionmenu.pack()
+        self.lamp_mode_option_menu = tk.OptionMenu(root, self.lamp_mode_var, "upper", "side")
+        self.lamp_mode_option_menu.pack()
 
         self.start_button = tk.Button(root, text="Start Image Capture", command=self.start_capture)
         self.start_button.pack()
@@ -34,43 +37,50 @@ class ImageRecordingGUI:
         self.set_camera_settings_button = tk.Button(root, text="Set Camera Settings", command=self.set_camera_settings)
         self.set_camera_settings_button.pack()
 
-    # -----------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------- S T A R T   C A P T U R E -------------------------------------------
-    # -----------------------------------------------------------------------------------------------------------------
+        self.set_quit_button = tk.Button(root, text="Exit", command=self.exit_program)
+        self.set_quit_button.pack()
+
+    @staticmethod
+    def load_pill_names():
+        try:
+            data = pd.read_excel('pill_names.xlsx', header=None)  # Replace with your Excel file path
+            pill_names = data.iloc[:, 0].dropna().tolist()
+            return pill_names
+        except Exception as e:
+            print("Error loading pill names:", e)
+            return []
+
     def start_capture(self):
-        id_num = self.id_num_entry.get()
-        pill_name = self.pill_name_entry.get()
+        pill_name = self.selected_pill_name.get()
         lamp_mode = self.lamp_mode_var.get()
 
-        img_rec = ImageRecording(id_num=id_num, pill_name=pill_name, lamp_mode=lamp_mode)
+        img_rec = ImageRecording(pill_name=pill_name, lamp_mode=lamp_mode)
         img_rec.capture_images()
 
-    # -----------------------------------------------------------------------------------------------------------------
-    # ------------------------------------- S E T   C A M E R A   S E T T I N G S -------------------------------------
-    # -----------------------------------------------------------------------------------------------------------------
     def set_camera_settings(self):
-        id_num = self.id_num_entry.get()
-        pill_name = self.pill_name_entry.get()
+        pill_name = self.selected_pill_name.get()
         lamp_mode = self.lamp_mode_var.get()
 
-        img_rec = ImageRecording(id_num=id_num, pill_name=pill_name, lamp_mode=lamp_mode)
+        img_rec = ImageRecording(pill_name=pill_name, lamp_mode=lamp_mode)
         img_rec.set_camera_settings()
+
+    @staticmethod
+    def exit_program():
+        quit()
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # +++++++++++++++++++++++++++++++++++++++++++ I M A G E   R E C O R D I N G ++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++b
 class ImageRecording:
-    def __init__(self, id_num, pill_name, lamp_mode):
+    def __init__(self, pill_name, lamp_mode):
         root_path = "C:/Users/ricsi/Desktop/cam"
 
         self.camera_data_path = os.path.join(root_path, "camera_data")
         os.makedirs(self.camera_data_path, exist_ok=True)
 
-        self.id_num = id_num
         self.pill_name = pill_name
-        self.image_save_path = os.path.join(root_path, "images/captured_OGYEI_pill_photos_v4",
-                                            self.id_num + "_" + self.pill_name)
+        self.image_save_path = os.path.join(root_path, "images/captured_OGYEI_pill_photos_v4", self.pill_name)
 
         self.coefficient = 1
         self.lamp_mode = lamp_mode
@@ -85,8 +95,8 @@ class ImageRecording:
         if not (cap.isOpened()):
             print("Could not open camera device")
 
-        width = 3264
-        height = 2448
+        width = 1280
+        height = 720
 
         # # Set the video resolution of the camera
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -98,7 +108,7 @@ class ImageRecording:
             _, frame = cap.read()
             resized = frame.copy()
             # cv2.imshow('Frame',resized)
-            cv2.imshow('Frame', cv2.resize(resized, (width // 4, height // 4)))
+            cv2.imshow('Frame', cv2.resize(resized, (width // self.coefficient, height // self.coefficient)))
             key = cv2.waitKey(1)
 
             if key == ord("q"):
@@ -168,15 +178,17 @@ class ImageRecording:
             # cropImg = copy_image[yMin:yMax,xMin:xMax]
 
             # Display the resulting frame
-            cv2.imshow('Frame', cv2.resize(copy_image, (width // 3, height // 3)))
+            cv2.imshow('Frame', cv2.resize(copy_image, (width // self.coefficient, height // self.coefficient)))
 
             # cv2.imshow('Frame',cropImg)
             key = cv2.waitKey(1)
 
+            addition_name = "u" if self.lamp_mode == "upper" else "s"
+
             if key == ord("q"):
                 break
             elif key == ord("c"):
-                filename = self.id_num + "_" + self.pill_name + "_{:03d}.png".format(i)
+                filename = self.pill_name + "_" + addition_name + "_{:03d}.png".format(i)
                 path_to_save = os.path.join(self.image_save_path, filename)
                 cv2.imwrite(path_to_save, frame)
                 i += 1
@@ -191,8 +203,6 @@ class ImageRecording:
             filename = os.path.join(self.camera_data_path, "camera_params_upper_lamp.json")
         elif self.lamp_mode == "side":
             filename = os.path.join(self.camera_data_path, "camera_params_side_lamp.json")
-        elif self.lamp_mode == "around":
-            filename = os.path.join(self.camera_data_path, "camera_params_led_around_lamp.json")
         else:
             raise ValueError("Wrong lamp mode!")
 
