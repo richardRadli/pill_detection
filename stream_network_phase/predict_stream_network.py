@@ -324,10 +324,10 @@ class PredictStreamNetwork:
         else:
             ref_vecs, r_labels, r_images_path = \
                 self.get_vectors(
-                    contour_dir=self.sub_network_config.get("Contour").get("train").get(self.cfg.dataset_type),
-                    lbp_dir=self.sub_network_config.get("LBP").get("train").get(self.cfg.dataset_type),
-                    rgb_dir=self.sub_network_config.get("RGB").get("train").get(self.cfg.dataset_type),
-                    texture_dir=self.sub_network_config.get("Texture").get("train").get(self.cfg.dataset_type),
+                    contour_dir=self.sub_network_config.get("Contour").get("test").get(self.cfg.dataset_type),
+                    lbp_dir=self.sub_network_config.get("LBP").get("test").get(self.cfg.dataset_type),
+                    rgb_dir=self.sub_network_config.get("RGB").get("test").get(self.cfg.dataset_type),
+                    texture_dir=self.sub_network_config.get("Texture").get("test").get(self.cfg.dataset_type),
                     operation="reference")
 
         # Compare query and reference vectors

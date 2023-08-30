@@ -111,7 +111,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
 
         self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
-        self.parser.add_argument("--upper_norm_limit", type=int, default=5)
+        self.parser.add_argument("--upper_norm_limit", type=int, default=3)
 
         self.parser.add_argument("--num_triplets", type=int, default=4000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)

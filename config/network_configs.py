@@ -550,7 +550,7 @@ def dataset_images_path_selector():
             },
             "test": {
                 "images": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_images"),
-                "masks": IMAGES_PATH.get_data_path("unet_out"),
+                "masks": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_gt_test_masks"),
             }
         },
         "cure": {

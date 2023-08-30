@@ -189,6 +189,6 @@ def main(operation: str = "Train") -> None:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
-        main(operation="whole")
+        main(operation="valid")
     except KeyboardInterrupt as kie:
         logging.error(f"The following error has occurred: {kie}")

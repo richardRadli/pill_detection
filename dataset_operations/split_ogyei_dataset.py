@@ -53,8 +53,7 @@ def get_classes(images_path) -> \
 # -------------------------------------------------------------------------------------------------------------------- #
 def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str]],
                   validation_images: Dict[str, List[str]], test_images: Dict[str, List[str]], images_path,
-                  valid_split_ratio: float = 0.15, test_split_ratio: float = 0.15, segregated_split: bool = False,
-                  num_test_classes: int = 12) -> \
+                  valid_split_ratio: float = 0.15, test_split_ratio: float = 0.15, segregated_split: bool = False) -> \
         Tuple[Dict[str, int], Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]]]:
     """
     Split the dataset into train, validation, and test sets based on the class counts.
@@ -67,10 +66,14 @@ def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str
     :param valid_split_ratio:
     :param test_split_ratio:
     :param segregated_split:
-    :param num_test_classes:
 
     :return: A tuple containing dictionaries for class counts, train images, validation images, and test images.
     """
+    if segregated_split:
+        list_of_keys = list(class_counts.keys())
+        test_classes = random.sample(list_of_keys, 12)
+    else:
+        test_classes = []
 
     for filename in os.listdir(images_path):
         if filename.endswith('.png'):
@@ -84,9 +87,6 @@ def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str
                 else:
                     train_images[class_name].append(filename)
             else:
-                list_of_keys = list(class_counts.keys())
-                test_classes = random.sample(population=list_of_keys, k=num_test_classes)
-
                 if class_name in test_classes:
                     test_images[class_name].append(filename)
                 elif len(validation_images[class_name]) < round(class_counts[class_name] * valid_split_ratio):
@@ -186,15 +186,13 @@ def main(replace_files: bool = False) -> None:
     test_labels_path = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_labels")
 
     class_counts, train_images, validation_images, test_images = get_classes(images_path)
-
-    class_counts, train_images, validation_images, test_images = (
-        split_dataset(class_counts=class_counts,
-                      train_images=train_images,
-                      validation_images=validation_images,
-                      test_images=test_images,
-                      images_path=images_path,
-                      segregated_split=True
-                      ))
+    class_counts, train_images, validation_images, test_images = split_dataset(class_counts=class_counts,
+                                                                               train_images=train_images,
+                                                                               validation_images=validation_images,
+                                                                               test_images=test_images,
+                                                                               images_path=images_path,
+                                                                               segregated_split=True
+                                                                               )
 
     statistics_of_dataset(class_counts, train_images, validation_images, test_images)
 
@@ -211,4 +209,4 @@ def main(replace_files: bool = False) -> None:
 # ----------------------------------------------------- __M A I N__ ----------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    main(replace_files=False)
+    main(replace_files=True)

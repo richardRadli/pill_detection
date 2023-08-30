@@ -50,56 +50,6 @@ class CreateStreamImages:
         logging.info(df)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------ C R E A T E   L A B E L   D I R S -------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def create_label_dirs(self, rgb_path: str, contour_path: str, texture_path: str, lbp_path: str) -> None:
-        """
-        Create labeled directories for image files based on the given dataset.
-
-        :param rgb_path: str, path to the directory containing RGB images.
-        :param contour_path: str, path to the directory containing contour images.
-        :param texture_path: str, path to the directory containing texture images.
-        :param lbp_path: str, path to the directory containing LBP images.
-        :return: None
-        """
-
-        files_rgb = os.listdir(rgb_path)
-        files_contour = os.listdir(contour_path)
-        files_texture = os.listdir(texture_path)
-        files_lbp = os.listdir(lbp_path)
-        value = None
-
-        for idx, (file_rgb, file_contour, file_texture, file_lbp) in \
-                tqdm(enumerate(zip(files_rgb, files_contour, files_texture, files_lbp)), desc="Copying image files"):
-            if file_rgb.endswith(".png"):
-                if self.cfg.dataset_type == 'ogyei':
-                    match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
-                    if match:
-                        value = match.group(1)
-                elif self.cfg.dataset_type == 'cure':
-                    value = os.path.basename(file_rgb).split("_")[0]
-                else:
-                    raise ValueError("wrong dataset type has given!")
-
-                out_path_rgb = os.path.join(rgb_path, value)
-                out_path_contour = os.path.join(contour_path, value)
-                out_path_texture = os.path.join(texture_path, value)
-                out_path_lbp = os.path.join(lbp_path, value)
-
-                os.makedirs(out_path_rgb, exist_ok=True)
-                os.makedirs(out_path_contour, exist_ok=True)
-                os.makedirs(out_path_texture, exist_ok=True)
-                os.makedirs(out_path_lbp, exist_ok=True)
-
-                try:
-                    shutil.move(os.path.join(rgb_path, file_rgb), out_path_rgb)
-                    shutil.move(os.path.join(contour_path, file_contour), out_path_contour)
-                    shutil.move(os.path.join(texture_path, file_texture), out_path_texture)
-                    shutil.move(os.path.join(lbp_path, file_lbp), out_path_lbp)
-                except shutil.Error as se:
-                    logging.error(f"Error moving file: {se.args[0]}")
-
-    # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- D R A W   B O U N D I N G   B O X ---------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def draw_bounding_box(self, in_img: np.ndarray, seg_map: np.ndarray, output_path: str) -> None:
@@ -335,6 +285,56 @@ class CreateStreamImages:
                         source_image_path = os.path.join(subdir_path, image_file)
                         destination_image_path = os.path.join(destination_subdir, image_file)
                         shutil.move(source_image_path, destination_image_path)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------ C R E A T E   L A B E L   D I R S -------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def create_label_dirs(self, rgb_path: str, contour_path: str, texture_path: str, lbp_path: str) -> None:
+        """
+        Create labeled directories for image files based on the given dataset.
+
+        :param rgb_path: str, path to the directory containing RGB images.
+        :param contour_path: str, path to the directory containing contour images.
+        :param texture_path: str, path to the directory containing texture images.
+        :param lbp_path: str, path to the directory containing LBP images.
+        :return: None
+        """
+
+        files_rgb = os.listdir(rgb_path)
+        files_contour = os.listdir(contour_path)
+        files_texture = os.listdir(texture_path)
+        files_lbp = os.listdir(lbp_path)
+        value = None
+
+        for idx, (file_rgb, file_contour, file_texture, file_lbp) in \
+                tqdm(enumerate(zip(files_rgb, files_contour, files_texture, files_lbp)), desc="Copying image files"):
+            if file_rgb.endswith(".png"):
+                if self.cfg.dataset_type == 'ogyei':
+                    match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
+                    if match:
+                        value = match.group(1)
+                elif self.cfg.dataset_type == 'cure':
+                    value = os.path.basename(file_rgb).split("_")[0]
+                else:
+                    raise ValueError("wrong dataset type has given!")
+
+                out_path_rgb = os.path.join(rgb_path, value)
+                out_path_contour = os.path.join(contour_path, value)
+                out_path_texture = os.path.join(texture_path, value)
+                out_path_lbp = os.path.join(lbp_path, value)
+
+                os.makedirs(out_path_rgb, exist_ok=True)
+                os.makedirs(out_path_contour, exist_ok=True)
+                os.makedirs(out_path_texture, exist_ok=True)
+                os.makedirs(out_path_lbp, exist_ok=True)
+
+                try:
+                    shutil.move(os.path.join(rgb_path, file_rgb), out_path_rgb)
+                    shutil.move(os.path.join(contour_path, file_contour), out_path_contour)
+                    shutil.move(os.path.join(texture_path, file_texture), out_path_texture)
+                    shutil.move(os.path.join(lbp_path, file_lbp), out_path_lbp)
+                except shutil.Error as se:
+                    logging.error(f"Error moving file: {se.args[0]}")
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------- M A I N ----------------------------------------------------
