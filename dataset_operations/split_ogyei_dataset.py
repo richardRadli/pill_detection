@@ -1,5 +1,5 @@
 """
-File: split_ogyi_dataset.py
+File: split_ogyei_dataset.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Apr 12, 2023
@@ -160,15 +160,15 @@ def main(replace_files: bool = False) -> None:
 
     setup_logger()
 
-    images_path = DATASET_PATH.get_data_path("ogyi_v2_unsplitted_images")
-    labels_path = DATASET_PATH.get_data_path("ogyi_v2_unsplitted_labels")
+    images_path = DATASET_PATH.get_data_path("ogyei_v2_unsplitted_images")
+    labels_path = DATASET_PATH.get_data_path("ogyei_v2_unsplitted_labels")
 
-    train_images_path = DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images")
-    train_labels_path = DATASET_PATH.get_data_path("ogyi_v2_splitted_train_labels")
-    val_images_path = DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_images")
-    val_labels_path = DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_labels")
-    test_images_path = DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images")
-    test_labels_path = DATASET_PATH.get_data_path("ogyi_v2_splitted_test_labels")
+    train_images_path = DATASET_PATH.get_data_path("ogyei_v2_splitted_train_images")
+    train_labels_path = DATASET_PATH.get_data_path("ogyei_v2_splitted_train_labels")
+    val_images_path = DATASET_PATH.get_data_path("ogyei_v2_splitted_valid_images")
+    val_labels_path = DATASET_PATH.get_data_path("ogyei_v2_splitted_valid_labels")
+    test_images_path = DATASET_PATH.get_data_path("ogyei_v2_splitted_test_images")
+    test_labels_path = DATASET_PATH.get_data_path("ogyei_v2_splitted_test_labels")
 
     class_counts, train_images, validation_images, test_images = get_classes(images_path)
     class_counts, train_images, validation_images, test_images = split_dataset(class_counts, train_images,

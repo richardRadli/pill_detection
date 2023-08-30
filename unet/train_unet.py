@@ -6,7 +6,6 @@ import torch.nn.functional as F
 import segmentation_models_pytorch as smp
 import wandb
 
-from pathlib import Path
 from torch import optim
 from torchsummary import summary
 from torch.utils.data import DataLoader, random_split
@@ -28,10 +27,8 @@ class TrainUnet:
     def __init__(self):
         self.cfg = ConfigTrainingUnet().parse()
 
-        self.dir_img = "C:/Users/ricsi/Desktop/ogyi/images"
-        # DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images")
-        self.dir_mask = "C:/Users/ricsi/Desktop/ogyi/masks"
-        # DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_train_masks")
+        self.dir_img = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_images")
+        self.dir_mask = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_gt_train_masks")
         self.dir_checkpoint = DATA_PATH.get_data_path("weights_unet")
 
         # Create dataset

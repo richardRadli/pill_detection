@@ -541,15 +541,15 @@ def dataset_images_path_selector():
     path_to_images = {
         "ogyei": {
             "train": {
-                "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images"),
-                "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_train_masks"),
+                "images": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_images"),
+                "masks": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_gt_train_masks"),
             },
             "valid": {
-                "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_valid_images"),
-                "masks": DATASET_PATH.get_data_path("ogyi_v2_splitted_gt_valid_masks"),
+                "images": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_valid_images"),
+                "masks": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_gt_valid_masks"),
             },
             "test": {
-                "images": DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images"),
+                "images": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_images"),
                 "masks": IMAGES_PATH.get_data_path("unet_out"),
             }
         },

@@ -80,8 +80,8 @@ def main() -> None:
     :return: None
     """
 
-    images = sorted(glob(DATASET_PATH.get_data_path("ogyi_v2_splitted_train_images") + "/*.png"))
-    annotations = sorted(glob(DATASET_PATH.get_data_path("ogyi_v2_splitted_train_labels") + "/*.txt"))
+    images = sorted(glob(DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_images") + "/*.png"))
+    annotations = sorted(glob(DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_labels") + "/*.txt"))
     backgrounds = sorted(glob(DATASET_PATH.get_data_path("dtd_images") + "/*.jpg"))
 
     with ThreadPoolExecutor() as executor:

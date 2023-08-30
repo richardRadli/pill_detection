@@ -146,7 +146,7 @@ def plot_results() -> None:
     """
 
     images_input = \
-        sorted(glob(DATASET_PATH.get_data_path("ogyi_v2_splitted_test_images") + "/*.png"), key=numerical_sort)
+        sorted(glob(DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_images") + "/*.png"), key=numerical_sort)
     images_true = \
         sorted(glob(IMAGES_PATH.get_data_path("test_mask") + '/*.png'), key=numerical_sort)
     images_pred = \

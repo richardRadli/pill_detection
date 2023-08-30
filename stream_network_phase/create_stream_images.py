@@ -314,29 +314,22 @@ class CreateStreamImages:
         source_root = r'C:/Users/ricsi/Documents/project/storage/IVM/images/test/ogyei/ref'
         destination_root = r'C:/Users/ricsi/Documents/project/storage/IVM/images/test/ogyei/query'
 
-        # Get the list of class label directories in the source root
         class_label_dirs = [d for d in os.listdir(source_root) if os.path.isdir(os.path.join(source_root, d))]
 
-        # Iterate through each class label directory
         for class_label_dir in class_label_dirs:
             class_label_path = os.path.join(source_root, class_label_dir)
 
-            # Get the list of subdirectories within each class label directory
             subdirs = os.listdir(class_label_path)
 
-            # Iterate through each subdirectory
             for subdir in subdirs:
                 subdir_path = os.path.join(class_label_path, subdir)
 
-                # Get the list of image files in the current subdirectory
                 image_files = [f for f in os.listdir(subdir_path) if
-                               f.endswith('.jpg') or f.endswith('.png')]  # Adjust file extensions as needed
+                               f.endswith('.jpg') or f.endswith('.png')]
 
-                # Create the destination subdirectory if it doesn't exist
                 destination_subdir = os.path.join(destination_root, class_label_dir, subdir)
                 os.makedirs(destination_subdir, exist_ok=True)
 
-                # Iterate through the image files and copy every third image
                 for i, image_file in enumerate(image_files):
                     if (i + 1) % 3 == 0:
                         source_image_path = os.path.join(subdir_path, image_file)

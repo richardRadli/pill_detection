@@ -5,14 +5,17 @@ __email__ = 'radli.richard@mik.uni-pannon.hu'
 __status__ = 'Production'
 
 import cv2
-import os
+import logging
 import numpy as np
+import os
 
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from glob import glob
 from time import perf_counter
 from tqdm import tqdm
+
+from utils.utils import setup_logger
 
 np.set_printoptions(precision=6, suppress=True)
 
@@ -31,6 +34,8 @@ class CameraCalibration:
         undist_needed: :class:`bool`
             undistortion needed or not
         """
+
+        setup_logger()
 
         self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 25, 0.001)
         self.matrix = np.empty([3, 3])
@@ -90,7 +95,7 @@ class CameraCalibration:
         if ret:
             corners_result = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), self.criteria)
         else:
-            print(f'{name}: Chessboard corners could not be found {image_name}')
+            logging.warning(f'{name}: Chessboard corners could not be found {image_name}')
 
         return corners_result, image_data
 
@@ -117,48 +122,51 @@ class CameraCalibration:
                         self.img_pts.append(corners)
                     self.orig_imgs.append(img_data)
             except Exception as e:
-                print(str(e))
+                logging.error(str(e))
 
-        print(f'Execution time: {perf_counter() - start} s')
+        logging.info(f'Execution time: {perf_counter() - start} s')
         rejected = len(self.orig_img_list) - accepted
-        print(f'Accepted images: {accepted}')
-        print(f'Rejected images: {rejected}')
+        logging.info(f'Accepted images: {accepted}')
+        logging.info(f'Rejected images: {rejected}')
 
         objp = np.zeros((self.chs_row * self.chs_col, 3), np.float32)
         objp[:, :2] = np.mgrid[0:self.chs_col, 0:self.chs_row].T.reshape(-1, 2)
         self.obj_pts = [objp] * len(self.img_pts)
 
-        print('------C A L I B R A T I O N   S T A R T E D-----')
+        logging.info('------C A L I B R A T I O N   S T A R T E D-----')
         rms, self.matrix, self.dist_coeff, self.rot_vecs, self.trs_vecs = cv2.calibrateCamera(self.obj_pts,
                                                                                               self.img_pts,
                                                                                               self.img_size, None, None)
 
-        print(f'Root mean square error\n{rms}')
-        print(f'Camera matrix\n{self.matrix}')
-        print(f'Distortion coefficients\n{self.dist_coeff}')
-        print('-----C A L I B R A T I O N   F I N I S H E D-----')
+        logging.info(f'Root mean square error\n{rms}')
+        logging.info(f'Camera matrix\n{self.matrix}')
+        logging.info(f'Distortion coefficients\n{self.dist_coeff}')
+        logging.info('-----C A L I B R A T I O N   F I N I S H E D-----')
 
     # ---------------------------------------------------------------------------------------------------------------- #
     # ------------------------------- G E N E R A T E   N E W   C A M E R A   M A T R I X ---------------------------- #
     # ---------------------------------------------------------------------------------------------------------------- #
-    def generate_new_camera_matrix(self):
+    def generate_new_camera_matrix(self, error_threshold: int = 0.2):
         """Calculates the undistorted camera matrix and the region of interest for undistorted images.
-
+        Parameters
+        -----------
+        error_threshold: :class:`int`
+            The threshold which above the program halts.
         Raises
         -------
-        ``AssertionError`` if calibration error is over 0.1
+        ``AssertionError`` if calibration error is over the given error_threshold value.
         """
 
-        print('----- O B T A I N I N G   N E W   C A M E R A   M A T R I X-----')
+        logging.info('----- O B T A I N I N G   N E W   C A M E R A   M A T R I X-----')
 
         name, img = self.orig_imgs[0]
         h, w = img.shape[:2]
         self.undst_matrix, self.roi = cv2.getOptimalNewCameraMatrix(self.matrix, self.dist_coeff, (w, h), 1,
                                                                     (w, h))
 
-        print('New camera matrix')
-        print(str(self.undst_matrix))
-        self.undist_and_save(name, img, self.matrix, self.dist_coeff, self.undst_matrix, self.roi, self.undist_path)
+        logging.info('New camera matrix')
+        logging.info(str(self.undst_matrix))
+        self.undistort_and_save(name, img, self.matrix, self.dist_coeff, self.undst_matrix, self.roi, self.undist_path)
 
         mean_error = 0
         for i in range(len(self.obj_pts)):
@@ -167,9 +175,9 @@ class CameraCalibration:
             error = cv2.norm(self.img_pts[i], img_points2, cv2.NORM_L2) / len(img_points2)
             mean_error += error
         total_err = mean_error / len(self.obj_pts)
-        print(f'Total error: {total_err}')
+        logging.info(f'Total error: {total_err}')
 
-        assert total_err < 0.2, 'Camera calibration error too high!'
+        assert total_err < error_threshold, 'Camera calibration error too high!'
         path = os.path.join(self.save_data_path, self.timestamp + "_undistorted_cam_mtx.npy")
         np.save(path, {'matrix': self.matrix, 'dist_coeff': self.dist_coeff, 'undst_matrix': self.undst_matrix,
                        'roi': self.roi})
@@ -187,10 +195,10 @@ class CameraCalibration:
         with ThreadPoolExecutor() as executor:
             futures = []
             for name, img in self.orig_imgs[1:]:
-                futures.append(executor.submit(self.undist_and_save, name, img, self.matrix, self.dist_coeff,
+                futures.append(executor.submit(self.undistort_and_save, name, img, self.matrix, self.dist_coeff,
                                                self.undst_matrix, self.roi, self.undist_path))
 
-        print(f'Undistortion time: {perf_counter() - start} s')
+        logging.info(f'Undistortion time: {perf_counter() - start} s')
 
     # ---------------------------------------------------------------------------------------------------------------- #
     # ----------------------------------------------------- M A I N -------------------------------------------------- #
@@ -205,7 +213,7 @@ class CameraCalibration:
     # --------------------------------------- U N D I S T O R T   A N D   S A V E ------------------------------------ #
     # ---------------------------------------------------------------------------------------------------------------- #
     @staticmethod
-    def undist_and_save(name: str, image, matrix, dist_coeff, undst_matrix, roi, undst_path: str):
+    def undistort_and_save(name: str, image, matrix, dist_coeff, undst_matrix, roi, undst_path: str):
         """Undistorts the image using the required parameters before saving.
 
         Parameters
@@ -229,8 +237,7 @@ class CameraCalibration:
         image = cv2.undistort(image, matrix, dist_coeff, None, undst_matrix)
         x, y, w, h = roi
         image = image[y:y + h, x:x + w]
-        path = os.path.join(undst_path, name.split("\\")[-1])
-        print(path)
+        path = os.path.join(undst_path, os.path.basename(name))
         cv2.imwrite(path, image, [int(cv2.IMWRITE_PNG_COMPRESSION), 3])
 
 

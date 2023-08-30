@@ -30,10 +30,10 @@ def path_selector(op: str):
     :raises ValueError: If the operation string is not "train" or "test".
     """
 
-    if op.lower() == "ogyi":
+    if op.lower() == "ogyei":
         path_to_images = {
-            "dataset_name": "ogyi",
-            "dataset_directory": DATASET_PATH.get_data_path("ogyi_v2_unsplitted_images"),
+            "dataset_name": "ogyei",
+            "dataset_directory": DATASET_PATH.get_data_path("ogyei_v1_single_unsplitted_images"),
         }
     elif op.lower() == "cure":
         path_to_images = {
@@ -55,7 +55,7 @@ def calculate_proportions(dir_images: str, dataset_name: str) -> [Dict, Dict]:
     counts.
 
     :param dir_images: Directory path of the image files.
-    :param dataset_name: name of the dataset, either "ogyi" or "cure".
+    :param dataset_name: name of the dataset, either "ogyei" or "cure".
     :return: A dictionary with class names as keys and their respective counts in the dataset, and another dictionary
     with the total number of class instances.
     """
@@ -64,7 +64,7 @@ def calculate_proportions(dir_images: str, dataset_name: str) -> [Dict, Dict]:
 
     for filename in os.listdir(dir_images):
         if filename.endswith('.png'):
-            class_name = '_'.join(filename.split('_')[2:-1]) if dataset_name == "ogyi" else filename.split('_')[0]
+            class_name = '_'.join(filename.split('_')[2:-1]) if dataset_name == "ogyei" else filename.split('_')[0]
             class_counts.setdefault(class_name, 0)
             class_counts[class_name] += 1
             total_count += 1
@@ -152,7 +152,7 @@ def plot_data(dataset_name: str, proportions: dict, class_counts: dict, threshol
 def main(name_of_dataset: str) -> None:
     """
     Executes the functions above.
-    :param name_of_dataset: Name of the dataset, could be either "ogyi" or "cure".
+    :param name_of_dataset: Name of the dataset, could be either "ogyei" or "cure".
     :return: None
     """
 
@@ -168,4 +168,4 @@ def main(name_of_dataset: str) -> None:
 # ---------------------------------------------------- __M A I N__ -----------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    main(name_of_dataset="ogyi")
+    main(name_of_dataset="ogyei")
