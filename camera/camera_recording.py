@@ -43,7 +43,7 @@ class ImageRecordingGUI:
     @staticmethod
     def load_pill_names():
         try:
-            data = pd.read_excel('pill_names.xlsx', header=None)  # Replace with your Excel file path
+            data = pd.read_excel('C:/Users/ricsi/Downloads/pill_names.xlsx', header=None)
             pill_names = data.iloc[:, 0].dropna().tolist()
             return pill_names
         except Exception as e:
@@ -93,7 +93,7 @@ class ImageRecording:
         # Set the camera
         cap = cv2.VideoCapture(self.CAM_ID, cv2.CAP_DSHOW)
         if not (cap.isOpened()):
-            print("Could not open camera device")
+            raise ValueError("Could not open camera device")
 
         width = 1280
         height = 720
@@ -141,12 +141,12 @@ class ImageRecording:
     # -----------------------------------------------------------------------------------------------------------------
     @staticmethod
     def load_camera_params_from_file(filename, cam_id=0):
-        with open(filename, "r") as f:
-            camera_params = json.load(f)
-
         cap = cv2.VideoCapture(cam_id, cv2.CAP_DSHOW)
         if not (cap.isOpened()):
-            print("Could not open camera device")
+            raise ValueError("Could not open camera device")
+
+        with open(filename, "r") as f:
+            camera_params = json.load(f)
 
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, camera_params["width"])
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_params["height"])
