@@ -269,7 +269,6 @@ class TrainModel:
 
             # Save the model and weights
             if valid_loss < best_valid_loss:
-                # Save the best model
                 best_valid_loss = valid_loss
                 if best_model_path is not None:
                     os.remove(best_model_path)

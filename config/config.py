@@ -105,7 +105,7 @@ class ConfigStreamNetwork:
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
                                  help="CNN | EfficientNet | EfficientNetV2")
         self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
@@ -158,7 +158,7 @@ class ConfigFusionNetwork:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetSelfAttention",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MultiHeadAttention",
                                  help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
                                       "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA")
         self.parser.add_argument("--margin", type=float, default=0.5)

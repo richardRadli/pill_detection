@@ -1,5 +1,6 @@
 import cv2
 import json
+import logging
 import os
 import pandas as pd
 import tkinter as tk
@@ -47,7 +48,7 @@ class ImageRecordingGUI:
             pill_names = data.iloc[:, 0].dropna().tolist()
             return pill_names
         except Exception as e:
-            print("Error loading pill names:", e)
+            logging.error("Error loading pill names:", e)
             return []
 
     def start_capture(self):
@@ -98,7 +99,6 @@ class ImageRecording:
         width = 1280
         height = 720
 
-        # # Set the video resolution of the camera
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
@@ -107,7 +107,6 @@ class ImageRecording:
         while True:
             _, frame = cap.read()
             resized = frame.copy()
-            # cv2.imshow('Frame',resized)
             cv2.imshow('Frame', cv2.resize(resized, (width // self.coefficient, height // self.coefficient)))
             key = cv2.waitKey(1)
 
@@ -125,14 +124,13 @@ class ImageRecording:
                     "white_balance_blue_u": int(cap.get(cv2.CAP_PROP_WHITE_BALANCE_BLUE_U)),
                     "white_balance_red_v": int(cap.get(cv2.CAP_PROP_WHITE_BALANCE_RED_V)),
                 }
-                # Save the parameters to a file (in this case, a JSON file)
+
                 with open(filename, "w") as f:
                     json.dump(params, f)
                 temp_file_name = filename.split("\\")[-1]
-                print(f"Camera parameters saved to {temp_file_name}")
-                break  # Exit the loop after saving
+                logging.info(f"Camera parameters saved to {temp_file_name}")
+                break
 
-        # Release the capture and close the camera window
         cap.release()
         cv2.destroyAllWindows()
 
@@ -172,15 +170,10 @@ class ImageRecording:
         i = len(os.listdir(self.image_save_path))
 
         while True:
-            # Capture frame by frame
             _, frame = cap.read()
             copy_image = frame.copy()
-            # cropImg = copy_image[yMin:yMax,xMin:xMax]
 
-            # Display the resulting frame
             cv2.imshow('Frame', cv2.resize(copy_image, (width // self.coefficient, height // self.coefficient)))
-
-            # cv2.imshow('Frame',cropImg)
             key = cv2.waitKey(1)
 
             addition_name = "u" if self.lamp_mode == "upper" else "s"
@@ -192,35 +185,32 @@ class ImageRecording:
                 path_to_save = os.path.join(self.image_save_path, filename)
                 cv2.imwrite(path_to_save, frame)
                 i += 1
-                print(f"{filename} image has been captured and saved!")
+                logging.info(f"{filename} image has been captured and saved!")
 
-        # Release the capture
         cap.release()
         cv2.destroyAllWindows()
 
-    def get_lamp_name(self):
-        if self.lamp_mode == "upper":
-            filename = os.path.join(self.camera_data_path, "camera_params_upper_lamp.json")
-        elif self.lamp_mode == "side":
-            filename = os.path.join(self.camera_data_path, "camera_params_side_lamp.json")
-        else:
-            raise ValueError("Wrong lamp mode!")
+    def get_lamp_name(self) -> dict:
+        lamp_name = {
+            "upper": os.path.join(self.camera_data_path, "camera_params_upper_lamp.json"),
+            "side": os.path.join(self.camera_data_path, "camera_params_side_lamp.json")
+        }
 
-        return filename
+        return lamp_name
 
     # -----------------------------------------------------------------------------------------------------------------
     # ------------------------------------- S E T   C A M E R A   S E T T I N G S -------------------------------------
     # -----------------------------------------------------------------------------------------------------------------
     def set_camera_settings(self):
         filename = self.get_lamp_name()
-        self.save_camera_params_to_file(filename)
+        self.save_camera_params_to_file(filename.get(self.lamp_mode))
 
     # -----------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------------- M A I N ----------------------------------------------------
     # -----------------------------------------------------------------------------------------------------------------
     def capture_images(self):
         filename = self.get_lamp_name()
-        self.take_images(filename)
+        self.take_images(filename.get(self.lamp_mode))
 
 
 if __name__ == "__main__":

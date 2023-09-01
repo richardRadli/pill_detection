@@ -189,6 +189,8 @@ def main(operation: str = "Train") -> None:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
-        main(operation="valid")
+        operations = ["train", "valid", "test"]
+        for op in operations:
+            main(operation=op)
     except KeyboardInterrupt as kie:
         logging.error(f"The following error has occurred: {kie}")
