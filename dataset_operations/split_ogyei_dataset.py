@@ -191,7 +191,7 @@ def main(replace_files: bool = False) -> None:
                                                                                validation_images=validation_images,
                                                                                test_images=test_images,
                                                                                images_path=images_path,
-                                                                               segregated_split=True
+                                                                               segregated_split=False
                                                                                )
 
     statistics_of_dataset(class_counts, train_images, validation_images, test_images)

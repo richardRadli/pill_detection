@@ -1,6 +1,7 @@
 import cv2
 import json
 import logging
+import numpy as np
 import os
 import pandas as pd
 import tkinter as tk
@@ -101,13 +102,15 @@ class ImageRecording:
 
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-
         cap.set(cv2.CAP_PROP_SETTINGS, 0)
+
+        channel_compensation = self.get_channel_compensation().get(self.lamp_mode)
 
         while True:
             _, frame = cap.read()
-            resized = frame.copy()
-            cv2.imshow('Frame', cv2.resize(resized, (width // self.coefficient, height // self.coefficient)))
+            frame = cv2.multiply(frame, channel_compensation)
+            frame = frame.astype("uint8")
+            cv2.imshow('Frame', cv2.resize(frame, (width // self.coefficient, height // self.coefficient)))
             key = cv2.waitKey(1)
 
             if key == ord("q"):
@@ -166,12 +169,17 @@ class ImageRecording:
         width = camera_params["width"]
         height = camera_params["height"]
 
+        channel_compensation = self.get_channel_compensation().get(self.lamp_mode)
+
         os.makedirs(self.image_save_path, exist_ok=True)  # Create the directory here
         i = len(os.listdir(self.image_save_path))
 
         while True:
             _, frame = cap.read()
             copy_image = frame.copy()
+
+            copy_image = cv2.multiply(copy_image, channel_compensation)
+            frame = cv2.multiply(frame, channel_compensation)
 
             cv2.imshow('Frame', cv2.resize(copy_image, (width // self.coefficient, height // self.coefficient)))
             key = cv2.waitKey(1)
@@ -197,6 +205,15 @@ class ImageRecording:
         }
 
         return lamp_name
+
+    @staticmethod
+    def get_channel_compensation():
+        channel_mult = {
+            "upper": np.array([1, 1, 1.1, 1], dtype="float64"),
+            "side": np.array([0.9, 1, 0.95, 1], dtype="float64")
+        }
+
+        return channel_mult
 
     # -----------------------------------------------------------------------------------------------------------------
     # ------------------------------------- S E T   C A M E R A   S E T T I N G S -------------------------------------
