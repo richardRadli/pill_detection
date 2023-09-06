@@ -111,7 +111,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--dataset_operation", type=str, default="valid", help="train | valid | test")
 
         self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
-        self.parser.add_argument("--upper_norm_limit", type=float, default=10.0)
+        self.parser.add_argument("--upper_norm_limit", type=float, default=3.0)
 
         self.parser.add_argument("--num_triplets", type=int, default=4000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)
@@ -158,11 +158,11 @@ class ConfigFusionNetwork:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MultiHeadAttention",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MHAFMHA",
                                  help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
                                       "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA")
         self.parser.add_argument("--margin", type=float, default=0.5)
-        self.parser.add_argument("--train_split", type=float, default=0.5)
+        self.parser.add_argument("--train_split", type=float, default=0.8)
         self.parser.add_argument("--epochs", type=int, default=15)
         self.parser.add_argument("--batch_size", type=int, default=128)
         self.parser.add_argument("--learning_rate", type=float, default=3e-4)

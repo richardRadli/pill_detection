@@ -1,10 +1,10 @@
 import cv2
 import json
 import logging
-import numpy as np
 import os
 import pandas as pd
 import tkinter as tk
+import numpy as np
 
 from tkinter import OptionMenu
 
@@ -45,7 +45,7 @@ class ImageRecordingGUI:
     @staticmethod
     def load_pill_names():
         try:
-            data = pd.read_excel('C:/Users/ricsi/Downloads/pill_names.xlsx', header=None)
+            data = pd.read_excel('C:/Users/ricsi/Desktop/pill_names_ogyei_v2_112.xlsx', header=None)
             pill_names = data.iloc[:, 0].dropna().tolist()
             return pill_names
         except Exception as e:
@@ -76,7 +76,7 @@ class ImageRecordingGUI:
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++b
 class ImageRecording:
     def __init__(self, pill_name, lamp_mode):
-        root_path = "C:/Users/ricsi/Desktop/cam"
+        root_path = "C:/Users/ricsi/Desktop"
 
         self.camera_data_path = os.path.join(root_path, "camera_data")
         os.makedirs(self.camera_data_path, exist_ok=True)
@@ -95,13 +95,16 @@ class ImageRecording:
         # Set the camera
         cap = cv2.VideoCapture(self.CAM_ID, cv2.CAP_DSHOW)
         if not (cap.isOpened()):
-            raise ValueError("Could not open camera device")
+            logging.error("Could not open camera device")
 
-        width = 1280
-        height = 720
+        #IVM ELP 8.3 MPX - 4 K camera resolution - 3840*2160
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+        # # Set the video resolution of the camera
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+        cap.set(cv2.CAP_PROP_FPS, 30)
         cap.set(cv2.CAP_PROP_SETTINGS, 0)
 
         channel_compensation = self.get_channel_compensation().get(self.lamp_mode)
@@ -126,14 +129,16 @@ class ImageRecording:
                     "saturation": int(cap.get(cv2.CAP_PROP_SATURATION)),
                     "white_balance_blue_u": int(cap.get(cv2.CAP_PROP_WHITE_BALANCE_BLUE_U)),
                     "white_balance_red_v": int(cap.get(cv2.CAP_PROP_WHITE_BALANCE_RED_V)),
+                    "fps": int(cap.get(cv2.CAP_PROP_FPS))
                 }
-
+                # Save the parameters to a file (in this case, a JSON file)
                 with open(filename, "w") as f:
                     json.dump(params, f)
                 temp_file_name = filename.split("\\")[-1]
                 logging.info(f"Camera parameters saved to {temp_file_name}")
-                break
+                break  # Exit the loop after saving
 
+        # Release the capture and close the camera window
         cap.release()
         cv2.destroyAllWindows()
 
@@ -141,22 +146,23 @@ class ImageRecording:
     # ----------------------------------------- L O A D   C A M   P A R A M S -----------------------------------------
     # -----------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def load_camera_params_from_file(filename, cam_id=0):
-        cap = cv2.VideoCapture(cam_id, cv2.CAP_DSHOW)
-        if not (cap.isOpened()):
-            raise ValueError("Could not open camera device")
-
+    def load_camera_params_from_file(filename, cam_id=None):
         with open(filename, "r") as f:
             camera_params = json.load(f)
+
+        cap = cv2.VideoCapture(cam_id, cv2.CAP_DSHOW)
+        if not (cap.isOpened()):
+            logging.error("Could not open camera device")
 
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, camera_params["width"])
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_params["height"])
         cap.set(cv2.CAP_PROP_EXPOSURE, camera_params["exposure"])
+        cap.set(cv2.CAP_PROP_BRIGHTNESS, camera_params["brightness"])
+        cap.set(cv2.CAP_PROP_CONTRAST, camera_params["contrast"])
+        cap.set(cv2.CAP_PROP_SATURATION, camera_params["saturation"])
         cap.set(cv2.CAP_PROP_WHITE_BALANCE_BLUE_U, camera_params["white_balance_blue_u"])
         cap.set(cv2.CAP_PROP_WHITE_BALANCE_RED_V, camera_params["white_balance_red_v"])
-        cap.set(cv2.CAP_PROP_SATURATION, camera_params["saturation"])
-        cap.set(cv2.CAP_PROP_CONTRAST, camera_params["contrast"])
-        cap.set(cv2.CAP_PROP_BRIGHTNESS, camera_params["brightness"])
+        cap.set(cv2.CAP_PROP_FPS, camera_params["fps"])
 
         return cap, camera_params
 
@@ -164,7 +170,7 @@ class ImageRecording:
     # --------------------------------------------- T A K E   I M A G E S ---------------------------------------------
     # -----------------------------------------------------------------------------------------------------------------
     def take_images(self, filename):
-        cap, camera_params = self.load_camera_params_from_file(filename)
+        cap, camera_params = self.load_camera_params_from_file(filename, self.CAM_ID)
 
         width = camera_params["width"]
         height = camera_params["height"]
@@ -173,6 +179,9 @@ class ImageRecording:
 
         os.makedirs(self.image_save_path, exist_ok=True)  # Create the directory here
         i = len(os.listdir(self.image_save_path))
+
+        buffer_size = 10
+        image_buffer = []
 
         while True:
             _, frame = cap.read()
@@ -195,8 +204,22 @@ class ImageRecording:
                 i += 1
                 logging.info(f"{filename} image has been captured and saved!")
 
+                if len(image_buffer) >= buffer_size:
+                    self.save_images_from_buffer(image_buffer)
+                    image_buffer = []
+
+        if len(image_buffer) > 0:
+            self.save_images_from_buffer(image_buffer)
+
+        # Release the capture
         cap.release()
         cv2.destroyAllWindows()
+
+    @staticmethod
+    def save_images_from_buffer(image_buffer):
+        for path_to_save, frame in image_buffer:
+            cv2.imwrite(path_to_save, frame)
+        logging.info(f"{len(image_buffer)} images have been saved!")
 
     def get_lamp_name(self) -> dict:
         lamp_name = {

@@ -214,10 +214,10 @@ class TrainFusionNet:
 
             # Validation loop
             with (torch.no_grad()):
-                for a_con, a_lbp, a_rgb, a_tex, p_con, p_lbp, p_rgb, p_tex, n_con, n_lbp, n_rgb, n_tex,\
-                    positive_img_path, negative_img_path in tqdm(self.valid_data_loader,
-                                                                 total=len(self.valid_data_loader),
-                                                                 desc=colorama.Fore.LIGHTMAGENTA_EX + "Validation"):
+                for a_con, a_lbp, a_rgb, a_tex, p_con, p_lbp, p_rgb, p_tex, n_con, n_lbp, n_rgb, n_tex, \
+                        positive_img_path, negative_img_path in tqdm(self.valid_data_loader,
+                                                                     total=len(self.valid_data_loader),
+                                                                     desc=colorama.Fore.LIGHTMAGENTA_EX + "Validation"):
                     # Uploading data to the GPU
                     anchor_contour = a_con.to(self.device)
                     positive_contour = p_con.to(self.device)
@@ -274,6 +274,10 @@ class TrainFusionNet:
                     os.remove(best_model_path)
                 best_model_path = os.path.join(self.save_path, "epoch_" + (str(epoch) + ".pt"))
                 torch.save(self.model.state_dict(), best_model_path)
+                logging.info(f"New weights have been saved at epoch {epoch} with value of {valid_loss:.5f}")
+            else:
+                logging.info(f"No new weights have been saved. Best valid loss was {best_valid_loss:.5f}, "
+                             f"current valid loss is {valid_loss:.5f}")
 
         # Close and flush SummaryWriter
         self.writer.close()

@@ -52,6 +52,7 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
                      network_cfg_texture.get("embedded_dim"))
 
         self.fc1 = nn.Linear(input_dim, input_dim)
+        self.relu = nn.ReLU()
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
@@ -80,6 +81,7 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
 
         x = torch.cat((x1, x2, x3, x4), dim=1)
         x = self.fc1(x)
+        x = self.relu(x)
 
         return x
 
