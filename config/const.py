@@ -204,6 +204,27 @@ class Images(_Const):
         "plotting_fusion_network_efficient_net_v2_mha_fmha":
             "images/plotting/fusion_net/plotting_fusion_network_efficient_net_v2_mha_fmha",
 
+        # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
+        "conf_mtx_cnn_network":
+            "images/conf_mtx/stream_net/conf_mtx_cnn_network",
+        "conf_mtx_efficient_net":
+            "images/conf_mtx/stream_net/conf_mtx_efficient_net",
+        "conf_mtx_efficient_net_v2":
+            "images/conf_mtx/stream_net/conf_mtx_efficient_net_v2",
+
+        # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
+        "conf_mtx_fusion_network_cnn":
+            "images/conf_mtx/fusion_net/conf_mtx_fusion_network_cnn",
+        "conf_mtx_fusion_network_efficient_net_self_attention":
+            "images/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_self_attention",
+        "conf_mtx_fusion_network_efficient_net_v2_self_attention":
+            "images/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_v2_self_attention",
+        "conf_mtx_fusion_network_efficient_net_v2_multi_head_attention":
+            "images/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_v2_multi_head_attention",
+        "conf_mtx_fusion_network_efficient_net_v2_mha_fmha":
+            "images/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_v2_mha_fmha",
+
+
         # ------------------------------------- I M A G E   A U G M E N T A T I O N ------------------------------------
         "images_aug":
             "images/aug/images_aug",

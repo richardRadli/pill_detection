@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 
 from stream_network_models.CNN import CNN
 from stream_network_models.efficient_net_b0 import EfficientNet
-from stream_network_models.efficient_net_v2_s import EfficientNetV2SelfAttention
+from stream_network_models.efficient_net_v2_s import EfficientNetV2Small
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -58,8 +58,8 @@ class EfficientNetWrapper(BaseNetwork):
 class EfficientNetV2Wrapper(BaseNetwork):
     def __init__(self, network_cfg):
         self.model = \
-            EfficientNetV2SelfAttention(num_out_feature=network_cfg.get("embedded_dim"),
-                                        grayscale=network_cfg.get('grayscale'))
+            EfficientNetV2Small(num_out_feature=network_cfg.get("embedded_dim"),
+                                grayscale=network_cfg.get('grayscale'))
 
     def forward(self, x):
         return self.model(x)

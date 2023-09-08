@@ -84,7 +84,7 @@ class ImageRecording:
         self.pill_name = pill_name
         self.image_save_path = os.path.join(root_path, "images/captured_OGYEI_pill_photos_v4", self.pill_name)
 
-        self.coefficient = 1
+        self.coefficient = 4
         self.lamp_mode = lamp_mode
         self.CAM_ID = 0
 
@@ -92,16 +92,13 @@ class ImageRecording:
     # --------------------------------- S A V E   C A M   P A R A M S   T O   F I L E ---------------------------------
     # -----------------------------------------------------------------------------------------------------------------
     def save_camera_params_to_file(self, filename):
-        # Set the camera
         cap = cv2.VideoCapture(self.CAM_ID, cv2.CAP_DSHOW)
         if not (cap.isOpened()):
             logging.error("Could not open camera device")
 
-        #IVM ELP 8.3 MPX - 4 K camera resolution - 3840*2160
-        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        width = 3264-1
+        height = 2448-1
 
-        # # Set the video resolution of the camera
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         cap.set(cv2.CAP_PROP_FPS, 30)
@@ -119,7 +116,7 @@ class ImageRecording:
             if key == ord("q"):
                 break
             elif key == ord("s"):
-                # Get the current camera parameters
+
                 params = {
                     "width": int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
                     "height": int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
@@ -131,14 +128,13 @@ class ImageRecording:
                     "white_balance_red_v": int(cap.get(cv2.CAP_PROP_WHITE_BALANCE_RED_V)),
                     "fps": int(cap.get(cv2.CAP_PROP_FPS))
                 }
-                # Save the parameters to a file (in this case, a JSON file)
+
                 with open(filename, "w") as f:
                     json.dump(params, f)
-                temp_file_name = filename.split("\\")[-1]
+                temp_file_name = os.path.basename(filename)
                 logging.info(f"Camera parameters saved to {temp_file_name}")
-                break  # Exit the loop after saving
+                break
 
-        # Release the capture and close the camera window
         cap.release()
         cv2.destroyAllWindows()
 
@@ -254,6 +250,9 @@ class ImageRecording:
 
 
 if __name__ == "__main__":
-    root_gui = tk.Tk()
-    app = ImageRecordingGUI(root_gui)
-    root_gui.mainloop()
+    try:
+        root_gui = tk.Tk()
+        app = ImageRecordingGUI(root_gui)
+        root_gui.mainloop()
+    except KeyboardInterrupt as kie:
+        logging.error(f'{kie}')

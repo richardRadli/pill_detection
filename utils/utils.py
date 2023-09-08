@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import re
+import seaborn as sns
 import time
 import torch
 
@@ -21,6 +22,7 @@ from datetime import datetime
 from functools import wraps
 from glob import glob
 from PIL import Image
+from sklearn.metrics import confusion_matrix
 from torch import Tensor
 from typing import List, Union
 from tqdm import tqdm
@@ -235,7 +237,11 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
 
     timestamp = create_timestamp()
     output_folder = os.path.join(out_path, timestamp)
-    os.makedirs(output_folder, exist_ok=True)
+    correctly_classified = os.path.join(output_folder, "correctly_classified")
+    incorrectly_classified = os.path.join(output_folder, "incorrectly_classified")
+
+    os.makedirs(correctly_classified, exist_ok=True)
+    os.makedirs(incorrectly_classified, exist_ok=True)
 
     for idx, (i, j, k, l) in tqdm(enumerate(zip(indices, new_list, gt, pred_ed)), total=len(new_list),
                                   desc="Plotting ref and query images"):
@@ -252,13 +258,50 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
         ax[1].imshow(img_ref)
         ax[1].set_title(l + "_ref")
 
-        output_path = os.path.join(output_folder, str(idx) + ".png")
+        if k == l:
+            output_path = os.path.join(correctly_classified, str(idx) + ".png")
+        else:
+            output_path = os.path.join(incorrectly_classified, str(idx) + ".png")
         plt.savefig(output_path)
         plt.close()
 
         plt.close("all")
         plt.close()
         gc.collect()
+
+
+def plot_confusion_matrix(gt, pred, out_path):
+    labels = list(set(gt))
+
+    # Create a mapping from labels to unique integers
+    label_to_int = {label: i for i, label in enumerate(labels)}
+
+    # Convert the redundant label sequences to true ground truth and prediction lists
+    true_labels = [label_to_int[label] for label in gt]
+    predicted_labels = [label_to_int[label] for label in pred]
+
+    # Compute confusion matrix
+    cm = confusion_matrix(true_labels, predicted_labels)
+
+    # Create a heatmap
+    plt.figure(figsize=(8, 6))
+    sns.set(font_scale=1.2)  # Adjust the font size for better readability
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels)
+
+    # Add labels and title
+    plt.xlabel("Predicted Labels")
+    plt.ylabel("True Labels")
+    plt.title("Confusion Matrix")
+
+    # Prevent label cutoff
+    plt.tight_layout()
+
+    # Show the plot
+    timestamp = create_timestamp()
+    output_folder = os.path.join(out_path, timestamp)
+    os.makedirs(output_folder, exist_ok=True)
+    output_path = os.path.join(output_folder, "confusion_matrix.png")
+    plt.savefig(output_path)
 
 
 # ----------------------------------------------------------------------------------------------------------------------

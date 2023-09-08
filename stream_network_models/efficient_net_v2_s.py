@@ -12,7 +12,7 @@ import torch.nn as nn
 import torchvision.models as models
 
 
-class EfficientNetV2SelfAttention(nn.Module):
+class EfficientNetV2Small(nn.Module):
     def __init__(self, num_out_feature: int = 128, grayscale=True):
         """
         EfficientNetV2 model with custom linear layer.
@@ -21,7 +21,7 @@ class EfficientNetV2SelfAttention(nn.Module):
         :param grayscale: Whether the input is grayscale or not. Defaults to True.
         """
 
-        super(EfficientNetV2SelfAttention, self).__init__()
+        super(EfficientNetV2Small, self).__init__()
         self.num_out_feature = num_out_feature
         self.grayscale = grayscale
         self.model = self.build_model()
@@ -48,7 +48,7 @@ class EfficientNetV2SelfAttention(nn.Module):
         :return: EfficientNetV2 model with custom linear layer.
         """
 
-        model = models.efficientnet_v2_s(weights='DEFAULT')
+        model = models.efficientnet_v2_s(weights='IMAGENET1K_V1')
         for params in model.parameters():
             params.requires_grad = False
 

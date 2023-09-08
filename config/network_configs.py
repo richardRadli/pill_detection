@@ -390,6 +390,8 @@ def stream_network_config(cfg) -> Dict:
                 DATA_PATH.get_data_path("predictions_cnn_network"),
             'plotting_folder':
                 IMAGES_PATH.get_data_path("plotting_cnn_network"),
+            'confusion_matrix':
+                IMAGES_PATH.get_data_path("conf_mtx_cnn_network"),
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_cnn_network"),
             'hardest_contour_directory':
@@ -410,6 +412,8 @@ def stream_network_config(cfg) -> Dict:
                 DATA_PATH.get_data_path("predictions_efficient_net"),
             'plotting_folder':
                 IMAGES_PATH.get_data_path("plotting_efficient_net"),
+            'confusion_matrix':
+                IMAGES_PATH.get_data_path("conf_mtx_efficient_net"),
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_efficient_net"),
             'hardest_contour_directory':
@@ -430,6 +434,8 @@ def stream_network_config(cfg) -> Dict:
                 DATA_PATH.get_data_path("predictions_efficient_net_v2"),
             'plotting_folder':
                 IMAGES_PATH.get_data_path("plotting_efficient_net_v2"),
+            'confusion_matrix':
+                IMAGES_PATH.get_data_path("conf_mtx_efficient_net_v2"),
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_efficient_net_v2"),
             'hardest_contour_directory':
@@ -471,7 +477,9 @@ def fusion_network_config(network_type) -> Dict:
             'prediction_folder':
                 DATA_PATH.get_data_path("predictions_fusion_network_cnn"),
             'plotting_folder':
-                IMAGES_PATH.get_data_path("plotting_fusion_network_cnn"),
+                IMAGES_PATH.get_data_path("conf_mtx_fusion_network_cnn"),
+            'confusion_matrix':
+                IMAGES_PATH.get_data_path("conf_mtx_efficient_net_v2"),
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_fusion_network_cnn")
         },
@@ -484,6 +492,8 @@ def fusion_network_config(network_type) -> Dict:
                 DATA_PATH.get_data_path("predictions_fusion_network_efficient_net_self_attention_net"),
             'plotting_folder':
                 IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_self_attention"),
+            'confusion_matrix':
+                IMAGES_PATH.get_data_path("conf_mtx_fusion_network_efficient_net_self_attention"),
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_self_attention")
         },
@@ -496,6 +506,8 @@ def fusion_network_config(network_type) -> Dict:
                 DATA_PATH.get_data_path("predictions_fusion_network_efficient_net_v2_self_attention_net"),
             'plotting_folder':
                 IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_v2_self_attention"),
+            'confusion_matrix':
+                IMAGES_PATH.get_data_path("conf_mtx_fusion_network_efficient_net_v2_self_attention"),
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_v2_self_attention")
         },
@@ -508,6 +520,8 @@ def fusion_network_config(network_type) -> Dict:
                 DATA_PATH.get_data_path("predictions_fusion_network_efficient_net_v2_multi_head_attention"),
             'plotting_folder':
                 IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_v2_multi_head_attention"),
+            'confusion_matrix':
+                IMAGES_PATH.get_data_path("conf_mtx_fusion_network_efficient_net_v2_multi_head_attention"),
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_v2_multi_head_attention")
         },
@@ -520,6 +534,8 @@ def fusion_network_config(network_type) -> Dict:
                 DATA_PATH.get_data_path("predictions_fusion_network_efficient_net_v2_mha_fmha"),
             'plotting_folder':
                 IMAGES_PATH.get_data_path("plotting_fusion_network_efficient_net_v2_mha_fmha"),
+            'confusion_matrix':
+                IMAGES_PATH.get_data_path("conf_mtx_fusion_network_efficient_net_v2_mha_fmha"),
             'ref_vectors_folder':
                 DATA_PATH.get_data_path("reference_vectors_fusion_net_efficient_net_v2_mha_fmha")
         }
