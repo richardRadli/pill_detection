@@ -50,6 +50,13 @@ class PredictStreamNetwork:
         self.preprocess_rgb = None
         self.preprocess_con_tex = None
 
+        self.accuracy_top5 = None
+        self.accuracy_top1 = None
+        self.num_correct_top1 = 0
+        self.num_correct_top5 = 0
+        self.top5_indices = []
+        self.confidence_percentages = None
+
         # Load configs
         self.main_network_config = stream_network_config(self.cfg)
         self.sub_network_config = sub_stream_network_configs(self.cfg)
@@ -212,8 +219,6 @@ class PredictStreamNetwork:
         predicted_medicine_euc_dist = []
         corresp_sim_euc_dist = []
         most_similar_indices_euc_dist = []
-        num_correct_top1 = 0
-        num_correct_top5 = 0
 
         # Move vectors to GPU
         reference_vectors_tensor = torch.stack([torch.as_tensor(vec).to(self.device) for vec in reference_vectors])
@@ -238,43 +243,45 @@ class PredictStreamNetwork:
 
             # Calculate top-1 accuracy
             if predicted_medicine == q_labels[idx_query]:
-                num_correct_top1 += 1
+                self.num_correct_top1 += 1
 
             # Calculate top-5 accuracy
             top5_predicted_medicines = [r_labels[i] for i in torch.argsort(scores_euclidean_distance)[:5]]
             if q_labels[idx_query] in top5_predicted_medicines:
-                num_correct_top5 += 1
+                self.num_correct_top5 += 1
 
-        accuracy_top1 = num_correct_top1 / len(query_vectors)
-        accuracy_top5 = num_correct_top5 / len(query_vectors)
+        self.accuracy_top1 = self.num_correct_top1 / len(query_vectors)
+        self.accuracy_top5 = self.num_correct_top5 / len(query_vectors)
 
         # Calculate confidence
         confidence_percentages = [1 - (score / max(scores)) for score, scores in
                                   zip(corresp_sim_euc_dist, similarity_scores_euc_dist)]
-        confidence_percentages = [cp * 100 for cp in confidence_percentages]
+        self.confidence_percentages = [cp * 100 for cp in confidence_percentages]
 
         # Find index position of the ground truth medicine
-        top5_indices = []
         for idx_query, query_label in enumerate(q_labels):
             top5_predicted_medicines = [r_labels[i] for i in np.argsort(similarity_scores_euc_dist[idx_query])[:5]]
             if query_label in top5_predicted_medicines:
                 index = top5_predicted_medicines.index(query_label)
             else:
                 index = -1
-            top5_indices.append(index)
+            self.top5_indices.append(index)
 
+        return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
+
+    def display_results(self, ground_truth_labels, predicted_labels, query_vectors):
         # Create dataframe
-        df = pd.DataFrame(list(zip(q_labels, predicted_medicine_euc_dist)),
+        df = pd.DataFrame(list(zip(ground_truth_labels, predicted_labels)),
                           columns=['GT Medicine Name', 'Predicted Medicine Name (ED)'])
-        df['Confidence Percentage'] = confidence_percentages
-        df['Position of the correct label in the list'] = top5_indices
+        df['Confidence Percentage'] = self.confidence_percentages
+        df['Position of the correct label in the list'] = self.top5_indices
 
         df_stat = [
-            ["Correctly predicted (Top-1):", f'{num_correct_top1}'],
-            ["Correctly predicted (Top-5):", f'{num_correct_top5}'],
-            ["Miss predicted:", f'{len(query_vectors) - num_correct_top1}'],
-            ['Accuracy (Top-1):', f'{accuracy_top1:.4%}'],
-            ['Accuracy (Top-5):', f'{accuracy_top5:.4%}']
+            ["Correctly predicted (Top-1):", f'{self.num_correct_top1}'],
+            ["Correctly predicted (Top-5):", f'{self.num_correct_top5}'],
+            ["Miss predicted:", f'{len(query_vectors) - self.num_correct_top1}'],
+            ['Accuracy (Top-1):', f'{self.accuracy_top1:.4%}'],
+            ['Accuracy (Top-5):', f'{self.accuracy_top5:.4%}']
         ]
         df_stat = pd.DataFrame(df_stat, columns=['Metric', 'Value'])
 
@@ -290,8 +297,6 @@ class PredictStreamNetwork:
 
         df_combined.to_csv(os.path.join(self.main_network_config['prediction_folder'],
                                         self.timestamp + "_stream_network_prediction.txt"), sep='\t', index=True)
-
-        return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------- M A I N ----------------------------------------------------

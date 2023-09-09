@@ -8,6 +8,7 @@ Description: This program implements the prediction for fusion networks.
 """
 
 import colorama
+import logging
 import numpy as np
 import os
 import pandas as pd
@@ -274,8 +275,8 @@ class PredictFusionNetwork:
         pd.set_option('display.width', None)
         pd.set_option('display.max_colwidth', None)
 
-        print(df)
-        print(df_stat)
+        logging.info(df)
+        logging.info(df_stat)
 
         df_combined = pd.concat([df, df_stat], ignore_index=True)
 
@@ -308,10 +309,10 @@ class PredictFusionNetwork:
 
         gt, pred_ed, indices = self.measure_similarity_and_distance(q_labels, r_labels, ref_vectors, query_vectors)
 
-        # self.display_results(gt, pred_ed, query_vectors)
+        self.display_results(gt, pred_ed, query_vectors)
 
-        # plot_ref_query_images(indices=indices, q_images_path=q_images_path, r_images_path=r_images_path, gt=gt,
-        #                       pred_ed=pred_ed, out_path=self.fusion_network_config.get("plotting_folder"))
+        plot_ref_query_images(indices=indices, q_images_path=q_images_path, r_images_path=r_images_path, gt=gt,
+                              pred_ed=pred_ed, out_path=self.fusion_network_config.get("plotting_folder"))
 
         plot_confusion_matrix(gt, pred_ed, self.fusion_network_config.get("confusion_matrix"))
 

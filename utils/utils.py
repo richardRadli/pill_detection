@@ -283,10 +283,13 @@ def plot_confusion_matrix(gt, pred, out_path):
     # Compute confusion matrix
     cm = confusion_matrix(true_labels, predicted_labels)
 
+    # Sort labels based on unique integers
+    sorted_labels = [label for label, _ in sorted(label_to_int.items(), key=lambda x: x[1])]
+
     # Create a heatmap
     plt.figure(figsize=(8, 6))
     sns.set(font_scale=1.2)  # Adjust the font size for better readability
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels)
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=sorted_labels, yticklabels=sorted_labels)
 
     # Add labels and title
     plt.xlabel("Predicted Labels")
@@ -302,6 +305,7 @@ def plot_confusion_matrix(gt, pred, out_path):
     os.makedirs(output_folder, exist_ok=True)
     output_path = os.path.join(output_folder, "confusion_matrix.png")
     plt.savefig(output_path)
+
 
 
 # ----------------------------------------------------------------------------------------------------------------------

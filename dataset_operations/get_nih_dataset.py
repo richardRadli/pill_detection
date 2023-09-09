@@ -1,3 +1,4 @@
+import cv2
 import csv
 import logging
 import os
@@ -57,16 +58,20 @@ def download_images(list_to_process, download_directory, root_url, operation):
                 if is_directory_empty(pill_directory):
                     full_path = os.path.join(pill_directory, image_filename)
 
+                    # Resize the image to the target size
+                    resized_image = cv2.resize(response.content, (1000, 1000))
+
                     with open(full_path, 'wb') as file:
-                        file.write(response.content)
+                        file.write(resized_image)
                     logging.info(f"Downloaded: {image_filename} to {pill_name}")
                 else:
                     logging.warning(f"Skipped download: {image_filename} (Directory not empty)")
             else:
                 full_path = os.path.join(pill_directory, image_filename)
 
+                resized_image = cv2.resize(response.content, (1000, 1000))
                 with open(full_path, 'wb') as file:
-                    file.write(response.content)
+                    file.write(resized_image)
                 logging.info(f"Downloaded: {image_filename} to {pill_name}")
         else:
             logging.error(f"Failed to download: {image_url}")

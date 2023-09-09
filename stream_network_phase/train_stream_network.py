@@ -276,8 +276,8 @@ class TrainModel:
                 torch.save(self.model.state_dict(), best_model_path)
                 logging.info(f"New weights have been saved at epoch {epoch} with value of {valid_loss:.5f}")
             else:
-                logging.info(f"No new weights have been saved. Best valid loss was {best_valid_loss:.5f},\n "
-                             f"current valid loss is {valid_loss:.5f}")
+                logging.warning(f"No new weights have been saved. Best valid loss was {best_valid_loss:.5f},\n "
+                                f"current valid loss is {valid_loss:.5f}")
 
         # Close and flush SummaryWriter
         self.writer.close()

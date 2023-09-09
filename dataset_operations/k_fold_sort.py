@@ -1,6 +1,8 @@
 import os
 import shutil
 
+from tqdm import tqdm
+
 
 def folds():
     return {
@@ -22,7 +24,7 @@ def folds():
     }
 
 
-def move_images(fold_id: str = "fold1", op: str = "train", op2: str = "ref"):
+def move_images_to_folds(fold_id: str = "fold1", op: str = "train", op2: str = "ref"):
     folders_to_copy = folds().get(fold_id)
 
     # Root source directory
@@ -73,7 +75,7 @@ def delete_empty_subdirectories(root_path):
                 os.rmdir(dir_to_check)
 
 
-def delete_images():
+def clean_up_empty_dirs():
     main_dirs = ['contour', 'lbp', 'rgb', 'texture']
     sub_dirs = ["train", "valid"]
     for main_dir in main_dirs:
@@ -87,7 +89,41 @@ def delete_images():
                 print("Root path does not exist.")
 
 
+def move_hardest_samples():
+    main_dirs = ['contour', 'lbp', 'rgb', 'texture']
+    main_dirs_2 = ['contour_hardest', 'lbp_hardest', 'rgb_hardest', 'texture_hardest']
+    sub_dirs_train = ["train", "valid"]
+
+    for _, (main_dir, main_dir_2) in tqdm(enumerate(zip(main_dirs, main_dirs_2)), total=len(main_dirs)):
+        dest_path = (
+                "C:/Users/ricsi/Documents/project/storage/IVM/images/hardest_samples/efficient_net/%s" % main_dir_2)
+        for sub_dir_tr in tqdm(sub_dirs_train, total=len(sub_dirs_train)):
+            source_path = \
+                ("C:/Users/ricsi/Documents/project/storage/IVM/images/stream_images/ogyei/%s/%s" % (main_dir, sub_dir_tr))
+            shutil.copytree(source_path, dest_path, dirs_exist_ok=True)
+
+
+def rollback_folds():
+    category_dirs = ['contour', 'lbp', 'rgb', 'texture']
+    sub_dirs_trains = ["train", "valid"]
+    sub_dirs_tests = ["ref", "query"]
+
+    for _, (sub_dirs_train, sub_dirs_test) in tqdm(enumerate(zip(sub_dirs_trains, sub_dirs_tests)),
+                                                   total=len(sub_dirs_trains)):
+        for category_dir in category_dirs:
+            src_path = (
+                "C:/Users/ricsi/Documents/project/storage/IVM/images/test/ogyei/%s/%s" % (sub_dirs_test, category_dir))
+            dst_path = (
+                "C:/Users/ricsi/Documents/project/storage/IVM/images/stream_images/ogyei/%s/%s" % (category_dir, sub_dirs_train)
+            )
+
+            shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+
+
 if __name__ == "__main__":
-    # move_images("fold1", "train", "ref")
-    # move_images("fold1", "valid", "query")
-    delete_images()
+    move_images_to_folds("fold4", "train", "ref")
+    move_images_to_folds("fold4", "valid", "query")
+    clean_up_empty_dirs()
+    move_hardest_samples()
+
+    # rollback_folds()
