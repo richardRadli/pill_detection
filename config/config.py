@@ -107,10 +107,10 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
                                  help="CNN | EfficientNet | EfficientNetV2")
-        self.parser.add_argument("--type_of_stream", type=str, default="Contour", help="Contour | LBP | RGB | Texture")
+        self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
 
-        self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
+        self.parser.add_argument("--dynamic_margin_loss", type=bool, default=False)
         self.parser.add_argument("--upper_norm_limit", type=float, default=3.0)
 
         self.parser.add_argument("--num_triplets", type=int, default=4000, help="Number of triplets to be generated")
@@ -170,7 +170,7 @@ class ConfigFusionNetwork:
         self.parser.add_argument('--step_size', type=int, default=5,
                                  help="Number of epochs after which to decay the learning rate")
         self.parser.add_argument('--gamma', type=float, default=0.1, help="Factor by which to decay the learning rate")
-        self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
+        self.parser.add_argument("--dynamic_margin_loss", type=bool, default=False)
         self.parser.add_argument("--upper_norm_limit", type=float, default=3.0)
 
     def parse(self):

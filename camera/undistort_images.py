@@ -11,6 +11,7 @@ faster processing.
 
 import cv2
 import os
+import logging
 import numpy as np
 
 from concurrent.futures import ThreadPoolExecutor
@@ -28,7 +29,8 @@ class UnDistortTestImages:
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
         cam_mtx_np_file = os.path.join(DATA_PATH.get_data_path("cam_data"),
-                                       os.listdir(DATA_PATH.get_data_path("cam_data"))[2])
+                                       os.listdir(DATA_PATH.get_data_path("cam_data"))[3])
+        logging.info(f"The loaded camera matrix: {os.path.basename(cam_mtx_np_file)}")
         data = np.load(cam_mtx_np_file, allow_pickle=True)
 
         self.matrix = data.item()['matrix']
@@ -55,6 +57,7 @@ class UnDistortTestImages:
         undistorted_image = undistorted_image[y:y + h, x:x + w]
 
         cv2.imwrite(output_path, undistorted_image)
+        logging.info(f'Image {os.path.basename(output_path)} has been saved!')
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- U N D I S T O R T   I M A G E S ----------------------------------------
@@ -66,8 +69,8 @@ class UnDistortTestImages:
         :return: None
         """
 
-        input_dir = "C:/Users/ricsi/Desktop/ures_talkak"
-        output_dir = "C:/Users/ricsi/Desktop/ures_talkak_undistorted"
+        input_dir = "C:/Users/ricsi/Desktop/asd"
+        output_dir = "C:/Users/ricsi/Desktop/ogyei_v2_undistorted"
 
         os.makedirs(output_dir, exist_ok=True)
 

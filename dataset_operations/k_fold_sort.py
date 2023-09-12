@@ -121,8 +121,8 @@ def rollback_folds():
 
 
 if __name__ == "__main__":
-    move_images_to_folds("fold4", "train", "ref")
-    move_images_to_folds("fold4", "valid", "query")
+    move_images_to_folds("fold5", "train", "ref")
+    move_images_to_folds("fold5", "valid", "query")
     clean_up_empty_dirs()
     move_hardest_samples()
 
