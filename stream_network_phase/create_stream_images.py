@@ -22,8 +22,9 @@ from skimage.feature import local_binary_pattern
 from tqdm import tqdm
 from typing import Tuple
 
-from config.network_configs import dataset_images_path_selector, sub_stream_network_configs
 from config.config import ConfigStreamNetwork
+from config.const import IMAGES_PATH
+from config.network_configs import dataset_images_path_selector, sub_stream_network_configs
 from utils.utils import measure_execution_time, setup_logger, numerical_sort
 
 
@@ -261,8 +262,8 @@ class CreateStreamImages:
 
     @staticmethod
     def copy_query_images():
-        source_root = r'C:/Users/ricsi/Documents/project/storage/IVM/images/test/ogyei/ref'
-        destination_root = r'C:/Users/ricsi/Documents/project/storage/IVM/images/test/ogyei/query'
+        source_root = IMAGES_PATH.get_data_path("test_ref_ogyei")
+        destination_root = IMAGES_PATH.get_data_path("test_query_ogyei")
 
         class_label_dirs = [d for d in os.listdir(source_root) if os.path.isdir(os.path.join(source_root, d))]
 
@@ -310,7 +311,14 @@ class CreateStreamImages:
                 tqdm(enumerate(zip(files_rgb, files_contour, files_texture, files_lbp)), desc="Copying image files"):
             if file_rgb.endswith(".png"):
                 if self.cfg.dataset_type == 'ogyei':
-                    match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
+                    # match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
+                    if "s_" in file_rgb:
+                        match = re.search(r'^(.*?)_[s]_\d{3}\.png$', file_rgb)
+                    elif "u_" in file_rgb:
+                        match = re.search(r'^(.*?)_[u]_\d{3}\.png$', file_rgb)
+                    else:
+                        match = None
+
                     if match:
                         value = match.group(1)
                 elif self.cfg.dataset_type == 'cure':

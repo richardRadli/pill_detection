@@ -338,6 +338,8 @@ class PredictStreamNetwork:
         # Compare query and reference vectors
         gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
 
+        self.display_results(gt, pred_ed, query_vecs)
+
         # Plot query and reference medicines
         plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed,
                               self.main_network_config['plotting_folder'])

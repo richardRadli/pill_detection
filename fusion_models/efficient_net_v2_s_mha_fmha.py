@@ -27,6 +27,7 @@ class EfficientNetV2MHAFMHA(nn.Module):
         :param network_cfg_rgb: Configuration for the RGB network.
         :param network_cfg_texture: Configuration for the texture network.
         """
+
         super(EfficientNetV2MHAFMHA, self).__init__()
 
         self.contour_network = NetworkFactory.create_network(type_of_net, network_cfg_contour)

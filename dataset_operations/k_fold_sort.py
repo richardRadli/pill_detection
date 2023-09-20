@@ -96,7 +96,7 @@ def move_hardest_samples():
 
     for _, (main_dir, main_dir_2) in tqdm(enumerate(zip(main_dirs, main_dirs_2)), total=len(main_dirs)):
         dest_path = (
-                "C:/Users/ricsi/Documents/project/storage/IVM/images/hardest_samples/efficient_net/%s" % main_dir_2)
+                "C:/Users/ricsi/Documents/project/storage/IVM/images/hardest_samples/efficient_net_v2/%s" % main_dir_2)
         for sub_dir_tr in tqdm(sub_dirs_train, total=len(sub_dirs_train)):
             source_path = \
                 ("C:/Users/ricsi/Documents/project/storage/IVM/images/stream_images/ogyei/%s/%s" % (main_dir, sub_dir_tr))
@@ -121,9 +121,9 @@ def rollback_folds():
 
 
 if __name__ == "__main__":
-    move_images_to_folds("fold5", "train", "ref")
-    move_images_to_folds("fold5", "valid", "query")
-    clean_up_empty_dirs()
+    # move_images_to_folds("fold5", "train", "ref")
+    # move_images_to_folds("fold5", "valid", "query")
+    # clean_up_empty_dirs()
     move_hardest_samples()
 
     # rollback_folds()

@@ -97,22 +97,28 @@ class Images(_Const):
             "images/stream_images/ogyei/texture/valid",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
-        "test_contour_stream_ref_ogyei":
-            "images/test/ogyei/ref/contour",
+        "test_query_ogyei":
+            "images/test/ogyei/query",
         "test_contour_stream_query_ogyei":
             "images/test/ogyei/query/contour",
-        "test_lbp_stream_ref_ogyei":
-            "images/test/ogyei/ref/lbp",
         "test_lbp_stream_query_ogyei":
             "images/test/ogyei/query/lbp",
-        "test_rgb_stream_ref_ogyei":
-            "images/test/ogyei/ref/rgb",
         "test_rgb_stream_query_ogyei":
             "images/test/ogyei/query/rgb",
-        "test_texture_stream_ref_ogyei":
-            "images/test/ogyei/ref/texture",
         "test_texture_stream_query_ogyei":
             "images/test/ogyei/query/texture",
+
+        # ---------------------------------------------------- R E F ---------------------------------------------------
+        "test_ref_ogyei":
+            "images/test/ogyei/ref",
+        "test_contour_stream_ref_ogyei":
+            "images/test/ogyei/ref/contour",
+        "test_lbp_stream_ref_ogyei":
+            "images/test/ogyei/ref/lbp",
+        "test_rgb_stream_ref_ogyei":
+            "images/test/ogyei/ref/rgb",
+        "test_texture_stream_ref_ogyei":
+            "images/test/ogyei/ref/texture",
 
         # ---------------------------------------------------- C U R E -------------------------------------------------
         # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
@@ -488,6 +494,48 @@ class Datasets(_Const):
             "ogyei_v1/single/splitted/test/gt_test_masks",
         "ogyei_v1_single_splitted_pred_test_masks":
             "ogyei_v1/single/splitted/test/pred_test_masks",
+
+        # O G Y E I   V 2
+        # Single
+        # Unsplitted
+        "ogyei_v2_single_unsplitted_images":
+            "ogyei_v2/single/unsplitted/images",
+        "ogyei_v2_single_unsplitted_labels":
+            "ogyei_v2/single/unsplitted/labels",
+        "ogyei_v2_single_unsplitted_gt_masks":
+            "ogyei_v2/single/unsplitted/gt_masks",
+        "ogyei_v2_single_unsplitted_pred_masks":
+            "ogyei_v2/single/unsplitted/pred_masks",
+
+        # Train images, labels and masks
+        "ogyei_v2_single_splitted_train_images":
+            "ogyei_v2/single/splitted/train/images",
+        "ogyei_v2_single_splitted_train_labels":
+            "ogyei_v2/single/splitted/train/labels",
+        "ogyei_v2_single_splitted_gt_train_masks":
+            "ogyei_v2/single/splitted/train/gt_train_masks",
+        "ogyei_v2_single_splitted_pred_train_masks":
+            "ogyei_v2/single/splitted/train/pred_train_masks",
+
+        # Validation images, labels and masks
+        "ogyei_v2_single_splitted_valid_images":
+            "ogyei_v2/single/splitted/valid/images",
+        "ogyei_v2_single_splitted_valid_labels":
+            "ogyei_v2/single/splitted/valid/labels",
+        "ogyei_v2_single_splitted_gt_valid_masks":
+            "ogyei_v2/single/splitted/valid/gt_valid_masks",
+        "ogyei_v2_single_splitted_pred_valid_masks":
+            "ogyei_v2/single/splitted/valid/pred_valid_masks",
+
+        # Test images, labels and masks
+        "ogyei_v2_single_splitted_test_images":
+            "ogyei_v2/single/splitted/test/images",
+        "ogyei_v2_single_splitted_test_labels":
+            "ogyei_v2/single/splitted/test/labels",
+        "ogyei_v2_single_splitted_gt_test_masks":
+            "ogyei_v2/single/splitted/test/gt_test_masks",
+        "ogyei_v2_single_splitted_pred_test_masks":
+            "ogyei_v2/single/splitted/test/pred_test_masks",
 
         # T R A Y
         "tray_original_images":

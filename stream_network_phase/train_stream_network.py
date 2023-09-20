@@ -124,7 +124,7 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     def get_hardest_samples(self, epoch: int, hard_neg_images: list, output_dir: str, op: str) -> None:
         """
-        Saves the hardest negative images to a file in JSON format.
+        Saves the hardest images to a file in JSON format.
         :param epoch: The epoch number.
         :param hard_neg_images: A list of tensors of the hardest negative images.
         :param output_dir: The directory where the output file will be saved.
@@ -226,7 +226,7 @@ class TrainModel:
                 hard_pos_images = self.record_hard_samples(hard_pos, positive_img_path, hard_pos_images)
 
             # Validation loop
-            with ((torch.no_grad())):
+            with torch.no_grad():
                 for idx, (anchor, positive, negative, negative_img_path, positive_img_path) \
                         in tqdm(enumerate(self.valid_data_loader), total=len(self.valid_data_loader),
                                 desc=colorama.Fore.MAGENTA + "Validation"):

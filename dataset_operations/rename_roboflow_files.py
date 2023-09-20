@@ -10,6 +10,7 @@ chops off the name extensions, and converts back the files to .png files.
 
 import os
 
+from concurrent.futures import ThreadPoolExecutor
 from glob import glob
 from PIL import Image
 from tqdm import tqdm
@@ -72,25 +73,34 @@ def rename_files(images_dir: str, labels_dir: str) -> None:
         print("Text file:", txt_file_name)
 
 
+def convert_image_to_png(image_path: str) -> None:
+    """
+    Converts a single image file to PNG format.
+
+    :param image_path: Path to the image file.
+    """
+
+    img = Image.open(image_path)
+    img = img.convert("RGB")
+    img.save(image_path, 'PNG')
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------------- C O N V E R T   I M A G E S   T O   P N G -------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def convert_images_to_png(directory: str) -> None:
     """
+    Convert all image files in the specified directory to PNG format using ThreadPoolExecutor.
 
     :param directory: Path to the image files.
     :return: None
     """
 
-    image_files = os.listdir(directory)
-    for file_name in tqdm(image_files, total=len(image_files), desc="Processing images"):
-        if file_name.lower().endswith('.png'):
-            image_path = os.path.join(directory, file_name)
+    image_files = [os.path.join(directory, file_name) for file_name in os.listdir(directory)
+                   if file_name.lower().endswith('.png')]
 
-            img = Image.open(image_path)
-            img = img.convert("RGB")
-            img.save(image_path, 'PNG')
-            print(f"Converted {file_name}")
+    with ThreadPoolExecutor() as executor:
+        list(tqdm(executor.map(convert_image_to_png, image_files), total=len(image_files), desc="Processing images"))
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -102,8 +112,8 @@ def main() -> None:
     :return: None
     """
 
-    images_dir = DATASET_PATH.get_data_path("ogyei_v1_single_unsplitted_images")
-    labels_dir = DATASET_PATH.get_data_path("ogyei_v1_single_unsplitted_labels")
+    images_dir = DATASET_PATH.get_data_path("ogyei_v2_single_splitted_test_images")
+    labels_dir = DATASET_PATH.get_data_path("ogyei_v2_single_splitted_test_labels")
 
     rename_files(images_dir, labels_dir)
     convert_images_to_png(images_dir)

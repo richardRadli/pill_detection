@@ -48,7 +48,7 @@ class EfficientNetV2Small(nn.Module):
         :return: EfficientNetV2 model with custom linear layer.
         """
 
-        model = models.efficientnet_v2_s(weights='IMAGENET1K_V1')
+        model = models.efficientnet_v2_m(weights='IMAGENET1K_V1')
         for params in model.parameters():
             params.requires_grad = False
 
