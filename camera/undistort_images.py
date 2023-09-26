@@ -69,8 +69,8 @@ class UnDistortTestImages:
         :return: None
         """
 
-        input_dir = "C:/Users/ricsi/Desktop/corrected"
-        output_dir = "C:/Users/ricsi/Desktop/ogyei_v2_undistorted"
+        input_dir = "C:/Users/ricsi/Desktop/multitask"
+        output_dir = "C:/Users/ricsi/Desktop/multitask_undistorted"
 
         os.makedirs(output_dir, exist_ok=True)
 

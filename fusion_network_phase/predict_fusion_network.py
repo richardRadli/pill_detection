@@ -314,7 +314,7 @@ class PredictFusionNetwork:
         plot_ref_query_images(indices=indices, q_images_path=q_images_path, r_images_path=r_images_path, gt=gt,
                               pred_ed=pred_ed, out_path=self.fusion_network_config.get("plotting_folder"))
 
-        plot_confusion_matrix(gt, pred_ed, self.fusion_network_config.get("confusion_matrix"))
+        # plot_confusion_matrix(gt, pred_ed, self.fusion_network_config.get("confusion_matrix"))
 
 
 # ----------------------------------------------------------------------------------------------------------------------

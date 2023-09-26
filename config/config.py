@@ -142,8 +142,8 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--threshold_area", type=int, default=100)
         self.parser.add_argument("--kernel_median_contour", type=int, default=7)
-        self.parser.add_argument("--canny_low_thr", type=int, default=30)
-        self.parser.add_argument("--canny_high_thr", type=int, default=70)
+        self.parser.add_argument("--canny_low_thr", type=int, default=5)
+        self.parser.add_argument("--canny_high_thr", type=int, default=25)
         self.parser.add_argument("--kernel_gaussian_texture", type=int, default=7)
 
     def parse(self):
@@ -161,6 +161,8 @@ class ConfigFusionNetwork:
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MHAFMHA",
                                  help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
                                       "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA")
+        self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
+        self.parser.add_argument("--upper_norm_limit", type=float, default=3.0)
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_split", type=float, default=0.8)
         self.parser.add_argument("--epochs", type=int, default=15)
@@ -170,8 +172,6 @@ class ConfigFusionNetwork:
         self.parser.add_argument('--step_size', type=int, default=5,
                                  help="Number of epochs after which to decay the learning rate")
         self.parser.add_argument('--gamma', type=float, default=0.1, help="Factor by which to decay the learning rate")
-        self.parser.add_argument("--dynamic_margin_loss", type=bool, default=False)
-        self.parser.add_argument("--upper_norm_limit", type=float, default=3.0)
 
     def parse(self):
         self.opt = self.parser.parse_args()

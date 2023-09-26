@@ -94,8 +94,7 @@ class TrainModel:
             excel_file_path = (
                 os.path.join(NLP_DATA_PATH.get_data_path("vector_distances"),
                              os.listdir(NLP_DATA_PATH.get_data_path("vector_distances"))[0]))
-            sheet_index = 1
-            df = pd.read_excel(excel_file_path, sheet_name=sheet_index, index_col=0)
+            df = pd.read_excel(excel_file_path, sheet_name=0, index_col=0)
             self.criterion = DynamicMarginTripletLoss(euc_dist_mtx=df, upper_norm_limit=self.cfg.upper_norm_limit)
         else:
             self.criterion = TripletLossWithHardMining(margin=self.cfg.margin)

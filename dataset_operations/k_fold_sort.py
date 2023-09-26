@@ -6,21 +6,26 @@ from tqdm import tqdm
 
 def folds():
     return {
-        "fold1": ['algoflex_forte_dolo', 'algopyrin', 'co_xeter', 'dorithricin_mentol', 'dulodet', 'dulsevia',
-                  'koleszterin_kontroll', 'l_thyroxin', 'mebucaim_mint', 'merckformin_xr', 'mezym_forte',
-                  'panangin', 'sicor', 'sirdalud4', 'superbrands_cink', 'teva_ambrobene'],
-        "fold2": ['aspirin_ultra', 'atorvastatin_teva', 'betaloc', 'frontin', 'frontin_05', 'lordestin', 'milgamma_n',
-                  'milurit', 'neocitran', 'nurofen_forte', 'olicard', 'semicillin', 'syncumar_mite', 'tricovel',
-                  'xeter_20mg', 'zadex'],
-        "fold3": ['advil_ultra_forte', 'algoflex_rapid', 'bila_git', 'cataflam', 'concor_5', 'condrosulf',
-                  'dvitamin_forte', 'favipiravir', 'kalcium_magnezium_cink', 'ketodex', 'lactamed', 'magneb6',
-                  'milgamma', 'novo_c_plus', 'pantoprazol_sandoz', 'urzinol'],
-        "fold4": ['ambroxol_egis_30mg', 'atoris', 'coldrex', 'coverex', 'ibumax', 'kalium_r', 'lactiv_plus', 'no_spa',
-                  'normodipine', 'ocutein', 'rhinathiol', 'rubophen_500mg', 'salazopyrin', 'superbrands_cvitamin',
-                  'tritace', 'vitac'],
-        "fold5": ['apranax', 'c_vitamin_teva', 'cataflam_v_50mg', 'concor_10', 'controloc', 'escitil', 'furon',
-                  'meridian', 'neo_ferro_folgamma', 'tritace_htc', 'urotrin', 'valeriana_teva', 'vitamin_d',
-                  'voltaren_dolo_rapid']
+        "fold1": ['concor_5_mg', 'covercard_plus_10_mg_2_5_mg_5_mg', 'enterol_250_mg', 'escitil_10_mg',
+                  'frontin_0_25_mg', 'lactamed', 'mezym_forte_10_000_egyseg', 'narva_sr_1_5_mg_retard', 'no_spa_40_mg',
+                  'nurofen_forte_400_mg', 'provera_5_mg', 'semicillin_500_mg', 'teva_ambrobene_30_mg',
+                  'teva_enterobene_2_mg', 'tricovel_tricoage45', 'xeter_20_mg'],
+        "fold2": ['algoflex_forte_dolo_400_mg', 'algopyrin_500_mg', 'atoris_20_mg', 'cataflam_50_mg', 'coldrex',
+                  'frontin_0_5_mg', 'magne_b6', 'meridian', 'nebivolol_sandoz_5_mg', 'neo_citran',
+                  'neo_ferro_folgamma_114_mg_0_8_mg', 'normodipine_5_mg', 'ocutein', 'sinupret_forte',
+                  'verospiron_25_mg', 'voltaren_dolo_rapid_25_mg'],
+        "fold3": ['algoflex_rapid_400_mg', 'betaloc_50_mg', 'cataflam_dolo_25_mg', 'cetirizin_10_mg',
+                  'doxazosin_sandoz_uro_4_mg', 'indastad_1_5_mg', 'ketodex_25_mg', 'koleszterin_kontroll',
+                  'naprosyn_250_mg', 'naturland_d_vitamin_forte', 'noclaud_50_mg', 'pantoprazol_sandoz_40_mg',
+                  'revicet_akut_10_mg', 'salazopyrin_en_500_mg', 'strepfen_8_75_mg', 'valeriana_teva'],
+        "fold4": ['acc_long_600_mg', 'apranax_550_mg', 'aspirin_ultra_500_mg', 'c_vitamin_teva_500_mg',
+                  'co_perineva_4_mg_1_25_mg', 'cold_fx', 'lordestin_5_mg', 'milgamma_n', 'milurit_300_mg',
+                  'olicard_60_mg', 'rhinathiol_tusso_100_mg', 'sedatif_pc', 'sicor_10_mg', 'syncumar_mite_1_mg',
+                  'tritace_hct_5_mg_25_mg', 'urzinol'],
+        "fold5": ['ambroxol_egis_30_mg', 'atorvastatin_teva_20_mg', 'calci_kid', 'cataflam_v_50_mg', 'concor_10_mg',
+                  'dulsevia_60_mg', 'jutavit_cink', 'kalcium_magnezium_cink', 'kalium_r',
+                  'l_thyroxin_henning_50_mikrogramm', 'lactiv_plus', 'laresin_10_mg', 'letrox_50_mikrogramm',
+                  'mebucain_mint_2_mg_1_mg', 'merckformin_xr_1000_mg', 'sirdalud_4_mg']
     }
 
 
@@ -96,7 +101,7 @@ def move_hardest_samples():
 
     for _, (main_dir, main_dir_2) in tqdm(enumerate(zip(main_dirs, main_dirs_2)), total=len(main_dirs)):
         dest_path = (
-                "C:/Users/ricsi/Documents/project/storage/IVM/images/hardest_samples/efficient_net_v2/%s" % main_dir_2)
+                "C:/Users/ricsi/Documents/project/storage/IVM/images/hardest_samples/efficient_net/%s" % main_dir_2)
         for sub_dir_tr in tqdm(sub_dirs_train, total=len(sub_dirs_train)):
             source_path = \
                 ("C:/Users/ricsi/Documents/project/storage/IVM/images/stream_images/ogyei/%s/%s" % (main_dir, sub_dir_tr))
@@ -116,14 +121,13 @@ def rollback_folds():
             dst_path = (
                 "C:/Users/ricsi/Documents/project/storage/IVM/images/stream_images/ogyei/%s/%s" % (category_dir, sub_dirs_train)
             )
-
+            print(src_path, dst_path)
             shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
 
 
 if __name__ == "__main__":
-    # move_images_to_folds("fold5", "train", "ref")
-    # move_images_to_folds("fold5", "valid", "query")
-    # clean_up_empty_dirs()
+    move_images_to_folds("fold4", "train", "ref")
+    move_images_to_folds("fold4", "valid", "query")
+    clean_up_empty_dirs()
     move_hardest_samples()
-
     # rollback_folds()

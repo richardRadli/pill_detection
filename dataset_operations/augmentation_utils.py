@@ -356,20 +356,13 @@ def change_background_dtd(image_path: str, mask_path: str, backgrounds_path: str
     mask = cv2.resize(mask, (image.shape[1], image.shape[0]))
     mask = cv2.threshold(mask, 128, 255, cv2.THRESH_BINARY)[1].astype(np.uint8)
 
-    # Get a list of files in the backgrounds directory
     background_files = os.listdir(backgrounds_path)
-
-    # Randomly select a background image file
     background_file = random.choice(background_files)
-
-    # Build the path to the randomly selected background image
     background_image_path = os.path.join(backgrounds_path, background_file)
-
     background = cv2.imread(background_image_path)
 
     try:
         if background.size != 0:
-            # Ensure mask and background have the same size
             background = cv2.resize(background, (image.shape[1], image.shape[0]))
 
             foreground = cv2.bitwise_and(image, image, mask=mask)
