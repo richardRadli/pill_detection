@@ -1,5 +1,3 @@
-import re
-import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as functional
@@ -83,8 +81,7 @@ class DynamicMarginTripletLoss(nn.Module):
         row = self.euc_dist_mtx.loc[anchor_file_names[idx]]
         min_val = row.min()
         max_val = row.max()
-        normalized_row = 1 + (self.upper_norm_limit - 1) * (
-                (row - min_val) / (max_val - min_val))
+        normalized_row = 1 + (self.upper_norm_limit - 1) * ((row - min_val) / (max_val - min_val))
         return normalized_row[negative_file_names[idx]]
 
     @staticmethod

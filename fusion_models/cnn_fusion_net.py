@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 
 from stream_network_models.stream_network_selector import NetworkFactory
+from utils.utils import find_latest_file_in_latest_directory
 
 
 class CNNFusionNet(nn.Module):
@@ -28,10 +29,20 @@ class CNNFusionNet(nn.Module):
 
         super(CNNFusionNet, self).__init__()
 
+        latest_con_pt_file = find_latest_file_in_latest_directory(network_cfg_contour.get("model_weights_dir"))
+        latest_lbp_pt_file = find_latest_file_in_latest_directory(network_cfg_lbp.get("model_weights_dir"))
+        latest_rgb_pt_file = find_latest_file_in_latest_directory(network_cfg_rgb.get("model_weights_dir"))
+        latest_tex_pt_file = find_latest_file_in_latest_directory(network_cfg_texture.get("model_weights_dir"))
+
         self.contour_network = NetworkFactory.create_network(type_of_net, network_cfg_contour)
         self.lbp_network = NetworkFactory.create_network(type_of_net, network_cfg_lbp)
         self.rgb_network = NetworkFactory.create_network(type_of_net, network_cfg_rgb)
         self.texture_network = NetworkFactory.create_network(type_of_net, network_cfg_texture)
+
+        self.contour_network.load_state_dict(torch.load(latest_con_pt_file))
+        self.lbp_network.load_state_dict(torch.load(latest_lbp_pt_file))
+        self.rgb_network.load_state_dict(torch.load(latest_rgb_pt_file))
+        self.texture_network.load_state_dict(torch.load(latest_tex_pt_file))
 
         self.input_dim = (network_cfg_contour.get("channels")[4] +
                           network_cfg_lbp.get("channels")[4] +

@@ -145,8 +145,7 @@ class TrainFusionNet:
 
         # Tensorboard
         tensorboard_log_dir = os.path.join(main_network_config.get("logs_folder"), self.timestamp)
-        if not os.path.exists(tensorboard_log_dir):
-            os.makedirs(tensorboard_log_dir)
+        os.makedirs(tensorboard_log_dir, exist_ok=True)
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
 
         # Create save path

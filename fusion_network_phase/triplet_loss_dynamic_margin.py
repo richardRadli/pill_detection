@@ -22,8 +22,6 @@ class DynamicMarginTripletLoss(nn.Module):
         self.upper_norm_limit = upper_norm_limit
         self.margin = margin
         self.dataset_type = ConfigStreamNetwork().parse().dataset_type
-        self.regexp = {"ogyei": r'^(?:(texture|contour|lbp)_)?([a-zA-Z0-9_]+)_\d{3}_[su]_\d{3}\.png$',
-                       "cure": r'^(?:(texture|contour|lbp)_)?[0-9]+_(bottom|top)_[0-9]+_(bottom|top)_[0-9]+\.png$'}
 
     def forward(self, anchor_tensor: torch.Tensor, positive_tensor: torch.Tensor, negative_tensor: torch.Tensor,
                 anchor_file_names: List[str], negative_file_names: List[str]) -> torch.Tensor:
