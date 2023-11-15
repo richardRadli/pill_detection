@@ -111,7 +111,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
 
         self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
-        self.parser.add_argument("--upper_norm_limit", type=float, default=2.0)
+        self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
 
         self.parser.add_argument("--num_triplets", type=int, default=6000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)
@@ -162,7 +162,7 @@ class ConfigFusionNetwork:
                                  help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
                                       "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA")
         self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
-        self.parser.add_argument("--upper_norm_limit", type=float, default=2.0)
+        self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_split", type=float, default=0.8)
         self.parser.add_argument("--epochs", type=int, default=15)

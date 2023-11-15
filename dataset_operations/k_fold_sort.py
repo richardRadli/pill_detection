@@ -125,9 +125,20 @@ def rollback_folds():
             shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
 
 
+def erase_files():
+    sub_dirs_trains = ["train", "valid"]
+    sub_dirs_tests = ["ref", "query"]
+
+    for _, (sub_dirs_train, sub_dirs_test) in tqdm(enumerate(zip(sub_dirs_trains, sub_dirs_tests)),
+                                                   total=len(sub_dirs_trains)):
+        src_path = "C:/Users/ricsi/Documents/project/storage/IVM/images/test/ogyei/%s/" % sub_dirs_test
+        shutil.rmtree(src_path)
+
+
 if __name__ == "__main__":
-    move_images_to_folds("fold3", "train", "ref")
-    move_images_to_folds("fold3", "valid", "query")
+    move_images_to_folds("fold5", "train", "ref")
+    move_images_to_folds("fold5", "valid", "query")
     clean_up_empty_dirs()
     move_hardest_samples()
     # rollback_folds()
+    # erase_files()

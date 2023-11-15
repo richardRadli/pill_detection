@@ -27,8 +27,7 @@ from fusion_models.fusion_network_selector import NetworkFactory
 from fusion_dataset_loader import FusionDataset
 from triplet_loss import TripletMarginLoss
 from triplet_loss_dynamic_margin import DynamicMarginTripletLoss
-from utils.utils import create_timestamp, find_latest_file_in_latest_directory, print_network_config, \
-    use_gpu_if_available, setup_logger
+from utils.utils import create_timestamp, print_network_config, use_gpu_if_available, setup_logger
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -82,22 +81,6 @@ class TrainFusionNet:
                                                    network_cfg_lbp=network_cfg_lbp,
                                                    network_cfg_rgb=network_cfg_rgb,
                                                    network_cfg_texture=network_cfg_texture)
-
-        # Load the saved state dictionaries of the stream networks
-        stream_con_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(network_cfg_contour.get("model_weights_dir"))))
-        stream_lbp_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(network_cfg_lbp.get("model_weights_dir"))))
-        stream_rgb_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(network_cfg_rgb.get("model_weights_dir"))))
-        stream_tex_state_dict = \
-            (torch.load(find_latest_file_in_latest_directory(network_cfg_texture.get("model_weights_dir"))))
-
-        # Update the state dictionaries of the fusion network's stream networks
-        self.model.contour_network.load_state_dict(stream_con_state_dict)
-        self.model.rgb_network.load_state_dict(stream_rgb_state_dict)
-        self.model.texture_network.load_state_dict(stream_tex_state_dict)
-        self.model.lbp_network.load_state_dict(stream_lbp_state_dict)
 
         # Freeze the weights of the stream networks
         for param in self.model.contour_network.parameters():
