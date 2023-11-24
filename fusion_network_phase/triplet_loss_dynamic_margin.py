@@ -43,8 +43,8 @@ class DynamicMarginTripletLoss(nn.Module):
         losses = []
 
         for i in range(batch_size):
-            normalized_similarity = self.normalize_row(anchor_file_names, negative_file_names, i)
-            margin = normalized_similarity * self.margin
+            normalized_distance = self.normalize_row(anchor_file_names, negative_file_names, i)
+            margin = normalized_distance * self.margin
             dist_pos = functional.pairwise_distance(anchor_tensor[i:i + 1], positive_tensor[i:i + 1], 2)
             dist_neg = functional.pairwise_distance(anchor_tensor[i:i + 1], negative_tensor[i:i + 1], 2)
             loss = functional.relu(margin + dist_pos - dist_neg)
@@ -67,8 +67,7 @@ class DynamicMarginTripletLoss(nn.Module):
         row = self.euc_dist_mtx.loc[anchor_file_names[idx]]
         min_val = row.min()
         max_val = row.max()
-        normalized_row = 1 + (self.upper_norm_limit - 1) * (
-                (row - min_val) / (max_val - min_val))
+        normalized_row = 1 + (self.upper_norm_limit - 1) * ((row - min_val) / (max_val - min_val))
         return normalized_row[negative_file_names[idx]]
 
     @staticmethod

@@ -17,7 +17,7 @@ from glob import glob
 from tqdm import tqdm
 from typing import List
 
-from config.const import DATA_PATH, IMAGES_PATH
+from config.const import DATASET_PATH
 from convert_segmentation_to_yolo import convert_yolo_format_to_pixels, read_yolo_annotations_to_list
 from utils.utils import setup_logger
 
@@ -34,6 +34,8 @@ def read_image_to_list(dir_train_images: str) -> List[str]:
     """
 
     img_files = sorted(glob(os.path.join(dir_train_images, "*.png")))
+    if len(img_files) == 0:
+        raise ValueError("Image folder is empty!")
     file_names = []
 
     for _, img_file in tqdm(enumerate(img_files), total=len(img_files), desc="Collecting image file names"):
@@ -47,8 +49,9 @@ def read_image_to_list(dir_train_images: str) -> List[str]:
 # ----------------------------------------------------------------------------------------------------------------------
 def main():
     setup_logger()
-    original_imgs_file_names = read_image_to_list(IMAGES_PATH.get_data_path("images_aug"))
-    yolo_annotations = read_yolo_annotations_to_list(DATA_PATH.get_data_path("augmented_train_data_labels"))
+    original_imgs_file_names = read_image_to_list(DATASET_PATH.get_data_path("ogyei_v2_single_splitted_train_images"))
+    yolo_annotations = (
+        read_yolo_annotations_to_list(DATASET_PATH.get_data_path("ogyei_v2_single_splitted_train_labels")))
 
     for i, (img, txt) in enumerate(zip(original_imgs_file_names, yolo_annotations)):
         logging.info(f'Image name: {os.path.basename(img)}')
@@ -63,7 +66,7 @@ def main():
         annotation_points = convert_yolo_format_to_pixels(image=image, annotation=annotation_list)
 
         annotation_points = np.array(annotation_points, dtype=np.int32)
-        annotation_points = annotation_points.reshape((-1, 1, 2))  # Reshape the array
+        annotation_points = annotation_points.reshape((-1, 1, 2))
         cv2.polylines(image, [annotation_points], isClosed=True, color=(0, 255, 0), thickness=2)
 
         cv2.imshow("", cv2.resize(image, (image.shape[1] // 2, image.shape[0] // 2)))

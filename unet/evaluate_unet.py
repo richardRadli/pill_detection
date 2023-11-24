@@ -22,7 +22,7 @@ def calculate_metrics_thread() -> (float, float, float, float):
     :return: mean values of fpr, tpr, ppv, iou.
     """
 
-    images_true = sorted(glob(IMAGES_PATH.get_data_path("test_mask") + "/*.png"))
+    images_true = sorted(glob(DATASET_PATH.get_data_path("cure_test_mask") + "/*.png"))
     images_pred = sorted(glob(IMAGES_PATH.get_data_path("unet_out") + "/*.png"))
 
     if len(images_true) == 0 or len(images_pred) == 0:
@@ -146,9 +146,9 @@ def plot_results() -> None:
     """
 
     images_input = \
-        sorted(glob(DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_images") + "/*.png"), key=numerical_sort)
+        sorted(glob(DATASET_PATH.get_data_path("ogyei_v2_single_splitted_test_images") + "/*.png"), key=numerical_sort)
     images_true = \
-        sorted(glob(IMAGES_PATH.get_data_path("test_mask") + '/*.png'), key=numerical_sort)
+        sorted(glob(DATASET_PATH.get_data_path("cure_test_mask") + '/*.png'), key=numerical_sort)
     images_pred = \
         sorted(glob(IMAGES_PATH.get_data_path("unet_out") + '/*.png'), key=numerical_sort)
 

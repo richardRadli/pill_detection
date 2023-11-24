@@ -105,7 +105,7 @@ class ConfigStreamNetwork:
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
                                  help="CNN | EfficientNet | EfficientNetV2")
         self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
@@ -117,7 +117,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--margin", type=float, default=0.5)
 
         self.parser.add_argument("--epochs", type=int, default=30)
-        self.parser.add_argument("--batch_size", type=int, default=32)
+        self.parser.add_argument("--batch_size", type=int, default=16)
 
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
 

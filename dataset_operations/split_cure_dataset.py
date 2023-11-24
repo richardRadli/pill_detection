@@ -2,15 +2,17 @@ import os
 import random
 import shutil
 
+from config.const import DATASET_PATH
 
-def split_images(directory, train_dir, valid_dir, test_dir, split_ratio):
+
+def split_images(directory_bbox, train_directory, valid_directory, test_directory, sr):
     # Create train, validation, and test directories if they don't exist
-    os.makedirs(train_dir, exist_ok=True)
-    os.makedirs(valid_dir, exist_ok=True)
-    os.makedirs(test_dir, exist_ok=True)
+    os.makedirs(train_directory, exist_ok=True)
+    os.makedirs(valid_directory, exist_ok=True)
+    os.makedirs(test_directory, exist_ok=True)
 
     # Get the list of image files in the directory
-    image_files = [f for f in os.listdir(directory) if f.endswith('.png')]
+    image_files = [f for f in os.listdir(directory_bbox) if f.endswith('.png')]
 
     # Create a dictionary to store image files by class labels
     class_files = {}
@@ -29,39 +31,38 @@ def split_images(directory, train_dir, valid_dir, test_dir, split_ratio):
     valid_files = []
     test_files = []
     for class_label in class_files:
-        split_index1 = int(len(class_files[class_label]) * split_ratio[0])
-        split_index2 = int(len(class_files[class_label]) * (split_ratio[0] + split_ratio[1]))
+        split_index1 = int(len(class_files[class_label]) * sr[0])
+        split_index2 = int(len(class_files[class_label]) * (sr[0] + sr[1]))
         train_files.extend(class_files[class_label][:split_index1])
         valid_files.extend(class_files[class_label][split_index1:split_index2])
         test_files.extend(class_files[class_label][split_index2:])
 
     # Move the train files to the train directory
     for file in train_files:
-        src = os.path.join(directory, file)
-        dst = os.path.join(train_dir, file)
+        src = os.path.join(directory_bbox, file)
+        dst = os.path.join(train_directory, file)
         shutil.copy(src, dst)
 
     # Move the validation files to the validation directory
     for file in valid_files:
-        src = os.path.join(directory, file)
-        dst = os.path.join(valid_dir, file)
+        src = os.path.join(directory_bbox, file)
+        dst = os.path.join(valid_directory, file)
         shutil.copy(src, dst)
 
     # Move the test files to the test directory
     for file in test_files:
-        src = os.path.join(directory, file)
-        dst = os.path.join(test_dir, file)
+        src = os.path.join(directory_bbox, file)
+        dst = os.path.join(test_directory, file)
         shutil.copy(src, dst)
 
 
-# Directory paths
-directory = r'C:\Users\ricsi\Documents\project\storage\IVM\datasets\cure\Customer_bbox'
-train_dir = r'C:\Users\ricsi\Documents\project\storage\IVM\datasets\cure\train'
-valid_dir = r'C:\Users\ricsi\Documents\project\storage\IVM\datasets\cure\valid'
-test_dir = r'C:\Users\ricsi\Documents\project\storage\IVM\datasets\cure\test'
-
 # Split ratio (60% train, 20% validation, 20% test)
 split_ratio = [0.6, 0.2, 0.2]
+
+directory = DATASET_PATH.get_data_path("cure_customer_bbox")
+train_dir = DATASET_PATH.get_data_path("cure_train")
+valid_dir = DATASET_PATH.get_data_path("cure_valid")
+test_dir = DATASET_PATH.get_data_path("cure_test")
 
 # Call the split_images function
 split_images(directory, train_dir, valid_dir, test_dir, split_ratio)

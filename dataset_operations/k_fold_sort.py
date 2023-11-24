@@ -119,7 +119,9 @@ def rollback_folds():
             src_path = (
                 "C:/Users/ricsi/Documents/project/storage/IVM/images/test/ogyei/%s/%s" % (sub_dirs_test, category_dir))
             dst_path = (
-                "C:/Users/ricsi/Documents/project/storage/IVM/images/stream_images/ogyei/%s/%s" % (category_dir, sub_dirs_train)
+                "C:/Users/ricsi/Documents/project/storage/IVM/images/stream_images/ogyei/%s/%s" % (
+                category_dir, sub_dirs_train
+                )
             )
             print(src_path, dst_path)
             shutil.copytree(src_path, dst_path, dirs_exist_ok=True)

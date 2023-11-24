@@ -1,15 +1,14 @@
 import logging
 import os
-
 import numpy as np
+import segmentation_models_pytorch as smp
 import torch
 import torch.nn.functional as F
+
 from PIL import Image
 
-from data_loader_unet import BasicDataset
-# from unet_model import UNet
-import segmentation_models_pytorch as smp
 from config.config import ConfigTestingUnet
+from data_loader_unet import BasicDataset
 
 cfg = ConfigTestingUnet().parse()
 
@@ -63,7 +62,6 @@ if __name__ == '__main__':
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # net = UNet(n_channels=3, n_classes=cfg.classes, bilinear=cfg.bilinear)
     net = smp.Unet(
         encoder_name='resnet34',
         encoder_weights='imagenet',

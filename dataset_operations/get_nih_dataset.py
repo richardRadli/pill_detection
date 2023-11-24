@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ElementTree
 
 from tqdm import tqdm
 
+from config.const import DATASET_PATH
 from utils.utils import setup_logger
 
 
@@ -22,12 +23,12 @@ class NIHDatasetDownloader:
         return {
             "ref": {
                 "output_file": "C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/ref.txt",
-                "download_directory": "C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/ref",
+                "download_directory": DATASET_PATH.get_data_path("nih_ref"),
                 "feature_csv_file_name": "C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/ref_output.csv"
             },
             "query": {
                 "output_file": "C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/query.txt",
-                "download_directory": "C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/query",
+                "download_directory": DATASET_PATH.get_data_path("nih_query"),
                 "feature_csv_file_name": "C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/query_output.csv"
             }
         }
@@ -152,22 +153,18 @@ class NIHDatasetDownloader:
             return None, None, None, None, None, None, None, None
 
     def write_attributes_to_csv(self, list_to_process, operation):
-        printed_values = set()
-
         with open(self.path_selector().get(operation).get("feature_csv_file_name"), "w", newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter=",")
 
             for item in tqdm(list_to_process, desc="Acquiring features from the xml files"):
                 directory_name = item[1].split("/")[0]
-                if item[0] not in printed_values:
-                    printed_values.add(item[0])
-                    pill_name, imprint, imprinttype, color, shape, score, symbol, size_of_pill = self.process_xml(
-                        "https://data.lhncbc.nlm.nih.gov/public/Pills/ALLXML/%s.xml" % directory_name, item[0])
-                    imprint_parts = imprint.split(';') if imprint else []
-                    imprint_parts = '_'.join(imprint_parts)
-                    imprint_parts_list = [imprint_parts]
-                    writer.writerow(
-                        [pill_name] + imprint_parts_list + [imprinttype, color, shape, score, symbol, size_of_pill])
+                pill_name, imprint, imprinttype, color, shape, score, symbol, size_of_pill = self.process_xml(
+                    "https://data.lhncbc.nlm.nih.gov/public/Pills/ALLXML/%s.xml" % directory_name, item[0])
+                imprint_parts = imprint.split(';') if imprint else []
+                imprint_parts = '_'.join(imprint_parts)
+                imprint_parts_list = [imprint_parts]
+                writer.writerow(
+                    [pill_name] + imprint_parts_list + [imprinttype, color, shape, score, symbol, size_of_pill])
 
     def main(self):
         ref_list, query_list = self.get_image_data()
@@ -183,8 +180,8 @@ class NIHDatasetDownloader:
 
         self.display_statistics(unique_labels_ref, unique_labels_query)
 
-        # self.download_images(ref_list, "ref")
-        # self.write_attributes_to_csv(ref_list, operation="ref")
+        self.download_images(ref_list, "ref")
+        self.write_attributes_to_csv(ref_list, operation="ref")
 
         self.download_images(query_list, "query")
         self.write_attributes_to_csv(query_list, operation="query")
