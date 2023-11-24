@@ -214,11 +214,13 @@ class TrainModel:
 
                 # Compute triplet loss
                 if self.cfg.dynamic_margin_loss:
-                    loss, hard_neg, hard_pos = (
-                        self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path))
+                    loss = self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path)
                 else:
-                    loss, hard_neg, hard_pos = (
-                        self.criterion(anchor_emb, positive_emb, negative_emb))
+                    loss, hard_neg, hard_pos = self.criterion(anchor_emb, positive_emb, negative_emb)
+
+                    # Collect hardest positive and negative samples
+                    hard_neg_images = self.record_hard_samples(hard_neg, negative_img_path, hard_neg_images)
+                    hard_pos_images = self.record_hard_samples(hard_pos, positive_img_path, hard_pos_images)
 
                 # Backward pass, optimize and scheduler
                 loss.backward()
@@ -226,10 +228,6 @@ class TrainModel:
 
                 # Accumulate loss
                 train_losses.append(loss.item())
-
-                # Collect hardest positive and negative samples
-                hard_neg_images = self.record_hard_samples(hard_neg, negative_img_path, hard_neg_images)
-                hard_pos_images = self.record_hard_samples(hard_pos, positive_img_path, hard_pos_images)
 
             # Validation loop
             with torch.no_grad():
@@ -251,7 +249,7 @@ class TrainModel:
                         val_loss, _, _ = \
                             self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path)
                     else:
-                        val_loss, _, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
+                        val_loss = self.criterion(anchor_emb, positive_emb, negative_emb)
 
                     # Accumulate loss
                     valid_losses.append(val_loss.item())

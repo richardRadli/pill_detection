@@ -62,11 +62,11 @@ class PredictStreamNetwork:
         self.sub_network_config = sub_stream_network_configs(self.cfg)
 
         # Load networks
-        self.network_con, self.network_rgb, self.network_tex, self.network_lbp = self.load_networks()
+        self.network_con,  self.network_lbp, self.network_rgb, self.network_tex = self.load_networks()
         self.network_con.eval()
+        self.network_lbp.eval()
         self.network_rgb.eval()
         self.network_tex.eval()
-        self.network_lbp.eval()
 
         # Preprocess images
         self.preprocess_rgb = \
@@ -86,6 +86,9 @@ class PredictStreamNetwork:
         # Select device
         self.device = use_gpu_if_available()
 
+        # Set suffix
+        self.suffix = "dmtl" if self.cfg.dynamic_margin_loss else "tl"
+
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -97,30 +100,38 @@ class PredictStreamNetwork:
         """
 
         con_config = self.sub_network_config.get("Contour")
+        lbp_config = self.sub_network_config.get("LBP")
         rgb_config = self.sub_network_config.get("RGB")
         tex_config = self.sub_network_config.get("Texture")
-        lbp_config = self.sub_network_config.get("LBP")
 
         latest_con_pt_file = find_latest_file_in_latest_directory(
-            con_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type))
-        latest_rgb_pt_file = find_latest_file_in_latest_directory(
-            rgb_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type))
-        latest_tex_pt_file = find_latest_file_in_latest_directory(
-            tex_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type))
+            path=con_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+            dmtl=self.cfg.dynamic_margin_loss
+        )
         latest_lbp_pt_file = find_latest_file_in_latest_directory(
-            lbp_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type))
+            path=lbp_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+            dmtl=self.cfg.dynamic_margin_loss
+        )
+        latest_rgb_pt_file = find_latest_file_in_latest_directory(
+            path=rgb_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+            dmtl=self.cfg.dynamic_margin_loss
+        )
+        latest_tex_pt_file = find_latest_file_in_latest_directory(
+            path=tex_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+            dmtl=self.cfg.dynamic_margin_loss
+        )
 
         network_con = NetworkFactory.create_network(self.cfg.type_of_net, con_config)
+        network_lbp = NetworkFactory.create_network(self.cfg.type_of_net, lbp_config)
         network_rgb = NetworkFactory.create_network(self.cfg.type_of_net, rgb_config)
         network_tex = NetworkFactory.create_network(self.cfg.type_of_net, tex_config)
-        network_lbp = NetworkFactory.create_network(self.cfg.type_of_net, lbp_config)
 
         network_con.load_state_dict(torch.load(latest_con_pt_file))
+        network_lbp.load_state_dict(torch.load(latest_lbp_pt_file))
         network_rgb.load_state_dict(torch.load(latest_rgb_pt_file))
         network_tex.load_state_dict(torch.load(latest_tex_pt_file))
-        network_lbp.load_state_dict(torch.load(latest_lbp_pt_file))
 
-        return network_con, network_rgb, network_tex, network_lbp
+        return network_con, network_lbp, network_rgb, network_tex
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
@@ -191,9 +202,14 @@ class PredictStreamNetwork:
                 labels.append(image_name)
 
             if operation == "reference":
+                ref_save_dir = (
+                    os.path.join(
+                        self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type), self.timestamp
+                    )
+                )
+                os.makedirs(ref_save_dir, exist_ok=True)
                 torch.save({'vectors': vectors, 'labels': labels, 'images_path': images_path},
-                           os.path.join(self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type),
-                                        self.timestamp + "_ref_vectors.pt"))
+                           os.path.join(ref_save_dir, f"ref_vectors_{self.suffix}.pt"))
 
         logging.info("Processing of %s images is done" % operation)
         return vectors, labels, images_path
@@ -298,9 +314,10 @@ class PredictStreamNetwork:
         logging.info(df_stat)
 
         df_combined = pd.concat([df, df_stat], ignore_index=True)
-
-        df_combined.to_csv(os.path.join(self.main_network_config.get('prediction_folder').get(self.cfg.dataset_type),
-                                        self.timestamp + "_stream_network_prediction.txt"), sep='\t', index=True)
+        df_combined.to_csv(
+            os.path.join(self.main_network_config.get('prediction_folder').get(self.cfg.dataset_type),
+                         f"{self.timestamp}_{self.suffix}_stream_network_prediction.txt"), sep='\t', index=True
+        )
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------- M A I N ----------------------------------------------------
@@ -318,14 +335,18 @@ class PredictStreamNetwork:
                 lbp_dir=self.sub_network_config.get("LBP").get("query").get(self.cfg.dataset_type),
                 rgb_dir=self.sub_network_config.get("RGB").get("query").get(self.cfg.dataset_type),
                 texture_dir=self.sub_network_config.get("Texture").get("query").get(self.cfg.dataset_type),
-                operation="query"))
+                operation="query"
+            )
+        )
 
         # Calculate reference vectors
         if self.cfg.load_ref_vector:
-            latest_ref_vec_pt_file = \
-                max(glob(os.path.join(
-                    self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type), "*.pt")),
-                    key=os.path.getctime)
+            latest_ref_vec_pt_file = (
+                find_latest_file_in_latest_directory(
+                    path=self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type),
+                    dmtl=self.cfg.dynamic_margin_loss
+                )
+            )
             data = torch.load(latest_ref_vec_pt_file)
 
             ref_vecs = data['vectors']
@@ -347,8 +368,9 @@ class PredictStreamNetwork:
         self.display_results(gt, pred_ed, query_vecs)
 
         # Plot query and reference medicines
-        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed,
-                              self.main_network_config.get('plotting_folder').get(self.cfg.dataset_type))
+        plot_dir = os.path.join(self.main_network_config.get('plotting_folder').get(self.cfg.dataset_type),
+                                f"{self.timestamp}_{self.suffix}")
+        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, plot_dir)
 
 
 # ----------------------------------------------------------------------------------------------------------------------

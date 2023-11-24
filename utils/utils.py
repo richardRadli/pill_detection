@@ -178,49 +178,50 @@ def create_timestamp() -> str:
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------- F I N D   L A T E S T   F I L E   I N   L A T E S T   D I R E C T O R Y ----------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def find_latest_file_in_latest_directory(path: str) -> str:
+def find_latest_file_in_latest_directory(path: str, dmtl: bool = False) -> str:
     """
     Finds the latest file in the latest directory within the given path.
 
     :param path: str, the path to the directory where we should look for the latest file
+    :param dmtl: bool, if True, check for the latest file containing "dmtl" in its name
     :return: str, the path to the latest file
     :raise: when no directories or files found
     """
 
-    # Get a list of all directories in the given path
     dirs = [os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
 
     if not dirs:
         raise ValueError(f"No directories found in {path}")
 
-    # Sort directories by creation time (newest first)
     dirs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-
-    # Get the latest directory
     latest_dir = dirs[0]
-
-    # Get a list of all files in the latest directory
     files = [os.path.join(latest_dir, f) for f in os.listdir(latest_dir) if
              os.path.isfile(os.path.join(latest_dir, f))]
 
     if not files:
         raise ValueError(f"No files found in {latest_dir}")
 
-    # Sort files by creation time (newest first)
+    if dmtl:
+        files = [f for f in files if "dmtl" in f]
+        suffix = 'dmtl'
+    else:
+        files = [f for f in files if "tl" == f[-2:]]
+        suffix = 'tl'
+
+    if not files:
+        raise ValueError(f"No files containing {suffix} found in {latest_dir}")
+
     files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-
-    # Get the latest file
     latest_file = files[0]
-
     logging.info(f"The latest file is {latest_file}")
-    return latest_file
 
+    return latest_file
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------- P L O T   R E F   Q U E R Y   I M G S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images_path: list[str], gt: list[str],
-                          pred_ed: list[str], out_path: str) -> None:
+                          pred_ed: list[str], output_folder: str) -> None:
     """
     Plots the reference and query images with their corresponding ground truth and predicted class labels.
 
@@ -229,14 +230,12 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
     :param r_images_path: list of file paths to reference images
     :param gt: list of ground truth class labels for each query image
     :param pred_ed: list of predicted class labels for each query image
-    :param out_path: stream or fusion network path
+    :param output_folder: stream or fusion network path
     :return: None
     """
 
     new_list = [i for i in range(len(indices))]
 
-    timestamp = create_timestamp()
-    output_folder = os.path.join(out_path, timestamp)
     correctly_classified = os.path.join(output_folder, "correctly_classified")
     incorrectly_classified = os.path.join(output_folder, "incorrectly_classified")
 

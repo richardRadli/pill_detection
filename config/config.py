@@ -138,7 +138,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--img_size_cnn", type=int, default=128)
         self.parser.add_argument("--img_size_en", type=int, default=224)
 
-        self.parser.add_argument("--load_ref_vector", type=bool, default=False)
+        self.parser.add_argument("--load_ref_vector", type=bool, default=True)
 
         self.parser.add_argument("--threshold_area", type=int, default=100)
         self.parser.add_argument("--kernel_median_contour", type=int, default=7)

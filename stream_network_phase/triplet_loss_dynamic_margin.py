@@ -2,9 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as functional
 
-from typing import List, Tuple
-
-from config.config import ConfigStreamNetwork
+from typing import List
 
 
 class DynamicMarginTripletLoss(nn.Module):
@@ -21,11 +19,9 @@ class DynamicMarginTripletLoss(nn.Module):
         self.euc_dist_mtx = euc_dist_mtx
         self.upper_norm_limit = upper_norm_limit
         self.margin = margin
-        self.dataset_type = ConfigStreamNetwork().parse().dataset_type
 
     def forward(self, anchor_tensor: torch.Tensor, positive_tensor: torch.Tensor, negative_tensor: torch.Tensor,
-                anchor_file_names: List[str], negative_file_names: List[str]) -> (
-            Tuple)[torch.Tensor, torch.Tensor, torch.Tensor]:
+                anchor_file_names: List[str], negative_file_names: List[str]) -> torch.Tensor:
         """
         Perform forward pass of the DynamicMarginTripletLoss module.
 
@@ -43,9 +39,6 @@ class DynamicMarginTripletLoss(nn.Module):
         batch_size = anchor_tensor.size(0)
         losses = []
 
-        hard_neg = []
-        hard_pos = []
-
         for i in range(batch_size):
             normalized_similarity = self.normalize_row(anchor_file_names, negative_file_names, i)
             margin = normalized_similarity * self.margin
@@ -54,19 +47,9 @@ class DynamicMarginTripletLoss(nn.Module):
             loss = functional.relu(margin + dist_pos - dist_neg)
             losses.append(loss)
 
-            # Select hardest negative sample for this anchor
-            dist_diff_neg = dist_pos - dist_neg + margin
-            hard_neg = self.select_hardest_samples(dist_diff_neg, dist_neg, negative_tensor, hard_neg)
-
-            # Select hardest positive sample for this anchor
-            dist_diff_pos = dist_neg - dist_pos + margin
-            hard_pos = self.select_hardest_samples(dist_diff_pos, dist_pos, positive_tensor, hard_pos)
-
         triplet_loss = torch.mean(torch.stack(losses))
-        hard_neg_samples = torch.cat(hard_neg, dim=0) if hard_neg else torch.tensor([])
-        hard_pos_samples = torch.cat(hard_pos, dim=0) if hard_pos else torch.tensor([])
 
-        return triplet_loss, hard_neg_samples, hard_pos_samples
+        return triplet_loss
 
     def normalize_row(self, anchor_file_names: List, negative_file_names: List, idx: int) -> torch.Tensor:
         """
@@ -83,30 +66,6 @@ class DynamicMarginTripletLoss(nn.Module):
         max_val = row.max()
         normalized_row = 1 + (self.upper_norm_limit - 1) * ((row - min_val) / (max_val - min_val))
         return normalized_row[negative_file_names[idx]]
-
-    @staticmethod
-    def select_hardest_samples(
-            dist_diff, dist: torch.Tensor, tensor: torch.Tensor, hard_list: List[torch.Tensor]) ->\
-            List[torch.Tensor]:
-        """
-        Select the hardest samples based on the distance differences.
-
-        :param dist_diff: The difference between distances.
-        :param dist: The distances.
-        :param tensor: The tensor containing the samples.
-        :param hard_list: The list to store the hardest samples.
-
-        :return: The updated list of hardest samples.
-        """
-
-        violation_mask = dist_diff > 0
-        candidate_idxs = torch.where(violation_mask)[0]
-        if candidate_idxs.numel() > 0:
-            hard_idx = torch.argmin(dist[candidate_idxs])
-            hard_sample = tensor[candidate_idxs[hard_idx]].unsqueeze(0)
-            hard_list.append(hard_sample)
-
-        return hard_list
 
     @staticmethod
     def process_file_names(lines: list) -> list:
