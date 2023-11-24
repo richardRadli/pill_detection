@@ -103,20 +103,27 @@ class TrainModel:
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=network_cfg.get("learning_rate"),
                                           weight_decay=self.cfg.weight_decay)
 
+        # Set suffix for directories
+        suffix = "dmtl" if self.cfg.dynamic_margin_loss else "tl"
+
         # Tensorboard
-        tensorboard_log_dir = os.path.join(network_cfg.get('logs_dir'), self.timestamp)
+        log_dir = network_cfg.get('logs_dir').get(self.cfg.type_of_net).get(self.cfg.dataset_type)
+        tensorboard_log_dir = os.path.join(log_dir, f"{self.timestamp}_{suffix}")
         if not os.path.exists(tensorboard_log_dir):
             os.makedirs(tensorboard_log_dir)
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
 
         # Create save directory
-        self.save_path = os.path.join(network_cfg.get('model_weights_dir'), self.timestamp)
+        save_dir = network_cfg.get('model_weights_dir').get(self.cfg.type_of_net).get(self.cfg.dataset_type)
+        self.save_path = os.path.join(save_dir, f"{self.timestamp}_{suffix}")
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 
         # Hard sample paths
-        self.hardest_negative_samples_path = network_cfg.get("hardest_negative_samples")
-        self.hardest_positive_samples_path = network_cfg.get("hardest_positive_samples")
+        self.hardest_negative_samples_path = network_cfg.get(
+            'hardest_negative_samples').get(self.cfg.type_of_net).get(self.cfg.dataset_type)
+        self.hardest_positive_samples_path = network_cfg.get(
+            'hardest_positive_samples').get(self.cfg.type_of_net).get(self.cfg.dataset_type)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- G E T   H A R D  S A M P L E S -----------------------------------------
@@ -131,7 +138,7 @@ class TrainModel:
         :return: None
         """
 
-        dict_name = os.path.join(output_dir, self.timestamp, self.cfg.type_of_stream)
+        dict_name = os.path.join(output_dir, self.timestamp)
         os.makedirs(dict_name, exist_ok=True)
         file_name = os.path.join(dict_name, self.timestamp + "_epoch_" + str(epoch) + "_%s.txt" % op)
 

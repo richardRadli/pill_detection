@@ -94,23 +94,19 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_cnn_contour_ogyei"),
                     },
                 "EfficientNet":
-                    {
                         {
                             "cure":
                                 DATA_PATH.get_data_path("logs_efficient_net_contour_cure"),
                             "ogyei":
                                 DATA_PATH.get_data_path("logs_efficient_net_contour_ogyei"),
                         },
-                    },
                 "EfficientNetV2":
-                    {
                         {
                             "cure":
                                 DATA_PATH.get_data_path("logs_efficient_net_v2_contour_cure"),
                             "ogyei":
                                 DATA_PATH.get_data_path("logs_efficient_net_v2_contour_ogyei"),
                         },
-                    },
             },
             "hardest_negative_samples": {
                 "CNN":
@@ -244,22 +240,18 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_cnn_lbp_ogyei"),
                     },
                 "EfficientNet":
-                    {
                         {
                             "cure":
                                 DATA_PATH.get_data_path("logs_efficient_net_lbp_cure"),
                             "ogyei":
                                 DATA_PATH.get_data_path("logs_efficient_net_lbp_ogyei"),
                         },
-                    },
                 "EfficientNetV2":
                     {
-                        {
                             "cure":
                                 DATA_PATH.get_data_path("logs_efficient_net_v2_lbp_cure"),
                             "ogyei":
                                 DATA_PATH.get_data_path("logs_efficient_net_v2_lbp_ogyei"),
-                        },
                     },
             },
             "hardest_negative_samples": {
@@ -393,23 +385,19 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_cnn_rgb_ogyei"),
                     },
                 "EfficientNet":
-                    {
                         {
                             "cure":
                                 DATA_PATH.get_data_path("logs_efficient_net_rgb_cure"),
                             "ogyei":
                                 DATA_PATH.get_data_path("logs_efficient_net_rgb_ogyei"),
                         },
-                    },
                 "EfficientNetV2":
-                    {
                         {
                             "cure":
                                 DATA_PATH.get_data_path("logs_efficient_net_v2_rgb_cure"),
                             "ogyei":
                                 DATA_PATH.get_data_path("logs_efficient_net_v2_rgb_ogyei"),
                         },
-                    },
             },
             "hardest_negative_samples": {
                 "CNN":
@@ -542,22 +530,18 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_cnn_texture_ogyei"),
                     },
                 "EfficientNet":
-                    {
                         {
                             "cure":
                                 DATA_PATH.get_data_path("logs_efficient_net_texture_cure"),
                             "ogyei":
                                 DATA_PATH.get_data_path("logs_efficient_net_texture_ogyei"),
                         },
-                    },
                 "EfficientNetV2":
                     {
-                        {
                             "cure":
                                 DATA_PATH.get_data_path("logs_efficient_net_v2_texture_cure"),
                             "ogyei":
                                 DATA_PATH.get_data_path("logs_efficient_net_v2_texture_ogyei"),
-                        },
                     },
             },
             "hardest_negative_samples": {

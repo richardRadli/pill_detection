@@ -101,10 +101,14 @@ class PredictStreamNetwork:
         tex_config = self.sub_network_config.get("Texture")
         lbp_config = self.sub_network_config.get("LBP")
 
-        latest_con_pt_file = find_latest_file_in_latest_directory(con_config.get("model_weights_dir"))
-        latest_rgb_pt_file = find_latest_file_in_latest_directory(rgb_config.get("model_weights_dir"))
-        latest_tex_pt_file = find_latest_file_in_latest_directory(tex_config.get("model_weights_dir"))
-        latest_lbp_pt_file = find_latest_file_in_latest_directory(lbp_config.get("model_weights_dir"))
+        latest_con_pt_file = find_latest_file_in_latest_directory(
+            con_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type))
+        latest_rgb_pt_file = find_latest_file_in_latest_directory(
+            rgb_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type))
+        latest_tex_pt_file = find_latest_file_in_latest_directory(
+            tex_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type))
+        latest_lbp_pt_file = find_latest_file_in_latest_directory(
+            lbp_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type))
 
         network_con = NetworkFactory.create_network(self.cfg.type_of_net, con_config)
         network_rgb = NetworkFactory.create_network(self.cfg.type_of_net, rgb_config)
@@ -188,7 +192,7 @@ class PredictStreamNetwork:
 
             if operation == "reference":
                 torch.save({'vectors': vectors, 'labels': labels, 'images_path': images_path},
-                           os.path.join(self.main_network_config['ref_vectors_folder'],
+                           os.path.join(self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type),
                                         self.timestamp + "_ref_vectors.pt"))
 
         logging.info("Processing of %s images is done" % operation)
@@ -295,7 +299,7 @@ class PredictStreamNetwork:
 
         df_combined = pd.concat([df, df_stat], ignore_index=True)
 
-        df_combined.to_csv(os.path.join(self.main_network_config['prediction_folder'],
+        df_combined.to_csv(os.path.join(self.main_network_config.get('prediction_folder').get(self.cfg.dataset_type),
                                         self.timestamp + "_stream_network_prediction.txt"), sep='\t', index=True)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -319,7 +323,9 @@ class PredictStreamNetwork:
         # Calculate reference vectors
         if self.cfg.load_ref_vector:
             latest_ref_vec_pt_file = \
-                max(glob(os.path.join(self.main_network_config['ref_vectors_folder'], "*.pt")), key=os.path.getctime)
+                max(glob(os.path.join(
+                    self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type), "*.pt")),
+                    key=os.path.getctime)
             data = torch.load(latest_ref_vec_pt_file)
 
             ref_vecs = data['vectors']
@@ -342,7 +348,7 @@ class PredictStreamNetwork:
 
         # Plot query and reference medicines
         plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed,
-                              self.main_network_config['plotting_folder'])
+                              self.main_network_config.get('plotting_folder').get(self.cfg.dataset_type))
 
 
 # ----------------------------------------------------------------------------------------------------------------------
