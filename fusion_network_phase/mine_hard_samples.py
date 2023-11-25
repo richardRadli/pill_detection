@@ -12,64 +12,11 @@ import logging
 import os
 import shutil
 
-from glob import glob
 from tqdm import tqdm
-from typing import List
 
 from config.config import ConfigStreamNetwork
 from config.network_configs import stream_network_config, sub_stream_network_configs
-from utils.utils import setup_logger
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ---------------------------------------- F I N D   S T R E A M   F O L D E R S ---------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def find_stream_folders(path: str) -> List[str]:
-    """
-    Find the stream folders containing the specified subdirectories (RGB, Contour, Texture, LBP).
-
-    :param path: The path to search for stream folders.
-    :return: A list of found stream folder paths.
-    """
-
-    found_paths = []
-
-    dirs = sorted(glob(os.path.join(path, '????-??-??_??-??-??')), reverse=True)
-    subdir_dict = {'RGB': [], 'Contour': [], 'Texture': [], 'LBP': []}
-
-    for d in dirs:
-        subdirs = ['RGB', 'Contour', 'Texture', 'LBP']
-        for subdir in subdirs:
-            if os.path.isdir(os.path.join(d, subdir)):
-                subdir_dict[subdir].append(d)
-                break
-
-        if all(subdir_dict.values()):
-            break
-
-    for subdir, dirs in subdir_dict.items():
-        logging.info(f"{subdir} directories:")
-        for d in dirs:
-            logging.info(f"  {d}")
-            found_paths.append(d)
-
-    return found_paths
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ---------------------------------------- G E T   H A R D E S T   S A M P L E S ---------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def get_hardest_samples(samples_dir: str, sub_dir: str) -> str:
-    """
-    Returns the path of the .txt file with the latest created timestamp in a subdirectory of the samples' directory.
-
-    :param samples_dir: The path to the samples' directory.
-    :param sub_dir: The name of the subdirectory to search for the .txt file.
-    :return: The path of the .txt file with the latest created timestamp in the subdirectory.
-    """
-
-    directory = os.path.join(samples_dir, sub_dir)
-    return max(glob(os.path.join(directory, "*.txt")), key=os.path.getctime)
+from utils.utils import find_latest_file_in_latest_directory, setup_logger
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -145,27 +92,6 @@ def copy_hardest_samples(new_dir: str, src_dir: str, hardest_sample_images: list
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# -------------------------------------- G E T   L A T E S T   T X T   F I L E S ---------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def get_latest_txt_files(path: str):
-    """
-    Retrieves the latest .txt files for contour, RGB, and texture data in the specified directories
-    for either positive or negative operations.
-
-    :return: A tuple of the paths to the latest contour, LBP, RGB, and texture .txt files, respectively.
-    """
-
-    sub_folders = find_stream_folders(path)
-
-    latest_rgb_txt = get_hardest_samples(path, os.path.join(os.path.basename(sub_folders[0]), "RGB"))
-    latest_contour_txt = get_hardest_samples(path, os.path.join(os.path.basename(sub_folders[1]), "Contour"))
-    latest_texture_txt = get_hardest_samples(path, os.path.join(os.path.basename(sub_folders[2]), "Texture"))
-    latest_lbp_txt = get_hardest_samples(path, os.path.join(os.path.basename(sub_folders[3]), "lbp"))
-
-    return latest_contour_txt, latest_rgb_txt, latest_texture_txt, latest_lbp_txt
-
-
-# ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------ M A I N -------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def main() -> None:
@@ -176,14 +102,59 @@ def main() -> None:
     """
 
     setup_logger()
-    cfg_stream_net = ConfigStreamNetwork().parse()
-    hard_sample_paths = stream_network_config(cfg_stream_net)
-    ref_dir_paths = sub_stream_network_configs(cfg_stream_net)
+    cfg = ConfigStreamNetwork().parse()
+    hard_sample_paths = stream_network_config(cfg)
+    ref_dir_paths = sub_stream_network_configs(cfg)
 
-    latest_neg_contour_txt, latest_neg_rgb_txt, latest_neg_texture_txt, latest_neg_lbp_txt = \
-        get_latest_txt_files(hard_sample_paths.get("hard_negative"))
-    latest_pos_contour_txt, latest_pos_rgb_txt, latest_pos_texture_txt, latest_pos_lbp_txt = \
-        get_latest_txt_files(hard_sample_paths.get("hard_positive"))
+    latest_neg_contour_txt = (
+        find_latest_file_in_latest_directory(
+            path=hard_sample_paths.get("hard_negative").get("contour").get(cfg.dataset_type),
+            type_of_loss=cfg.type_of_loss_func
+        )
+    )
+    latest_neg_rgb_txt = (
+        find_latest_file_in_latest_directory(
+            path=hard_sample_paths.get("hard_negative").get("rgb").get(cfg.dataset_type),
+            type_of_loss=cfg.type_of_loss_func
+        )
+    )
+    latest_neg_texture_txt = (
+        find_latest_file_in_latest_directory(
+            path=hard_sample_paths.get("hard_negative").get("texture").get(cfg.dataset_type),
+            type_of_loss=cfg.type_of_loss_func
+        )
+    )
+    latest_neg_lbp_txt = (
+        find_latest_file_in_latest_directory(
+            path=hard_sample_paths.get("hard_negative").get("lbp").get(cfg.dataset_type),
+            type_of_loss=cfg.type_of_loss_func
+        )
+    )
+
+    latest_pos_contour_txt = (
+        find_latest_file_in_latest_directory(
+            path=hard_sample_paths.get("hard_positive").get("contour").get(cfg.dataset_type),
+            type_of_loss=cfg.type_of_loss_func
+        )
+    )
+    latest_pos_rgb_txt = (
+        find_latest_file_in_latest_directory(
+            path=hard_sample_paths.get("hard_positive").get("rgb").get(cfg.dataset_type),
+            type_of_loss=cfg.type_of_loss_func
+        )
+    )
+    latest_pos_texture_txt = (
+        find_latest_file_in_latest_directory(
+            path=hard_sample_paths.get("hard_positive").get("texture").get(cfg.dataset_type),
+            type_of_loss=cfg.type_of_loss_func
+        )
+    )
+    latest_pos_lbp_txt = (
+        find_latest_file_in_latest_directory(
+            path=hard_sample_paths.get("hard_positive").get("lbp").get(cfg.dataset_type),
+            type_of_loss=cfg.type_of_loss_func
+        )
+    )
 
     hardest_neg_samples_contour = process_txt(latest_neg_contour_txt)
     hardest_neg_samples_rgb = process_txt(latest_neg_rgb_txt)
@@ -208,31 +179,49 @@ def main() -> None:
     # Move hardest contour images
     files_to_move_contour = (
         files_to_move(hardest_sample_images=result,
-                      src_dir=ref_dir_paths.get("Contour").get("train").get(cfg_stream_net.dataset_type)))
-    copy_hardest_samples(new_dir=hard_sample_paths.get("hardest_contour_directory"),
-                         src_dir=ref_dir_paths.get("Contour").get("train").get(cfg_stream_net.dataset_type),
-                         hardest_sample_images=files_to_move_contour)
+                      src_dir=ref_dir_paths.get("Contour").get("train").get(cfg.dataset_type))
+    )
+
+    copy_hardest_samples(
+        new_dir=hard_sample_paths.get("hardest_contour_directory").get(cfg.dataset_type),
+        src_dir=ref_dir_paths.get("Contour").get("train").get(cfg.dataset_type),
+        hardest_sample_images=files_to_move_contour
+    )
 
     # Move hardest lbp images
     files_to_move_lbp = (
-        files_to_move(result, ref_dir_paths.get("LBP").get("train").get(cfg_stream_net.dataset_type)))
-    copy_hardest_samples(new_dir=hard_sample_paths.get("hardest_lbp_directory"),
-                         src_dir=ref_dir_paths.get("LBP").get("train").get(cfg_stream_net.dataset_type),
-                         hardest_sample_images=files_to_move_lbp)
+        files_to_move(hardest_sample_images=result,
+                      src_dir=ref_dir_paths.get("LBP").get("train").get(cfg.dataset_type))
+    )
+
+    copy_hardest_samples(
+        new_dir=hard_sample_paths.get("hardest_lbp_directory").get(cfg.dataset_type),
+        src_dir=ref_dir_paths.get("LBP").get("train").get(cfg.dataset_type),
+        hardest_sample_images=files_to_move_lbp
+    )
 
     # Move hardest rgb images
     files_to_move_rgb = (
-        files_to_move(result, ref_dir_paths.get("RGB").get("train").get(cfg_stream_net.dataset_type)))
-    copy_hardest_samples(new_dir=hard_sample_paths.get("hardest_rgb_directory"),
-                         src_dir=ref_dir_paths.get("RGB").get("train").get(cfg_stream_net.dataset_type),
-                         hardest_sample_images=files_to_move_rgb)
+        files_to_move(hardest_sample_images=result,
+                      src_dir=ref_dir_paths.get("RGB").get("train").get(cfg.dataset_type))
+    )
+    copy_hardest_samples(
+        new_dir=hard_sample_paths.get("hardest_rgb_directory").get(cfg.dataset_type),
+        src_dir=ref_dir_paths.get("RGB").get("train").get(cfg.dataset_type),
+        hardest_sample_images=files_to_move_rgb
+    )
 
     # Move hardest texture images
     files_to_move_texture = (
-        files_to_move(result, ref_dir_paths.get("Texture").get("train").get(cfg_stream_net.dataset_type)))
-    copy_hardest_samples(new_dir=hard_sample_paths.get("hardest_texture_directory"),
-                         src_dir=ref_dir_paths.get("Texture").get("train").get(cfg_stream_net.dataset_type),
-                         hardest_sample_images=files_to_move_texture)
+        files_to_move(hardest_sample_images=result,
+                      src_dir=ref_dir_paths.get("Texture").get("train").get(cfg.dataset_type))
+    )
+
+    copy_hardest_samples(
+        new_dir=hard_sample_paths.get("hardest_texture_directory").get(cfg.dataset_type),
+        src_dir=ref_dir_paths.get("Texture").get("train").get(cfg.dataset_type),
+        hardest_sample_images=files_to_move_texture
+    )
 
 
 # ----------------------------------------------------------------------------------------------------------------------

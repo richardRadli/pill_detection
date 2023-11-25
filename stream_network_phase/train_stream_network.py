@@ -108,6 +108,7 @@ class TrainModel:
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=network_cfg.get("learning_rate"),
                                           weight_decay=self.cfg.weight_decay)
+
         # Tensorboard
         tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
@@ -131,8 +132,7 @@ class TrainModel:
 
         directory_path = network_cfg.get(self.cfg.type_of_net).get(self.cfg.dataset_type)
         directory_to_create = os.path.join(directory_path, f"{self.timestamp}_{self.cfg.type_of_loss_func}")
-        if not os.path.exists(directory_to_create):
-            os.makedirs(directory_to_create)
+        os.makedirs(directory_to_create, exist_ok=True)
         return directory_to_create
 
     # ------------------------------------------------------------------------------------------------------------------

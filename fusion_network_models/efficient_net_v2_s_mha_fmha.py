@@ -10,6 +10,7 @@ Description: The program implements the EfficientNetV2 small multi-head attentio
 import torch
 import torch.nn as nn
 
+from config.config import ConfigStreamNetwork
 from stream_network_models.stream_network_selector import NetworkFactory
 from utils.utils import find_latest_file_in_latest_directory
 
@@ -17,10 +18,10 @@ from utils.utils import find_latest_file_in_latest_directory
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++ E F F I C I E N T N E T V 2 M U L T I H E A D A T T E N T I O N +++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class EfficientNetV2MultiHeadAttention(nn.Module):
+class EfficientNetV2MHAFMHA(nn.Module):
     def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture) -> None:
         """
-        This is the initialization function of the EfficientNetV2MultiHeadAttention class.
+        This is the initialization function of the EfficientNetV2MHAFMHA class.
 
         :param type_of_net: Type of network to create.
         :param network_cfg_contour: Configuration for the contour network.
@@ -28,12 +29,47 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
         :param network_cfg_rgb: Configuration for the RGB network.
         :param network_cfg_texture: Configuration for the texture network.
         """
-        super(EfficientNetV2MultiHeadAttention, self).__init__()
 
-        latest_con_pt_file = find_latest_file_in_latest_directory(network_cfg_contour.get("model_weights_dir"))
-        latest_lbp_pt_file = find_latest_file_in_latest_directory(network_cfg_lbp.get("model_weights_dir"))
-        latest_rgb_pt_file = find_latest_file_in_latest_directory(network_cfg_rgb.get("model_weights_dir"))
-        latest_tex_pt_file = find_latest_file_in_latest_directory(network_cfg_texture.get("model_weights_dir"))
+        super(EfficientNetV2MHAFMHA, self).__init__()
+
+        stream_net_cfg = ConfigStreamNetwork().parse()
+
+        latest_con_pt_file = find_latest_file_in_latest_directory(
+            path=(
+                network_cfg_contour
+                .get("model_weights_dir")
+                .get("EfficientNetV2")
+                .get(stream_net_cfg.dataset_type)
+            ),
+            type_of_loss=stream_net_cfg.type_of_loss_func
+        )
+        latest_lbp_pt_file = find_latest_file_in_latest_directory(
+            path=(
+                network_cfg_lbp
+                .get("model_weights_dir")
+                .get("EfficientNetV2")
+                .get(stream_net_cfg.dataset_type)
+            ),
+            type_of_loss=stream_net_cfg.type_of_loss_func
+        )
+        latest_rgb_pt_file = find_latest_file_in_latest_directory(
+            path=(
+                network_cfg_rgb
+                .get("model_weights_dir")
+                .get("EfficientNetV2")
+                .get(stream_net_cfg.dataset_type)
+            ),
+            type_of_loss=stream_net_cfg.type_of_loss_func
+        )
+        latest_tex_pt_file = find_latest_file_in_latest_directory(
+            path=(
+                network_cfg_texture
+                .get("model_weights_dir")
+                .get("EfficientNetV2")
+                .get(stream_net_cfg.dataset_type)
+            ),
+            type_of_loss=stream_net_cfg.type_of_loss_func
+        )
 
         self.contour_network = NetworkFactory.create_network(type_of_net, network_cfg_contour)
         self.lbp_network = NetworkFactory.create_network(type_of_net, network_cfg_lbp)
@@ -50,20 +86,22 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
         self.multi_head_rgb = nn.MultiheadAttention(embed_dim=network_cfg_rgb.get("embedded_dim"), num_heads=4)
         self.multi_head_tex = nn.MultiheadAttention(embed_dim=network_cfg_texture.get("embedded_dim"), num_heads=4)
 
-        self.multi_head_modules = {
-            "contour": self.multi_head_con,
-            "lbp": self.multi_head_lbp,
-            "rgb": self.multi_head_rgb,
-            "texture": self.multi_head_tex
-        }
-
         input_dim = (network_cfg_contour.get("embedded_dim") +
                      network_cfg_lbp.get("embedded_dim") +
                      network_cfg_rgb.get("embedded_dim") +
                      network_cfg_texture.get("embedded_dim"))
 
+        self.multi_head = nn.MultiheadAttention(embed_dim=input_dim, num_heads=4)
+
+        self.multi_head_modules = {
+            "contour": self.multi_head_con,
+            "lbp": self.multi_head_lbp,
+            "rgb": self.multi_head_rgb,
+            "texture": self.multi_head_tex,
+            "fusion": self.multi_head
+        }
+
         self.fc1 = nn.Linear(input_dim, input_dim)
-        self.relu = nn.ReLU()
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
@@ -91,8 +129,8 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
         x4 = self.multi_head_attention(x4, sub_stream="texture")
 
         x = torch.cat((x1, x2, x3, x4), dim=1)
+        x = self.multi_head_attention(x, sub_stream="fusion")
         x = self.fc1(x)
-        x = self.relu(x)
 
         return x
 

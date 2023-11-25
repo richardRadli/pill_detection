@@ -19,7 +19,7 @@ from torchvision.transforms import transforms
 from typing import Tuple
 
 from config.config import ConfigStreamNetwork
-from config.network_configs import stream_network_config
+from config.network_configs import stream_network_config, sub_stream_network_configs
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -69,10 +69,33 @@ class FusionDataset(Dataset):
 
         # Load datasets
         selected_network_config = stream_network_config(cfg)
-        self.contour_dataset = self.load_dataset(selected_network_config.get("hardest_contour_directory"))
-        self.lbp_dataset = self.load_dataset(selected_network_config.get("hardest_lbp_directory"))
-        self.rgb_dataset = self.load_dataset(selected_network_config.get("hardest_rgb_directory"))
-        self.texture_dataset = self.load_dataset(selected_network_config.get("hardest_lbp_directory"))
+        selected_subnetwork_config = sub_stream_network_configs(cfg)
+        if cfg.type_of_loss_func == "hmtl":
+            self.contour_dataset = self.load_dataset(selected_network_config.get("hardest_contour_directory"))
+            self.lbp_dataset = self.load_dataset(selected_network_config.get("hardest_lbp_directory"))
+            self.rgb_dataset = self.load_dataset(selected_network_config.get("hardest_rgb_directory"))
+            self.texture_dataset = self.load_dataset(selected_network_config.get("hardest_lbp_directory"))
+        elif cfg.type_of_loss_func in ["tl", "dmtl"]:
+            network_cfg_contour = selected_subnetwork_config.get("Contour")
+            network_cfg_lpb = selected_subnetwork_config.get("LBP")
+            network_cfg_rgb = selected_subnetwork_config.get("RGB")
+            network_cfg_texture = selected_subnetwork_config.get("Texture")
+            self.contour_dataset = self.load_dataset([
+                network_cfg_contour.get("train").get(cfg.dataset_type),
+                network_cfg_contour.get("valid").get(cfg.dataset_type)
+            ])
+            self.lbp_dataset = self.load_dataset([
+                network_cfg_lpb.get("train").get(cfg.dataset_type),
+                network_cfg_lpb.get("valid").get(cfg.dataset_type)
+            ])
+            self.rgb_dataset = self.load_dataset([
+                network_cfg_rgb.get("train").get(cfg.dataset_type),
+                network_cfg_rgb.get("valid").get(cfg.dataset_type)
+            ])
+            self.texture_dataset = self.load_dataset([
+                network_cfg_texture.get("train").get(cfg.dataset_type),
+                network_cfg_texture.get("valid").get(cfg.dataset_type)
+            ])
         self.labels_set = set(label for _, label in self.rgb_dataset)
         self.prepare_labels()
 
@@ -167,28 +190,30 @@ class FusionDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- L O A D   T H E   D A T A S E T -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def load_dataset(self, dataset_name: str) -> list:
+    def load_dataset(self, dataset_paths: list) -> list:
         """
-        Loads a dataset with the specified name from the dataset directory and returns a list of image paths and their
-        corresponding labels, as well as storing the labels separately in the 'labels' attribute of the class instance.
+        Loads a dataset with the specified paths from the dataset directories and returns a list of image paths and
+        their corresponding labels, as well as storing the labels separately in the 'labels' attribute of the class
+        instance.
 
-        :param dataset_name: name of the dataset to be loaded
+        :param dataset_paths: a list of paths to datasets to be loaded
         :return: a list of tuples containing image paths and their corresponding labels, extracted from the specified
-        dataset directory. The labels are also stored separately in the class attribute 'labels'.
+        dataset directories. The labels are also stored separately in the class attribute 'labels'.
         """
 
         dataset = []
         labels = []
 
-        for label_name in os.listdir(dataset_name):
-            label_path = os.path.join(dataset_name, label_name)
-            if not os.path.isdir(label_path):
-                continue
-            label = label_name
-            for image_name in os.listdir(label_path):
-                image_path = os.path.join(label_path, image_name)
-                dataset.append((image_path, label))
-                labels.append(label)
+        for dataset_path in dataset_paths:
+            for label_name in os.listdir(dataset_path):
+                label_path = os.path.join(dataset_path, label_name)
+                if not os.path.isdir(label_path):
+                    continue
+                label = label_name
+                for image_name in os.listdir(label_path):
+                    image_path = os.path.join(label_path, image_name)
+                    dataset.append((image_path, label))
+                    labels.append(label)
         self.labels = labels
 
         return dataset

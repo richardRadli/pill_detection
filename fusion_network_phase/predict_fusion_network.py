@@ -21,7 +21,7 @@ from PIL import Image
 
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.network_configs import sub_stream_network_configs, fusion_network_config
-from fusion_models.fusion_network_selector import NetworkFactory
+from fusion_network_models.fusion_network_selector import NetworkFactory
 from utils.utils import (use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory,
                          plot_confusion_matrix, plot_ref_query_images, setup_logger)
 

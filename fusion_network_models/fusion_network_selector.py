@@ -25,10 +25,10 @@ import torch
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from fusion_models.cnn_fusion_net import CNNFusionNet
-from fusion_models.efficient_net_self_attention import EfficientNetSelfAttention
-from fusion_models.efficient_net_v2_s_multihead_attention import EfficientNetV2MultiHeadAttention
-from fusion_models.efficient_net_v2_s_mha_fmha import EfficientNetV2MHAFMHA
+from fusion_network_models.cnn_fusion_net import CNNFusionNet
+from fusion_network_models.efficient_net_self_attention import EfficientNetSelfAttention
+from fusion_network_models.efficient_net_v2_s_multihead_attention import EfficientNetV2MultiHeadAttention
+from fusion_network_models.efficient_net_v2_s_mha_fmha import EfficientNetV2MHAFMHA
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

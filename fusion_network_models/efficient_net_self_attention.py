@@ -10,6 +10,7 @@ Description: The program implements the EfficientNet with Fusion Net.
 import torch
 import torch.nn as nn
 
+from config.config import ConfigStreamNetwork
 from stream_network_models.stream_network_selector import NetworkFactory
 from utils.utils import find_latest_file_in_latest_directory
 
@@ -35,10 +36,44 @@ class EfficientNetSelfAttention(nn.Module):
 
         super(EfficientNetSelfAttention, self).__init__()
 
-        latest_con_pt_file = find_latest_file_in_latest_directory(network_cfg_contour.get("model_weights_dir"))
-        latest_lbp_pt_file = find_latest_file_in_latest_directory(network_cfg_lbp.get("model_weights_dir"))
-        latest_rgb_pt_file = find_latest_file_in_latest_directory(network_cfg_rgb.get("model_weights_dir"))
-        latest_tex_pt_file = find_latest_file_in_latest_directory(network_cfg_texture.get("model_weights_dir"))
+        stream_net_cfg = ConfigStreamNetwork().parse()
+
+        latest_con_pt_file = find_latest_file_in_latest_directory(
+            path=(
+                network_cfg_contour
+                .get("model_weights_dir")
+                .get("EfficientNet")
+                .get(stream_net_cfg.dataset_type)
+            ),
+            type_of_loss=stream_net_cfg.type_of_loss_func
+        )
+        latest_lbp_pt_file = find_latest_file_in_latest_directory(
+            path=(
+                network_cfg_lbp
+                .get("model_weights_dir")
+                .get("EfficientNet")
+                .get(stream_net_cfg.dataset_type)
+            ),
+            type_of_loss=stream_net_cfg.type_of_loss_func
+        )
+        latest_rgb_pt_file = find_latest_file_in_latest_directory(
+            path=(
+                network_cfg_rgb
+                .get("model_weights_dir")
+                .get("EfficientNet")
+                .get(stream_net_cfg.dataset_type)
+            ),
+            type_of_loss=stream_net_cfg.type_of_loss_func
+        )
+        latest_tex_pt_file = find_latest_file_in_latest_directory(
+            path=(
+                network_cfg_texture
+                .get("model_weights_dir")
+                .get("EfficientNet")
+                .get(stream_net_cfg.dataset_type)
+            ),
+            type_of_loss=stream_net_cfg.type_of_loss_func
+        )
 
         self.contour_network = NetworkFactory.create_network(type_of_net, network_cfg_contour)
         self.lbp_network = NetworkFactory.create_network(type_of_net, network_cfg_lbp)

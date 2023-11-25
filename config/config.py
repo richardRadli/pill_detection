@@ -157,10 +157,10 @@ class ConfigFusionNetwork:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MultiHeadAttention",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetSelfAttention",
                                  help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
                                       "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA")
-        self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
+        self.parser.add_argument("--type_of_loss_func", type=str, default="dmtl", help="tl | hmtl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_split", type=float, default=0.8)

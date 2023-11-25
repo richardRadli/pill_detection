@@ -23,10 +23,11 @@ from torchsummary import summary
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.const import NLP_DATA_PATH
 from config.network_configs import sub_stream_network_configs, fusion_network_config
-from fusion_models.fusion_network_selector import NetworkFactory
+from fusion_network_models.fusion_network_selector import NetworkFactory
 from fusion_dataset_loader import FusionDataset
-from loss_functions.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
 from loss_functions.triplet_loss import TripletMarginLoss
+from loss_functions.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
+from loss_functions.triplet_loss_hard_mining import TripletLossWithHardMining
 from utils.utils import create_timestamp, print_network_config, use_gpu_if_available, setup_logger
 
 
@@ -107,14 +108,22 @@ class TrainFusionNet:
                              network_cfg_texture.get("image_size"))])
 
         # Specify loss function
-        if self.cfg_fusion_net.dynamic_margin_loss:
+        if self.cfg_fusion_net.type_of_loss_func == "dmtl":
             excel_file_path = (
                 os.path.join(NLP_DATA_PATH.get_data_path("vector_distances"),
                              os.listdir(NLP_DATA_PATH.get_data_path("vector_distances"))[0]))
+            if not os.path.exists(excel_file_path):
+                raise ValueError(f"Excel file at path {excel_file_path} doesn't exist")
             df = pd.read_excel(excel_file_path, sheet_name=0, index_col=0)
-            self.criterion = DynamicMarginTripletLoss(df, upper_norm_limit=self.cfg_fusion_net.upper_norm_limit)
-        else:
+            self.criterion = (
+                DynamicMarginTripletLoss(euc_dist_mtx=df, upper_norm_limit=self.cfg_fusion_net.upper_norm_limit)
+            )
+        elif self.cfg_fusion_net.type_of_loss_func == "hmtl":
+            self.criterion = TripletLossWithHardMining(margin=self.cfg_fusion_net.margin)
+        elif self.cfg_fusion_net.type_of_loss_func == "tl":
             self.criterion = TripletMarginLoss(margin=self.cfg_fusion_net.margin)
+        else:
+            raise ValueError(f"Wrong type of loss function: {self.cfg_fusion_net.type_of_loss_func}")
 
         # Specify optimizer
         self.optimizer = torch.optim.SGD(params=list(self.model.fc1.parameters()),
@@ -127,12 +136,18 @@ class TrainFusionNet:
                                 gamma=self.cfg_fusion_net.gamma)
 
         # Tensorboard
-        tensorboard_log_dir = os.path.join(main_network_config.get("logs_folder"), self.timestamp)
+        tensorboard_log_dir = os.path.join(
+            main_network_config.get("logs_folder").get(self.cfg_stream_net.dataset_type),
+            f"{self.timestamp}_{self.cfg_fusion_net.type_of_loss_func}"
+        )
         os.makedirs(tensorboard_log_dir, exist_ok=True)
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
 
         # Create save path
-        self.save_path = os.path.join(main_network_config.get("weights_folder"), self.timestamp)
+        self.save_path = os.path.join(
+            main_network_config.get("weights_folder").get(self.cfg_stream_net.dataset_type),
+            f"{self.timestamp}_{self.cfg_fusion_net.type_of_loss_func}"
+        )
         os.makedirs(self.save_path, exist_ok=True)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -179,12 +194,12 @@ class TrainFusionNet:
                 negative_emb = self.model(negative_contour, negative_lbp, negative_rgb, negative_texture)
 
                 # Compute triplet loss
-                if self.cfg_fusion_net.dynamic_margin_loss:
-                    t_loss = (
-                        self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path))
+                if self.cfg_fusion_net.type_of_loss_func == "dmtl":
+                    t_loss = self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path)
+                elif self.cfg_fusion_net.type_of_loss_func == "tl":
+                    t_loss = self.criterion(anchor_emb, positive_emb, negative_emb)
                 else:
-                    t_loss = (
-                        self.criterion(anchor_emb, positive_emb, negative_emb))
+                    raise ValueError(f"Wrong type of loss function {self.cfg_fusion_net.type_of_loss_func}")
 
                 # Backward pass
                 t_loss.backward()
@@ -224,11 +239,13 @@ class TrainFusionNet:
                     negative_emb = self.model(negative_contour, negative_lbp, negative_rgb, negative_texture)
 
                     # Compute triplet loss
-                    if self.cfg_fusion_net.dynamic_margin_loss:
+                    if self.cfg_fusion_net.type_of_loss_func == "dmtl":
                         v_loss = self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path,
                                                 negative_img_path)
-                    else:
+                    elif self.cfg_fusion_net.type_of_loss_func == "tl":
                         v_loss = self.criterion(anchor_emb, positive_emb, negative_emb)
+                    else:
+                        raise ValueError(f"Wrong type of loss function {self.cfg_fusion_net.type_of_loss_func}")
 
                     # Accumulate loss
                     valid_losses.append(v_loss.item())
