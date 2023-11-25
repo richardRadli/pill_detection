@@ -228,6 +228,7 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
     """
     Plots the reference and query images with their corresponding ground truth and predicted class labels.
 
+    :rtype: object
     :param indices: list of indices representing the matched reference images for each query image
     :param q_images_path: list of file paths to query images
     :param r_images_path: list of file paths to reference images

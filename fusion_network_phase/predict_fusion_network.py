@@ -96,7 +96,10 @@ class PredictFusionNetwork:
         :return: <class 'fusion_network.FusionNet'>
         """
 
-        latest_con_pt_file = find_latest_file_in_latest_directory(self.fusion_network_config.get("weights_folder"))
+        latest_con_pt_file = find_latest_file_in_latest_directory(
+            path=self.fusion_network_config.get("weights_folder").get(self.cfg_stream_net.dataset_type),
+            type_of_loss=self.cfg_fusion_net.type_of_loss_func
+        )
         network_fusion = NetworkFactory.create_network(fusion_network_type=self.cfg_fusion_net.type_of_net,
                                                        type_of_net=self.cfg_stream_net.type_of_net,
                                                        network_cfg_contour=self.network_cfg_contour,
@@ -164,9 +167,15 @@ class PredictFusionNetwork:
                 labels.append(med_class)
 
             if operation == "reference":
-                torch.save({"vectors": vectors, "labels": labels, "images_path": images_path},
-                           os.path.join(self.fusion_network_config.get("ref_vectors_folder"),
-                                        self.timestamp + "_ref_vectors.pt"))
+                ref_save_dir = (
+                    os.path.join(
+                        self.fusion_network_config.get('ref_vectors_folder').get(self.cfg_stream_net.dataset_type),
+                        f"{self.timestamp}_{self.cfg_fusion_net.type_of_loss_func}"
+                    )
+                )
+                os.makedirs(ref_save_dir, exist_ok=True)
+                torch.save({'vectors': vectors, 'labels': labels, 'images_path': images_path},
+                           os.path.join(ref_save_dir, "ref_vectors.pt"))
 
         return vectors, labels, images_path
 
@@ -281,8 +290,10 @@ class PredictFusionNetwork:
         df_combined = pd.concat([df, df_stat], ignore_index=True)
 
         df_combined.to_csv(
-            os.path.join(self.fusion_network_config.get("prediction_folder"), self.timestamp +
-                         "_fusion_network_prediction.txt"), sep='\t', index=True)
+            os.path.join(self.fusion_network_config.get('prediction_folder').get(self.cfg_stream_net.dataset_type),
+                         f"{self.timestamp}_{self.cfg_fusion_net.type_of_loss_func}_fusion_network_prediction.txt"),
+            sep='\t', index=True
+        )
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------- M A I N ----------------------------------------------------
@@ -311,10 +322,20 @@ class PredictFusionNetwork:
 
         self.display_results(gt, pred_ed, query_vectors)
 
-        plot_ref_query_images(indices=indices, q_images_path=q_images_path, r_images_path=r_images_path, gt=gt,
-                              pred_ed=pred_ed, out_path=self.fusion_network_config.get("plotting_folder"))
+        plot_ref_query_images(
+            indices=indices,
+            q_images_path=q_images_path,
+            r_images_path=r_images_path,
+            gt=gt,
+            pred_ed=pred_ed,
+            output_folder=self.fusion_network_config.get("plotting_folder").get(self.cfg_stream_net.dataset_type)
+        )
 
-        # plot_confusion_matrix(gt, pred_ed, self.fusion_network_config.get("confusion_matrix"))
+        plot_confusion_matrix(
+            gt=gt,
+            pred=pred_ed,
+            out_path=self.fusion_network_config.get("confusion_matrix").get(self.cfg_stream_net.dataset_type)
+        )
 
 
 # ----------------------------------------------------------------------------------------------------------------------
