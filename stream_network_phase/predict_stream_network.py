@@ -85,9 +85,6 @@ class PredictStreamNetwork:
         # Select device
         self.device = use_gpu_if_available()
 
-        # Set suffix
-        self.suffix = "dmtl" if self.cfg.dynamic_margin_loss else "tl"
-
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -105,19 +102,19 @@ class PredictStreamNetwork:
 
         latest_con_pt_file = find_latest_file_in_latest_directory(
             path=con_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
-            dmtl=self.cfg.dynamic_margin_loss
+            type_of_loss=self.cfg.type_of_loss_func
         )
         latest_lbp_pt_file = find_latest_file_in_latest_directory(
             path=lbp_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
-            dmtl=self.cfg.dynamic_margin_loss
+            type_of_loss=self.cfg.type_of_loss_func
         )
         latest_rgb_pt_file = find_latest_file_in_latest_directory(
             path=rgb_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
-            dmtl=self.cfg.dynamic_margin_loss
+            type_of_loss=self.cfg.type_of_loss_func
         )
         latest_tex_pt_file = find_latest_file_in_latest_directory(
             path=tex_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
-            dmtl=self.cfg.dynamic_margin_loss
+            type_of_loss=self.cfg.type_of_loss_func
         )
 
         network_con = NetworkFactory.create_network(self.cfg.type_of_net, con_config)
@@ -203,12 +200,13 @@ class PredictStreamNetwork:
             if operation == "reference":
                 ref_save_dir = (
                     os.path.join(
-                        self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type), self.timestamp
+                        self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type),
+                        f"{self.timestamp}_{self.cfg.type_of_loss_func}"
                     )
                 )
                 os.makedirs(ref_save_dir, exist_ok=True)
                 torch.save({'vectors': vectors, 'labels': labels, 'images_path': images_path},
-                           os.path.join(ref_save_dir, f"ref_vectors_{self.suffix}.pt"))
+                           os.path.join(ref_save_dir, "ref_vectors.pt"))
 
         logging.info("Processing of %s images is done" % operation)
         return vectors, labels, images_path
@@ -288,7 +286,19 @@ class PredictStreamNetwork:
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
 
-    def display_results(self, ground_truth_labels, predicted_labels, query_vectors):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------- D I S P L A Y   R E S U L T S ------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def display_results(self, ground_truth_labels, predicted_labels, query_vectors) -> None:
+        """
+        Display the results of the prediction.
+
+        :param ground_truth_labels: List, ground truth labels for the queries.
+        :param predicted_labels: List, predicted labels for the queries.
+        :param query_vectors: List, vectors representing the queries.
+        :return: None
+        """
+
         # Create dataframe
         df = pd.DataFrame(list(zip(ground_truth_labels, predicted_labels)),
                           columns=['GT Medicine Name', 'Predicted Medicine Name (ED)'])
@@ -315,7 +325,8 @@ class PredictStreamNetwork:
         df_combined = pd.concat([df, df_stat], ignore_index=True)
         df_combined.to_csv(
             os.path.join(self.main_network_config.get('prediction_folder').get(self.cfg.dataset_type),
-                         f"{self.timestamp}_{self.suffix}_stream_network_prediction.txt"), sep='\t', index=True
+                         f"{self.timestamp}_{self.cfg.type_of_loss_func}_stream_network_prediction.txt"),
+            sep='\t', index=True
         )
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -343,7 +354,7 @@ class PredictStreamNetwork:
             latest_ref_vec_pt_file = (
                 find_latest_file_in_latest_directory(
                     path=self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type),
-                    dmtl=self.cfg.dynamic_margin_loss
+                    type_of_loss=self.cfg.type_of_loss_func
                 )
             )
             data = torch.load(latest_ref_vec_pt_file)
@@ -368,7 +379,7 @@ class PredictStreamNetwork:
 
         # Plot query and reference medicines
         plot_dir = os.path.join(self.main_network_config.get('plotting_folder').get(self.cfg.dataset_type),
-                                f"{self.timestamp}_{self.suffix}")
+                                f"{self.timestamp}_{self.cfg.type_of_loss_func}")
         plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, plot_dir)
 
 

@@ -178,12 +178,12 @@ def create_timestamp() -> str:
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------- F I N D   L A T E S T   F I L E   I N   L A T E S T   D I R E C T O R Y ----------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def find_latest_file_in_latest_directory(path: str, dmtl: bool = False) -> str:
+def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) -> str:
     """
     Finds the latest file in the latest directory within the given path.
 
     :param path: str, the path to the directory where we should look for the latest file
-    :param dmtl: bool, if True, check for the latest file containing "dmtl" in its name
+    :param type_of_loss:
     :return: str, the path to the latest file
     :raise: when no directories or files found
     """
@@ -201,21 +201,24 @@ def find_latest_file_in_latest_directory(path: str, dmtl: bool = False) -> str:
     if not files:
         raise ValueError(f"No files found in {latest_dir}")
 
-    if dmtl:
+    if type_of_loss == "dmtl":
         files = [f for f in files if "dmtl" in f]
-        suffix = 'dmtl'
-    else:
+    elif type_of_loss == "hmtl":
+        files = [f for f in files if "hmtl" in f]
+    elif type_of_loss == "tl":
         files = [f for f in files if "tl" == f[-2:]]
-        suffix = 'tl'
+    else:
+        raise ValueError(f"Wrong type of loss: {type_of_loss}")
 
     if not files:
-        raise ValueError(f"No files containing {suffix} found in {latest_dir}")
+        raise ValueError(f"No files containing {type_of_loss} found in {latest_dir}")
 
     files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
     latest_file = files[0]
     logging.info(f"The latest file is {latest_file}")
 
     return latest_file
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------- P L O T   R E F   Q U E R Y   I M G S ---------------------------------------
