@@ -110,9 +110,8 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
 
-        self.parser.add_argument("--dynamic_margin_loss", type=bool, default=True)
+        self.parser.add_argument("--type_of_loss_func", type=str, default="dmtl", help="tl | hmtl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
-
         self.parser.add_argument("--num_triplets", type=int, default=6000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)
 

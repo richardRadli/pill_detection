@@ -14,7 +14,6 @@ import os
 import pandas as pd
 import torch
 
-from glob import glob
 from torchvision import transforms
 from tqdm import tqdm
 from typing import List, Tuple

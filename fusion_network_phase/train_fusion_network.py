@@ -25,8 +25,8 @@ from config.const import NLP_DATA_PATH
 from config.network_configs import sub_stream_network_configs, fusion_network_config
 from fusion_models.fusion_network_selector import NetworkFactory
 from fusion_dataset_loader import FusionDataset
-from stream_network_phase.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
-from triplet_loss import TripletMarginLoss
+from loss_functions.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
+from loss_functions.triplet_loss import TripletMarginLoss
 from utils.utils import create_timestamp, print_network_config, use_gpu_if_available, setup_logger
 
 

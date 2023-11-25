@@ -25,8 +25,9 @@ from config.const import NLP_DATA_PATH
 from config.network_configs import sub_stream_network_configs
 from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network_ba import StreamDataset
-from triplet_loss_hard_mining import TripletLossWithHardMining
-from triplet_loss_dynamic_margin import DynamicMarginTripletLoss
+from loss_functions.triplet_loss import TripletMarginLoss
+from loss_functions.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
+from loss_functions.triplet_loss_hard_mining import TripletLossWithHardMining
 from utils.utils import (create_timestamp, measure_execution_time, print_network_config, use_gpu_if_available,
                          setup_logger)
 
@@ -65,9 +66,8 @@ class TrainModel:
 
         # Load dataset
         dataset = \
-            StreamDataset(dataset_dirs=
-                          [network_cfg.get("train").get(self.cfg.dataset_type),
-                           network_cfg.get("valid").get(self.cfg.dataset_type)],
+            StreamDataset(dataset_dirs=[network_cfg.get("train").get(self.cfg.dataset_type),
+                                        network_cfg.get("valid").get(self.cfg.dataset_type)],
                           type_of_stream=self.cfg.type_of_stream,
                           image_size=network_cfg.get("image_size"),
                           num_triplets=self.cfg.num_triplets)
@@ -90,57 +90,65 @@ class TrainModel:
                 (network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size")))
 
         # Specify loss function
-        if self.cfg.dynamic_margin_loss:
+        if self.cfg.type_of_loss_func == "dmtl":
             excel_file_path = (
                 os.path.join(NLP_DATA_PATH.get_data_path("vector_distances"),
                              os.listdir(NLP_DATA_PATH.get_data_path("vector_distances"))[0]))
+            if not os.path.exists(excel_file_path):
+                raise ValueError(f"Excel file at path {excel_file_path} doesn't exist")
             df = pd.read_excel(excel_file_path, sheet_name=0, index_col=0)
             self.criterion = DynamicMarginTripletLoss(euc_dist_mtx=df, upper_norm_limit=self.cfg.upper_norm_limit)
-        else:
+        elif self.cfg.type_of_loss_func == "hmtl":
             self.criterion = TripletLossWithHardMining(margin=self.cfg.margin)
+        elif self.cfg.type_of_loss_func == "tl":
+            self.criterion = TripletMarginLoss(margin=self.cfg.margin)
+        else:
+            raise ValueError(f"Wrong type of loss function: {self.cfg.type_of_loss_func}")
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=network_cfg.get("learning_rate"),
                                           weight_decay=self.cfg.weight_decay)
-
-        # Set suffix for directories
-        suffix = "dmtl" if self.cfg.dynamic_margin_loss else "tl"
-
         # Tensorboard
-        log_dir = network_cfg.get('logs_dir').get(self.cfg.type_of_net).get(self.cfg.dataset_type)
-        tensorboard_log_dir = os.path.join(log_dir, f"{self.timestamp}_{suffix}")
-        if not os.path.exists(tensorboard_log_dir):
-            os.makedirs(tensorboard_log_dir)
+        tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
 
-        # Create save directory
-        save_dir = network_cfg.get('model_weights_dir').get(self.cfg.type_of_net).get(self.cfg.dataset_type)
-        self.save_path = os.path.join(save_dir, f"{self.timestamp}_{suffix}")
-        if not os.path.exists(self.save_path):
-            os.makedirs(self.save_path)
+        # Create save directory for model weights
+        self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))
 
-        # Hard sample paths
-        self.hardest_negative_samples_path = network_cfg.get(
-            'hardest_negative_samples').get(self.cfg.type_of_net).get(self.cfg.dataset_type)
-        self.hardest_positive_samples_path = network_cfg.get(
-            'hardest_positive_samples').get(self.cfg.type_of_net).get(self.cfg.dataset_type)
+        # Hard samples paths
+        self.hardest_negative_samples_path = self.create_save_dirs(network_cfg.get('hardest_negative_samples'))
+        self.hardest_positive_samples_path = self.create_save_dirs(network_cfg.get('hardest_positive_samples'))
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------- C R E A T E   S A V E   D I R S -----------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def create_save_dirs(self, network_cfg):
+        """
+
+        :param network_cfg:
+        :return:
+        """
+
+        directory_path = network_cfg.get(self.cfg.type_of_net).get(self.cfg.dataset_type)
+        directory_to_create = os.path.join(directory_path, f"{self.timestamp}_{self.cfg.type_of_loss_func}")
+        if not os.path.exists(directory_to_create):
+            os.makedirs(directory_to_create)
+        return directory_to_create
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- G E T   H A R D  S A M P L E S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def get_hardest_samples(self, epoch: int, hard_neg_images: list, output_dir: str, op: str) -> None:
+    def get_hardest_samples(self, epoch: int, hard_neg_images: list, dictionary_name: str, op: str) -> None:
         """
         Saves the hardest images to a file in JSON format.
         :param epoch: The epoch number.
         :param hard_neg_images: A list of tensors of the hardest negative images.
-        :param output_dir: The directory where the output file will be saved.
+        :param dictionary_name: The directory where the output file will be saved.
         :param op: A string representing the type of operation.
         :return: None
         """
 
-        dict_name = os.path.join(output_dir, self.timestamp)
-        os.makedirs(dict_name, exist_ok=True)
-        file_name = os.path.join(dict_name, self.timestamp + "_epoch_" + str(epoch) + "_%s.txt" % op)
+        file_name = os.path.join(dictionary_name, self.timestamp + "_epoch_" + str(epoch) + "_%s.txt" % op)
 
         hardest_samples = []
         for i, hard_neg_tensor in enumerate(hard_neg_images):
@@ -213,14 +221,17 @@ class TrainModel:
                 negative_emb = self.model(negative)
 
                 # Compute triplet loss
-                if self.cfg.dynamic_margin_loss:
+                if self.cfg.type_of_loss_func == "dmtl":
                     loss = self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path)
-                else:
+                elif self.cfg.type_of_loss_func == "hmtl":
                     loss, hard_neg, hard_pos = self.criterion(anchor_emb, positive_emb, negative_emb)
-
                     # Collect hardest positive and negative samples
                     hard_neg_images = self.record_hard_samples(hard_neg, negative_img_path, hard_neg_images)
                     hard_pos_images = self.record_hard_samples(hard_pos, positive_img_path, hard_pos_images)
+                elif self.cfg.type_of_loss_func == "tl":
+                    loss = self.criterion(anchor_emb, positive_emb, negative_emb)
+                else:
+                    raise ValueError(f"Wrong type of loss function {self.cfg.type_of_loss_func}")
 
                 # Backward pass, optimize and scheduler
                 loss.backward()
@@ -245,11 +256,15 @@ class TrainModel:
                     negative_emb = self.model(negative)
 
                     # Compute triplet loss
-                    if self.cfg.dynamic_margin_loss:
-                        val_loss, _, _ = \
+                    if self.cfg.type_of_loss_func == "dmtl":
+                        val_loss = \
                             self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path)
-                    else:
+                    elif self.cfg.type_of_loss_func == "hmtl":
+                        val_loss, _, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
+                    elif self.cfg.type_of_loss_func == "tl":
                         val_loss = self.criterion(anchor_emb, positive_emb, negative_emb)
+                    else:
+                        raise ValueError(f"Wrong type of loss function {self.cfg.type_of_loss_func}")
 
                     # Accumulate loss
                     valid_losses.append(val_loss.item())
