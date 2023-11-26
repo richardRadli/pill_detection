@@ -206,7 +206,7 @@ def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) ->
     elif type_of_loss == "hmtl":
         files = [f for f in files if "hmtl" in f]
     elif type_of_loss == "tl":
-        files = [f for f in files if "tl" == f[-2:]]
+        files = [f for f in files if "tl" in f]
     else:
         raise ValueError(f"Wrong type of loss: {type_of_loss}")
 

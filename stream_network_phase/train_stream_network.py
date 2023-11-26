@@ -16,6 +16,7 @@ import pandas as pd
 import torch
 
 from tqdm import tqdm
+from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
@@ -108,6 +109,11 @@ class TrainModel:
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=network_cfg.get("learning_rate"),
                                           weight_decay=self.cfg.weight_decay)
+
+        # LR scheduler
+        self.scheduler = StepLR(optimizer=self.optimizer,
+                                step_size=self.cfg.step_size,
+                                gamma=self.cfg.gamma)
 
         # Tensorboard
         tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
@@ -268,6 +274,9 @@ class TrainModel:
 
                     # Accumulate loss
                     valid_losses.append(val_loss.item())
+
+            # Decay the learning rate
+            self.scheduler.step()
 
             train_loss = np.average(train_losses)
             valid_loss = np.average(valid_losses)
