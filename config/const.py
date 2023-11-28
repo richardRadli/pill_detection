@@ -70,6 +70,11 @@ class _Const(object):
 class Images(_Const):
     dirs_images = {
         # --------------------------------------------------- O G Y E I ------------------------------------------------
+        "stream_images_ogyei":
+            "images/ogyei/stream_images",
+        "stream_images_ogyei_test":
+            "images/ogyei/test",
+
         # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
         "train_contour_stream_ogyei":
             "images/ogyei/stream_images/contour/train",
@@ -332,6 +337,10 @@ class Data(_Const):
         # Other
         "cam_data":
             "data/other/cam_data",
+
+        # k-fold directory names
+        "k_folds":
+            "data/other/k_folds",
 
         # --------------------------------------------------- U N E T --------------------------------------------------
         # ----------------------------------------------- W E I G H T S ------------------------------------------------

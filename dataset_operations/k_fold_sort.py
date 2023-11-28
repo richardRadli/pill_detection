@@ -1,92 +1,123 @@
 import os
 import shutil
+import random
 
 from tqdm import tqdm
 
-
-def folds():
-    return {
-        "fold1": ['concor_5_mg', 'covercard_plus_10_mg_2_5_mg_5_mg', 'enterol_250_mg', 'escitil_10_mg',
-                  'frontin_0_25_mg', 'lactamed', 'mezym_forte_10_000_egyseg', 'narva_sr_1_5_mg_retard', 'no_spa_40_mg',
-                  'nurofen_forte_400_mg', 'provera_5_mg', 'semicillin_500_mg', 'teva_ambrobene_30_mg',
-                  'teva_enterobene_2_mg', 'tricovel_tricoage45', 'xeter_20_mg'],
-        "fold2": ['algoflex_forte_dolo_400_mg', 'algopyrin_500_mg', 'atoris_20_mg', 'cataflam_50_mg', 'coldrex',
-                  'frontin_0_5_mg', 'magne_b6', 'meridian', 'nebivolol_sandoz_5_mg', 'neo_citran',
-                  'neo_ferro_folgamma_114_mg_0_8_mg', 'normodipine_5_mg', 'ocutein', 'sinupret_forte',
-                  'verospiron_25_mg', 'voltaren_dolo_rapid_25_mg'],
-        "fold3": ['algoflex_rapid_400_mg', 'betaloc_50_mg', 'cataflam_dolo_25_mg', 'cetirizin_10_mg',
-                  'doxazosin_sandoz_uro_4_mg', 'indastad_1_5_mg', 'ketodex_25_mg', 'koleszterin_kontroll',
-                  'naprosyn_250_mg', 'naturland_d_vitamin_forte', 'noclaud_50_mg', 'pantoprazol_sandoz_40_mg',
-                  'revicet_akut_10_mg', 'salazopyrin_en_500_mg', 'strepfen_8_75_mg', 'valeriana_teva'],
-        "fold4": ['acc_long_600_mg', 'apranax_550_mg', 'aspirin_ultra_500_mg', 'c_vitamin_teva_500_mg',
-                  'co_perineva_4_mg_1_25_mg', 'cold_fx', 'lordestin_5_mg', 'milgamma_n', 'milurit_300_mg',
-                  'olicard_60_mg', 'rhinathiol_tusso_100_mg', 'sedatif_pc', 'sicor_10_mg', 'syncumar_mite_1_mg',
-                  'tritace_hct_5_mg_25_mg', 'urzinol'],
-        "fold5": ['ambroxol_egis_30_mg', 'atorvastatin_teva_20_mg', 'calci_kid', 'cataflam_v_50_mg', 'concor_10_mg',
-                  'dulsevia_60_mg', 'jutavit_cink', 'kalcium_magnezium_cink', 'kalium_r',
-                  'l_thyroxin_henning_50_mikrogramm', 'lactiv_plus', 'laresin_10_mg', 'letrox_50_mikrogramm',
-                  'mebucain_mint_2_mg_1_mg', 'merckformin_xr_1000_mg', 'sirdalud_4_mg']
-    }
+from config.const import DATA_PATH, IMAGES_PATH
+from utils.utils import create_timestamp, find_latest_file_in_directory
 
 
-def move_images_to_folds(fold_id: str = "fold1", op: str = "train", op2: str = "ref"):
+def folds(load: bool = False, num_folds: int = 5) -> dict:
+    """
+    Generate or load k-folds of class names.
+
+    :param load: If True, load k-folds from a previously generated file. If False, generate new k-folds.
+    :param num_folds: Number of folds.
+    :return: A dictionary where keys are fold names (fold1, fold2, ..., fold_{num_fodls}) and values are lists of
+    class names.
+    """
+
+    if not load:
+        timestamp = create_timestamp()
+        data_list = os.listdir(os.path.join(IMAGES_PATH.get_data_path("train_rgb_stream_ogyei")))
+
+        k_folds = {f"fold{i + 1}": [] for i in range(num_folds)}
+        random.shuffle(data_list)
+
+        for i, class_name in enumerate(data_list):
+            fold_index = i % num_folds
+            k_folds[f"fold{fold_index + 1}"].append(class_name)
+
+        for fold_name, class_names in k_folds.items():
+            print(f"{fold_name}: {class_names}")
+
+        path_to_save = os.path.join(DATA_PATH.get_data_path("k_folds"), f"{timestamp}_k_folds.txt")
+        with open(path_to_save, "w") as file:
+            for fold_name, class_names in k_folds.items():
+                file.write(f"{fold_name}: {', '.join(class_names)}\n")
+    else:
+        k_folds = {}
+        latest_txt_file = find_latest_file_in_directory(DATA_PATH.get_data_path("k_folds"), extension="txt")
+        print(latest_txt_file)
+        with open(latest_txt_file, "r") as file:
+            for line in file:
+                fold_name, class_names = line.strip().split(":")
+                k_folds[fold_name.strip()] = class_names.strip().split(", ")
+
+    print(k_folds)
+    return k_folds
+
+
+def move_images_to_folds(fold_id: str = "fold1", op: str = "train", op2: str = "ref") -> None:
+    """
+    Move images from specified fold to a new destination.
+
+    :param fold_id: Identifier for the fold (e.g., fold1, fold2, ..., fold5).
+    :param op: Operation type (e.g., "train").
+    :param op2: Second operation type (e.g., "ref").
+    :return: None
+    """
+
     folders_to_copy = folds().get(fold_id)
 
-    # Root source directory
-    source_root = r'C:/Users/ricsi/Documents/project/storage/IVM/images/stream_images/ogyei/'
+    source_root = IMAGES_PATH.get_data_path("stream_images_ogyei")
+    destination_root = os.path.join(IMAGES_PATH.get_data_path("stream_images_ogyei_test"), op2)
 
-    # Destination root directory
-    destination_root = r'C:/Users/ricsi/Documents/project/storage/IVM/images/test/ogyei/%s' % op2
-
-    # Source and destination subdirectories
     source_subdirs = ['contour', 'lbp', 'rgb', 'texture']
     destination_subdirs = ['contour', 'lbp', 'rgb', 'texture']
 
-    # Iterate through source and destination subdirectories
     for source_dir, dest_dir in zip(source_subdirs, destination_subdirs):
         source_dir = os.path.join(source_root, source_dir)
         dest_dir = os.path.join(destination_root, dest_dir)
 
-        # Iterate through folders to copy
         for folder in folders_to_copy:
             source_path = os.path.join(source_dir, op, folder)
             dest_path = os.path.join(dest_dir, folder.lower())
 
-            # Check if the source folder exists
             if os.path.exists(source_path):
-                # Create destination directories if they don't exist
                 os.makedirs(dest_path, exist_ok=True)
 
-                # Copy the folder contents
                 for item in os.listdir(source_path):
                     source_item = os.path.join(source_path, item)
                     dest_item = os.path.join(dest_path, item)
-                    if os.path.isdir(source_item):
-                        shutil.move(source_item, dest_item)
-                    else:
-                        shutil.move(source_item, dest_item)
-
+                    shutil.move(source_item, dest_item)
                 print(f"Copied {folder} from {source_path} to {dest_path}")
             else:
                 print(f"Folder {folder} not found in {source_path}")
 
 
-def delete_empty_subdirectories(root_path):
-    for dirpath, dirnames, filenames in os.walk(root_path, topdown=False):
-        for dirname in dirnames:
-            dir_to_check = os.path.join(dirpath, dirname)
-            if not os.listdir(dir_to_check):
-                print(f"Deleting empty directory: {dir_to_check}")
-                os.rmdir(dir_to_check)
+def delete_empty_subdirectories(root_path, delete_empty=True) -> None:
+    """
+    Delete empty subdirectories within the specified root path.
+
+    :param root_path: The root path to search for empty subdirectories.
+    :param delete_empty: If True, delete empty directories; otherwise, just print a message.
+    :return: None
+    """
+
+    for dir_path, dir_names, filenames in os.walk(root_path, topdown=False):
+        for dirname in dir_names:
+            dir_to_check = os.path.join(dir_path, dirname)
+            if os.path.isdir(dir_to_check) and not os.listdir(dir_to_check):
+                if delete_empty:
+                    print(f"Deleting empty directory: {dir_to_check}")
+                    os.rmdir(dir_to_check)
+                else:
+                    print(f"Found empty directory: {dir_to_check}")
 
 
-def clean_up_empty_dirs():
+def clean_up_empty_dirs() -> None:
+    """
+    Clean up empty subdirectories within the specified main and subdirectories.
+    :return: None
+    """
+
     main_dirs = ['contour', 'lbp', 'rgb', 'texture']
     sub_dirs = ["train", "valid"]
     for main_dir in main_dirs:
         for sub_dir in sub_dirs:
-            root_path = ("C:/Users/ricsi/Documents/project/storage/IVM/images/stream_images/ogyei/%s/%s" %
-                         (main_dir, sub_dir))
+            root_path = os.path.join(IMAGES_PATH.get_data_path("stream_images_ogyei"), main_dir, sub_dir)
             if os.path.exists(root_path):
                 delete_empty_subdirectories(root_path)
                 print("Empty subdirectories deleted.")
@@ -108,39 +139,56 @@ def move_hardest_samples():
             shutil.copytree(source_path, dest_path, dirs_exist_ok=True)
 
 
-def rollback_folds():
+def move_images_back_to_train() -> None:
+    """
+    Move images from the test set back to the training set.
+    :return: None
+    """
+
     category_dirs = ['contour', 'lbp', 'rgb', 'texture']
     sub_dirs_trains = ["train", "valid"]
     sub_dirs_tests = ["ref", "query"]
 
     for _, (sub_dirs_train, sub_dirs_test) in tqdm(enumerate(zip(sub_dirs_trains, sub_dirs_tests)),
-                                                   total=len(sub_dirs_trains)):
+                                                   total=len(sub_dirs_trains),
+                                                   desc="Rolling back folds"):
         for category_dir in category_dirs:
-            src_path = (
-                "C:/Users/ricsi/Documents/project/storage/IVM/images/test/ogyei/%s/%s" % (sub_dirs_test, category_dir))
-            dst_path = (
-                "C:/Users/ricsi/Documents/project/storage/IVM/images/stream_images/ogyei/%s/%s" % (
-                category_dir, sub_dirs_train
-                )
-            )
-            print(src_path, dst_path)
-            shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+            src_path = os.path.join(IMAGES_PATH.get_data_path("stream_images_ogyei_test"), sub_dirs_test, category_dir)
+            dst_path = os.path.join(IMAGES_PATH.get_data_path("stream_images_ogyei"), category_dir, sub_dirs_train)
+
+            if os.path.exists(src_path):
+                shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+                print(f"Images moved from {src_path} to {dst_path}")
+            else:
+                print(f"Source path {src_path} does not exist.")
 
 
 def erase_files():
+    """
+    Remove directories corresponding to the test set.
+    :return: None
+    """
+
     sub_dirs_trains = ["train", "valid"]
     sub_dirs_tests = ["ref", "query"]
 
     for _, (sub_dirs_train, sub_dirs_test) in tqdm(enumerate(zip(sub_dirs_trains, sub_dirs_tests)),
-                                                   total=len(sub_dirs_trains)):
-        src_path = "C:/Users/ricsi/Documents/project/storage/IVM/images/test/ogyei/%s/" % sub_dirs_test
-        shutil.rmtree(src_path)
+                                                   total=len(sub_dirs_trains),
+                                                   desc="Erasing files"):
+        src_path = os.path.join(IMAGES_PATH.get_data_path("stream_images_ogyei_test"), sub_dirs_test)
+
+        if os.path.exists(src_path):
+            shutil.rmtree(src_path)
+            print(f"Directory erased: {src_path}")
+        else:
+            print(f"Source path {src_path} does not exist.")
 
 
 if __name__ == "__main__":
-    move_images_to_folds("fold5", "train", "ref")
-    move_images_to_folds("fold5", "valid", "query")
-    clean_up_empty_dirs()
-    move_hardest_samples()
+    a = folds(load=True)
+    move_images_to_folds("fold1", "train", "ref")
+    # move_images_to_folds("fold5", "valid", "query")
+    # clean_up_empty_dirs()
+    # move_hardest_samples()
     # rollback_folds()
     # erase_files()

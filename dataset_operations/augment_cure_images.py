@@ -115,9 +115,9 @@ class AugmentCUREDataset:
                                 mask_path=full_mask_path)
                     zoom_in_object(image_path=full_image_path, aug_path=full_image_path, crop_size=1500,
                                    mask_path=full_mask_path)
-                    flip_image(image_path=full_image_path, aug_path=full_mask_path, flip_direction='horizontal',
+                    flip_image(image_path=full_image_path, aug_path=full_image_path, flip_direction='horizontal',
                                mask_path=full_mask_path)
-                    flip_image(image_path=full_image_path, aug_path=full_mask_path, flip_direction='vertical',
+                    flip_image(image_path=full_image_path, aug_path=full_image_path, flip_direction='vertical',
                                mask_path=full_mask_path)
 
                 if change_background:
