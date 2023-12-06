@@ -25,7 +25,7 @@ from config.config import ConfigStreamNetwork
 from config.const import NLP_DATA_PATH
 from config.network_configs import sub_stream_network_configs
 from stream_network_models.stream_network_selector import NetworkFactory
-from dataloader_stream_network_ba import StreamDataset
+from dataloader_stream_network import StreamDataset
 from loss_functions.triplet_loss import TripletMarginLoss
 from loss_functions.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
 from loss_functions.triplet_loss_hard_mining import TripletLossWithHardMining

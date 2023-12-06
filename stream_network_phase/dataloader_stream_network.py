@@ -1,5 +1,5 @@
 """
-File: dataloader_stream_network_ba.py
+File: dataloader_stream_network.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Apr 12, 2023
@@ -17,6 +17,8 @@ from typing import List, Tuple
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 
+from config.config import ConfigStreamNetwork
+
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # +++++++++++++++++++++++++++++++++++++++++++++ S T R E A M   D A T A S E T ++++++++++++++++++++++++++++++++++++++++++++
@@ -31,6 +33,7 @@ class StreamDataset(Dataset):
         :param image_size: The size of the images.
         :param num_triplets: The number of triplets to generate (-1 means all possible triplets).
         """
+        self.cfg = ConfigStreamNetwork().parse()
 
         self.labels_set = None
         self.label_to_indices = None
@@ -86,8 +89,13 @@ class StreamDataset(Dataset):
 
                 # Iterate over the image files in the label directory
                 for image_name in os.listdir(label_path):
-                    image_path = os.path.join(label_path, image_name)
-                    dataset.append((image_path, label))
+                    if self.cfg.split_by_light:
+                        if image_name.split(".")[0].split("_")[-2] == self.cfg.light_source:
+                            image_path = os.path.join(label_path, image_name)
+                            dataset.append((image_path, label))
+                    else:
+                        image_path = os.path.join(label_path, image_name)
+                        dataset.append((image_path, label))
 
         self.labels = np.array([x[1] for x in dataset])
         self.labels_set = set(self.labels)

@@ -29,6 +29,12 @@ class _Const(object):
                 "C:/Users/ricsi/Documents/project/storage/IVM",
             "DATASET_ROOT":
                 "C:/Users/ricsi/Documents/project/storage/IVM/datasets"
+        },
+        "keplab": {
+            "PROJECT_ROOT":
+                "/home/keplab/Documents/users/radli_richard/storage/IVM",
+            "DATASET_ROOT":
+                "/home/keplab/Documents/users/radli_richard/datasets/IVM"
         }
     }
 

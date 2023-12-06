@@ -1,5 +1,5 @@
 """
-File: fusion_dataset_loader.py
+File: dataloader_fusion_network.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Apr 12, 2023
@@ -36,7 +36,7 @@ class FusionDataset(Dataset):
         :return: None
         """
 
-        cfg = ConfigStreamNetwork().parse()
+        self.cfg = ConfigStreamNetwork().parse()
 
         self.label_to_indices = None
         self.labels = None
@@ -68,33 +68,33 @@ class FusionDataset(Dataset):
         ])
 
         # Load datasets
-        selected_network_config = stream_network_config(cfg)
-        selected_subnetwork_config = sub_stream_network_configs(cfg)
-        if cfg.type_of_loss_func == "hmtl":
+        selected_network_config = stream_network_config(self.cfg)
+        selected_subnetwork_config = sub_stream_network_configs(self.cfg)
+        if self.cfg.type_of_loss_func == "hmtl":
             self.contour_dataset = self.load_dataset(selected_network_config.get("hardest_contour_directory"))
             self.lbp_dataset = self.load_dataset(selected_network_config.get("hardest_lbp_directory"))
             self.rgb_dataset = self.load_dataset(selected_network_config.get("hardest_rgb_directory"))
             self.texture_dataset = self.load_dataset(selected_network_config.get("hardest_lbp_directory"))
-        elif cfg.type_of_loss_func in ["tl", "dmtl"]:
+        elif self.cfg.type_of_loss_func in ["tl", "dmtl"]:
             network_cfg_contour = selected_subnetwork_config.get("Contour")
             network_cfg_lpb = selected_subnetwork_config.get("LBP")
             network_cfg_rgb = selected_subnetwork_config.get("RGB")
             network_cfg_texture = selected_subnetwork_config.get("Texture")
             self.contour_dataset = self.load_dataset([
-                network_cfg_contour.get("train").get(cfg.dataset_type),
-                network_cfg_contour.get("valid").get(cfg.dataset_type)
+                network_cfg_contour.get("train").get(self.cfg.dataset_type),
+                network_cfg_contour.get("valid").get(self.cfg.dataset_type)
             ])
             self.lbp_dataset = self.load_dataset([
-                network_cfg_lpb.get("train").get(cfg.dataset_type),
-                network_cfg_lpb.get("valid").get(cfg.dataset_type)
+                network_cfg_lpb.get("train").get(self.cfg.dataset_type),
+                network_cfg_lpb.get("valid").get(self.cfg.dataset_type)
             ])
             self.rgb_dataset = self.load_dataset([
-                network_cfg_rgb.get("train").get(cfg.dataset_type),
-                network_cfg_rgb.get("valid").get(cfg.dataset_type)
+                network_cfg_rgb.get("train").get(self.cfg.dataset_type),
+                network_cfg_rgb.get("valid").get(self.cfg.dataset_type)
             ])
             self.texture_dataset = self.load_dataset([
-                network_cfg_texture.get("train").get(cfg.dataset_type),
-                network_cfg_texture.get("valid").get(cfg.dataset_type)
+                network_cfg_texture.get("train").get(self.cfg.dataset_type),
+                network_cfg_texture.get("valid").get(self.cfg.dataset_type)
             ])
         self.labels_set = set(label for _, label in self.rgb_dataset)
         self.prepare_labels()
@@ -209,11 +209,20 @@ class FusionDataset(Dataset):
                 label_path = os.path.join(dataset_path, label_name)
                 if not os.path.isdir(label_path):
                     continue
+
                 label = label_name
+
                 for image_name in os.listdir(label_path):
-                    image_path = os.path.join(label_path, image_name)
-                    dataset.append((image_path, label))
-                    labels.append(label)
+                    if self.cfg.split_by_light:
+                        if image_name.split(".")[0].split("_")[-2] == self.cfg.light_source:
+                            image_path = os.path.join(label_path, image_name)
+                            dataset.append((image_path, label))
+                            labels.append(label)
+                    else:
+                        image_path = os.path.join(label_path, image_name)
+                        dataset.append((image_path, label))
+                        labels.append(label)
+
         self.labels = labels
 
         return dataset

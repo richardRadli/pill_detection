@@ -24,7 +24,7 @@ from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.const import NLP_DATA_PATH
 from config.network_configs import sub_stream_network_configs, fusion_network_config
 from fusion_network_models.fusion_network_selector import NetworkFactory
-from fusion_dataset_loader import FusionDataset
+from dataloader_fusion_network import FusionDataset
 from loss_functions.triplet_loss import TripletMarginLoss
 from loss_functions.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
 from loss_functions.triplet_loss_hard_mining import TripletLossWithHardMining

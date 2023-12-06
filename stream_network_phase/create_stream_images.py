@@ -260,8 +260,16 @@ class CreateStreamImages:
             for future in futures:
                 future.result()
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------ C O P Y   Q U E R Y   I M A G E S -------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def copy_query_images():
+        """
+
+        :return:
+        """
+
         source_root = IMAGES_PATH.get_data_path("test_ref_ogyei")
         destination_root = IMAGES_PATH.get_data_path("test_query_ogyei")
 

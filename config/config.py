@@ -148,6 +148,9 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--canny_high_thr", type=int, default=25)
         self.parser.add_argument("--kernel_gaussian_texture", type=int, default=7)
 
+        self.parser.add_argument("--split_by_light", type=bool, default=False)
+        self.parser.add_argument("--light_source", type=str, default="s", help="s (side) | u (upper")
+
     def parse(self):
         self.opt = self.parser.parse_args()
         return self.opt
