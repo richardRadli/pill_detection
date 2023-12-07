@@ -14,6 +14,7 @@ import os
 import pandas as pd
 import torch
 
+from sklearn.neighbors import KNeighborsClassifier
 from torchvision import transforms
 from tqdm import tqdm
 from typing import List, Tuple
@@ -286,6 +287,52 @@ class PredictStreamNetwork:
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
 
+    def compare_query_ref_vectors_knn(self, q_labels: List[str], r_labels: List[str],
+                                      reference_vectors: List[List[float]], query_vectors: List[List[float]],
+                                      n_neighbors: int = 5) -> Tuple[List[str], List[str], List[int]]:
+        """
+        This method measures the k-Nearest Neighbors between two sets of labels (q_labels and r_labels) and their
+        corresponding embedded vectors (query_vectors and reference_vectors) using k-Nearest Neighbors algorithm.
+        It returns the original query labels, predicted medicine labels, and the indices of the most similar medicines
+        in the reference set.
+
+        :param q_labels: a list of ground truth medicine names
+        :param r_labels: a list of reference medicine names
+        :param reference_vectors: a list of embedded vectors for the reference set
+        :param query_vectors: a list of embedded vectors for the query set
+        :param n_neighbors: the number of neighbors to consider in the k-NN algorithm (default is 1)
+        :return: the original query labels, predicted medicine labels, and indices of the most similar medicines in the
+        reference set
+        """
+
+        # Convert vectors to PyTorch tensors and move them to the GPU
+        reference_vectors_tensor = torch.stack([torch.as_tensor(vec).to(self.device) for vec in reference_vectors])
+        query_vectors_tensor = torch.stack([torch.as_tensor(vec).to(self.device) for vec in query_vectors])
+
+        # Fit KNN model
+        knn_model = KNeighborsClassifier(n_neighbors=n_neighbors)
+        knn_model.fit(reference_vectors_tensor.cpu().numpy(), r_labels)
+
+        # Predict the labels for query vectors
+        predicted_medicine_knn = knn_model.predict(query_vectors_tensor.cpu().numpy())
+
+        # Calculate top-1 accuracy
+        for idx_query, query_label in enumerate(q_labels):
+            if predicted_medicine_knn[idx_query] == query_label:
+                self.num_correct_top1 += 1
+
+        # Calculate top-5 accuracy
+        knn_distances, knn_indices = knn_model.kneighbors(query_vectors_tensor.cpu().numpy(), n_neighbors=5)
+        top5_predicted_medicines = [r_labels[i] for i in knn_indices[:, 0]]
+        for idx_query, query_label in enumerate(q_labels):
+            if query_label in top5_predicted_medicines[idx_query]:
+                self.num_correct_top5 += 1
+
+        self.accuracy_top1 = self.num_correct_top1 / len(query_vectors)
+        self.accuracy_top5 = self.num_correct_top5 / len(query_vectors)
+
+        return q_labels, predicted_medicine_knn.tolist(), knn_indices[:, 0].tolist()
+
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- D I S P L A Y   R E S U L T S ------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -373,14 +420,16 @@ class PredictStreamNetwork:
                     operation="reference")
 
         # Compare query and reference vectors
-        gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
+        # gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
 
+        gt, pred_ed, indices = self.compare_query_ref_vectors_knn(q_labels, r_labels, ref_vecs, query_vecs)
+        print(gt, pred_ed, indices)
         self.display_results(gt, pred_ed, query_vecs)
-
-        # Plot query and reference medicines
-        plot_dir = os.path.join(self.main_network_config.get('plotting_folder').get(self.cfg.dataset_type),
-                                f"{self.timestamp}_{self.cfg.type_of_loss_func}")
-        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, plot_dir)
+        #
+        # # Plot query and reference medicines
+        # plot_dir = os.path.join(self.main_network_config.get('plotting_folder').get(self.cfg.dataset_type),
+        #                         f"{self.timestamp}_{self.cfg.type_of_loss_func}")
+        # plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, plot_dir)
 
 
 # ----------------------------------------------------------------------------------------------------------------------

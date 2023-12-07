@@ -105,7 +105,7 @@ class ConfigStreamNetwork:
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
                                  help="CNN | EfficientNet | EfficientNetV2")
         self.parser.add_argument("--type_of_stream", type=str, default="LBP", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--dataset_operation", type=str, default="valid", help="train | valid | test")
@@ -140,7 +140,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--img_size_cnn", type=int, default=128)
         self.parser.add_argument("--img_size_en", type=int, default=224)
 
-        self.parser.add_argument("--load_ref_vector", type=bool, default=False)
+        self.parser.add_argument("--load_ref_vector", type=bool, default=True)
 
         self.parser.add_argument("--threshold_area", type=int, default=100)
         self.parser.add_argument("--kernel_median_contour", type=int, default=7)
