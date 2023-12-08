@@ -14,7 +14,7 @@ import os
 import pandas as pd
 import torch
 
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import NearestNeighbors
 from torchvision import transforms
 from tqdm import tqdm
 from typing import List, Tuple
@@ -253,9 +253,9 @@ class PredictFusionNetwork:
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
 
-    def compare_query_ref_vectors_knn(self, q_labels: List[str], r_labels: List[str],
-                                      reference_vectors: List[List[float]], query_vectors: List[List[float]],
-                                      n_neighbors: int = 5) -> Tuple[List[str], List[str], List[int]]:
+    def compare_query_ref_vectors_knn(self, q_labels: List[str], r_labels: List[str], reference_vectors: list,
+                                      query_vectors: list, n_neighbors: int = 5) \
+            -> Tuple[List[str], List[str], List[int]]:
         """
         This method measures the k-Nearest Neighbors between two sets of labels (q_labels and r_labels) and their
         corresponding embedded vectors (query_vectors and reference_vectors) using k-Nearest Neighbors algorithm.
@@ -266,38 +266,72 @@ class PredictFusionNetwork:
         :param r_labels: a list of reference medicine names
         :param reference_vectors: a list of embedded vectors for the reference set
         :param query_vectors: a list of embedded vectors for the query set
-        :param n_neighbors: the number of neighbors to consider in the k-NN algorithm (default is 1)
+        :param n_neighbors: the number of neighbors to consider in the k-NN algorithm
         :return: the original query labels, predicted medicine labels, and indices of the most similar medicines in the
         reference set
         """
 
-        # Convert vectors to PyTorch tensors and move them to the GPU
-        reference_vectors_tensor = torch.stack([torch.as_tensor(vec).to(self.device) for vec in reference_vectors])
-        query_vectors_tensor = torch.stack([torch.as_tensor(vec).to(self.device) for vec in query_vectors])
+        logging.info("Comparing query and reference vectors using kNN")
 
-        # Fit KNN model
-        knn_model = KNeighborsClassifier(n_neighbors=n_neighbors)
-        knn_model.fit(reference_vectors_tensor.cpu().numpy(), r_labels)
+        predicted_medicine_knn = []
+        corresp_sim_knn = []
+        most_similar_indices_knn = []
 
-        # Predict the labels for query vectors
-        predicted_medicine_knn = knn_model.predict(query_vectors_tensor.cpu().numpy())
+        # convert PyTorch Tensor to numpy array
+        reference_vectors_array = np.array([vec.numpy() for vec in reference_vectors]) \
+            if isinstance(reference_vectors[0], torch.Tensor) else np.array(reference_vectors)
+        query_vectors_array = np.array([vec.numpy() for vec in query_vectors]) \
+            if isinstance(query_vectors[0], torch.Tensor) else np.array(query_vectors)
 
-        # Calculate top-1 accuracy
-        for idx_query, query_label in enumerate(q_labels):
-            if predicted_medicine_knn[idx_query] == query_label:
+        # Initialise our KNN model. n_neighbors is manually set to 5. You can change this as needed
+        knn_model = NearestNeighbors(n_neighbors=n_neighbors, algorithm='ball_tree')
+        knn_model.fit(reference_vectors_array)
+
+        for idx_query, query_vector in tqdm(enumerate(query_vectors_array),
+                                            total=len(query_vectors_array),
+                                            desc="Comparing process"):
+
+            # Fetch distance and indices of the nearest neighbours in the reference set
+            scores_knn, indices_knn = knn_model.kneighbors([query_vector])
+
+            # Convert the distances to a list for further processing
+            similarity_scores_knn_dist = scores_knn.tolist()[0]
+            corresp_sim_knn.append(similarity_scores_knn_dist)
+
+            # Store the first index (which is the closest in KNN's n_neighbors) and the associated label
+            predicted = indices_knn[0][0]
+            predicted_medicine_knn.append(r_labels[predicted])
+
+            # Calculate most similar indices for k-NN
+            most_similar_indices_knn.append(predicted)
+
+            # Calculate top-1 accuracy
+            if r_labels[predicted] == q_labels[idx_query]:
                 self.num_correct_top1 += 1
 
-        # Calculate top-5 accuracy
-        knn_distances, knn_indices = knn_model.kneighbors(query_vectors_tensor.cpu().numpy(), n_neighbors=5)
-        top5_predicted_medicines = [r_labels[i] for i in knn_indices[:, 0]]
-        for idx_query, query_label in enumerate(q_labels):
-            if query_label in top5_predicted_medicines[idx_query]:
+            # Calculate top-5 accuracy. Take note that in KNN, the closest 5 neighbors are returned sorted in increasing
+            # distance order
+            top5_predicted_medicines = [r_labels[i] for i in indices_knn[0]]
+            if q_labels[idx_query] in top5_predicted_medicines:
                 self.num_correct_top5 += 1
+
+            # Find index position of the ground truth medicine
+            index = top5_predicted_medicines.index(q_labels[idx_query]) \
+                if q_labels[idx_query] in top5_predicted_medicines else -1
+            self.top5_indices.append(index)
 
         self.accuracy_top1 = self.num_correct_top1 / len(query_vectors)
         self.accuracy_top5 = self.num_correct_top5 / len(query_vectors)
 
-        return q_labels, predicted_medicine_knn.tolist(), knn_indices[:, 0].tolist()
+        # Calculate confidence
+        # Flatten the list of lists to get a single list of all similarity scores
+        flat_similarity_scores = [max(sublist) for sublist in corresp_sim_knn]
+
+        # Calculate confidence
+        confidence_percentages = [1 - (score / max(flat_similarity_scores)) for score in flat_similarity_scores]
+        self.confidence_percentages = [cp * 100 for cp in confidence_percentages]
+
+        return q_labels, predicted_medicine_knn, most_similar_indices_knn
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- D I S P L A Y   R E S U L T S ------------------------------------------
@@ -365,7 +399,15 @@ class PredictFusionNetwork:
             texture_dir=self.subnetwork_config.get("Texture").get("test").get(self.cfg_stream_net.dataset_type),
             operation="reference")
 
-        gt, pred_ed, indices = self.compare_query_ref_vectors_euc_dist(q_labels, r_labels, ref_vectors, query_vectors)
+        # Compare query and reference vectors
+        if self.cfg_fusion_net.comparison_type == "euclidean":
+            gt, pred_ed, indices = (
+                self.compare_query_ref_vectors_euc_dist(q_labels, r_labels, ref_vectors, query_vectors))
+        elif self.cfg_fusion_net.comparison_type == "knn":
+            gt, pred_ed, indices = (
+                self.compare_query_ref_vectors_knn(q_labels, r_labels, ref_vectors, query_vectors))
+        else:
+            raise ValueError("Unknown comparison")
 
         self.display_results(gt, pred_ed, query_vectors)
 
