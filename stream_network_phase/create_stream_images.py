@@ -254,7 +254,7 @@ class CreateStreamImages:
                 output_name = "lbp_" + os.path.basename(img_path)
                 output_file = os.path.join(self.lbp_images_path, output_name)
                 bbox_imgs = cv2.imread(img_path, 0)
-                future = executor.submit(self.process_lbp_image, bbox_imgs, output_file)
+                future = executor.submit(self.process_lbp_image, bbox_imgs, str(output_file))
                 futures.append(future)
 
             for future in futures:
@@ -319,14 +319,7 @@ class CreateStreamImages:
                 tqdm(enumerate(zip(files_rgb, files_contour, files_texture, files_lbp)), desc="Copying image files"):
             if file_rgb.endswith(".png"):
                 if self.cfg.dataset_type == 'ogyei':
-                    # match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
-                    if "s_" in file_rgb:
-                        match = re.search(r'^(.*?)_[s]_\d{3}\.png$', file_rgb)
-                    elif "u_" in file_rgb:
-                        match = re.search(r'^(.*?)_[u]_\d{3}\.png$', file_rgb)
-                    else:
-                        match = None
-
+                    match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
                     if match:
                         value = match.group(1)
                 elif self.cfg.dataset_type == 'cure':

@@ -1221,16 +1221,16 @@ def dataset_images_path_selector():
     path_to_images = {
         "ogyei": {
             "train": {
-                "images": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_train_images"),
-                "masks": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_gt_train_masks"),
+                "images": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_images"),
+                "masks": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_gt_train_masks"),
             },
             "valid": {
-                "images": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_valid_images"),
-                "masks": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_gt_valid_masks"),
+                "images": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_valid_images"),
+                "masks": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_gt_valid_masks"),
             },
             "test": {
-                "images": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_test_images"),
-                "masks": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_gt_test_masks"),
+                "images": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_images"),
+                "masks": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_gt_test_masks"),
             }
         },
         "cure": {

@@ -312,12 +312,6 @@ class Images(_Const):
             "images/aug/images_aug",
         "wo_background":
             "images/aug/wo_background",
-
-        # -------------------------------------------------- U N E T ---------------------------------------------------
-        "unet_out":
-            "images/unet/unet_out",
-        "unet_compare":
-            "images/unet/unet_compare"
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -343,21 +337,6 @@ class Data(_Const):
         # Other
         "cam_data":
             "data/other/cam_data",
-
-        # k-fold directory names
-        "k_folds":
-            "data/other/k_folds",
-
-        # --------------------------------------------------- U N E T --------------------------------------------------
-        # ----------------------------------------------- W E I G H T S ------------------------------------------------
-        # UNet
-        "weights_unet":
-            "data/unet/weights",
-
-        # -------------------------------------------------- L O G S ---------------------------------------------------
-        # UNet
-        "logs_unet":
-            "data/unet/logs",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
@@ -774,44 +753,44 @@ class Datasets(_Const):
         # O G Y E I   V 2
         # Single
         # Unsplitted
-        "ogyei_v2_single_unsplitted_images":
-            "ogyei_v2/single/unsplitted/images",
-        "ogyei_v2_single_unsplitted_labels":
-            "ogyei_v2/single/unsplitted/labels",
-        "ogyei_v2_single_unsplitted_gt_masks":
-            "ogyei_v2/single/unsplitted/gt_masks",
-        "ogyei_v2_single_unsplitted_pred_masks":
-            "ogyei_v2/single/unsplitted/pred_masks",
+        "ogyei_v1_single_unsplitted_images":
+            "ogyei_v1/single/unsplitted/images",
+        "ogyei_v1_single_unsplitted_labels":
+            "ogyei_v1/single/unsplitted/labels",
+        "ogyei_v1_single_unsplitted_gt_masks":
+            "ogyei_v1/single/unsplitted/gt_masks",
+        "ogyei_v1_single_unsplitted_pred_masks":
+            "ogyei_v1/single/unsplitted/pred_masks",
 
         # Train images, labels and masks
-        "ogyei_v2_single_splitted_train_images":
-            "ogyei_v2/single/splitted/train/images",
-        "ogyei_v2_single_splitted_train_labels":
-            "ogyei_v2/single/splitted/train/labels",
-        "ogyei_v2_single_splitted_gt_train_masks":
-            "ogyei_v2/single/splitted/train/gt_train_masks",
-        "ogyei_v2_single_splitted_pred_train_masks":
-            "ogyei_v2/single/splitted/train/pred_train_masks",
+        "ogyei_v1_single_splitted_train_images":
+            "ogyei_v1/single/splitted/train/images",
+        "ogyei_v1_single_splitted_train_labels":
+            "ogyei_v1/single/splitted/train/labels",
+        "ogyei_v1_single_splitted_gt_train_masks":
+            "ogyei_v1/single/splitted/train/gt_train_masks",
+        "ogyei_v1_single_splitted_pred_train_masks":
+            "ogyei_v1/single/splitted/train/pred_train_masks",
 
         # Validation images, labels and masks
-        "ogyei_v2_single_splitted_valid_images":
-            "ogyei_v2/single/splitted/valid/images",
-        "ogyei_v2_single_splitted_valid_labels":
-            "ogyei_v2/single/splitted/valid/labels",
-        "ogyei_v2_single_splitted_gt_valid_masks":
-            "ogyei_v2/single/splitted/valid/gt_valid_masks",
-        "ogyei_v2_single_splitted_pred_valid_masks":
-            "ogyei_v2/single/splitted/valid/pred_valid_masks",
+        "ogyei_v1_single_splitted_valid_images":
+            "ogyei_v1/single/splitted/valid/images",
+        "ogyei_v1_single_splitted_valid_labels":
+            "ogyei_v1/single/splitted/valid/labels",
+        "ogyei_v1_single_splitted_gt_valid_masks":
+            "ogyei_v1/single/splitted/valid/gt_valid_masks",
+        "ogyei_v1_single_splitted_pred_valid_masks":
+            "ogyei_v1/single/splitted/valid/pred_valid_masks",
 
         # Test images, labels and masks
-        "ogyei_v2_single_splitted_test_images":
-            "ogyei_v2/single/splitted/test/images",
-        "ogyei_v2_single_splitted_test_labels":
-            "ogyei_v2/single/splitted/test/labels",
-        "ogyei_v2_single_splitted_gt_test_masks":
-            "ogyei_v2/single/splitted/test/gt_test_masks",
-        "ogyei_v2_single_splitted_pred_test_masks":
-            "ogyei_v2/single/splitted/test/pred_test_masks",
+        "ogyei_v1_single_splitted_test_images":
+            "ogyei_v1/single/splitted/test/images",
+        "ogyei_v1_single_splitted_test_labels":
+            "ogyei_v1/single/splitted/test/labels",
+        "ogyei_v1_single_splitted_gt_test_masks":
+            "ogyei_v1/single/splitted/test/gt_test_masks",
+        "ogyei_v1_single_splitted_pred_test_masks":
+            "ogyei_v1/single/splitted/test/pred_test_masks",
 
         # T R A Y
         "tray_original_images":
@@ -826,12 +805,6 @@ class Datasets(_Const):
             "tray/tray_images_aug_w_med",
         "tray_images_aug_w_med_aug":
             "tray/tray_images_aug_w_med_aug",
-
-        # N I H
-        "nih_ref":
-            "nih/ref",
-        "nih_query":
-            "nih/query"
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -848,49 +821,7 @@ class Datasets(_Const):
         return os.path.join(self.DATASET_ROOT, self.dirs_dataset.get(key, ""))
 
 
-class NLPData(_Const):
-    nlp_data = {
-        "pill_names":
-            "nlp/csv/pill_names",
-        "full_sentence_csv":
-            "nlp/csv/full_sentence_csv",
-        "vector_distances":
-            "nlp/csv/distances",
-
-        "nlp_vector":
-            "nlp/npy/nlp_vector",
-
-        "word_vector_vis":
-            "nlp/plot/word_vector",
-        "elbow":
-            "nlp/plot/elbow",
-        "silhouette":
-            "nlp/plot/silhouette",
-
-        "patient_information_leaflet_doc":
-            "nlp/documents/patient_information_leaflet_doc",
-        "patient_information_leaflet_docx":
-            "nlp/documents/patient_information_leaflet_docx",
-        "extracted_features_files":
-            "nlp/documents/extracted_features_files"
-    }
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ---------------------------------------------------- I N I T -----------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self):
-        super().__init__()
-        self.create_directories(self.nlp_data, "PROJECT")
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------ G E T   D A T A   P A T H ---------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def get_data_path(self, key):
-        return os.path.join(self.PROJECT_ROOT, self.nlp_data.get(key, ""))
-
-
 CONST: _Const = _Const()
 IMAGES_PATH: Images = Images()
 DATA_PATH: Data = Data()
 DATASET_PATH: Datasets = Datasets()
-NLP_DATA_PATH: NLPData = NLPData()
