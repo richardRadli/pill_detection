@@ -179,7 +179,6 @@ class ConfigFusionNetwork:
         self.parser.add_argument('--step_size', type=int, default=5,
                                  help="Number of epochs after which to decay the learning rate")
         self.parser.add_argument('--gamma', type=float, default=0.1, help="Factor by which to decay the learning rate")
-        self.parser.add_argument('--comparison_type', type=str, default="knn", help="knn | euclidean")
 
     def parse(self):
         self.opt = self.parser.parse_args()
