@@ -27,8 +27,8 @@ class TrainUnet:
     def __init__(self):
         self.cfg = ConfigTrainingUnet().parse()
 
-        self.dir_img = DATASET_PATH.get_data_path("ogyei_v2_single_splitted_train_images")
-        self.dir_mask = DATASET_PATH.get_data_path("ogyei_v2_single_splitted_gt_train_masks")
+        self.dir_img = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_images")
+        self.dir_mask = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_gt_train_masks")
         self.dir_checkpoint = DATA_PATH.get_data_path("weights_unet")
 
         # Create dataset

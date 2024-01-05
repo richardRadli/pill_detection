@@ -75,7 +75,7 @@ class FusionDataset(Dataset):
             self.lbp_dataset = self.load_dataset(selected_network_config.get("hardest_lbp_directory"))
             self.rgb_dataset = self.load_dataset(selected_network_config.get("hardest_rgb_directory"))
             self.texture_dataset = self.load_dataset(selected_network_config.get("hardest_lbp_directory"))
-        elif self.cfg.type_of_loss_func in ["tl", "dmtl"]:
+        elif self.cfg.type_of_loss_func == "tl":
             network_cfg_contour = selected_subnetwork_config.get("Contour")
             network_cfg_lpb = selected_subnetwork_config.get("LBP")
             network_cfg_rgb = selected_subnetwork_config.get("RGB")

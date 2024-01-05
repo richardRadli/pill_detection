@@ -41,28 +41,29 @@ def split_images(directory_bbox, train_directory, valid_directory, test_director
     for file in train_files:
         src = os.path.join(directory_bbox, file)
         dst = os.path.join(train_directory, file)
-        shutil.copy(src, dst)
+        shutil.copy(str(src), str(dst))
 
     # Move the validation files to the validation directory
     for file in valid_files:
         src = os.path.join(directory_bbox, file)
         dst = os.path.join(valid_directory, file)
-        shutil.copy(src, dst)
+        shutil.copy(str(src), str(dst))
 
     # Move the test files to the test directory
     for file in test_files:
         src = os.path.join(directory_bbox, file)
         dst = os.path.join(test_directory, file)
-        shutil.copy(src, dst)
+        shutil.copy(str(src), str(dst))
 
 
-# Split ratio (60% train, 20% validation, 20% test)
-split_ratio = [0.6, 0.2, 0.2]
+if __name__ == '__main__':
+    # Split ratio (60% train, 20% validation, 20% test)
+    split_ratio = [0.6, 0.2, 0.2]
 
-directory = DATASET_PATH.get_data_path("cure_customer_bbox")
-train_dir = DATASET_PATH.get_data_path("cure_train")
-valid_dir = DATASET_PATH.get_data_path("cure_valid")
-test_dir = DATASET_PATH.get_data_path("cure_test")
+    directory = DATASET_PATH.get_data_path("cure_customer_bbox")
+    train_dir = DATASET_PATH.get_data_path("cure_train")
+    valid_dir = DATASET_PATH.get_data_path("cure_valid")
+    test_dir = DATASET_PATH.get_data_path("cure_test")
 
-# Call the split_images function
-split_images(directory, train_dir, valid_dir, test_dir, split_ratio)
+    # Call the split_images function
+    split_images(directory, train_dir, valid_dir, test_dir, split_ratio)

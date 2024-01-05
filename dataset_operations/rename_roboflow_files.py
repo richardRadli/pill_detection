@@ -112,8 +112,8 @@ def main() -> None:
     :return: None
     """
 
-    images_dir = DATASET_PATH.get_data_path("ogyei_v2_single_splitted_test_images")
-    labels_dir = DATASET_PATH.get_data_path("ogyei_v2_single_splitted_test_labels")
+    images_dir = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_images")
+    labels_dir = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_labels")
 
     rename_files(images_dir, labels_dir)
     convert_images_to_png(images_dir)

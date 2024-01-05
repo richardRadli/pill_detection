@@ -49,9 +49,9 @@ def read_image_to_list(dir_train_images: str) -> List[str]:
 # ----------------------------------------------------------------------------------------------------------------------
 def main():
     setup_logger()
-    original_imgs_file_names = read_image_to_list(DATASET_PATH.get_data_path("ogyei_v2_single_splitted_train_images"))
+    original_imgs_file_names = read_image_to_list(DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_images"))
     yolo_annotations = (
-        read_yolo_annotations_to_list(DATASET_PATH.get_data_path("ogyei_v2_single_splitted_train_labels")))
+        read_yolo_annotations_to_list(DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_labels")))
 
     for i, (img, txt) in enumerate(zip(original_imgs_file_names, yolo_annotations)):
         logging.info(f'Image name: {os.path.basename(img)}')

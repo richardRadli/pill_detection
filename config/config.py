@@ -105,13 +105,11 @@ class ConfigStreamNetwork:
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
-                                 help="CNN | EfficientNet | EfficientNetV2")
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet", help="CNN | EfficientNet")
         self.parser.add_argument("--type_of_stream", type=str, default="LBP", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--dataset_operation", type=str, default="valid", help="train | valid | test")
 
-        self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | hmtl | dmtl")
-        self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
+        self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | hmtl")
         self.parser.add_argument("--num_triplets", type=int, default=6000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)
 
@@ -128,10 +126,6 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--learning_rate_en_con", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_lbp", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_tex", type=float, default=1e-4)
-        self.parser.add_argument("--learning_rate_env2_rgb", type=float, default=3e-4)
-        self.parser.add_argument("--learning_rate_env2_con", type=float, default=3e-4)
-        self.parser.add_argument("--learning_rate_env2_lbp", type=float, default=3e-4)
-        self.parser.add_argument("--learning_rate_env2_tex", type=float, default=3e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)
         self.parser.add_argument('--step_size', type=int, default=10,
                                  help="Number of epochs after which to decay the learning rate")
@@ -148,11 +142,6 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--canny_high_thr", type=int, default=25)
         self.parser.add_argument("--kernel_gaussian_texture", type=int, default=7)
 
-        self.parser.add_argument("--split_by_light", type=bool, default=False)
-        self.parser.add_argument("--light_source", type=str, default="s", help="s (side) | u (upper")
-
-        self.parser.add_argument("--comparison_type", type=str, default="knn", help="euclidean | knn")
-
     def parse(self):
         self.opt = self.parser.parse_args()
         return self.opt
@@ -166,10 +155,8 @@ class ConfigFusionNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetSelfAttention",
-                                 help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
-                                      "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA")
-        self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | hmtl | dmtl")
-        self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
+                                 help="CNNFusionNet | EfficientNetSelfAttention")
+        self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl")
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_split", type=float, default=0.8)
         self.parser.add_argument("--epochs", type=int, default=15)

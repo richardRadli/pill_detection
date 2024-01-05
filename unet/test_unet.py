@@ -61,8 +61,8 @@ def main(operation: str = "multi") -> None:
     """
 
     if operation.lower() == "multi":
-        predict_multiple_images(input_dir=DATASET_PATH.get_data_path("ogyei_v2_single_splitted_test_images"),
-                                output_dir=DATASET_PATH.get_data_path("ogyei_v2_single_splitted_pred_test_masks"))
+        predict_multiple_images(input_dir=DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_images"),
+                                output_dir=DATASET_PATH.get_data_path("ogyei_v1_single_splitted_pred_test_masks"))
     elif operation.lower() == "single":
         predict_single_image(input_image_file_path="C:/Users/ricsi/Documents/project/storage/IVM/datasets/ogyi_v2/"
                                                    "splitted/test/images/id_009_algopyrin_037.png",

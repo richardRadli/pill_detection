@@ -9,9 +9,9 @@ This program defines a set of wrapper classes and a factory class for creating d
 models. The BaseNetwork class is an abstract base class that defines the interface for a network model.
 
 It has an abstract __init__ method and a forward method that needs to be implemented by subclasses.
-The CNNFusionNetWrapper, EfficientNetSelfAttentionWrapper, and EfficientNetV2MultiHeadAttentionWrapper classes are
+The CNNFusionNetWrapper, EfficientNetSelfAttentionWrapper classes are
 concrete implementations of the BaseNetwork interface. They wrap specific fusion network models (CNNFusionNet,
-EfficientNetSelfAttention, and EfficientNetV2MultiHeadAttention, respectively) and provide a forward method that calls
+EfficientNetSelfAttention respectively) and provide a forward method that calls
 the corresponding model's forward method.
 
 The NetworkFactory class is responsible for creating the appropriate fusion network model based on the given fusion
@@ -27,8 +27,6 @@ from typing import Optional
 
 from fusion_network_models.cnn_fusion_net import CNNFusionNet
 from fusion_network_models.efficient_net_self_attention import EfficientNetSelfAttention
-from fusion_network_models.efficient_net_v2_s_multihead_attention import EfficientNetV2MultiHeadAttention
-from fusion_network_models.efficient_net_v2_s_mha_fmha import EfficientNetV2MHAFMHA
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -69,32 +67,6 @@ class EfficientNetSelfAttentionWrapper(BaseNetwork):
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# +++++++++++++++++ E F F I C I E N T N E T   M U L T I   H E A D   A T T E N T I O N   W R A P P E R ++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class EfficientNetV2MultiHeadAttentionWrapper(BaseNetwork):
-    def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture):
-        self.model = (
-            EfficientNetV2MultiHeadAttention(type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb,
-                                             network_cfg_texture))
-
-    def forward(self, x):
-        return self.model(x)
-
-
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# +++++++++++++++++ E F F I C I E N T N E T   M U L T I   H E A D   A T T E N T I O N   W R A P P E R ++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class EfficientNetV2MHAFMHAWrapper(BaseNetwork):
-    def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture):
-        self.model = (
-            EfficientNetV2MHAFMHA(type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb,
-                                  network_cfg_texture))
-
-    def forward(self, x):
-        return self.model(x)
-
-
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++ N E T   F A C T O R Y +++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class NetworkFactory:
@@ -121,15 +93,6 @@ class NetworkFactory:
         elif fusion_network_type == "EfficientNetSelfAttention":
             model = EfficientNetSelfAttentionWrapper(type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb,
                                                      network_cfg_texture).model
-        elif fusion_network_type == "EfficientNetV2SelfAttention":
-            model = EfficientNetSelfAttentionWrapper(type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb,
-                                                     network_cfg_texture).model
-        elif fusion_network_type == "EfficientNetV2MultiHeadAttention":
-            model = EfficientNetV2MultiHeadAttentionWrapper(type_of_net, network_cfg_contour, network_cfg_lbp,
-                                                            network_cfg_rgb, network_cfg_texture).model
-        elif fusion_network_type == "EfficientNetV2MHAFMHA":
-            model = EfficientNetV2MHAFMHAWrapper(type_of_net, network_cfg_contour, network_cfg_lbp,
-                                                 network_cfg_rgb, network_cfg_texture).model
         else:
             raise ValueError("Wrong type was given!")
 

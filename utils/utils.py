@@ -201,9 +201,7 @@ def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) ->
     if not files:
         raise ValueError(f"No files found in {latest_dir}")
 
-    if type_of_loss == "dmtl":
-        files = [f for f in files if "dmtl" in f]
-    elif type_of_loss == "hmtl":
+    if type_of_loss == "hmtl":
         files = [f for f in files if "hmtl" in f]
     elif type_of_loss == "tl":
         files = [f for f in files if "tl" in f]
