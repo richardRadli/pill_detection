@@ -32,19 +32,8 @@ def path_selector(op: str):
 
     if op.lower() == "ogyei_v1":
         path_to_images = {
-            "dataset_name": "ogyei_v1",
-            "dataset_directory": DATASET_PATH.get_data_path("ogyei_v1_single_unsplitted_images"),
-        }
-    elif op.lower() == "ogyei_v2":
-        path_to_images = {
             "dataset_name": "ogyei_v2",
             "dataset_directory": DATASET_PATH.get_data_path("ogyei_v2_single_unsplitted_images")
-        }
-
-    elif op.lower() == "cure":
-        path_to_images = {
-            "dataset_name": "cure",
-            "dataset_directory": DATASET_PATH.get_data_path("cure_customer"),
         }
     else:
         raise ValueError("Wrong operation!")
@@ -70,7 +59,7 @@ def calculate_proportions(dir_images: str, dataset_name: str) -> [Dict, Dict]:
 
     for filename in os.listdir(dir_images):
         if filename.endswith('.png'):
-            class_name = '_'.join(filename.split('_')[2:-1]) if dataset_name in ["ogyei_v1", "ogyie_v2"] \
+            class_name = '_'.join(filename.split('_')[2:-1]) if dataset_name in ["ogyie_v2"] \
                 else filename.split('_')[0]
             class_counts.setdefault(class_name, 0)
             class_counts[class_name] += 1
