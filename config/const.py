@@ -126,16 +126,6 @@ class Images(_Const):
             "images/ogyei/test/ref/texture",
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
-        # CNN
-        "contour_hardest_cnn_network_ogyei":
-            "images/ogyei/hardest_samples/cnn_network/contour_hardest",
-        "lbp_hardest_cnn_network_ogyei":
-            "images/ogyei/hardest_samples/cnn_network/lbp_hardest",
-        "rgb_hardest_cnn_network_ogyei":
-            "images/ogyei/hardest_samples/cnn_network/rgb_hardest",
-        "texture_hardest_cnn_network_ogyei":
-            "images/ogyei/hardest_samples/cnn_network/texture_hardest",
-
         # EfficientNet b0
         "contour_hardest_efficient_net_ogyei":
             "images/ogyei/hardest_samples/efficient_net/contour_hardest",
@@ -157,16 +147,12 @@ class Images(_Const):
             "images/ogyei/hardest_samples/efficient_net_v2/texture_hardest",
 
         # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
-        "plotting_cnn_network_ogyei":
-            "images/ogyei/plotting/stream_net/plotting_cnn_network",
         "plotting_efficient_net_ogyei":
             "images/ogyei/plotting/stream_net/plotting_efficient_net",
         "plotting_efficient_net_v2_ogyei":
             "images/ogyei/plotting/stream_net/plotting_efficient_net_v2",
 
         # ------------------------------------ P L O T T I N G   F U S I O N   N E T -----------------------------------
-        "plotting_fusion_network_cnn_ogyei":
-            "images/ogyei/plotting/fusion_net/plotting_fusion_network_cnn",
         "plotting_fusion_network_efficient_net_self_attention_ogyei":
             "images/ogyei/plotting/fusion_net/plotting_fusion_network_efficient_net_self_attention",
         "plotting_fusion_network_efficient_net_v2_self_attention_ogyei":
@@ -177,16 +163,12 @@ class Images(_Const):
             "images/ogyei/plotting/fusion_net/plotting_fusion_network_efficient_net_v2_mha_fmha",
 
         # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
-        "conf_mtx_cnn_network_ogyei":
-            "images/ogyei/conf_mtx/stream_net/conf_mtx_cnn_network",
         "conf_mtx_efficient_net_ogyei":
             "images/ogyei/conf_mtx/stream_net/conf_mtx_efficient_net",
         "conf_mtx_efficient_net_v2_ogyei":
             "images/ogyei/conf_mtx/stream_net/conf_mtx_efficient_net_v2",
 
         # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
-        "conf_mtx_fusion_network_cnn_ogyei":
-            "images/ogyei/conf_mtx/fusion_net/conf_mtx_fusion_network_cnn",
         "conf_mtx_fusion_network_efficient_net_self_attention_ogyei":
             "images/ogyei/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_self_attention",
         "conf_mtx_fusion_network_efficient_net_v2_self_attention_ogyei":
@@ -236,16 +218,6 @@ class Images(_Const):
             "images/cure/test/query/texture",
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
-        # CNN
-        "contour_hardest_cnn_network_cure":
-            "images/cure/hardest_samples/cnn_network/contour_hardest",
-        "lbp_hardest_cnn_network_cure":
-            "images/cure/hardest_samples/cnn_network/lbp_hardest",
-        "rgb_hardest_cnn_network_cure":
-            "images/cure/hardest_samples/cnn_network/rgb_hardest",
-        "texture_hardest_cnn_network_cure":
-            "images/cure/hardest_samples/cnn_network/texture_hardest",
-
         # EfficientNet b0
         "contour_hardest_efficient_net_cure":
             "images/cure/hardest_samples/efficient_net/contour_hardest",
@@ -267,16 +239,12 @@ class Images(_Const):
             "images/cure/hardest_samples/efficient_net_v2/texture_hardest",
 
         # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
-        "plotting_cnn_network_cure":
-            "images/cure/plotting/stream_net/plotting_cnn_network",
         "plotting_efficient_net_cure":
             "images/cure/plotting/stream_net/plotting_efficient_net",
         "plotting_efficient_net_v2_cure":
             "images/cure/plotting/stream_net/plotting_efficient_net_v2",
 
         # ------------------------------------ P L O T T I N G   F U S I O N   N E T -----------------------------------
-        "plotting_fusion_network_cnn_cure":
-            "images/cure/plotting/fusion_net/plotting_fusion_network_cnn",
         "plotting_fusion_network_efficient_net_self_attention_cure":
             "images/cure/plotting/fusion_net/plotting_fusion_network_efficient_net_self_attention",
         "plotting_fusion_network_efficient_net_v2_self_attention_cure":
@@ -287,16 +255,12 @@ class Images(_Const):
             "images/cure/plotting/fusion_net/plotting_fusion_network_efficient_net_v2_mha_fmha",
 
         # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
-        "conf_mtx_cnn_network_cure":
-            "images/cure/conf_mtx/stream_net/conf_mtx_cnn_network",
         "conf_mtx_efficient_net_cure":
             "images/cure/conf_mtx/stream_net/conf_mtx_efficient_net",
         "conf_mtx_efficient_net_v2_cure":
             "images/cure/conf_mtx/stream_net/conf_mtx_efficient_net_v2",
 
         # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
-        "conf_mtx_fusion_network_cnn_cure":
-            "images/cure/conf_mtx/fusion_net/conf_mtx_fusion_network_cnn",
         "conf_mtx_fusion_network_efficient_net_self_attention_cure":
             "images/cure/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_self_attention",
         "conf_mtx_fusion_network_efficient_net_v2_self_attention_cure":
@@ -340,16 +304,6 @@ class Data(_Const):
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
-        # CNN - StreamNetwork
-        "weights_cnn_network_contour_ogyei":
-            "data/ogyei/weights/stream_net/cnn/weights_cnn_network_contour",
-        "weights_cnn_network_lbp_ogyei":
-            "data/ogyei/weights/stream_net/cnn/weights_cnn_network_lbp",
-        "weights_cnn_network_rgb_ogyei":
-            "data/ogyei/weights/stream_net/cnn/weights_cnn_network_rgb",
-        "weights_cnn_network_texture_ogyei":
-            "data/ogyei/weights/stream_net/cnn/weights_cnn_network_texture",
-
         # EfficientNet b0 - StreamNetwork
         "weights_efficient_net_contour_ogyei":
             "data/ogyei/weights/stream_net/efficient_net/weights_efficient_net_contour",
@@ -371,8 +325,6 @@ class Data(_Const):
             "data/ogyei/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_texture",
 
         # ------------------------------------- W E I G H T S   F U S I O N   N E T ------------------------------------
-        "weights_fusion_network_cnn_ogyei":
-            "data/ogyei/weights/fusion_net/cnn",
         "weights_fusion_network_efficient_net_self_attention_ogyei":
             "data/ogyei/weights/fusion_net/efficient_net_self_attention",
         "weights_fusion_network_efficient_net_v2_self_attention_ogyei":
@@ -383,16 +335,6 @@ class Data(_Const):
             "data/ogyei/weights/fusion_net/efficient_net_v2_mha_fmha",
 
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
-        # CNN
-        "logs_cnn_contour_ogyei":
-            "data/ogyei/logs/stream_net/cnn/logs_cnn_contour",
-        "logs_cnn_lbp_ogyei":
-            "data/ogyei/logs/stream_net/cnn/logs_cnn_lbp",
-        "logs_cnn_rgb_ogyei":
-            "data/ogyei/logs/stream_net/cnn/logs_cnn_rgb",
-        "logs_cnn_texture_ogyei":
-            "data/ogyei/logs/stream_net/cnn/logs_cnn_texture",
-
         # EfficientNet b0
         "logs_efficient_net_contour_ogyei":
             "data/ogyei/logs/stream_net/efficient_net/logs_efficient_net_contour",
@@ -414,8 +356,6 @@ class Data(_Const):
             "data/ogyei/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_texture",
 
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
-        "logs_fusion_network_cnn_ogyei":
-            "data/ogyei/logs/fusion_net/cnn",
         "logs_fusion_network_efficient_net_self_attention_ogyei":
             "data/ogyei/logs/fusion_net/efficient_net_self_attention",
         "logs_fusion_network_efficient_net_v2_self_attention_ogyei":
@@ -427,8 +367,6 @@ class Data(_Const):
 
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
-        "predictions_cnn_network_ogyei":
-            "data/ogyei/predictions/stream_net/predictions_cnn_network",
         "predictions_efficient_net_ogyei":
             "data/ogyei/predictions/stream_net/predictions_efficient_net",
         "predictions_efficient_net_v2_ogyei":
@@ -436,8 +374,6 @@ class Data(_Const):
 
         # -------------------------------- P R E D I C T I O N S    F U S I O N   N E T --------------------------------
         # Predictions
-        "predictions_fusion_network_cnn_ogyei":
-            "data/ogyei/predictions/fusion_net/predictions_fusion_network_cnn",
         "predictions_fusion_network_efficient_net_self_attention_ogyei":
             "data/ogyei/predictions/fusion_net/predictions_fusion_network_efficient_net_self_attention_net",
         "predictions_fusion_network_efficient_net_v2_self_attention_net_ogyei":
@@ -448,16 +384,12 @@ class Data(_Const):
             "data/ogyei/predictions/fusion_net/predictions_fusion_network_efficient_net_v2_mha_fmha",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
-        "reference_vectors_cnn_network_ogyei":
-            "data/ogyei/ref_vec/stream_net/reference_vectors_cnn_network",
         "reference_vectors_efficient_net_ogyei":
             "data/ogyei/ref_vec/stream_net/reference_vectors_efficient_net",
         "reference_vectors_efficient_net_v2_ogyei":
             "data/ogyei/ref_vec/stream_net/reference_vectors_efficient_net_v2",
 
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
-        "reference_vectors_fusion_network_cnn_ogyei":
-            "data/ogyei/ref_vec/fusion_net/reference_vectors_fusion_net_cnn",
         "reference_vectors_fusion_network_efficient_net_self_attention_ogyei":
             "data/ogyei/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_self_attention",
         "reference_vectors_fusion_network_efficient_net_v2_self_attention_ogyei":
@@ -469,24 +401,6 @@ class Data(_Const):
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
         # Hardest samples
-        # CNN
-        "negative_cnn_network_contour_ogyei":
-            "data/ogyei/hardest_samples/cnn_network/negative/contour",
-        "positive_cnn_network_contour_ogyei":
-            "data/ogyei/hardest_samples/cnn_network/positive/contour",
-        "negative_cnn_network_lbp_ogyei":
-            "data/ogyei/hardest_samples/cnn_network/negative/lbp",
-        "positive_cnn_network_lbp_ogyei":
-            "data/ogyei/hardest_samples/cnn_network/positive/lbp",
-        "negative_cnn_network_rgb_ogyei":
-            "data/ogyei/hardest_samples/cnn_network/negative/rgb",
-        "positive_cnn_network_rgb_ogyei":
-            "data/ogyei/hardest_samples/cnn_network/positive/rgb",
-        "negative_cnn_network_texture_ogyei":
-            "data/ogyei/hardest_samples/cnn_network/negative/texture",
-        "positive_cnn_network_texture_ogyei":
-            "data/ogyei/hardest_samples/cnn_network/positive/texture",
-
         # EfficientNet V1 b0
         "negative_efficient_net_contour_ogyei":
             "data/ogyei/hardest_samples/efficient_net/negative/contour",
@@ -528,16 +442,6 @@ class Data(_Const):
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
-        # CNN - StreamNetwork
-        "weights_cnn_network_contour_cure":
-            "data/cure/weights/stream_net/cnn/weights_cnn_network_contour",
-        "weights_cnn_network_lbp_cure":
-            "data/cure/weights/stream_net/cnn/weights_cnn_network_lbp",
-        "weights_cnn_network_rgb_cure":
-            "data/cure/weights/stream_net/cnn/weights_cnn_network_rgb",
-        "weights_cnn_network_texture_cure":
-            "data/cure/weights/stream_net/cnn/weights_cnn_network_texture",
-
         # EfficientNet b0 - StreamNetwork
         "weights_efficient_net_contour_cure":
             "data/cure/weights/stream_net/efficient_net/weights_efficient_net_contour",
@@ -559,8 +463,6 @@ class Data(_Const):
             "data/cure/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_texture",
 
         # ------------------------------------- W E I G H T S   F U S I O N   N E T ------------------------------------
-        "weights_fusion_network_cnn_cure":
-            "data/cure/weights/fusion_net/cnn",
         "weights_fusion_network_efficient_net_self_attention_cure":
             "data/cure/weights/fusion_net/efficient_net_self_attention",
         "weights_fusion_network_efficient_net_v2_self_attention_cure":
@@ -571,16 +473,6 @@ class Data(_Const):
             "data/cure/weights/fusion_net/efficient_net_v2_mha_fmha",
 
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
-        # CNN
-        "logs_cnn_contour_cure":
-            "data/cure/logs/stream_net/cnn/logs_cnn_contour",
-        "logs_cnn_lbp_cure":
-            "data/cure/logs/stream_net/cnn/logs_cnn_lbp",
-        "logs_cnn_rgb_cure":
-            "data/cure/logs/stream_net/cnn/logs_cnn_rgb",
-        "logs_cnn_texture_cure":
-            "data/cure/logs/stream_net/cnn/logs_cnn_texture",
-
         # EfficientNet b0
         "logs_efficient_net_contour_cure":
             "data/cure/logs/stream_net/efficient_net/logs_efficient_net_contour",
@@ -602,8 +494,6 @@ class Data(_Const):
             "data/cure/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_texture",
 
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
-        "logs_fusion_network_cnn_cure":
-            "data/cure/logs/fusion_net/cnn",
         "logs_fusion_network_efficient_net_self_attention_cure":
             "data/cure/logs/fusion_net/efficient_net_self_attention",
         "logs_fusion_network_efficient_net_v2_self_attention_cure":
@@ -615,8 +505,6 @@ class Data(_Const):
 
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
-        "predictions_cnn_network_cure":
-            "data/cure/predictions/stream_net/predictions_cnn_network",
         "predictions_efficient_net_cure":
             "data/cure/predictions/stream_net/predictions_efficient_net",
         "predictions_efficient_net_v2_cure":
@@ -624,8 +512,6 @@ class Data(_Const):
 
         # -------------------------------- P R E D I C T I O N S    F U S I O N   N E T --------------------------------
         # Predictions
-        "predictions_fusion_network_cnn_cure":
-            "data/cure/predictions/fusion_net/predictions_fusion_network_cnn",
         "predictions_fusion_network_efficient_net_self_attention_cure":
             "data/cure/predictions/fusion_net/predictions_fusion_network_efficient_net_self_attention_net",
         "predictions_fusion_network_efficient_net_v2_self_attention_net_cure":
@@ -636,16 +522,12 @@ class Data(_Const):
             "data/cure/predictions/fusion_net/predictions_fusion_network_efficient_net_v2_mha_fmha",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
-        "reference_vectors_cnn_network_cure":
-            "data/cure/ref_vec/stream_net/reference_vectors_cnn_network",
         "reference_vectors_efficient_net_cure":
             "data/cure/ref_vec/stream_net/reference_vectors_efficient_net",
         "reference_vectors_efficient_net_v2_cure":
             "data/cure/ref_vec/stream_net/reference_vectors_efficient_net_v2",
 
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
-        "reference_vectors_fusion_network_cnn_cure":
-            "data/cure/ref_vec/fusion_net/reference_vectors_fusion_net_cnn",
         "reference_vectors_fusion_net_efficient_net_self_attention_cure":
             "data/cure/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_self_attention",
         "reference_vectors_fusion_net_efficient_net_v2_self_attention_cure":
@@ -657,23 +539,6 @@ class Data(_Const):
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
         # Hardest samples
-        "negative_cnn_network_contour_cure":
-            "data/cure/hardest_samples/cnn_network/negative/contour",
-        "positive_cnn_network_contour_cure":
-            "data/cure/hardest_samples/cnn_network/positive/contour",
-        "negative_cnn_network_lbp_cure":
-            "data/cure/hardest_samples/cnn_network/negative/lbp",
-        "positive_cnn_network_lbp_cure":
-            "data/cure/hardest_samples/cnn_network/positive/lbp",
-        "negative_cnn_network_rgb_cure":
-            "data/cure/hardest_samples/cnn_network/negative/rgb",
-        "positive_cnn_network_rgb_cure":
-            "data/cure/hardest_samples/cnn_network/positive/rgb",
-        "negative_cnn_network_texture_cure":
-            "data/cure/hardest_samples/cnn_network/negative/texture",
-        "positive_cnn_network_texture_cure":
-            "data/cure/hardest_samples/cnn_network/positive/texture",
-
         "negative_efficient_net_contour_cure":
             "data/cure/hardest_samples/efficient_net/negative/contour",
         "positive_efficient_net_contour_cure":

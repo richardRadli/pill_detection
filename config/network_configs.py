@@ -63,13 +63,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                         IMAGES_PATH.get_data_path("test_contour_stream_query_ogyei")
                 },
             "model_weights_dir": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("weights_cnn_network_contour_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("weights_cnn_network_contour_ogyei"),
-                    },
                 "EfficientNet":
                     {
                         "cure":
@@ -86,13 +79,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "logs_dir": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("logs_cnn_contour_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("logs_cnn_contour_ogyei"),
-                    },
                 "EfficientNet":
                         {
                             "cure":
@@ -109,14 +95,7 @@ def sub_stream_network_configs(cfg) -> Dict:
                         },
             },
             "hardest_negative_samples": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("negative_cnn_network_contour_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("positive_cnn_network_contour_ogyei"),
-                    },
-                "EfficientNet":
+               "EfficientNet":
                     {
                         "cure":
                             DATA_PATH.get_data_path("negative_efficient_net_contour_cure"),
@@ -132,13 +111,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "hardest_positive_samples": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("positive_cnn_network_contour_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("positive_cnn_network_contour_ogyei"),
-                    },
                 "EfficientNet":
                     {
                         "cure":
@@ -155,21 +127,17 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "learning_rate": {
-                "CNN":
-                    cfg.learning_rate_cnn_con,
                 "EfficientNet":
                     cfg.learning_rate_en_con,
                 "EfficientNetV2":
                     cfg.learning_rate_env2_con
-            }.get(cfg.type_of_net, cfg.learning_rate_cnn_con),
+            }.get(cfg.type_of_net, cfg.learning_rate_en_con),
             "image_size": {
-                "CNN":
-                    cfg.img_size_cnn,
                 "EfficientNet":
                     cfg.img_size_en,
                 "EfficientNetV2":
                     cfg.img_size_en
-            }.get(cfg.type_of_net, cfg.img_size_cnn),
+            }.get(cfg.type_of_net, cfg.img_size_en),
             "grayscale": True
         },
 
@@ -209,13 +177,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                         IMAGES_PATH.get_data_path("test_lbp_stream_query_ogyei")
                 },
             "model_weights_dir": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("weights_cnn_network_lbp_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("weights_cnn_network_lbp_ogyei"),
-                    },
                 "EfficientNet":
                     {
                         "cure":
@@ -232,13 +193,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "logs_dir": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("logs_cnn_lbp_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("logs_cnn_lbp_ogyei"),
-                    },
                 "EfficientNet":
                         {
                             "cure":
@@ -255,13 +209,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "hardest_negative_samples": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("negative_cnn_network_lbp_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("positive_cnn_network_lbp_ogyei"),
-                    },
                 "EfficientNet":
                     {
                         "cure":
@@ -278,13 +225,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "hardest_positive_samples": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("positive_cnn_network_lbp_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("positive_cnn_network_lbp_ogyei"),
-                    },
                 "EfficientNet":
                     {
                         "cure":
@@ -301,21 +241,17 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "learning_rate": {
-                "CNN":
-                    cfg.learning_rate_cnn_lbp,
                 "EfficientNet":
                     cfg.learning_rate_en_lbp,
                 "EfficientNetV2":
                     cfg.learning_rate_env2_lbp
-            }.get(cfg.type_of_net, cfg.learning_rate_cnn_lbp),
+            }.get(cfg.type_of_net, cfg.learning_rate_en_lbp),
             "image_size": {
-                "CNN":
-                    cfg.img_size_cnn,
                 "EfficientNet":
                     cfg.img_size_en,
                 "EfficientNetV2":
                     cfg.img_size_en
-            }.get(cfg.type_of_net, cfg.img_size_cnn),
+            }.get(cfg.type_of_net, cfg.img_size_en),
             "grayscale": True
         },
         # --------------------------------------------------- R G B ----------------------------------------------------
@@ -354,13 +290,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                         IMAGES_PATH.get_data_path("test_rgb_stream_query_ogyei")
                 },
             "model_weights_dir": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("weights_cnn_network_rgb_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("weights_cnn_network_rgb_ogyei"),
-                    },
                 "EfficientNet":
                     {
                         "cure":
@@ -377,13 +306,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "logs_dir": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("logs_cnn_rgb_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("logs_cnn_rgb_ogyei"),
-                    },
                 "EfficientNet":
                         {
                             "cure":
@@ -400,13 +322,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                         },
             },
             "hardest_negative_samples": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("negative_cnn_network_rgb_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("positive_cnn_network_rgb_ogyei"),
-                    },
                 "EfficientNet":
                     {
                         "cure":
@@ -423,13 +338,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "hardest_positive_samples": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("positive_cnn_network_rgb_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("positive_cnn_network_rgb_ogyei"),
-                    },
                 "EfficientNet":
                     {
                         "cure":
@@ -446,21 +354,17 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "learning_rate": {
-                "CNN":
-                    cfg.learning_rate_cnn_rgb,
                 "EfficientNet":
                     cfg.learning_rate_en_rgb,
                 "EfficientNetV2":
                     cfg.learning_rate_env2_rgb
-            }.get(cfg.type_of_net, cfg.learning_rate_cnn_rgb),
+            }.get(cfg.type_of_net, cfg.learning_rate_en_rgb),
             "image_size": {
-                "CNN":
-                    cfg.img_size_cnn,
                 "EfficientNet":
                     cfg.img_size_en,
                 "EfficientNetV2":
                     cfg.img_size_en
-            }.get(cfg.type_of_net, cfg.img_size_cnn),
+            }.get(cfg.type_of_net, cfg.img_size_en),
             "grayscale": False
         },
         # ----------------------------------------------- T E X T U R E ------------------------------------------------
@@ -499,13 +403,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                         IMAGES_PATH.get_data_path("test_texture_stream_query_ogyei")
                 },
             "model_weights_dir": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("weights_cnn_network_texture_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("weights_cnn_network_texture_ogyei"),
-                    },
                 "EfficientNet":
                     {
                         "cure":
@@ -522,13 +419,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "logs_dir": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("logs_cnn_texture_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("logs_cnn_texture_ogyei"),
-                    },
                 "EfficientNet":
                         {
                             "cure":
@@ -545,13 +435,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "hardest_negative_samples": {
-                "CNN":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("negative_cnn_network_texture_cure"),
-                        "ogyei":
-                            DATA_PATH.get_data_path("positive_cnn_network_texture_ogyei"),
-                    },
                 "EfficientNet":
                     {
                         "cure":
@@ -568,12 +451,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     },
             },
             "hardest_positive_samples": {
-                "CNN": {
-                    "cure":
-                        DATA_PATH.get_data_path("positive_cnn_network_texture_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("positive_cnn_network_texture_ogyei"),
-                },
                 "EfficientNet": {
                     "cure":
                         DATA_PATH.get_data_path("positive_efficient_net_texture_cure"),
@@ -588,21 +465,17 @@ def sub_stream_network_configs(cfg) -> Dict:
                 },
             },
             "learning_rate": {
-                "CNN":
-                    cfg.learning_rate_cnn_tex,
                 "EfficientNet":
                     cfg.learning_rate_en_tex,
                 "EfficientNetV2":
                     cfg.learning_rate_env2_tex
-            }.get(cfg.type_of_net, cfg.learning_rate_cnn_tex),
+            }.get(cfg.type_of_net, cfg.learning_rate_en_tex),
             "image_size": {
-                "CNN":
-                    cfg.img_size_cnn,
                 "EfficientNet":
                     cfg.img_size_en,
                 "EfficientNetV2":
                     cfg.img_size_en
-            }.get(cfg.type_of_net, cfg.img_size_cnn),
+            }.get(cfg.type_of_net, cfg.img_size_en),
             "grayscale": True
         }
     }
@@ -623,108 +496,6 @@ def stream_network_config(cfg) -> Dict:
     network_type = cfg.type_of_net
     logging.info(network_type)
     network_configs = {
-        'CNN': {
-            'prediction_folder': {
-                "cure":
-                    DATA_PATH.get_data_path("predictions_cnn_network_cure"),
-                "ogyei":
-                    DATA_PATH.get_data_path("predictions_cnn_network_ogyei")
-            },
-            'plotting_folder': {
-                "cure":
-                    IMAGES_PATH.get_data_path("plotting_cnn_network_cure"),
-                "ogyei":
-                    IMAGES_PATH.get_data_path("plotting_cnn_network_ogyei")
-            },
-            'confusion_matrix': {
-                "cure":
-                    IMAGES_PATH.get_data_path("conf_mtx_cnn_network_cure"),
-                "ogyei":
-                    IMAGES_PATH.get_data_path("conf_mtx_cnn_network_ogyei")
-            },
-            'ref_vectors_folder': {
-                "cure":
-                    DATA_PATH.get_data_path("reference_vectors_cnn_network_cure"),
-                "ogyei":
-                    DATA_PATH.get_data_path("reference_vectors_cnn_network_ogyei"),
-            },
-            'hardest_contour_directory': {
-                "cure":
-                    IMAGES_PATH.get_data_path("contour_hardest_cnn_network_cure"),
-                "ogyei":
-                    IMAGES_PATH.get_data_path("contour_hardest_cnn_network_ogyei"),
-            },
-            'hardest_lbp_directory': {
-                "cure":
-                    IMAGES_PATH.get_data_path("lbp_hardest_cnn_network_cure"),
-                "ogyei":
-                    IMAGES_PATH.get_data_path("lbp_hardest_cnn_network_ogyei"),
-            },
-            'hardest_rgb_directory': {
-                "cure":
-                    IMAGES_PATH.get_data_path("rgb_hardest_cnn_network_cure"),
-                "ogyei":
-                    IMAGES_PATH.get_data_path("rgb_hardest_cnn_network_ogyei"),
-            },
-            'hardest_texture_directory': {
-                "cure":
-                    IMAGES_PATH.get_data_path("texture_hardest_cnn_network_cure"),
-                "ogyei":
-                    IMAGES_PATH.get_data_path("texture_hardest_cnn_network_ogyei"),
-            },
-            'hard_negative': {
-                "contour": {
-                    "cure":
-                        DATA_PATH.get_data_path("negative_cnn_network_contour_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("negative_cnn_network_contour_ogyei"),
-                },
-                "lbp": {
-                    "cure":
-                        DATA_PATH.get_data_path("negative_cnn_network_lbp_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("negative_cnn_network_lbp_ogyei"),
-                },
-                "rgb": {
-                    "cure":
-                        DATA_PATH.get_data_path("negative_cnn_network_rgb_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("negative_cnn_network_rgb_ogyei"),
-                },
-                "texture": {
-                    "cure":
-                        DATA_PATH.get_data_path("negative_cnn_network_texture_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("negative_cnn_network_texture_ogyei"),
-                },
-            },
-            'hard_positive': {
-                "contour": {
-                    "cure":
-                        DATA_PATH.get_data_path("positive_cnn_network_contour_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("positive_cnn_network_contour_ogyei"),
-                },
-                "lbp": {
-                    "cure":
-                        DATA_PATH.get_data_path("positive_cnn_network_lbp_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("positive_cnn_network_lbp_ogyei"),
-                },
-                "rgb": {
-                    "cure":
-                        DATA_PATH.get_data_path("positive_cnn_network_rgb_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("positive_cnn_network_rgb_ogyei"),
-                },
-                "texture": {
-                    "cure":
-                        DATA_PATH.get_data_path("positive_cnn_network_texture_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("positive_cnn_network_texture_ogyei"),
-                },
-            },
-        },
         'EfficientNet': {
             'prediction_folder': {
                 "cure":
@@ -947,50 +718,6 @@ def fusion_network_config(network_type) -> Dict:
     """
 
     network_configs = {
-        'CNNFusionNet': {
-            'logs_folder':
-                {
-                    "cure":
-                        DATA_PATH.get_data_path("logs_fusion_network_cnn_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("logs_fusion_network_cnn_ogyei"),
-                },
-            'weights_folder':
-                {
-                    "cure":
-                        DATA_PATH.get_data_path("weights_fusion_network_cnn_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("weights_fusion_network_cnn_ogyei"),
-                },
-            'prediction_folder':
-                {
-                    "cure":
-                        DATA_PATH.get_data_path("predictions_fusion_network_cnn_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("predictions_fusion_network_cnn_ogyei"),
-                },
-            'plotting_folder':
-                {
-                    "cure":
-                        IMAGES_PATH.get_data_path("plotting_fusion_network_cnn_cure"),
-                    "ogyei":
-                        IMAGES_PATH.get_data_path("plotting_fusion_network_cnn_ogyei"),
-                },
-            'confusion_matrix':
-                {
-                    "cure":
-                        IMAGES_PATH.get_data_path("conf_mtx_fusion_network_cnn_cure"),
-                    "ogyei":
-                        IMAGES_PATH.get_data_path("conf_mtx_fusion_network_cnn_ogyei"),
-                },
-            'ref_vectors_folder':
-                {
-                    "cure":
-                        DATA_PATH.get_data_path("reference_vectors_fusion_network_cnn_cure"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("reference_vectors_fusion_network_cnn_ogyei"),
-                },
-        },
         'EfficientNetSelfAttention': {
             'logs_folder':
                 {
