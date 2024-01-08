@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import datetime
 
-from logger_setup import setup_logger
+from utils.utils import setup_logger
 
 
 class CalibrationImageCapture:
@@ -13,7 +13,7 @@ class CalibrationImageCapture:
         self.cap = None
         self.capture_count = 0
         self.size_coeff = 3
-        self.root_dir = "C:/Projects/IVM"
+        self.root_dir = "C:/Users/ricsi/Desktop/cam"
         self.setup_camera()
 
     def setup_camera(self):
@@ -22,10 +22,9 @@ class CalibrationImageCapture:
             logging.error("Could not open camera device")
             exit(1)
 
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 3480-1)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 2160-1)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 3479)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 2159)
         self.cap.set(cv2.CAP_PROP_AUTO_WB, 0.0)
-        self.cap.set(cv2.CAP_PROP_WB_TEMPERATURE, 2500)
 
     def capture_images(self):
         location = os.path.join(self.root_dir, "camera_calibration_images", f"{self.timestamp}")

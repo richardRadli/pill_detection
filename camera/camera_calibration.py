@@ -15,7 +15,7 @@ from glob import glob
 from time import perf_counter
 from tqdm import tqdm
 
-from utils.utils import setup_logger
+from utils.utils import setup_logger, find_latest_subdir
 
 np.set_printoptions(precision=6, suppress=True)
 
@@ -53,14 +53,15 @@ class CameraCalibration:
 
         self.timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-        root_dir = "C:/Projects/IVM_gyogyszer"
-        undistorted_images = os.path.join(root_dir, "calibration/2023-07-04")
+        root_dir = "C:/Users/ricsi/Desktop/cam"
+        latest_dir = find_latest_subdir(os.path.join(root_dir, "camera_calibration_images"))
+        undistorted_images = os.path.join(root_dir, latest_dir)
 
         self.orig_img_list = sorted(glob(f'{undistorted_images}/*.jpg'))
-        self.undist_path = os.path.join(root_dir, "images/undist/")
+        self.undist_path = os.path.join(root_dir, "undist/")
         os.makedirs(self.undist_path, exist_ok=True)
 
-        self.save_data_path = os.path.join(root_dir, "camera_data/")
+        self.save_data_path = os.path.join(root_dir, "camera_data")
         os.makedirs(self.save_data_path, exist_ok=True)
 
         self.undist_needed = undist_needed
@@ -183,33 +184,6 @@ class CameraCalibration:
                        'roi': self.roi})
 
     # ---------------------------------------------------------------------------------------------------------------- #
-    # ----------------------------------------- U N D I S T O R T   I M A G E S -------------------------------------- #
-    # ---------------------------------------------------------------------------------------------------------------- #
-    def undistort_images(self):
-        """
-        Undistorts every image used during calibration and saves them in the appropriate folder.
-        """
-
-        start = perf_counter()
-
-        with ThreadPoolExecutor() as executor:
-            futures = []
-            for name, img in self.orig_imgs[1:]:
-                futures.append(executor.submit(self.undistort_and_save, name, img, self.matrix, self.dist_coeff,
-                                               self.undst_matrix, self.roi, self.undist_path))
-
-        logging.info(f'Undistortion time: {perf_counter() - start} s')
-
-    # ---------------------------------------------------------------------------------------------------------------- #
-    # ----------------------------------------------------- M A I N -------------------------------------------------- #
-    # ---------------------------------------------------------------------------------------------------------------- #
-    def main(self):
-        self.calibration()
-        self.generate_new_camera_matrix()
-        if self.undist_needed:
-            self.undistort_images()
-
-    # ---------------------------------------------------------------------------------------------------------------- #
     # --------------------------------------- U N D I S T O R T   A N D   S A V E ------------------------------------ #
     # ---------------------------------------------------------------------------------------------------------------- #
     @staticmethod
@@ -239,6 +213,33 @@ class CameraCalibration:
         image = image[y:y + h, x:x + w]
         path = os.path.join(undst_path, os.path.basename(name))
         cv2.imwrite(path, image, [int(cv2.IMWRITE_PNG_COMPRESSION), 3])
+
+    # ---------------------------------------------------------------------------------------------------------------- #
+    # ----------------------------------------- U N D I S T O R T   I M A G E S -------------------------------------- #
+    # ---------------------------------------------------------------------------------------------------------------- #
+    def undistort_images(self):
+        """
+        Undistorts every image used during calibration and saves them in the appropriate folder.
+        """
+
+        start = perf_counter()
+
+        with ThreadPoolExecutor() as executor:
+            futures = []
+            for name, img in self.orig_imgs[1:]:
+                futures.append(executor.submit(self.undistort_and_save, name, img, self.matrix, self.dist_coeff,
+                                               self.undst_matrix, self.roi, self.undist_path))
+
+        logging.info(f'Undistortion time: {perf_counter() - start} s')
+
+    # ---------------------------------------------------------------------------------------------------------------- #
+    # ----------------------------------------------------- M A I N -------------------------------------------------- #
+    # ---------------------------------------------------------------------------------------------------------------- #
+    def main(self):
+        self.calibration()
+        self.generate_new_camera_matrix()
+        if self.undist_needed:
+            self.undistort_images()
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
