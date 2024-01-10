@@ -1,4 +1,4 @@
-#Multi-Stream Pill Recognition with Attention
+# Multi-Stream Pill Recognition with Attention
 We address the challenge of pill recognition by proposing a novel approach that utilizes a multi-stream network with EfficientNet-B0 and a self-attention mechanism. To get rid of the explicit training of printed or embossed patterns we used LBP features. For evaluation two datasets were utilized. In the test scenarios our proposed model outperformed the previous models in Top-1 and Top-5 accuracy, also the YOLOv7 network in a reference-quality use-case. 
 
 ## Datasets
