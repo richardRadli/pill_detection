@@ -22,7 +22,7 @@ class CalibrationImageCapture:
             logging.error("Could not open camera device")
             exit(1)
 
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 3479)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 3839)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 2159)
         self.cap.set(cv2.CAP_PROP_AUTO_WB, 0.0)
 
