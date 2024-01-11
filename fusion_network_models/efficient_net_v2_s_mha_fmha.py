@@ -4,7 +4,7 @@ Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Jul 19, 2023
 
-Description: The program implements the EfficientNetV2 small multi-head attention with Fusion Net.
+Description: The program implements the EfficientNetV2 small with multiple multi-head attention with Fusion Net.
 """
 
 import torch

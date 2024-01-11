@@ -20,10 +20,8 @@ import torch
 
 from datetime import datetime
 from functools import wraps
-from glob import glob
 from PIL import Image
 from sklearn.metrics import confusion_matrix
-from torch import Tensor
 from typing import List, Union
 from tqdm import tqdm
 
@@ -88,10 +86,6 @@ def numerical_sort(value: str) -> List[Union[str, int]]:
     parts = numbers.split(value)
     parts[1::2] = map(int, parts[1::2])
     return parts
-
-
-def natural_sort_key(s):
-    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -205,6 +199,9 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
         gc.collect()
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------- P R L O T   C O N F U I S I O N   M T X --------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def plot_confusion_matrix(gt, pred, out_path):
     labels = list(set(gt))
 
@@ -303,20 +300,3 @@ def measure_execution_time(func):
         logging.info(f"Execution time of {func.__name__}: {execution_time} seconds")
         return result
     return wrapper
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------- F I N D   L A T E S T   F I L E ------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def find_latest_file_in_directory(path: str, extension: str) -> str:
-    """
-    Finds the latest file in a directory with a given extension.
-
-    :param path: The path to the directory to search for files.
-    :param extension: The file extension to look for (e.g. "txt").
-    :return: The full path of the latest file with the given extension in the directory.
-    """
-
-    files = glob(os.path.join(path, "*.%s" % extension))
-    latest_file = max(files, key=os.path.getctime)
-    return latest_file

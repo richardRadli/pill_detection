@@ -203,15 +203,3 @@ class EfficientNetV2(nn.Module):
 
         layers.append(ConvBnAct(config[-1][4], last_channel, k_size=1))
         return nn.Sequential(*layers)
-
-
-# def test(version='s', num_classes=112):
-#     # Specify in_channels=1 for grayscale images
-#     net = EfficientNetV2(version=version, num_classes=num_classes, is_grayscale=True)
-#     print(net)
-#     x = torch.rand(4, 1, 224, 224)  # Grayscale image with one channel
-#     y = net(x)
-#     print(y)
-#
-#
-# test()
