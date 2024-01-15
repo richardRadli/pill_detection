@@ -16,6 +16,27 @@ from config.const import DATA_PATH, DATASET_PATH, IMAGES_PATH
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------- C A M E R A   C O N F I G --------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def camera_config() -> Dict:
+    cam_config = {
+        "calibration_images":
+            IMAGES_PATH.get_data_path("calibration_images"),
+        "camera_matrix":
+            DATA_PATH.get_data_path("camera_matrix"),
+        "pill_names":
+            DATA_PATH.get_data_path("pill_names"),
+        "pill_images":
+            IMAGES_PATH.get_data_path("pill_images"),
+        "camera_settings":
+            DATA_PATH.get_data_path("camera_settings"),
+        "undistorted_images":
+            IMAGES_PATH.get_data_path("undistorted_images")
+    }
+    return cam_config
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------- S U B N E T W O R K   C O N F I G S   T R A I N I N G -------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def sub_stream_network_configs(cfg) -> Dict:

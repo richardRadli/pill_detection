@@ -276,6 +276,14 @@ class Images(_Const):
             "images/aug/images_aug",
         "wo_background":
             "images/aug/wo_background",
+
+        # ------------------------------------------- C A L I B R A T I O N --------------------------------------------
+        "calibration_images":
+            "images/camera/calibration_images",
+        "undistorted_images":
+            "images/camera/undistorted_images",
+        "pill_images":
+            "images/camera/pill_images"
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -299,8 +307,14 @@ class Data(_Const):
     dirs_data = {
         # ------------------------------------------------- O T H E R --------------------------------------------------
         # Other
-        "cam_data":
-            "data/other/cam_data",
+        "camera_matrix":
+            "data/camera/camera_matrix",
+
+        "camera_settings":
+            "data/camera/camera_settings",
+
+        "pill_names":
+            "data/camera/pill_names",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
