@@ -7,6 +7,11 @@ import tkinter as tk
 import numpy as np
 
 from tkinter import OptionMenu
+from typing import Dict
+
+from config.config import CameraAndCalibrationConfig
+from config.network_configs import camera_config
+from utils.utils import find_latest_file_in_directory
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -44,8 +49,14 @@ class ImageRecordingGUI:
 
     @staticmethod
     def load_pill_names():
+        """
+
+        :return:
+        """
+
         try:
-            data = pd.read_excel('C:/Users/ricsi/Desktop/pill_names_ogyei_v2_112.xlsx', header=None)
+            latest_xlsx_file = find_latest_file_in_directory(camera_config().get("pill_names"), extension="xlsx")
+            data = pd.read_excel(latest_xlsx_file, header=None)
             pill_names = data.iloc[:, 0].dropna().tolist()
             return pill_names
         except Exception as e:
@@ -53,6 +64,11 @@ class ImageRecordingGUI:
             return []
 
     def start_capture(self):
+        """
+
+        :return:
+        """
+
         pill_name = self.selected_pill_name.get()
         lamp_mode = self.lamp_mode_var.get()
 
@@ -60,6 +76,11 @@ class ImageRecordingGUI:
         img_rec.capture_images()
 
     def set_camera_settings(self):
+        """
+
+        :return:
+        """
+
         pill_name = self.selected_pill_name.get()
         lamp_mode = self.lamp_mode_var.get()
 
@@ -76,17 +97,19 @@ class ImageRecordingGUI:
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++b
 class ImageRecording:
     def __init__(self, pill_name, lamp_mode):
-        root_path = "C:/Users/ricsi/Desktop"
+        self.cam_cfg = CameraAndCalibrationConfig().parse()
 
-        self.camera_data_path = os.path.join(root_path, "camera_data")
-        os.makedirs(self.camera_data_path, exist_ok=True)
+        self.camera_data_path = camera_config().get("camera_settings")
 
         self.pill_name = pill_name
-        self.image_save_path = os.path.join(root_path, "images/captured_OGYEI_pill_photos_v4", self.pill_name)
+        self.image_save_path = os.path.join(camera_config().get("pill_images"), self.pill_name)
+        os.makedirs(self.image_save_path, exist_ok=True)
 
-        self.coefficient = 4
+        self.coefficient = self.cam_cfg.size_coeff
         self.lamp_mode = lamp_mode
-        self.CAM_ID = 0
+        self.CAM_ID = self.cam_cfg.cam_id
+        self.width = self.cam_cfg.width
+        self.height = self.cam_cfg.height
 
     # -----------------------------------------------------------------------------------------------------------------
     # --------------------------------- S A V E   C A M   P A R A M S   T O   F I L E ---------------------------------
@@ -96,12 +119,8 @@ class ImageRecording:
         if not (cap.isOpened()):
             logging.error("Could not open camera device")
 
-        width = 3264-1
-        height = 2448-1
-
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-        cap.set(cv2.CAP_PROP_FPS, 30)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
         cap.set(cv2.CAP_PROP_SETTINGS, 0)
 
         channel_compensation = self.get_channel_compensation().get(self.lamp_mode)
@@ -110,7 +129,7 @@ class ImageRecording:
             _, frame = cap.read()
             frame = cv2.multiply(frame, channel_compensation)
             frame = frame.astype("uint8")
-            cv2.imshow('Frame', cv2.resize(frame, (width // self.coefficient, height // self.coefficient)))
+            cv2.imshow('Frame', cv2.resize(frame, (self.width // self.coefficient, self.height // self.coefficient)))
             key = cv2.waitKey(1)
 
             if key == ord("q"):
@@ -141,12 +160,17 @@ class ImageRecording:
     # -----------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- L O A D   C A M   P A R A M S -----------------------------------------
     # -----------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def load_camera_params_from_file(filename, cam_id=None):
+    def load_camera_params_from_file(self, filename):
+        """
+
+        :param filename:
+        :return:
+        """
+
         with open(filename, "r") as f:
             camera_params = json.load(f)
 
-        cap = cv2.VideoCapture(cam_id, cv2.CAP_DSHOW)
+        cap = cv2.VideoCapture(self.CAM_ID, cv2.CAP_DSHOW)
         if not (cap.isOpened()):
             logging.error("Could not open camera device")
 
@@ -166,7 +190,13 @@ class ImageRecording:
     # --------------------------------------------- T A K E   I M A G E S ---------------------------------------------
     # -----------------------------------------------------------------------------------------------------------------
     def take_images(self, filename):
-        cap, camera_params = self.load_camera_params_from_file(filename, self.CAM_ID)
+        """
+
+        :param filename:
+        :return:
+        """
+
+        cap, camera_params = self.load_camera_params_from_file(filename)
 
         width = camera_params["width"]
         height = camera_params["height"]
@@ -174,7 +204,7 @@ class ImageRecording:
         channel_compensation = self.get_channel_compensation().get(self.lamp_mode)
 
         os.makedirs(self.image_save_path, exist_ok=True)  # Create the directory here
-        i = len(os.listdir(self.image_save_path))
+        i = len(os.listdir(str(self.image_save_path)))
 
         buffer_size = 10
         image_buffer = []
@@ -195,7 +225,7 @@ class ImageRecording:
                 break
             elif key == ord("c"):
                 filename = self.pill_name + "_" + addition_name + "_{:03d}.png".format(i)
-                path_to_save = os.path.join(self.image_save_path, filename)
+                path_to_save = os.path.join(str(self.image_save_path), filename)
                 cv2.imwrite(path_to_save, frame)
                 i += 1
                 logging.info(f"{filename} image has been captured and saved!")
@@ -213,11 +243,22 @@ class ImageRecording:
 
     @staticmethod
     def save_images_from_buffer(image_buffer):
+        """
+
+        :param image_buffer:
+        :return:
+        """
+
         for path_to_save, frame in image_buffer:
             cv2.imwrite(path_to_save, frame)
         logging.info(f"{len(image_buffer)} images have been saved!")
 
     def get_lamp_name(self) -> dict:
+        """
+
+        :return:
+        """
+
         lamp_name = {
             "upper": os.path.join(self.camera_data_path, "camera_params_upper_lamp.json"),
             "side": os.path.join(self.camera_data_path, "camera_params_side_lamp.json")
@@ -226,7 +267,12 @@ class ImageRecording:
         return lamp_name
 
     @staticmethod
-    def get_channel_compensation():
+    def get_channel_compensation() -> Dict:
+        """
+
+        :return:
+        """
+
         channel_mult = {
             "upper": np.array([1, 1, 1.1, 1], dtype="float64"),
             "side": np.array([0.9, 1, 0.95, 1], dtype="float64")
@@ -238,6 +284,11 @@ class ImageRecording:
     # ------------------------------------- S E T   C A M E R A   S E T T I N G S -------------------------------------
     # -----------------------------------------------------------------------------------------------------------------
     def set_camera_settings(self):
+        """
+
+        :return:
+        """
+
         filename = self.get_lamp_name()
         self.save_camera_params_to_file(filename.get(self.lamp_mode))
 
@@ -245,6 +296,11 @@ class ImageRecording:
     # ---------------------------------------------------- M A I N ----------------------------------------------------
     # -----------------------------------------------------------------------------------------------------------------
     def capture_images(self):
+        """
+
+        :return:
+        """
+
         filename = self.get_lamp_name()
         self.take_images(filename.get(self.lamp_mode))
 
