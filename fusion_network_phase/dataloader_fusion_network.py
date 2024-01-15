@@ -213,15 +213,9 @@ class FusionDataset(Dataset):
                 label = label_name
 
                 for image_name in os.listdir(label_path):
-                    if self.cfg.split_by_light:
-                        if image_name.split(".")[0].split("_")[-2] == self.cfg.light_source:
-                            image_path = os.path.join(label_path, image_name)
-                            dataset.append((image_path, label))
-                            labels.append(label)
-                    else:
-                        image_path = os.path.join(label_path, image_name)
-                        dataset.append((image_path, label))
-                        labels.append(label)
+                    image_path = os.path.join(label_path, image_name)
+                    dataset.append((image_path, label))
+                    labels.append(label)
 
         self.labels = labels
 

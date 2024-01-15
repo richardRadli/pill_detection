@@ -639,25 +639,6 @@ class Datasets(_Const):
         "ogyei_v1_single_splitted_pred_test_masks":
             "ogyei_v1/single/splitted/test/pred_test_masks",
 
-        # T R A Y
-        "tray_original_images":
-            "tray/original_images",
-        "tray_diff_images":
-            "tray/diff_images",
-        "tray_plots":
-            "tray/plots",
-        "tray_images_aug":
-            "tray/tray_images_aug",
-        "tray_images_aug_w_med":
-            "tray/tray_images_aug_w_med",
-        "tray_images_aug_w_med_aug":
-            "tray/tray_images_aug_w_med_aug",
-
-        # N I H
-        "nih_ref":
-            "nih/ref",
-        "nih_query":
-            "nih/query"
     }
 
     # ------------------------------------------------------------------------------------------------------------------

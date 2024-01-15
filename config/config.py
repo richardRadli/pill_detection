@@ -18,14 +18,16 @@ class CameraAndCalibrationConfig:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument('--size_coeff', type=int, default=3)
-        self.parser.add_argument('--height', type=int, default=2048)
-        self.parser.add_argument('--width', type=int, default=2448)
-        self.parser.add_argument('--cam_id', type=int, default=0)
-        self.parser.add_argument('--chs_col', type=int, default=8)
-        self.parser.add_argument('--chs_row', type=int, default=6)
-        self.parser.add_argument('--square_size', type=int, default=25)
-        self.parser.add_argument('--error_threshold', type=float, default=0.2)
+        self.parser.add_argument('--size_coeff', type=int, default=3,
+                                 help="The shown image will be resized by the given coefficient.")
+        self.parser.add_argument('--height', type=int, default=2048, help="Height of the image.")
+        self.parser.add_argument('--width', type=int, default=2448, help="Width of the image.")
+        self.parser.add_argument('--cam_id', type=int, default=0, help="Default camera device index")
+        self.parser.add_argument('--chs_col', type=int, default=8, help="Number of columns in the chessboard")
+        self.parser.add_argument('--chs_row', type=int, default=6, help="Number of rows in the chessboard")
+        self.parser.add_argument('--square_size', type=int, default=25, help="Square size of the chessboard")
+        self.parser.add_argument('--error_threshold', type=float, default=0.2,
+                                 help="Error threshold for the calibration")
 
     def parse(self):
         self.opt = self.parser.parse_args()
@@ -54,6 +56,7 @@ class ConfigAugmentation:
         self.parser.add_argument('--shift_low_thr', type=int, default=150)
         self.parser.add_argument('--shift_high_thr', type=int, default=200)
         self.parser.add_argument('--scale_pill_img', type=float, default=0.3)
+        self.parser.add_argument('--crop_size', type=int, default=1500)
 
     def parse(self):
         self.opt = self.parser.parse_args()
@@ -128,10 +131,10 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNet", help="CNN | EfficientNet")
-        self.parser.add_argument("--type_of_stream", type=str, default="LBP", help="Contour | LBP | RGB | Texture")
-        self.parser.add_argument("--dataset_operation", type=str, default="valid", help="train | valid | test")
+        self.parser.add_argument("--type_of_stream", type=str, default="Texture", help="Contour | LBP | RGB | Texture")
+        self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
 
-        self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | hmtl")
+        self.parser.add_argument("--type_of_loss_func", type=str, default="hmtl", help="tl | hmtl")
         self.parser.add_argument("--num_triplets", type=int, default=6000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)
 
@@ -156,7 +159,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--img_size_cnn", type=int, default=128)
         self.parser.add_argument("--img_size_en", type=int, default=224)
 
-        self.parser.add_argument("--load_ref_vector", type=bool, default=True)
+        self.parser.add_argument("--load_ref_vector", type=bool, default=False)
 
         self.parser.add_argument("--threshold_area", type=int, default=100)
         self.parser.add_argument("--kernel_median_contour", type=int, default=7)
