@@ -8,11 +8,6 @@ superior results to a state-of-the-art multi-stream pill recognition network.
 
 ## Architecture of the model
 
-<figure align="center">
-  <figcaption>Phase 2</figcaption>
-  <img src="poc_images/overview.png" alt="phase_2" width="1000"/>
-</figure>
-
 The main idea behind multi-stream processing is to persuade the sub-networks to focus on different kinds of features. For this reason different pre-processing steps are done in the streams:
 
 -  **RGB**: color images are directly fed to a CNN for metrics embedding. We evaluated both EfficientNet-B0 [2] and 
@@ -27,11 +22,22 @@ streams but with smaller number of parameters due to their grayscale input image
 including handwritten or printed OCR. That is the reason why we omitted the special OCR stream of [1] but computed the 
 LBP images of the grayscale inputs and used them in similar streams as the others.
 
+<figure align="center">
+  <figcaption>Phase 1</figcaption>
+  <img src="poc_images/substreams.png" alt="phase_1" width="1000"/>
+</figure>
+
 All streams received the bounding box defined pill images of resolution 224×224 detected by YOLOv7 as described above.
 Before the concatenation of the embedding vectors we implemented the attention encoder in each stream. 
 To fuse the information of the streams we concatenated the output vectors and applied full connections in one hidden 
 and one output layer to generate the final embedding. During the training of the fusion network streams were frozen 
 and only the top layers were trained.
+
+<figure align="center">
+  <figcaption>Phase 2</figcaption>
+  <img src="poc_images/overview.png" alt="phase_2" width="1000"/>
+</figure>
+
 
 The following configurations were evaluated:
 
@@ -126,7 +132,8 @@ annotations, etc. Also, it is worth pointing out to the `utils.py` script, that 
 ## Usage
 
 If the repository is cloned/downloaded, the root paths are sorted out, the datasets are in place, and everything is 
-set up in the config files, the next step is to 
+set up in the config files, the next step is to apply a trained YOLOv7 network for pill detection and use 
+`crop_yolo_detected_images.py` on the detected images. For more details read our article [3]. 
 
 Alternatively, if you can use `draw_masks.py` to create the binary mask images.
 
@@ -134,15 +141,13 @@ To create the images for the streams, run `create_stream_images.py`. Make sure y
 the argument called **dataset_operation** in the **ConfigStreamNetwork** class in the `config.py` file (train, valid, test).
 
 Next step is to train the stream networks, this is Phase 1. 
-There are two kind of backbones are available for this, the one published by 
-Ling et al. [1], EfficientNet V1 b0 [2] and EfficientNet V2 s [4]. 
+There are two kind of backbones are available for this, EfficientNet V1 b0 [2] and EfficientNet V2 s [4]. 
 Make sure you train all four streams. Also, two loss functions are provided:
 triplet loss and hard mining triplet loss. The later will save the hardest triplets, which can be utilized in Phase 2.
 To copy the hardest samples into a directory, run `mine_hard_samples.py`.
 
 After the streams are trained, the last step is to train the fusion network, it is also called Phase 2.
-Still, there are two choices here: CNN, EfficientNet V1 b0, EfficientNet V2 s, 
-but only one loss function: triplet loss. If hard mining triplet loss was selected in Phase 1, 
+There are 5 choices for this, as listed above. If hard mining triplet loss was selected in Phase 1, 
 the network will be trained on only the hardest samples.
 
 To evaluate the models, use `predict_fusion_network.py`.
@@ -154,9 +159,9 @@ In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recogni
 [2] - Tan, M., & Le, Q. (2019, May). Efficientnet: Rethinking model scaling for convolutional neural networks. 
 In International conference on machine learning (pp. 6105-6114). PMLR.
 
-[3] - Rádli, R., Vörösházi, Z., & Czúni, L. (2023, September). Multi-Stream Pill Recognition with Attention. 
-In 2023 IEEE 12th International Conference on Intelligent Data Acquisition and Advanced Computing Systems: 
-Technology and Applications (IDAACS) (Vol. 1, pp. 942-946). IEEE.
+[3] - Rádli, R.; Vörösházi, Z. and Czúni, L. (2023). Pill Metrics Learning with Multihead Attention.  
+In Proceedings of the 15th International Joint Conference on Knowledge Discovery, Knowledge Engineering and
+Knowledge Management - Volume 1: KDIR, ISBN 978-989-758-671-2, ISSN 2184-3228, pages 132-140.    
 
 [4] - Tan, M., & Le, Q. (2021, July). Efficientnetv2: Smaller models and faster training. 
 In International conference on machine learning (pp. 10096-10106). PMLR.
