@@ -158,10 +158,6 @@ def numerical_sort(value: str) -> List[Union[str, int]]:
     return parts
 
 
-def natural_sort_key(s):
-    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
-
-
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------- C R E A T E   T I M E S T A M P ------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -201,15 +197,16 @@ def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) ->
     if not files:
         raise ValueError(f"No files found in {latest_dir}")
 
-    if type_of_loss == "hmtl":
-        files = [f for f in files if "hmtl" in f]
-    elif type_of_loss == "tl":
-        files = [f for f in files if "tl" in f]
-    else:
-        raise ValueError(f"Wrong type of loss: {type_of_loss}")
+    if type_of_loss is not None:
+        if type_of_loss == "hmtl":
+            files = [f for f in files if "hmtl" in f]
+        elif type_of_loss == "tl":
+            files = [f for f in files if "tl" in f]
+        else:
+            raise ValueError(f"Wrong type of loss: {type_of_loss}")
 
-    if not files:
-        raise ValueError(f"No files containing {type_of_loss} found in {latest_dir}")
+        if not files:
+            raise ValueError(f"No files containing {type_of_loss} found in {latest_dir}")
 
     files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
     latest_file = files[0]
@@ -386,3 +383,18 @@ def find_latest_file_in_directory(path: str, extension: str) -> str:
     files = glob(os.path.join(path, "*.%s" % extension))
     latest_file = max(files, key=os.path.getctime)
     return latest_file
+
+
+def find_latest_subdir(directory):
+    # Get a list of all subdirectories in the given directory
+    subdirs = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
+
+    # Check if there are any subdirectories
+    if not subdirs:
+        print(f"No subdirectories found in {directory}.")
+        return None
+
+    # Find the latest subdirectory based on the last modification time
+    latest_subdir = max(subdirs, key=lambda d: os.path.getmtime(os.path.join(directory, d)))
+
+    return os.path.join(directory, latest_subdir)

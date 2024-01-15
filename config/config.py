@@ -13,6 +13,28 @@ import argparse
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++ C O N F I G   A U G M E N T A T I O N +++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+class CameraAndCalibrationConfig:
+    def __init__(self):
+        self.opt = None
+        self.parser = argparse.ArgumentParser()
+
+        self.parser.add_argument('--size_coeff', type=int, default=3)
+        self.parser.add_argument('--height', type=int, default=2048)
+        self.parser.add_argument('--width', type=int, default=2448)
+        self.parser.add_argument('--cam_id', type=int, default=0)
+        self.parser.add_argument('--chs_col', type=int, default=8)
+        self.parser.add_argument('--chs_row', type=int, default=6)
+        self.parser.add_argument('--square_size', type=int, default=25)
+        self.parser.add_argument('--error_threshold', type=float, default=0.2)
+
+    def parse(self):
+        self.opt = self.parser.parse_args()
+        return self.opt
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++ C O N F I G   A U G M E N T A T I O N +++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class ConfigAugmentation:
     def __init__(self):
         self.opt = None

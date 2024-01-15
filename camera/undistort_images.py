@@ -17,7 +17,8 @@ import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 
-from config.const import DATA_PATH
+from config.network_configs import camera_config
+from utils.utils import find_latest_file_in_latest_directory
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -28,8 +29,7 @@ class UnDistortTestImages:
     # --------------------------------------------------- __I N I T__ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
-        cam_mtx_np_file = os.path.join(DATA_PATH.get_data_path("cam_data"),
-                                       os.listdir(DATA_PATH.get_data_path("cam_data"))[3])
+        cam_mtx_np_file = find_latest_file_in_latest_directory(path=camera_config().get("camera_matrix"))
         logging.info(f"The loaded camera matrix: {os.path.basename(cam_mtx_np_file)}")
         data = np.load(cam_mtx_np_file, allow_pickle=True)
 
@@ -69,8 +69,8 @@ class UnDistortTestImages:
         :return: None
         """
 
-        input_dir = "C:/Users/ricsi/Desktop/multitask"
-        output_dir = "C:/Users/ricsi/Desktop/multitask_undistorted"
+        input_dir = ""  # Edit with your input folder
+        output_dir = ""  # Edit with your output folder
 
         os.makedirs(output_dir, exist_ok=True)
 
