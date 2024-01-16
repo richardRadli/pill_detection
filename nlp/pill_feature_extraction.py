@@ -1,3 +1,4 @@
+import csv
 import docx2txt
 import fuzzywuzzy
 import fuzzywuzzy.process
@@ -11,16 +12,17 @@ from glob import glob
 from fuzzysearch import find_near_matches
 from tqdm import tqdm
 
-from config.const import NLP_DATA_PATH
-from utils.utils import setup_logger
+from config.config_selector import nlp_configs
+from utils.utils import create_timestamp, setup_logger
 
 
 class PillFeatureExtraction:
     def __init__(self):
         setup_logger()
+        self.timestamp = create_timestamp()
         self.doc_files = (
-            sorted(glob(os.path.join(NLP_DATA_PATH.get_data_path("patient_information_leaflet_doc"),  "*"))))
-        self.docx_path = NLP_DATA_PATH.get_data_path("patient_information_leaflet_docx")
+            sorted(glob(os.path.join(nlp_configs().get("patient_information_leaflet_doc"),  "*"))))
+        self.docx_path = nlp_configs().get("patient_information_leaflet_docx")
         self.dictionary_of_drugs = {}
         self.dictionary_of_drugs_full_sentence = {}
         self.config_lists = self.const_values()
@@ -71,7 +73,7 @@ class PillFeatureExtraction:
 
     @staticmethod
     def get_ref_name_list():
-        directory_path = NLP_DATA_PATH.get_data_path("pill_names")
+        directory_path = nlp_configs().get("pill_names")
         pill_names_file = [os.path.join(directory_path, filename) for filename in os.listdir(directory_path)]
         data = pd.read_excel(pill_names_file[0], header=None)
         data = data.applymap(lambda x: x.replace('\xa0', ' ') if isinstance(x, str) else x)
@@ -189,10 +191,16 @@ class PillFeatureExtraction:
                 self.config_lists.get("pharmaceutical_form_reference_list"), sub_row) for sub_row in splitted_name]
         return self.clean_list(pharmaceutical_form)
 
+    def write_to_csv(self):
+        filename = os.path.join(nlp_configs().get("full_sentence_csv"), self.timestamp + "full_sentence_csv_prob.csv")
+        with open(filename, "w", encoding='UTF-8-sig', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerows(self.dictionary_of_drugs_full_sentence.items())
+
     def main(self):
         reference_name_list = self.get_ref_name_list()
         # self.convert_doc_files_to_docx()
-        docx_files = sorted(glob(os.path.join(NLP_DATA_PATH.get_data_path("patient_information_leaflet_docx"), "*")))
+        docx_files = sorted(glob(os.path.join(nlp_configs().get("patient_information_leaflet_docx"), "*")))
 
         for i, docx in tqdm(enumerate(docx_files), total=len(docx_files), desc="Processing files"):
             text = docx2txt.process(docx)
@@ -203,11 +211,13 @@ class PillFeatureExtraction:
 
             try:
                 name_match_1 = (
-                    self.find_regex_with_fuzzy(self.config_lists.get("name_regexes_1"), lower_case_text, max_l_dist=2))
+                    self.find_regex_with_fuzzy(self.config_lists.get("name_regexes_1"), lower_case_text, max_l_dist=2)
+                )
                 end_index_name = name_match_1[0].end
 
                 name_match_2 = (
-                    self.find_regex_with_fuzzy(self.config_lists.get("name_regexes_2"), lower_case_text, max_l_dist=3))
+                    self.find_regex_with_fuzzy(self.config_lists.get("name_regexes_2"), lower_case_text, max_l_dist=3)
+                )
 
                 start_index_name_2 = name_match_2[0].start
                 drug_names = lower_case_text[end_index_name + 1:start_index_name_2:1]
@@ -217,12 +227,16 @@ class PillFeatureExtraction:
 
                 properties_match_1 = (
                     self.find_regex_with_fuzzy(
-                        self.config_lists.get("properties_regexes_1"), lower_case_text, max_l_dist=2))
+                        self.config_lists.get("properties_regexes_1"), lower_case_text, max_l_dist=2
+                    )
+                )
                 end_index_properties_1 = properties_match_1[0].end
 
                 properties_match_2 = (
                     self.find_regex_with_fuzzy(
-                        self.config_lists.get("properties_regexes_2"), lower_case_text, max_l_dist=2))
+                        self.config_lists.get("properties_regexes_2"), lower_case_text, max_l_dist=2
+                    )
+                )
                 start_index_properties_2 = properties_match_2[0].start
 
             except TypeError:
@@ -233,17 +247,16 @@ class PillFeatureExtraction:
 
             file_basename = os.path.basename(docx)
             filename = file_basename.split(".")[0] + "_results.txt"
-            file = open(os.path.join(NLP_DATA_PATH.get_data_path("extracted_features_files"), filename),
-                        "w+", encoding="utf-8")
+            file = open(os.path.join(nlp_configs().get("extracted_features_files"), filename), "w+", encoding="utf-8")
             length_of_name_list = len(name_list)
 
-            for index, row in enumerate(splitted_properties):
+            index = 0
+            for row in splitted_properties:
                 if row == '' or row == '\n' or row == '\t':
                     continue
                 splitted_row = row.split(' ')
 
-                if any(self.extract_with_fuzzy_wuzzy(
-                        self.config_lists.get("reference_list"), sub_row, limit=3) for sub_row in splitted_row):
+                if any(self.extract_with_fuzzy_wuzzy(self.config_lists.get("reference_list"), sub_row, limit=3) for sub_row in splitted_row):
                     color_list = (
                         self.set_attribute_list(self.config_lists.get("color_reference_list"), splitted_row, 94))
                     shape_list = (
@@ -275,7 +288,10 @@ class PillFeatureExtraction:
                                                   edge_list, cut, imprint_list, len(imprint_list)]
                             self.dictionary_of_drugs_full_sentence[name_list[index]] = row
                             self.dictionary_of_drugs[name_list[index]] = list_of_properties
-                        file.write('------------------------------------------------------------------------' + '\n\n')
+                            index += 1
+                            file.write('------------------------------------------------------------------------' + '\n\n')
+
+        self.write_to_csv()
 
 
 if __name__ == "__main__":
