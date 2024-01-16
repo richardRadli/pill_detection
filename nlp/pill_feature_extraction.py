@@ -21,7 +21,7 @@ class PillFeatureExtraction:
         setup_logger()
         self.timestamp = create_timestamp()
         self.doc_files = (
-            sorted(glob(os.path.join(nlp_configs().get("patient_information_leaflet_doc"),  "*"))))
+            sorted(glob(os.path.join(nlp_configs().get("patient_information_leaflet_doc"), "*"))))
         self.docx_path = nlp_configs().get("patient_information_leaflet_docx")
         self.dictionary_of_drugs = {}
         self.dictionary_of_drugs_full_sentence = {}
@@ -61,10 +61,6 @@ class PillFeatureExtraction:
                 ['metszett'],
             "cut_reference_list":
                 ['bemetszés', 'törővonal', 'törés'],
-            "sides_difference_reference_list":
-                ['egyik', 'másik', 'felső', 'alsó'],
-            "sides_same_reference_list":
-                ['mindkét'],
             "pharmaceutical_form_reference_list":
                 ['tabletta', 'kapszula']
         }
@@ -256,7 +252,9 @@ class PillFeatureExtraction:
                     continue
                 splitted_row = row.split(' ')
 
-                if any(self.extract_with_fuzzy_wuzzy(self.config_lists.get("reference_list"), sub_row, limit=3) for sub_row in splitted_row):
+                if any(self.extract_with_fuzzy_wuzzy(
+                        self.config_lists.get("reference_list"), sub_row, limit=3) for sub_row in splitted_row
+                       ):
                     color_list = (
                         self.set_attribute_list(self.config_lists.get("color_reference_list"), splitted_row, 94))
                     shape_list = (
@@ -289,7 +287,8 @@ class PillFeatureExtraction:
                             self.dictionary_of_drugs_full_sentence[name_list[index]] = row
                             self.dictionary_of_drugs[name_list[index]] = list_of_properties
                             index += 1
-                            file.write('------------------------------------------------------------------------' + '\n\n')
+                            file.write(
+                                '------------------------------------------------------------------------' + '\n\n')
 
         self.write_to_csv()
 
