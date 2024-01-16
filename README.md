@@ -25,7 +25,7 @@ integrated them into the same type of streams as the other descriptors.
 
 <figure align="center">
   <figcaption>Phase 1</figcaption>
-  <img src="poc_images/substreams.png" alt="phase_1" width="1000"/>
+  <img src="images/substreams.png" alt="phase_1" width="1000"/>
 </figure>
 
 All streams received the bounding box defined pill images of resolution 224×224 detected by YOLOv7 as described above.
@@ -36,31 +36,34 @@ and only the top layers were trained.
 
 <figure align="center">
   <figcaption>Phase 2</figcaption>
-  <img src="poc_images/overview.png" alt="phase_2" width="1000"/>
+  <img src="images/overview.png" alt="phase_2" width="1000"/>
 </figure>
 
 
 
 
 ## Datasets
-We used two datasets, namely CURE [1] and our novel, custom-made one, entitled OGYEIv1 [3]. 
+We used two datasets, namely CURE [1] and our novel, custom-made one, entitled OGYEIv2 [3]. 
 CURE is available online via this link:
 
 https://drive.google.com/drive/folders/1dcqUaTSepplc4GAUC05mr9iReWVqaThN.
 
-Ours can be accessed if you contact me via my e-mail address: radli.richard@mik.uni-pannon.hu
+Ours can be accessed by Kaggle:
+
+https://www.kaggle.com/datasets/richardradli/ogyeiv2
 
 The comparison of the two datasets can be seen in the table below:
 
-|                        | CURE                | OGYEIv2   |
-|------------------------|---------------------|-----------|
-| Number of pill classes | 196                 | 78        |
-| Number of images       | 8973                | 3154      |
-| Image resolution       | 800×800 - 2448×2448 | 2465×1683 |
-| Instance per class     | 40-50               | 40-60     |
-| Segmentation labels    | no                  | fully     |
-| Backgrounds            | 6                   | 1         | 
-| Imprinted text labels  | yes                 | yes       |
+|                              | CURE                | OGYEIv2   |
+|------------------------------|---------------------|-----------|
+| Number of pill classes       | 196                 | 112       |
+| Number of images             | 8973                | 4480      |
+| Raw image resolution         | 800×800 - 2448×2448 | 3840×2160 |
+| Undistorted image resolution | -                   | 3746×2019 |
+| Instance per class           | 40-50               | 40        |
+| Segmentation labels          | no                  | fully     |
+| Backgrounds                  | 6                   | 1         | 
+| Free-text description        | no                  | yes       |
 
 ## Requirement
 Make sure you have the following dependencies installed:
@@ -68,21 +71,28 @@ Make sure you have the following dependencies installed:
 ```bash
 colorama>=0.4.6
 colorlog>=6.7.0
+docx2txt>=0.8.0
 json>=2.0.9
+fuzzywuzzy>=0.18.0
+fuzzysearch>=0.7.3
 matplotlib>=3.7.1
 numpy>=1.23.5
 opencv-python>=4.5.5.64
+openpyxl>=3.1.2
 pandas>=2.0.0
 Pillow>=9.3.0
+scipy>=1.10.1
 seaborn>=0.12.2
 segmentation_models_pytorch>=0.3.3
 skimage>=0.20.0
 sklearn>=1.2.2
+spacy>=3.6.1
 tkinter>=8.6.12
 torch>=2.0.0+cu117
 torchsummary>=1.5.1
 torchvision>=0.15.1+cu117
 tqdm>=4.65.0
+yellowbrick>=1.5
 ```
 
 ## Installation
@@ -133,14 +143,15 @@ To create the images for the streams, run `create_stream_images.py`. Make sure y
 the argument called **dataset_operation** in the **ConfigStreamNetwork** class in the `config.py` file (train, valid, test).
 
 Next step is to train the stream networks, this is Phase 1. 
-There are two kind of backbones are available for this, EfficientNet V1 b0 [2] and EfficientNet V2 s [4]. 
+There is only one type of backbone is available for this, EfficientNet V2 s [2]. 
 Make sure you train all four streams. Also, two loss functions are provided:
-triplet loss and hard mining triplet loss. The later will save the hardest triplets, which can be utilized in Phase 2.
-To copy the hardest samples into a directory, run `mine_hard_samples.py`.
+triplet loss and dynamic margin triplet loss. The later needs an .xslx file, named 20xx-xx-xx_xx-xx-xx_vector_distances.xlsx
+
+To generate this .xlsx file, first run the `pill_feature_extraction.py` script, than use the `text_nlp_analysis.py` file.
+Most importantly, the first script will look for the information leaflets, place them into the following folder:
+**".\storage\pill_detection\nlp\documents\patient_information_leaflet_doc"**
 
 After the streams are trained, the last step is to train the fusion network, it is also called Phase 2.
-There are 5 choices for this, as listed above. If hard mining triplet loss was selected in Phase 1, 
-the network will be trained on only the hardest samples.
 
 To evaluate the models, use `predict_fusion_network.py`.
 
@@ -151,5 +162,5 @@ In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recogni
 [2] - Tan, M., & Le, Q. (2021, July). Efficientnetv2: Smaller models and faster training. 
 In International conference on machine learning (pp. 10096-10106). PMLR.
 
-[3] - Rádli, R.; Vörösházi, Z. and Czúni, L. (2023).  
+[3] - Rádli, R.; Vörösházi, Z. and Czúni, L. (2024). Word and Image Embeddings in Pill Recognition 
 

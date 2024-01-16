@@ -4,6 +4,7 @@ import numpy as np
 import os
 import pandas as pd
 import re
+import seaborn as sns
 import spacy
 
 from collections import OrderedDict
@@ -168,6 +169,9 @@ class TextNLPAnalysis:
 
         pairwise_distances = pdist(sorted_matrix, metric='euclidean')
         distance_matrix = squareform(pairwise_distances)
+
+        sns.heatmap(distance_matrix, cmap='viridis', annot=False, fmt=".2f", square=True)
+        plt.show()
 
         df = pd.DataFrame(distance_matrix)
         df.columns = labels
