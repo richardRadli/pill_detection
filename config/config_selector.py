@@ -118,20 +118,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                                 DATA_PATH.get_data_path("logs_efficient_net_v2_contour_ogyei"),
                         },
             },
-            "hardest_negative_samples": {
-                "EfficientNetV2":
-                    {
-                        "ogyei":
-                            DATA_PATH.get_data_path("negative_efficient_net_v2_contour_ogyei"),
-                    },
-            },
-            "hardest_positive_samples": {
-                "EfficientNetV2":
-                    {
-                        "ogyei":
-                            DATA_PATH.get_data_path("positive_efficient_net_v2_contour_ogyei"),
-                    },
-            },
             "learning_rate": {
                 "EfficientNetV2":
                     cfg.learning_rate_env2_con
@@ -183,21 +169,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_efficient_net_v2_lbp_ogyei"),
                     },
             },
-            "hardest_negative_samples": {
-
-                "EfficientNetV2":
-                    {
-                        "ogyei":
-                            DATA_PATH.get_data_path("negative_efficient_net_v2_lbp_ogyei"),
-                    },
-            },
-            "hardest_positive_samples": {
-                "EfficientNetV2":
-                    {
-                        "ogyei":
-                            DATA_PATH.get_data_path("positive_efficient_net_v2_lbp_ogyei"),
-                    },
-            },
             "learning_rate": {
                 "EfficientNetV2":
                     cfg.learning_rate_env2_lbp
@@ -238,18 +209,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                 "EfficientNetV2": {
                     "ogyei":
                         DATA_PATH.get_data_path("logs_efficient_net_v2_rgb_ogyei"),
-                },
-            },
-            "hardest_negative_samples": {
-                "EfficientNetV2": {
-                    "ogyei":
-                        DATA_PATH.get_data_path("negative_efficient_net_v2_rgb_ogyei"),
-                },
-            },
-            "hardest_positive_samples": {
-                "EfficientNetV2": {
-                    "ogyei":
-                        DATA_PATH.get_data_path("positive_efficient_net_v2_rgb_ogyei"),
                 },
             },
             "learning_rate": {
@@ -293,18 +252,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                 "EfficientNetV2": {
                     "ogyei":
                         DATA_PATH.get_data_path("logs_efficient_net_v2_texture_ogyei"),
-                },
-            },
-            "hardest_negative_samples": {
-                "EfficientNetV2": {
-                    "ogyei":
-                        DATA_PATH.get_data_path("negative_efficient_net_v2_texture_ogyei"),
-                },
-            },
-            "hardest_positive_samples": {
-                "EfficientNetV2": {
-                    "ogyei":
-                        DATA_PATH.get_data_path("positive_efficient_net_v2_texture_ogyei"),
                 },
             },
             "learning_rate": {
@@ -352,58 +299,6 @@ def stream_network_config(cfg) -> Dict:
             'ref_vectors_folder': {
                 "ogyei":
                     DATA_PATH.get_data_path("reference_vectors_efficient_net_v2_ogyei"),
-            },
-            'hardest_contour_directory': {
-                "ogyei":
-                    IMAGES_PATH.get_data_path("contour_hardest_efficient_net_v2_ogyei"),
-            },
-            'hardest_lbp_directory': {
-                "ogyei":
-                    IMAGES_PATH.get_data_path("lbp_hardest_efficient_net_v2_ogyei"),
-            },
-            'hardest_rgb_directory': {
-                "ogyei":
-                    IMAGES_PATH.get_data_path("rgb_hardest_efficient_net_v2_ogyei"),
-            },
-            'hardest_texture_directory': {
-                "ogyei":
-                    IMAGES_PATH.get_data_path("texture_hardest_efficient_net_v2_ogyei"),
-            },
-            'hard_negative': {
-                "contour": {
-                    "ogyei":
-                        DATA_PATH.get_data_path("negative_efficient_net_v2_contour_ogyei"),
-                },
-                "lbp": {
-                    "ogyei":
-                        DATA_PATH.get_data_path("negative_efficient_net_v2_lbp_ogyei"),
-                },
-                "rgb": {
-                    "ogyei":
-                        DATA_PATH.get_data_path("negative_efficient_net_v2_rgb_ogyei"),
-                },
-                "texture": {
-                    "ogyei":
-                        DATA_PATH.get_data_path("negative_efficient_net_v2_texture_ogyei"),
-                },
-            },
-            'hard_positive': {
-                "contour": {
-                    "ogyei":
-                        DATA_PATH.get_data_path("positive_efficient_net_v2_contour_ogyei"),
-                },
-                "lbp": {
-                    "ogyei":
-                        DATA_PATH.get_data_path("positive_efficient_net_v2_lbp_ogyei"),
-                },
-                "rgb": {
-                    "ogyei":
-                        DATA_PATH.get_data_path("positive_efficient_net_v2_rgb_ogyei"),
-                },
-                "texture": {
-                    "ogyei":
-                        DATA_PATH.get_data_path("positive_efficient_net_v2_texture_ogyei"),
-                },
             },
         },
     }

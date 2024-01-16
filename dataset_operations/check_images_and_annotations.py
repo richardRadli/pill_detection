@@ -49,6 +49,7 @@ def read_image_to_list(dir_train_images: str) -> List[str]:
 # ----------------------------------------------------------------------------------------------------------------------
 def main():
     setup_logger()
+    resize_coeff = 3
     original_imgs_file_names = read_image_to_list(DATASET_PATH.get_data_path("ogyei_v2_single_splitted_train_images"))
     yolo_annotations = (
         read_yolo_annotations_to_list(DATASET_PATH.get_data_path("ogyei_v2_single_splitted_train_labels")))
@@ -69,7 +70,7 @@ def main():
         annotation_points = annotation_points.reshape((-1, 1, 2))
         cv2.polylines(image, [annotation_points], isClosed=True, color=(0, 255, 0), thickness=2)
 
-        cv2.imshow("", cv2.resize(image, (image.shape[1] // 2, image.shape[0] // 2)))
+        cv2.imshow("", cv2.resize(image, (image.shape[1] // resize_coeff, image.shape[0] // resize_coeff)))
         cv2.waitKey()
 
         # Print a separator line between iterations

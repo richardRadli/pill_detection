@@ -23,7 +23,6 @@ from functools import wraps
 from glob import glob
 from PIL import Image
 from sklearn.metrics import confusion_matrix
-from torch import Tensor
 from typing import List, Union
 from tqdm import tqdm
 
@@ -88,10 +87,6 @@ def numerical_sort(value: str) -> List[Union[str, int]]:
     parts = numbers.split(value)
     parts[1::2] = map(int, parts[1::2])
     return parts
-
-
-def natural_sort_key(s):
-    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
 
 # ----------------------------------------------------------------------------------------------------------------------

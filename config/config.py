@@ -70,12 +70,12 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="ogyei")
+        self.parser.add_argument("--dataset_type", type=str, default="ogyei")
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2")
-        self.parser.add_argument("--type_of_stream", type=str, default="LBP", help="Contour | LBP | RGB | Texture")
-        self.parser.add_argument("--dataset_operation", type=str, default="valid", help="train | valid | test")
+        self.parser.add_argument("--type_of_stream", type=str, choices="LBP", help="Contour | LBP | RGB | Texture")
+        self.parser.add_argument("--dataset_operation", type=str, default="valid", choices="train | valid | test")
 
-        self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | hmtl | dmtl")
+        self.parser.add_argument("--type_of_loss_func", type=str, default="tl", choices="tl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
         self.parser.add_argument("--num_triplets", type=int, default=6000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)
@@ -122,7 +122,7 @@ class ConfigFusionNetwork:
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2MultiHeadAttention",
                                  choices="EfficientNetV2MultiHeadAttention")
-        self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | hmtl | dmtl")
+        self.parser.add_argument("--type_of_loss_func", type=str, default="tl", choices="tl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_split", type=float, default=0.8)

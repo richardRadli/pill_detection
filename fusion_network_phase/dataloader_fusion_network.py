@@ -19,7 +19,7 @@ from torchvision.transforms import transforms
 from typing import Tuple
 
 from config.config import ConfigStreamNetwork
-from config.config_selector import stream_network_config, sub_stream_network_configs
+from config.config_selector import sub_stream_network_configs
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -68,34 +68,29 @@ class FusionDataset(Dataset):
         ])
 
         # Load datasets
-        selected_network_config = stream_network_config(self.cfg)
         selected_subnetwork_config = sub_stream_network_configs(self.cfg)
-        if self.cfg.type_of_loss_func == "hmtl":
-            self.contour_dataset = self.load_dataset(selected_network_config.get("hardest_contour_directory"))
-            self.lbp_dataset = self.load_dataset(selected_network_config.get("hardest_lbp_directory"))
-            self.rgb_dataset = self.load_dataset(selected_network_config.get("hardest_rgb_directory"))
-            self.texture_dataset = self.load_dataset(selected_network_config.get("hardest_lbp_directory"))
-        elif self.cfg.type_of_loss_func in ["tl", "dmtl"]:
-            network_cfg_contour = selected_subnetwork_config.get("Contour")
-            network_cfg_lpb = selected_subnetwork_config.get("LBP")
-            network_cfg_rgb = selected_subnetwork_config.get("RGB")
-            network_cfg_texture = selected_subnetwork_config.get("Texture")
-            self.contour_dataset = self.load_dataset([
-                network_cfg_contour.get("train").get(self.cfg.dataset_type),
-                network_cfg_contour.get("valid").get(self.cfg.dataset_type)
-            ])
-            self.lbp_dataset = self.load_dataset([
-                network_cfg_lpb.get("train").get(self.cfg.dataset_type),
-                network_cfg_lpb.get("valid").get(self.cfg.dataset_type)
-            ])
-            self.rgb_dataset = self.load_dataset([
-                network_cfg_rgb.get("train").get(self.cfg.dataset_type),
-                network_cfg_rgb.get("valid").get(self.cfg.dataset_type)
-            ])
-            self.texture_dataset = self.load_dataset([
-                network_cfg_texture.get("train").get(self.cfg.dataset_type),
-                network_cfg_texture.get("valid").get(self.cfg.dataset_type)
-            ])
+
+        network_cfg_contour = selected_subnetwork_config.get("Contour")
+        network_cfg_lpb = selected_subnetwork_config.get("LBP")
+        network_cfg_rgb = selected_subnetwork_config.get("RGB")
+        network_cfg_texture = selected_subnetwork_config.get("Texture")
+
+        self.contour_dataset = self.load_dataset([
+            network_cfg_contour.get("train").get(self.cfg.dataset_type),
+            network_cfg_contour.get("valid").get(self.cfg.dataset_type)
+        ])
+        self.lbp_dataset = self.load_dataset([
+            network_cfg_lpb.get("train").get(self.cfg.dataset_type),
+            network_cfg_lpb.get("valid").get(self.cfg.dataset_type)
+        ])
+        self.rgb_dataset = self.load_dataset([
+            network_cfg_rgb.get("train").get(self.cfg.dataset_type),
+            network_cfg_rgb.get("valid").get(self.cfg.dataset_type)
+        ])
+        self.texture_dataset = self.load_dataset([
+            network_cfg_texture.get("train").get(self.cfg.dataset_type),
+            network_cfg_texture.get("valid").get(self.cfg.dataset_type)
+        ])
         self.labels_set = set(label for _, label in self.rgb_dataset)
         self.prepare_labels()
 

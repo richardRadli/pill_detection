@@ -27,7 +27,6 @@ from fusion_network_models.fusion_network_selector import NetworkFactory
 from dataloader_fusion_network import FusionDataset
 from loss_functions.triplet_loss import TripletMarginLoss
 from loss_functions.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
-from loss_functions.triplet_loss_hard_mining import TripletLossWithHardMining
 from utils.utils import create_timestamp, print_network_config, use_gpu_if_available, setup_logger
 
 
@@ -118,8 +117,6 @@ class TrainFusionNet:
             self.criterion = (
                 DynamicMarginTripletLoss(euc_dist_mtx=df, upper_norm_limit=self.cfg_fusion_net.upper_norm_limit)
             )
-        elif self.cfg_fusion_net.type_of_loss_func == "hmtl":
-            self.criterion = TripletLossWithHardMining(margin=self.cfg_fusion_net.margin)
         elif self.cfg_fusion_net.type_of_loss_func == "tl":
             self.criterion = TripletMarginLoss(margin=self.cfg_fusion_net.margin)
         else:

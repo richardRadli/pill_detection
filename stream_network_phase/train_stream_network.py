@@ -8,7 +8,6 @@ Description: This code implements the training for the stream network phase.
 """
 
 import colorama
-import json
 import logging
 import numpy as np
 import os
@@ -28,7 +27,6 @@ from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network import StreamDataset
 from loss_functions.triplet_loss import TripletMarginLoss
 from loss_functions.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
-from loss_functions.triplet_loss_hard_mining import TripletLossWithHardMining
 from utils.utils import (create_timestamp, measure_execution_time, print_network_config, use_gpu_if_available,
                          setup_logger)
 
@@ -99,8 +97,6 @@ class TrainModel:
                 raise ValueError(f"Excel file at path {excel_file_path} doesn't exist")
             df = pd.read_excel(excel_file_path, sheet_name=0, index_col=0)
             self.criterion = DynamicMarginTripletLoss(euc_dist_mtx=df, upper_norm_limit=self.cfg.upper_norm_limit)
-        elif self.cfg.type_of_loss_func == "hmtl":
-            self.criterion = TripletLossWithHardMining(margin=self.cfg.margin)
         elif self.cfg.type_of_loss_func == "tl":
             self.criterion = TripletMarginLoss(margin=self.cfg.margin)
         else:
@@ -122,10 +118,6 @@ class TrainModel:
         # Create save directory for model weights
         self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))
 
-        # Hard samples paths
-        self.hardest_negative_samples_path = self.create_save_dirs(network_cfg.get('hardest_negative_samples'))
-        self.hardest_positive_samples_path = self.create_save_dirs(network_cfg.get('hardest_positive_samples'))
-
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- C R E A T E   S A V E   D I R S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -142,49 +134,6 @@ class TrainModel:
         return directory_to_create
 
     # ------------------------------------------------------------------------------------------------------------------
-    # ----------------------------------------- G E T   H A R D  S A M P L E S -----------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def get_hardest_samples(self, epoch: int, hard_neg_images: list, dictionary_name: str, op: str) -> None:
-        """
-        Saves the hardest images to a file in JSON format.
-        :param epoch: The epoch number.
-        :param hard_neg_images: A list of tensors of the hardest negative images.
-        :param dictionary_name: The directory where the output file will be saved.
-        :param op: A string representing the type of operation.
-        :return: None
-        """
-
-        file_name = os.path.join(dictionary_name, self.timestamp + "_epoch_" + str(epoch) + "_%s.txt" % op)
-
-        hardest_samples = []
-        for i, hard_neg_tensor in enumerate(hard_neg_images):
-            hardest_samples.append(hard_neg_tensor)
-
-        with open(file_name, "w") as fp:
-            json.dump(hardest_samples, fp)
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # -------------------------------------- R E C O R D   H A R D   S A M P L E S -------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def record_hard_samples(hard_samples: torch.Tensor, img_path: tuple, hard_images: list) -> list:
-        """
-        Records filenames of the hardest negative samples.
-
-        :param hard_samples: A tensor containing the hardest negative samples.
-        :param img_path: A tuple of image file paths.
-        :param hard_images: A list to store the filenames of the hardest negative samples.
-        :return: The updated list of hardest negative sample filenames.
-        """
-
-        if hard_samples is not None:
-            for filename, sample in zip(img_path, hard_samples):
-                if sample is not None:
-                    hard_images.append(filename)
-
-        return hard_images
-
-    # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------------ F I T -----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @measure_execution_time
@@ -199,10 +148,6 @@ class TrainModel:
         train_losses = []
         # to track the validation loss as the model trains
         valid_losses = []
-        # to mine the hard negative samples
-        hard_neg_images = []
-        # to mine the hard positive samples
-        hard_pos_images = []
 
         # Variables to save only the best weights and model
         best_valid_loss = float('inf')
@@ -229,11 +174,6 @@ class TrainModel:
                 # Compute triplet loss
                 if self.cfg.type_of_loss_func == "dmtl":
                     loss = self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path)
-                elif self.cfg.type_of_loss_func == "hmtl":
-                    loss, hard_neg, hard_pos = self.criterion(anchor_emb, positive_emb, negative_emb)
-                    # Collect hardest positive and negative samples
-                    hard_neg_images = self.record_hard_samples(hard_neg, negative_img_path, hard_neg_images)
-                    hard_pos_images = self.record_hard_samples(hard_pos, positive_img_path, hard_pos_images)
                 elif self.cfg.type_of_loss_func == "tl":
                     loss = self.criterion(anchor_emb, positive_emb, negative_emb)
                 else:
@@ -265,8 +205,6 @@ class TrainModel:
                     if self.cfg.type_of_loss_func == "dmtl":
                         val_loss = \
                             self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path)
-                    elif self.cfg.type_of_loss_func == "hmtl":
-                        val_loss, _, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
                     elif self.cfg.type_of_loss_func == "tl":
                         val_loss = self.criterion(anchor_emb, positive_emb, negative_emb)
                     else:
@@ -285,15 +223,9 @@ class TrainModel:
             # Log loss for epoch
             logging.info(f'train_loss: {train_loss:.5f} valid_loss: {valid_loss:.5f}')
 
-            # Loop over the hard negative tensors
-            self.get_hardest_samples(epoch, hard_neg_images, self.hardest_negative_samples_path, "negative")
-            self.get_hardest_samples(epoch, hard_pos_images, self.hardest_positive_samples_path, "positive")
-
             # Clear lists to track next epoch
             train_losses.clear()
             valid_losses.clear()
-            hard_neg_images.clear()
-            hard_pos_images.clear()
 
             # Save the model and weights
             if valid_loss < best_valid_loss:

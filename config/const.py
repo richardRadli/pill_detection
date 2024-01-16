@@ -125,17 +125,6 @@ class Images(_Const):
         "test_texture_stream_ref_ogyei":
             "images/ogyei/test/ref/texture",
 
-        # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
-        # EfficientNetV2 small
-        "contour_hardest_efficient_net_v2_ogyei":
-            "images/ogyei/hardest_samples/efficient_net_v2/contour_hardest",
-        "lbp_hardest_efficient_net_v2_ogyei":
-            "images/ogyei/hardest_samples/efficient_net_v2/lbp_hardest",
-        "rgb_hardest_efficient_net_v2_ogyei":
-            "images/ogyei/hardest_samples/efficient_net_v2/rgb_hardest",
-        "texture_hardest_efficient_net_v2_ogyei":
-            "images/ogyei/hardest_samples/efficient_net_v2/texture_hardest",
-
         # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
         "plotting_efficient_net_v2_ogyei":
             "images/ogyei/plotting/stream_net/plotting_efficient_net_v2",
@@ -249,26 +238,6 @@ class Data(_Const):
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
         "reference_vectors_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
             "data/ogyei/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_v2_multi_head_attention",
-
-        # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
-        # Hardest samples
-        # EfficientNet V2 s
-        "negative_efficient_net_v2_contour_ogyei":
-            "data/ogyei/hardest_samples/efficient_net_v2/negative/contour",
-        "positive_efficient_net_v2_contour_ogyei":
-            "data/ogyei/hardest_samples/efficient_net_v2/positive/contour",
-        "negative_efficient_net_v2_lbp_ogyei":
-            "data/ogyei/hardest_samples/efficient_net_v2/negative/lbp",
-        "positive_efficient_net_v2_lbp_ogyei":
-            "data/ogyei/hardest_samples/efficient_net_v2/positive/lbp",
-        "negative_efficient_net_v2_rgb_ogyei":
-            "data/ogyei/hardest_samples/efficient_net_v2/negative/rgb",
-        "positive_efficient_net_v2_rgb_ogyei":
-            "data/ogyei/hardest_samples/efficient_net_v2/positive/rgb",
-        "negative_efficient_net_v2_texture_ogyei":
-            "data/ogyei/hardest_samples/efficient_net_v2/negative/texture",
-        "positive_efficient_net_v2_texture_ogyei":
-            "data/ogyei/hardest_samples/efficient_net_v2/positive/texture"
     }
 
     def __init__(self):
