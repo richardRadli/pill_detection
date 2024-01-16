@@ -1,16 +1,19 @@
 import logging
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
+import re
 import spacy
 
-from scipy.spatial.distance import pdist, squareform
 from collections import OrderedDict
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
+from scipy.spatial.distance import pdist, squareform
+from sklearn.manifold import TSNE
+from sklearn.cluster import KMeans
 
-from config.const import NLP_DATA_PATH
-from nlp_utils import four_word_label, label_cleaning
+from config.config_selector import nlp_configs
 from utils.utils import create_timestamp, measure_execution_time, setup_logger
 
 
@@ -20,7 +23,12 @@ class TextNLPAnalysis:
 
     @staticmethod
     def load_data():
-        directory_path = NLP_DATA_PATH.get_data_path("full_sentence_csv")
+        """
+
+        :return:
+        """
+
+        directory_path = nlp_configs().get("full_sentence_csv")
         files = [os.path.join(directory_path, filename) for filename in os.listdir(directory_path)]
         latest_file = max(files, key=os.path.getmtime)
 
@@ -30,7 +38,44 @@ class TextNLPAnalysis:
                             on_bad_lines="warn"))
 
     @staticmethod
+    def four_word_label(text):
+        """
+
+        :param text:
+        :return:
+        """
+
+        splitted_label = []
+        for label in text:
+            split = label.split(' ')
+            first_four_element = split[:3]
+            first_four_element_string = ' '.join([str(elem) for elem in first_four_element])
+            splitted_label.append(first_four_element_string)
+        return splitted_label
+
+    @staticmethod
+    def label_cleaning(data, label: str):
+        """
+
+        :param data:
+        :param label:
+        :return:
+        """
+
+        clean_labels = []
+        for label in data[label]:
+            clean_label = re.sub(r'\W+', ' ', label).strip()
+            clean_labels.append(clean_label)
+        return clean_labels
+
+    @staticmethod
     def split_labels_to_words(list_of_labels):
+        """
+
+        :param list_of_labels:
+        :return:
+        """
+
         stopwords = []
         for label in list_of_labels:
             words = label.split()
@@ -39,6 +84,15 @@ class TextNLPAnalysis:
 
     @measure_execution_time
     def sentence_cleaning(self, data, custom_stopwords, custom_stopwords_2, nlp):
+        """
+
+        :param data:
+        :param custom_stopwords:
+        :param custom_stopwords_2:
+        :param nlp:
+        :return:
+        """
+
         clean_sentences = []
         for sentence in data['text']:
             sentence = sentence.strip()
@@ -49,6 +103,14 @@ class TextNLPAnalysis:
 
     @staticmethod
     def token_cleaning(doc, custom_stopwords, custom_stopwords_2):
+        """
+
+        :param doc:
+        :param custom_stopwords:
+        :param custom_stopwords_2:
+        :return:
+        """
+
         clean_tokens = []
         for i, token in enumerate(doc):
             if i < 5:
@@ -61,6 +123,13 @@ class TextNLPAnalysis:
 
     @staticmethod
     def calculate_similarity(clean_sentences, cleaned_example):
+        """
+
+        :param clean_sentences:
+        :param cleaned_example:
+        :return:
+        """
+
         scores = []
         nlp = spacy.load("hu_core_news_lg")
         for sentence in clean_sentences:
@@ -71,10 +140,23 @@ class TextNLPAnalysis:
 
     @measure_execution_time
     def vectorization(self, clean_sentences, nlp):
+        """
+
+        :param clean_sentences:
+        :param nlp:
+        :return:
+        """
+
         return np.array([nlp(sentence).vector for sentence in clean_sentences])
 
-    @staticmethod
-    def create_matrix(list_of_labels, matrix):
+    def create_matrix(self, list_of_labels, matrix):
+        """
+
+        :param list_of_labels:
+        :param matrix:
+        :return:
+        """
+
         dict_words = {}
 
         for i, matrix_values in enumerate(matrix):
@@ -95,15 +177,60 @@ class TextNLPAnalysis:
 
         for r in dataframe_to_rows(df, header=True, index=True):
             ws.append(r)
-            ws.delete_rows(2)
-            ws.freeze_panes = ws["B2"]
+        ws.delete_rows(2)
+        ws.freeze_panes = ws["B2"]
+
+        # Iterate over all columns and adjust their widths
+        for column in ws.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(cell.value)
+                except:
+                    pass
+            adjusted_width = (max_length + 2) * 1.2
+            ws.column_dimensions[column_letter].width = adjusted_width
+
+        file_name = os.path.join(nlp_configs().get("vector_distances"), self.timestamp+"_vector_distances.xlsx")
+        wb.save(file_name)
+
+    @staticmethod
+    def visualization(kmeans_model, new_values, list_of_labels):
+        """
+
+        :param kmeans_model:
+        :param new_values:
+        :param list_of_labels:
+        :return:
+        """
+
+        x = []
+        y = []
+        for value in new_values:
+            x.append(value[0])
+            y.append(value[1])
+
+        colors = ['red', 'blue', 'green', 'orange', 'purple', 'gray', 'brown']
+
+        plt.figure(figsize=(16, 16))
+        for i in range(len(x)):
+            plt.scatter(x[i], y[i], color=colors[kmeans_model.labels_[i]])
+            plt.annotate(list_of_labels[i], xy=(x[i], y[i]), xytext=(5, 2), textcoords='offset points', ha='right',
+                         va='bottom')
+        plt.show()
 
     def main(self):
+        """
+
+        :return:
+        """
+
         setup_logger()
 
         try:
             nlp = spacy.load("hu_core_news_lg")
-            logging.info("huspacy is already downloaded.")
         except OSError:
             logging.info("huspacy is not downloaded. Downloading...")
             spacy.cli.download('huspacy')
@@ -111,8 +238,8 @@ class TextNLPAnalysis:
 
         data = self.load_data()
 
-        data['clean_label'] = label_cleaning(data, 'label')
-        list_of_labels = four_word_label(data['clean_label'])
+        data['clean_label'] = self.label_cleaning(data, 'label')
+        list_of_labels = self.four_word_label(data['clean_label'])
 
         custom_stopwords = ['küllem']
         custom_stopwords_2 = ['oldal', 'mindkét']
@@ -121,12 +248,29 @@ class TextNLPAnalysis:
 
         vectors = self.vectorization(clean_sentences, nlp)
 
-        word_vector_save_path = os.path.join(NLP_DATA_PATH.get_data_path("nlp_vector"), self.timestamp)
+        word_vector_save_path = os.path.join(nlp_configs().get("nlp_vector"), self.timestamp)
         os.makedirs(word_vector_save_path, exist_ok=True)
 
         np.save(os.path.join(word_vector_save_path, "word_vectors.npy"),
-                {'vectors': vectors, 'clean_sentences': clean_sentences,
-                 'list_of_labels': list_of_labels, 'data': data})
+                {'vectors': vectors,
+                 'clean_sentences': clean_sentences,
+                 'list_of_labels': list_of_labels,
+                 'data': data}
+                )
+
+        num_clusters = 3
+        random_seed = 23
+        np.random.seed(random_seed)
+
+        kmeans_model = KMeans(n_clusters=num_clusters, random_state=random_seed, n_init=10)
+        kmeans_model.fit(vectors)
+
+        tsne_model = TSNE(perplexity=25, n_components=2, init='pca', n_iter=5000, random_state=random_seed)
+        new_values = tsne_model.fit_transform(vectors)
+
+        self.create_matrix(list_of_labels, new_values)
+
+        self.visualization(kmeans_model, new_values, list_of_labels)
 
 
 if __name__ == '__main__':

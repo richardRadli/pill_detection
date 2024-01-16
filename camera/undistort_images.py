@@ -4,7 +4,7 @@ Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Apr 12, 2023
 
-Description: The program takes a directory of test images as input, undistorts the images using camera calibration data,
+Description: The program takes a directory of images as input, undistorts the images using camera calibration data,
 and saves the undistorted images to an output directory. It performs the undistortion process using multithreading for
 faster processing.
 """

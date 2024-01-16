@@ -15,7 +15,7 @@ import shutil
 from tqdm import tqdm
 
 from config.config import ConfigStreamNetwork
-from config.network_configs import stream_network_config, sub_stream_network_configs
+from config.config_selector import stream_network_config, sub_stream_network_configs
 from utils.utils import find_latest_file_in_latest_directory, setup_logger
 
 

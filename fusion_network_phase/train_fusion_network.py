@@ -22,7 +22,7 @@ from torchsummary import summary
 
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.const import NLP_DATA_PATH
-from config.network_configs import sub_stream_network_configs, fusion_network_config
+from config.config_selector import sub_stream_network_configs, fusion_network_config
 from fusion_network_models.fusion_network_selector import NetworkFactory
 from dataloader_fusion_network import FusionDataset
 from loss_functions.triplet_loss import TripletMarginLoss

@@ -15,7 +15,9 @@ from glob import glob
 from time import perf_counter
 from tqdm import tqdm
 
-from utils.utils import setup_logger
+from config.config import CameraAndCalibrationConfig
+from config.config_selector import camera_config
+from utils.utils import find_latest_subdir, setup_logger
 
 np.set_printoptions(precision=6, suppress=True)
 
@@ -32,12 +34,13 @@ class CameraCalibration:
         Parameters
         -----------
         undist_needed: :class:`bool`
-            undistortion needed or not
+            undistortion either needed or not
         """
 
         setup_logger()
+        self.cam_cfg = CameraAndCalibrationConfig().parse()
 
-        self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 25, 0.001)
+        self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, self.cam_cfg.square_size, 0.001)
         self.matrix = np.empty([3, 3])
         self.undst_matrix = np.empty([3, 3])
         self.dist_coeff = np.empty([1, 5])
@@ -46,21 +49,20 @@ class CameraCalibration:
         self.trs_vecs = None
         self.obj_pts = []
         self.img_pts = []
-        self.chs_col = 7
-        self.chs_row = 6
+        self.chs_col = self.cam_cfg.chs_col
+        self.chs_row = self.cam_cfg.chs_row
         self.img_size = None
         self.orig_imgs = []
 
         self.timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-        root_dir = "C:/Projects/IVM_gyogyszer"
-        undistorted_images = os.path.join(root_dir, "calibration/2023-07-04")
+        source_images = find_latest_subdir(camera_config().get("calibration_images"))
 
-        self.orig_img_list = sorted(glob(f'{undistorted_images}/*.jpg'))
-        self.undist_path = os.path.join(root_dir, "images/undist/")
+        self.orig_img_list = sorted(glob(f'{source_images}/*.jpg') + glob(f'{source_images}/*.png'))
+        self.undist_path = os.path.join(camera_config().get("undistorted_images"), self.timestamp)
         os.makedirs(self.undist_path, exist_ok=True)
 
-        self.save_data_path = os.path.join(root_dir, "camera_data/")
+        self.save_data_path = os.path.join(camera_config().get("camera_matrix"), self.timestamp)
         os.makedirs(self.save_data_path, exist_ok=True)
 
         self.undist_needed = undist_needed
@@ -102,7 +104,7 @@ class CameraCalibration:
     # ---------------------------------------------------------------------------------------------------------------- #
     # ---------------------------------------------- C A L I B R A T I O N ------------------------------------------- #
     # ---------------------------------------------------------------------------------------------------------------- #
-    def calibration(self):
+    def calibration(self) -> None:
         """
         Calculates the intrinsic camera matrix and the distortion coefficient.
         """
@@ -134,9 +136,13 @@ class CameraCalibration:
         self.obj_pts = [objp] * len(self.img_pts)
 
         logging.info('------C A L I B R A T I O N   S T A R T E D-----')
-        rms, self.matrix, self.dist_coeff, self.rot_vecs, self.trs_vecs = cv2.calibrateCamera(self.obj_pts,
-                                                                                              self.img_pts,
-                                                                                              self.img_size, None, None)
+        rms, self.matrix, self.dist_coeff, self.rot_vecs, self.trs_vecs = (
+            cv2.calibrateCamera(objectPoints=self.obj_pts,
+                                imagePoints=self.img_pts,
+                                imageSize=self.img_size,
+                                cameraMatrix=None,
+                                distCoeffs=None)
+        )
 
         logging.info(f'Root mean square error\n{rms}')
         logging.info(f'Camera matrix\n{self.matrix}')
@@ -144,76 +150,10 @@ class CameraCalibration:
         logging.info('-----C A L I B R A T I O N   F I N I S H E D-----')
 
     # ---------------------------------------------------------------------------------------------------------------- #
-    # ------------------------------- G E N E R A T E   N E W   C A M E R A   M A T R I X ---------------------------- #
-    # ---------------------------------------------------------------------------------------------------------------- #
-    def generate_new_camera_matrix(self, error_threshold: int = 0.2):
-        """Calculates the undistorted camera matrix and the region of interest for undistorted images.
-        Parameters
-        -----------
-        error_threshold: :class:`int`
-            The threshold which above the program halts.
-        Raises
-        -------
-        ``AssertionError`` if calibration error is over the given error_threshold value.
-        """
-
-        logging.info('----- O B T A I N I N G   N E W   C A M E R A   M A T R I X-----')
-
-        name, img = self.orig_imgs[0]
-        h, w = img.shape[:2]
-        self.undst_matrix, self.roi = cv2.getOptimalNewCameraMatrix(self.matrix, self.dist_coeff, (w, h), 1,
-                                                                    (w, h))
-
-        logging.info('New camera matrix')
-        logging.info(str(self.undst_matrix))
-        self.undistort_and_save(name, img, self.matrix, self.dist_coeff, self.undst_matrix, self.roi, self.undist_path)
-
-        mean_error = 0
-        for i in range(len(self.obj_pts)):
-            img_points2, _ = cv2.projectPoints(self.obj_pts[i], self.rot_vecs[i], self.trs_vecs[i], self.matrix,
-                                               self.dist_coeff)
-            error = cv2.norm(self.img_pts[i], img_points2, cv2.NORM_L2) / len(img_points2)
-            mean_error += error
-        total_err = mean_error / len(self.obj_pts)
-        logging.info(f'Total error: {total_err}')
-
-        assert total_err < error_threshold, 'Camera calibration error too high!'
-        path = os.path.join(self.save_data_path, self.timestamp + "_undistorted_cam_mtx.npy")
-        np.save(path, {'matrix': self.matrix, 'dist_coeff': self.dist_coeff, 'undst_matrix': self.undst_matrix,
-                       'roi': self.roi})
-
-    # ---------------------------------------------------------------------------------------------------------------- #
-    # ----------------------------------------- U N D I S T O R T   I M A G E S -------------------------------------- #
-    # ---------------------------------------------------------------------------------------------------------------- #
-    def undistort_images(self):
-        """
-        Undistorts every image used during calibration and saves them in the appropriate folder.
-        """
-
-        start = perf_counter()
-
-        with ThreadPoolExecutor() as executor:
-            futures = []
-            for name, img in self.orig_imgs[1:]:
-                futures.append(executor.submit(self.undistort_and_save, name, img, self.matrix, self.dist_coeff,
-                                               self.undst_matrix, self.roi, self.undist_path))
-
-        logging.info(f'Undistortion time: {perf_counter() - start} s')
-
-    # ---------------------------------------------------------------------------------------------------------------- #
-    # ----------------------------------------------------- M A I N -------------------------------------------------- #
-    # ---------------------------------------------------------------------------------------------------------------- #
-    def main(self):
-        self.calibration()
-        self.generate_new_camera_matrix()
-        if self.undist_needed:
-            self.undistort_images()
-
-    # ---------------------------------------------------------------------------------------------------------------- #
     # --------------------------------------- U N D I S T O R T   A N D   S A V E ------------------------------------ #
     # ---------------------------------------------------------------------------------------------------------------- #
     @staticmethod
-    def undistort_and_save(name: str, image, matrix, dist_coeff, undst_matrix, roi, undst_path: str):
+    def undistort_and_save(name: str, image, matrix, dist_coeff, undst_matrix, roi, undst_path: str) -> None:
         """Undistorts the image using the required parameters before saving.
 
         Parameters
@@ -240,10 +180,76 @@ class CameraCalibration:
         path = os.path.join(undst_path, os.path.basename(name))
         cv2.imwrite(path, image, [int(cv2.IMWRITE_PNG_COMPRESSION), 3])
 
+    # ---------------------------------------------------------------------------------------------------------------- #
+    # ------------------------------- G E N E R A T E   N E W   C A M E R A   M A T R I X ---------------------------- #
+    # ---------------------------------------------------------------------------------------------------------------- #
+    def generate_new_camera_matrix(self) -> None:
+        """Calculates the undistorted camera matrix and the region of interest for undistorted images.
+        Raises
+        -------
+        ``AssertionError`` if calibration error is over the given error_threshold value.
+        """
+
+        logging.info('----- O B T A I N I N G   N E W   C A M E R A   M A T R I X-----')
+
+        name, img = self.orig_imgs[0]
+        h, w = img.shape[:2]
+        self.undst_matrix, self.roi = cv2.getOptimalNewCameraMatrix(self.matrix, self.dist_coeff, (w, h), 1, (w, h))
+
+        logging.info('New camera matrix')
+        logging.info(str(self.undst_matrix))
+        self.undistort_and_save(name, img, self.matrix, self.dist_coeff, self.undst_matrix, self.roi, self.undist_path)
+
+        mean_error = 0
+        for i in range(len(self.obj_pts)):
+            img_points2, _ = cv2.projectPoints(self.obj_pts[i], self.rot_vecs[i], self.trs_vecs[i], self.matrix,
+                                               self.dist_coeff)
+            error = cv2.norm(self.img_pts[i], img_points2, cv2.NORM_L2) / len(img_points2)
+            mean_error += error
+        total_err = mean_error / len(self.obj_pts)
+        logging.info(f'Total error: {total_err}')
+
+        assert total_err < self.cam_cfg.error_threshold, 'Camera calibration error too high!'
+        path = os.path.join(self.save_data_path, "undistorted_cam_mtx.npy")
+        np.save(path, {'matrix': self.matrix,
+                       'dist_coeff': self.dist_coeff,
+                       'undst_matrix': self.undst_matrix,
+                       'roi': self.roi})
+
+    # ---------------------------------------------------------------------------------------------------------------- #
+    # ----------------------------------------- U N D I S T O R T   I M A G E S -------------------------------------- #
+    # ---------------------------------------------------------------------------------------------------------------- #
+    def undistort_images(self) -> None:
+        """
+        Undistorts every image used during calibration and saves them in the appropriate folder.
+        """
+
+        start = perf_counter()
+
+        with ThreadPoolExecutor() as executor:
+            futures = []
+            for name, img in self.orig_imgs[1:]:
+                futures.append(executor.submit(self.undistort_and_save, name, img, self.matrix, self.dist_coeff,
+                                               self.undst_matrix, self.roi, self.undist_path))
+
+        logging.info(f'Undistortion time: {perf_counter() - start} s')
+
+    # ---------------------------------------------------------------------------------------------------------------- #
+    # ----------------------------------------------------- M A I N -------------------------------------------------- #
+    # ---------------------------------------------------------------------------------------------------------------- #
+    def main(self):
+        self.calibration()
+        self.generate_new_camera_matrix()
+        if self.undist_needed:
+            self.undistort_images()
+
 
 # ------------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------------- _ _ M A I N _ _ ------------------------------------------------- #
 # ------------------------------------------------------------------------------------------------------------------- #
 if __name__ == '__main__':
-    cal = CameraCalibration(undist_needed=True)
-    cal.main()
+    try:
+        cal = CameraCalibration(undist_needed=True)
+        cal.main()
+    except KeyboardInterrupt as kie:
+        logging.error(f"{kie}")

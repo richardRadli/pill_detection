@@ -23,7 +23,7 @@ from torchsummary import summary
 
 from config.config import ConfigStreamNetwork
 from config.const import NLP_DATA_PATH
-from config.network_configs import sub_stream_network_configs
+from config.config_selector import sub_stream_network_configs
 from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network import StreamDataset
 from loss_functions.triplet_loss import TripletMarginLoss

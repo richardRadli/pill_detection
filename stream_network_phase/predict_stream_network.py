@@ -20,7 +20,7 @@ from typing import List, Tuple
 from PIL import Image
 
 from config.config import ConfigStreamNetwork
-from config.network_configs import sub_stream_network_configs, stream_network_config
+from config.config_selector import sub_stream_network_configs, stream_network_config
 from stream_network_models.stream_network_selector import NetworkFactory
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, \
     plot_ref_query_images, use_gpu_if_available, setup_logger

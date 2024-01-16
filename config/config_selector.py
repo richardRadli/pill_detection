@@ -1,5 +1,5 @@
 """
-File: network_configs.py
+File: config_selector.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Jul 10, 2023
@@ -12,7 +12,58 @@ import logging
 
 from typing import Dict
 
-from config.const import DATA_PATH, DATASET_PATH, IMAGES_PATH
+from config.const import DATA_PATH, DATASET_PATH, IMAGES_PATH, NLP_DATA_PATH
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------- C A M E R A   C O N F I G --------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def camera_config() -> Dict:
+    cam_config = {
+        "calibration_images":
+            IMAGES_PATH.get_data_path("calibration_images"),
+        "camera_matrix":
+            DATA_PATH.get_data_path("camera_matrix"),
+        "pill_names":
+            DATA_PATH.get_data_path("pill_names"),
+        "pill_images":
+            IMAGES_PATH.get_data_path("pill_images"),
+        "camera_settings":
+            DATA_PATH.get_data_path("camera_settings"),
+        "undistorted_images":
+            IMAGES_PATH.get_data_path("undistorted_images")
+    }
+    return cam_config
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------- C A M E R A   C O N F I G --------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def nlp_configs() -> Dict:
+    nlp_config = {
+        "pill_names":
+            NLP_DATA_PATH.get_data_path("pill_names"),
+        "full_sentence_csv":
+            NLP_DATA_PATH.get_data_path("full_sentence_csv"),
+        "vector_distances":
+            NLP_DATA_PATH.get_data_path("vector_distances"),
+        "nlp_vector":
+            NLP_DATA_PATH.get_data_path("nlp_vector"),
+        "word_vector_vis":
+            NLP_DATA_PATH.get_data_path("word_vector_vis"),
+        "elbow":
+            NLP_DATA_PATH.get_data_path("elbow"),
+        "silhouette":
+            NLP_DATA_PATH.get_data_path("silhouette"),
+        "patient_information_leaflet_doc":
+            NLP_DATA_PATH.get_data_path("patient_information_leaflet_doc"),
+        "patient_information_leaflet_docx":
+            NLP_DATA_PATH.get_data_path("patient_information_leaflet_docx"),
+        "extracted_features_files":
+            NLP_DATA_PATH.get_data_path("extracted_features_files")
+    }
+
+    return nlp_config
 
 
 # ----------------------------------------------------------------------------------------------------------------------

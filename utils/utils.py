@@ -320,3 +320,21 @@ def find_latest_file_in_directory(path: str, extension: str) -> str:
     files = glob(os.path.join(path, "*.%s" % extension))
     latest_file = max(files, key=os.path.getctime)
     return latest_file
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------- F I N D   L A T E S T   S U B D ------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def find_latest_subdir(directory):
+    # Get a list of all subdirectories in the given directory
+    subdirs = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
+
+    # Check if there are any subdirectories
+    if not subdirs:
+        print(f"No subdirectories found in {directory}.")
+        return None
+
+    # Find the latest subdirectory based on the last modification time
+    latest_subdir = max(subdirs, key=lambda d: os.path.getmtime(os.path.join(directory, d)))
+
+    return os.path.join(directory, latest_subdir)
