@@ -17,7 +17,7 @@ import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 
-from config.network_configs import camera_config
+from config.config_selector import camera_config
 from utils.utils import find_latest_file_in_latest_directory
 
 

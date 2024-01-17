@@ -24,7 +24,7 @@ from typing import Tuple
 
 from config.config import ConfigStreamNetwork
 from config.const import IMAGES_PATH
-from config.network_configs import dataset_images_path_selector, sub_stream_network_configs
+from config.config_selector import dataset_images_path_selector, sub_stream_network_configs
 from utils.utils import measure_execution_time, setup_logger, numerical_sort
 
 

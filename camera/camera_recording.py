@@ -10,7 +10,7 @@ from tkinter import OptionMenu
 from typing import Dict
 
 from config.config import CameraAndCalibrationConfig
-from config.network_configs import camera_config
+from config.config_selector import camera_config
 from utils.utils import find_latest_file_in_directory
 
 

@@ -16,7 +16,7 @@ from time import perf_counter
 from tqdm import tqdm
 
 from config.config import CameraAndCalibrationConfig
-from config.network_configs import camera_config
+from config.config_selector import camera_config
 from utils.utils import find_latest_subdir, setup_logger
 
 np.set_printoptions(precision=6, suppress=True)

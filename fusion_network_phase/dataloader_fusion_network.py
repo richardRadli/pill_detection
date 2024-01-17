@@ -19,7 +19,7 @@ from torchvision.transforms import transforms
 from typing import Tuple
 
 from config.config import ConfigStreamNetwork
-from config.network_configs import stream_network_config, sub_stream_network_configs
+from config.config_selector import stream_network_config, sub_stream_network_configs
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

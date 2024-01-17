@@ -21,14 +21,14 @@ from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
-from config.const import NLP_DATA_PATH
-from config.network_configs import sub_stream_network_configs, fusion_network_config
+from config.config_selector import nlp_configs
+from config.config_selector import sub_stream_network_configs, fusion_network_config
 from fusion_network_models.fusion_network_selector import NetworkFactory
 from dataloader_fusion_network import FusionDataset
 from loss_functions.triplet_loss import TripletMarginLoss
 from loss_functions.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
-from loss_functions.triplet_loss_hard_mining import TripletLossWithHardMining
-from utils.utils import create_timestamp, print_network_config, use_gpu_if_available, setup_logger
+from utils.utils import (create_timestamp, find_latest_file_in_directory, print_network_config, use_gpu_if_available,
+                         setup_logger)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -109,17 +109,13 @@ class TrainFusionNet:
 
         # Specify loss function
         if self.cfg_fusion_net.type_of_loss_func == "dmtl":
-            excel_file_path = (
-                os.path.join(NLP_DATA_PATH.get_data_path("vector_distances"),
-                             os.listdir(NLP_DATA_PATH.get_data_path("vector_distances"))[0]))
+            excel_file_path = find_latest_file_in_directory(nlp_configs().get("vector_distances"), "xlsx")
             if not os.path.exists(excel_file_path):
                 raise ValueError(f"Excel file at path {excel_file_path} doesn't exist")
             df = pd.read_excel(excel_file_path, sheet_name=0, index_col=0)
             self.criterion = (
                 DynamicMarginTripletLoss(euc_dist_mtx=df, upper_norm_limit=self.cfg_fusion_net.upper_norm_limit)
             )
-        elif self.cfg_fusion_net.type_of_loss_func == "hmtl":
-            self.criterion = TripletLossWithHardMining(margin=self.cfg_fusion_net.margin)
         elif self.cfg_fusion_net.type_of_loss_func == "tl":
             self.criterion = TripletMarginLoss(margin=self.cfg_fusion_net.margin)
         else:
@@ -195,9 +191,13 @@ class TrainFusionNet:
 
                 # Compute triplet loss
                 if self.cfg_fusion_net.type_of_loss_func == "dmtl":
-                    t_loss = self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path)
+                    t_loss = (
+                        self.criterion(anchor_emb, positive_emb, negative_emb, positive_img_path, negative_img_path)
+                    )
                 elif self.cfg_fusion_net.type_of_loss_func == "tl":
-                    t_loss = self.criterion(anchor_emb, positive_emb, negative_emb)
+                    t_loss = (
+                        self.criterion(anchor_emb, positive_emb, negative_emb)
+                    )
                 else:
                     raise ValueError(f"Wrong type of loss function {self.cfg_fusion_net.type_of_loss_func}")
 

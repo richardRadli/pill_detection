@@ -9,7 +9,7 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 from yellowbrick.cluster import SilhouetteVisualizer
 
-from config.const import NLP_DATA_PATH
+from config.config_selector import nlp_configs
 from text_nlp_analysis import TextNLPAnalysis
 from utils.utils import create_timestamp,  setup_logger
 
@@ -19,20 +19,20 @@ class WordVectorVisualisation:
         setup_logger()
         timestamp = create_timestamp()
 
-        self.word_vector_plot_path = os.path.join(NLP_DATA_PATH.get_data_path("word_vector_vis"), timestamp)
+        self.word_vector_plot_path = os.path.join(nlp_configs().get("word_vector_vis"), timestamp)
         os.makedirs(self.word_vector_plot_path, exist_ok=True)
 
-        self.elbow_path = os.path.join(NLP_DATA_PATH.get_data_path("elbow"), timestamp)
+        self.elbow_path = os.path.join(nlp_configs().get("elbow"), timestamp)
         os.makedirs(self.elbow_path, exist_ok=True)
 
-        self.silhouette_path = os.path.join(NLP_DATA_PATH.get_data_path("silhouette"), timestamp)
+        self.silhouette_path = os.path.join(nlp_configs().get("silhouette"), timestamp)
         os.makedirs(self.silhouette_path, exist_ok=True)
 
         self.text_nlp_analysis = TextNLPAnalysis()
 
     @staticmethod
     def load_vector():
-        directory_path = NLP_DATA_PATH.get_data_path("nlp_vector")
+        directory_path = nlp_configs().get("nlp_vector")
         files = [os.path.join(directory_path, filename) for filename in os.listdir(directory_path)]
         latest_file = max(files, key=os.path.getmtime)
 

@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 
 from config.config import CameraAndCalibrationConfig
-from config.network_configs import camera_config
+from config.config_selector import camera_config
 from utils.utils import setup_logger
 
 

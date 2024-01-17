@@ -22,15 +22,15 @@ from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config.config import ConfigStreamNetwork
-from config.const import NLP_DATA_PATH
-from config.network_configs import sub_stream_network_configs
+from config.config_selector import nlp_configs
+from config.config_selector import sub_stream_network_configs
 from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network import StreamDataset
 from loss_functions.triplet_loss import TripletMarginLoss
 from loss_functions.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
 from loss_functions.triplet_loss_hard_mining import TripletLossWithHardMining
-from utils.utils import (create_timestamp, measure_execution_time, print_network_config, use_gpu_if_available,
-                         setup_logger)
+from utils.utils import (create_timestamp, find_latest_file_in_directory, measure_execution_time, print_network_config,
+                         use_gpu_if_available, setup_logger)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -92,9 +92,7 @@ class TrainModel:
 
         # Specify loss function
         if self.cfg.type_of_loss_func == "dmtl":
-            excel_file_path = (
-                os.path.join(NLP_DATA_PATH.get_data_path("vector_distances"),
-                             os.listdir(NLP_DATA_PATH.get_data_path("vector_distances"))[0]))
+            excel_file_path = find_latest_file_in_directory(nlp_configs().get("vector_distances"), "xlsx")
             if not os.path.exists(excel_file_path):
                 raise ValueError(f"Excel file at path {excel_file_path} doesn't exist")
             df = pd.read_excel(excel_file_path, sheet_name=0, index_col=0)
