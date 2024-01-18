@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyefd
 import os
+import openpyxl
 
 from scipy.spatial.distance import directed_hausdorff, euclidean, pdist, squareform
 
@@ -197,9 +198,45 @@ class FourierDescriptor:
                 print(f"{fne}")
 
 
+def get_excel_values(path):
+    workbook = openpyxl.load_workbook(path)
+    sheet = workbook['Sheet1']
+
+    shape_dict = {}
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        ndc11 = row[0]
+        shape = row[5]
+
+        if shape in shape_dict:
+            shape_dict[shape].append(ndc11)
+        else:
+            shape_dict[shape] = [ndc11]
+
+    workbook.close()
+
+    for shape, ndc11_list in shape_dict.items():
+        print(f"Shape: {shape}")
+        print("NDC11 values:")
+        for ndc11 in ndc11_list:
+            if len(str(ndc11)) != 11:
+                num_zeros = 11 - len(str(ndc11))
+                ndc11 = "0" * num_zeros + str(ndc11)
+                src_dir = os.path.join("C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/ref", str(ndc11))
+                dst_dir = os.path.join("C:/Users/ricsi/Desktop/Fourier_desc/collected_images_by_shape_nih", shape)
+                try:
+                    files = os.listdir(src_dir)[0]
+                    src_file = os.path.join(src_dir, files)
+                    print(src_file)
+                except FileNotFoundError:
+                    print("File not found")
+        print()
+
+
 if __name__ == "__main__":
     try:
-        fd = FourierDescriptor(load=True, order=5)
-        fd.main()
+        # fd = FourierDescriptor(load=True, order=5)
+        # fd.main()
+        path = "C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/xlsxl/ref.xlsx"
+        get_excel_values(path)
     except KeyboardInterrupt:
         print("Ctrl+C pressed")
