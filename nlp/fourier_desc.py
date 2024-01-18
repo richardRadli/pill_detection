@@ -1,12 +1,15 @@
+import colorama
 import cv2
 import gc
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+import shutil
 import pyefd
 import os
 import openpyxl
 
+from tqdm import tqdm
 from scipy.spatial.distance import directed_hausdorff, euclidean, pdist, squareform
 
 
@@ -18,14 +21,51 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 class FourierDescriptor:
-    def __init__(self, load, order):
+    def __init__(self, copy_images, load, order):
         self.order = order
+        self.copy_images = copy_images
         self.load = load
         self.file_path = "C:/Users/ricsi/Desktop/Fourier_desc/collected_images_by_shape_nih"
         self.json_filename = f"C:/Users/ricsi/Desktop/Fourier_desc/average_{self.order}.json"
         self.query_image_path = \
             ("C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/ref/"
-             "00002322930/W9WJ5DVPKN8-DARNMB53SKVF8PU!2N.JPG")
+             "50111044102/PD2!F0B-JD24Z07!XT8XOB-J3N_KR4.JPG")
+        self.excel_path = "C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/xlsxl/ref.xlsx"
+
+        colorama.init()
+
+    def get_excel_values(self):
+        workbook = openpyxl.load_workbook(self.excel_path)
+        sheet = workbook['Sheet1']
+
+        shape_dict = {}
+
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            ndc11 = row[0]
+            shape = row[5]
+
+            if shape in shape_dict:
+                shape_dict[shape].append(ndc11)
+            else:
+                shape_dict[shape] = [ndc11]
+
+        workbook.close()
+
+        for shape, ndc11_list in tqdm(shape_dict.items(), desc=colorama.Fore.GREEN + "Processing Shapes"):
+            print(f"Shape: {shape}")
+            for ndc11 in ndc11_list:
+                if len(str(ndc11)) != 11:
+                    num_zeros = 11 - len(str(ndc11))
+                    ndc11 = "0" * num_zeros + str(ndc11)
+                src_dir = os.path.join("C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/ref", str(ndc11))
+                try:
+                    files = os.listdir(src_dir)[0]
+                    src_file = os.path.join(src_dir, files)
+                    dst_dir = os.path.join(self.file_path, shape)
+                    os.makedirs(dst_dir, exist_ok=True)
+                    shutil.copy(src_file, dst_dir)
+                except FileNotFoundError:
+                    print(f"File not found: {src_file}")
 
     @staticmethod
     def plot_efd(filename, coeffs, locus=(0.0, 0.0), image=None, contour=None, n=300):
@@ -159,15 +199,18 @@ class FourierDescriptor:
         print(f"\nThe closest class to the query image is: {closest_class}")
 
     def main(self):
+        if self.copy_images:
+            self.get_excel_values()
+
         if not self.load:
             class_averages = {}
 
             for root, dirs, files in os.walk(self.file_path):
-                for class_label in dirs:
+                for class_label in tqdm(dirs, desc=colorama.Fore.BLUE + "Processing classes"):
                     class_coefficients = []
 
                     class_path = os.path.join(root, class_label)
-                    for file in os.listdir(class_path):
+                    for file in tqdm(os.listdir(class_path), desc=colorama.Fore.YELLOW + "Processing vectors"):
                         image_path = os.path.join(class_path, file)
                         image_original = cv2.imread(image_path, 1)
                         try:
@@ -198,45 +241,9 @@ class FourierDescriptor:
                 print(f"{fne}")
 
 
-def get_excel_values(path):
-    workbook = openpyxl.load_workbook(path)
-    sheet = workbook['Sheet1']
-
-    shape_dict = {}
-    for row in sheet.iter_rows(min_row=2, values_only=True):
-        ndc11 = row[0]
-        shape = row[5]
-
-        if shape in shape_dict:
-            shape_dict[shape].append(ndc11)
-        else:
-            shape_dict[shape] = [ndc11]
-
-    workbook.close()
-
-    for shape, ndc11_list in shape_dict.items():
-        print(f"Shape: {shape}")
-        print("NDC11 values:")
-        for ndc11 in ndc11_list:
-            if len(str(ndc11)) != 11:
-                num_zeros = 11 - len(str(ndc11))
-                ndc11 = "0" * num_zeros + str(ndc11)
-                src_dir = os.path.join("C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/ref", str(ndc11))
-                dst_dir = os.path.join("C:/Users/ricsi/Desktop/Fourier_desc/collected_images_by_shape_nih", shape)
-                try:
-                    files = os.listdir(src_dir)[0]
-                    src_file = os.path.join(src_dir, files)
-                    print(src_file)
-                except FileNotFoundError:
-                    print("File not found")
-        print()
-
-
 if __name__ == "__main__":
     try:
-        # fd = FourierDescriptor(load=True, order=5)
-        # fd.main()
-        path = "C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/xlsxl/ref.xlsx"
-        get_excel_values(path)
+        fd = FourierDescriptor(copy_images=True, load=False, order=5)
+        fd.main()
     except KeyboardInterrupt:
         print("Ctrl+C pressed")
