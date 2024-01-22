@@ -9,13 +9,15 @@ import pyefd
 import os
 import openpyxl
 
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from datetime import datetime
 from glob import glob
 from tqdm import tqdm
 from scipy.spatial.distance import directed_hausdorff, pdist, squareform, cosine
 from sklearn.decomposition import PCA
 
-from utils.utils import find_latest_file_in_directory, measure_execution_time
+from config.config_selector import Fourier_configs, dataset_images_path_selector
+from utils.utils import find_latest_file_in_directory
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -34,21 +36,12 @@ class FourierDescriptor:
         self.copy_images = copy_images
         self.load = load
 
-        self.images_dir = "C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/ref"
-
-        self.file_path = "C:/Users/ricsi/Desktop/Fourier_desc/collected_images_by_shape_nih"
-        os.makedirs(self.file_path, exist_ok=True)
-
-        self.plot_efd_dir = "C:/Users/ricsi/Desktop/Fourier_desc/fourier/"
-        os.makedirs(self.plot_efd_dir, exist_ok=True)
-
-        self.plot_euc_dir = "C:/Users/ricsi/Desktop/Fourier_desc/euclidean_distance/"
-        os.makedirs(self.plot_euc_dir, exist_ok=True)
-
-        self.json_dir = f"C:/Users/ricsi/Desktop/Fourier_desc/json_file/"
-        os.makedirs(self.json_dir, exist_ok=True)
-
-        self.excel_path = "C:/Users/ricsi/Documents/project/storage/IVM/datasets/nih/xlsxl/ref.xlsx"
+        self.images_dir = dataset_images_path_selector().get("nih").get("ref")
+        self.file_path = Fourier_configs().get("Fourier_collected_images_by_shape_nih")
+        self.plot_efd_dir = Fourier_configs().get("Fourier_plot_shape")
+        self.plot_euc_dir = Fourier_configs().get("Fourier_euclidean_distance")
+        self.json_dir = Fourier_configs().get("Fourier_saved_mean_vectors")
+        self.excel_path = os.path.join(dataset_images_path_selector().get("nih").get("xlsx"), "ref.xlsx")
 
     @staticmethod
     def create_timestamp() -> str:
@@ -176,73 +169,43 @@ class FourierDescriptor:
         pill_mask[labels == second_largest_index] = 255
 
         return cv2.bitwise_and(image, image, mask=pill_mask)
-        # sobel_x = cv2.Sobel(image, cv2.CV_16S, 1, 0, ksize=3)
-        # sobel_y = cv2.Sobel(image, cv2.CV_16S, 0, 1, ksize=3)
-        # edge_map = cv2.add(np.abs(sobel_x), np.abs(sobel_y))
-        #
-        # dilated_edge_map = cv2.dilate(edge_map, kernel=np.ones((7, 7), np.uint8), iterations=10)
-        # dilated_edge_map = dilated_edge_map.astype(np.uint8)
-        # nb_components, output, stats, centroids = cv2.connectedComponentsWithStats(dilated_edge_map)
-        #
-        # sizes = stats[:, -1]
-        # bg = np.argmax(sizes, axis=0)
-        #
-        # if bg == 0:
-        #     max_label = 1
-        #     max_size = sizes[1]
-        # else:
-        #     max_label = 0
-        #     max_size = sizes[0]
-        #
-        # for i in range(1, nb_components):
-        #     if (sizes[i] > max_size) and (i != bg):
-        #         max_label = i
-        #         max_size = sizes[i]
-        #
-        # img2 = np.zeros(output.shape, dtype=np.uint8)
-        #
-        # img2[output == max_label] = 255
-        #
-        # num_of_operations = 9
-        # img2 = cv2.blur(img2, (7, 7), 0) * num_of_operations
-        #
-        # _, bw = cv2.threshold(img2, 50, 255, cv2.THRESH_BINARY)
-        #
-        # return bw
 
-    def elliptic_fourier(self, image: np.ndarray, segmented_image: np.ndarray, normalize: bool, filename: str = None):
+    @staticmethod
+    def get_largest_contour(segmented_image: np.ndarray):
+        contours, _ = cv2.findContours(segmented_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        largest_contour = max(contours, key=cv2.contourArea)
+        return np.squeeze(largest_contour)
+
+    def elliptic_fourier_wo_norm(self, image: np.ndarray, segmented_image: np.ndarray, filename: str = None):
         """
         Compute elliptic Fourier descriptors for the largest contour in the segmented image.
 
         :param image: Original image.
         :param segmented_image: Segmented image.
-        :param normalize: Flag indicating whether to normalize coefficients.
         :param filename: Name of the file for plot (optional).
         :return: Optional
         """
 
-        contours, _ = cv2.findContours(segmented_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        largest_contour = max(contours, key=cv2.contourArea)
-        largest_contour = np.squeeze(largest_contour)
+        largest_contour = self.get_largest_contour(segmented_image)
+        number_of_points = largest_contour.shape[0]
+        locus = pyefd.calculate_dc_coefficients(largest_contour)
+        coefficients = pyefd.elliptic_fourier_descriptors(largest_contour, order=self.order, normalize=False)
 
-        if normalize:
-            coefficients = pyefd.elliptic_fourier_descriptors(largest_contour, order=self.order, normalize=True)
-            np.testing.assert_almost_equal(coefficients[0, 0], 1.0, decimal=14)
-            np.testing.assert_almost_equal(coefficients[0, 1], 0.0, decimal=14)
-            np.testing.assert_almost_equal(coefficients[0, 2], 0.0, decimal=14)
-            return coefficients.flatten()[3:]
-        else:
-            number_of_points = largest_contour.shape[0]
-            locus = pyefd.calculate_dc_coefficients(largest_contour)
-            coefficients = pyefd.elliptic_fourier_descriptors(largest_contour, order=self.order, normalize=False)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        rotated_image = cv2.transpose(image)
+        self.plot_efd(filename, coefficients, locus, rotated_image, largest_contour)
 
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            rotated_image = cv2.transpose(image)
-            self.plot_efd(filename, coefficients, locus, rotated_image, largest_contour)
+        reconstruction = pyefd.reconstruct_contour(coefficients, locus, number_of_points)
+        hausdorff_distance, _, _ = directed_hausdorff(reconstruction, largest_contour)
+        print(hausdorff_distance)
 
-            reconstruction = pyefd.reconstruct_contour(coefficients, locus, number_of_points)
-            hausdorff_distance, _, _ = directed_hausdorff(reconstruction, largest_contour)
-            print(hausdorff_distance)
+    def elliptic_fourier_w_norm(self, segmented_image: np.ndarray):
+        largest_contour = self.get_largest_contour(segmented_image)
+        coefficients = pyefd.elliptic_fourier_descriptors(largest_contour, order=self.order, normalize=True)
+        np.testing.assert_almost_equal(coefficients[0, 0], 1.0, decimal=14)
+        np.testing.assert_almost_equal(coefficients[0, 1], 0.0, decimal=14)
+        np.testing.assert_almost_equal(coefficients[0, 2], 0.0, decimal=14)
+        return coefficients.flatten()[3:]
 
     def plot_euclidean_distances(self, class_averages: dict) -> None:
         """
@@ -278,11 +241,11 @@ class FourierDescriptor:
     @staticmethod
     def calculate_distance(vector1: list, vector2: list) -> float:
         """
-        Calculate the Euclidean distance between two vectors.
+        Calculate the Cosine distance between two vectors.
 
         :param vector1: First vector.
         :param vector2: Second vector.
-        :return: Euclidean distance between the two vectors.
+        :return: Cosine distance between the two vectors.
         """
 
         return cosine(vector1, vector2)
@@ -301,9 +264,7 @@ class FourierDescriptor:
             new_image_original = cv2.imread(image_path, 1)
             new_image = cv2.cvtColor(new_image_original, cv2.COLOR_BGR2GRAY)
             new_segmented_image = self.preprocess_image(new_image)
-            new_fourier_descriptor = self.elliptic_fourier(image=new_image_original,
-                                                           segmented_image=new_segmented_image,
-                                                           normalize=True)
+            new_fourier_descriptor = self.elliptic_fourier_w_norm(segmented_image=new_segmented_image)
 
             closest_class = None
             min_distance = float('inf')
@@ -320,7 +281,8 @@ class FourierDescriptor:
             sheet = workbook['Sheet1']
             original_shape = []
 
-            query_ndc11 = image_path.split("\\")[0].split("/")[-1]
+            image_path = image_path.replace("\\", "/")
+            query_ndc11 = image_path.split("/")[-2]
 
             for row in sheet.iter_rows(min_row=2, values_only=True):
                 ndc11 = row[0]
@@ -388,7 +350,13 @@ class FourierDescriptor:
             class_averages = json.load(json_file)
         return class_averages
 
-    @measure_execution_time
+    def execute_comparison(self, class_averages, image_path, cnt, label_counts):
+        hit_cnt, original, predicted = self.compare_distances(class_averages, image_path)
+        cnt += hit_cnt
+        if predicted == original:
+            label_counts[original] = label_counts.get(original, 0) + 1
+        return cnt
+
     def main(self) -> None:
         """
 
@@ -405,17 +373,14 @@ class FourierDescriptor:
                 for class_label in tqdm(dirs, desc=colorama.Fore.BLUE + "Processing classes"):
                     class_coefficients = []
 
-                    class_path = os.path.join(root, class_label)
+                    class_path = str(os.path.join(root, class_label))
                     for file in tqdm(os.listdir(class_path), desc=colorama.Fore.YELLOW + "Processing vectors"):
                         image_path = os.path.join(class_path, file)
                         image_original = cv2.imread(image_path, 1)
                         try:
                             image = cv2.cvtColor(image_original, cv2.COLOR_BGR2GRAY)
                             segmented_image = self.preprocess_image(image)
-                            norm_fourier_coeff = self.elliptic_fourier(image=image_original,
-                                                                       segmented_image=segmented_image,
-                                                                       normalize=True,
-                                                                       filename=file)
+                            norm_fourier_coeff = self.elliptic_fourier_w_norm(segmented_image=segmented_image)
                             class_coefficients.append(norm_fourier_coeff)
                         except Exception as e:
                             print(f"{e}, Could not open{image_path}")
@@ -429,23 +394,26 @@ class FourierDescriptor:
         else:
             try:
                 class_averages = self.load_json()
-                self.plot_vectors(class_averages)
-
                 classes = os.listdir(self.images_dir)
                 cnt = 0
                 class_labels = list(class_averages.keys())
                 label_counts = {key: 0 for key in class_labels}
 
-                for clas in tqdm(classes):
-                    image_paths = sorted(glob(self.images_dir + f"/{clas}/" + "*"))
-                    for idx, image_path in enumerate(image_paths):
-                        if idx == 1:
-                            hit_cnt, original, predicted = self.compare_distances(class_averages, image_path)
-                            cnt += hit_cnt
-                            if predicted == original:
-                                label_counts[original] = label_counts.get(original, 0) + 1
+                self.plot_vectors(class_averages)
 
-                print(colorama.Fore.WHITE + "Hit ratio: ", cnt/len(classes))
+                with ProcessPoolExecutor(max_workers=4) as executor:
+                    features = []
+                    for clas in classes:
+                        image_paths = sorted(glob(self.images_dir + f"/{clas}/" + "*"))
+                        for idx, image_path in enumerate(image_paths):
+                            if idx == 1:
+                                future = executor.submit(
+                                    self.execute_comparison, class_averages, image_path, cnt, label_counts
+                                )
+                                features.append(future)
+                    cnt = sum(future.result() for future in features)
+
+                print(colorama.Fore.WHITE + "Hit ratio: ", cnt / len(classes))
                 for label, count in label_counts.items():
                     print(f'"{label}": {count}')
 

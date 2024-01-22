@@ -276,6 +276,14 @@ class Images(_Const):
             "images/aug/images_aug",
         "wo_background":
             "images/aug/wo_background",
+
+        # ----------------------------------------------- F O U R I E R ------------------------------------------------
+        "Fourier_collected_images_by_shape_nih":
+            "images/Fourier_desc/collected_images_by_shape_nih",
+        "Fourier_euclidean_distance":
+            "images/Fourier_desc/euclidean_distance",
+        "Fourier_plot_shape":
+            "images/Fourier_desc/plot_shape",
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -301,6 +309,9 @@ class Data(_Const):
         # k-fold directory names
         "k_folds":
             "data/other/k_folds",
+
+        "Fourier_saved_mean_vectors":
+            "data/Fourier_desc/saved_mean_vectors",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
@@ -646,6 +657,14 @@ class Datasets(_Const):
             "tray/tray_images_aug_w_med",
         "tray_images_aug_w_med_aug":
             "tray/tray_images_aug_w_med_aug",
+
+        # N I H
+        "nih_ref_images":
+            "nih/ref",
+        "nih_query_images":
+            "nih/query",
+        "nih_xlsx":
+            "nih/xlsx"
     }
 
     # ------------------------------------------------------------------------------------------------------------------

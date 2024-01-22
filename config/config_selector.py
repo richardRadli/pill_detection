@@ -45,6 +45,21 @@ def nlp_configs() -> Dict:
     return nlp_config
 
 
+def Fourier_configs():
+    Fourier_paths = {
+        "Fourier_collected_images_by_shape_nih":
+            IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_nih"),
+        "Fourier_euclidean_distance":
+            IMAGES_PATH.get_data_path("Fourier_euclidean_distance"),
+        "Fourier_plot_shape":
+            IMAGES_PATH.get_data_path("Fourier_plot_shape"),
+        "Fourier_saved_mean_vectors":
+            DATA_PATH.get_data_path("Fourier_saved_mean_vectors")
+    }
+
+    return Fourier_paths
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------- S U B N E T W O R K   C O N F I G S   T R A I N I N G -------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -1004,7 +1019,10 @@ def dataset_images_path_selector():
             "test": {
                 "images": DATASET_PATH.get_data_path(""),
                 "masks": IMAGES_PATH.get_data_path(""),
-            }
+            },
+            "ref": DATASET_PATH.get_data_path("nih_ref_images"),
+            "query": DATASET_PATH.get_data_path("nih_query_images"),
+            "xlsx": DATASET_PATH.get_data_path("nih_xlsx")
         }
     }
 
