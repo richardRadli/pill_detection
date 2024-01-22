@@ -11,8 +11,11 @@ import openpyxl
 
 from datetime import datetime
 from glob import glob
+
+from skimage.color import rgb2lab
 from tqdm import tqdm
-from scipy.spatial.distance import directed_hausdorff, euclidean, pdist, squareform
+from scipy.spatial.distance import directed_hausdorff, pdist, squareform, cosine
+from sklearn.decomposition import PCA
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -84,9 +87,9 @@ class FourierDescriptor:
         for shape, ndc11_list in tqdm(shape_dict.items(), desc=colorama.Fore.GREEN + "Processing Shapes"):
             print(f"Shape: {shape}")
             for ndc11 in ndc11_list:
-                ndc11 = self.extend_ndc11_number(ndc11)
+                ndc11 = self.extend_ndc11_number(ndc11, excel_operation=True)
                 src_dir = os.path.join(self.images_dir, str(ndc11))
-                src_file = None
+
                 try:
                     files = os.listdir(src_dir)[0]
                     src_file = os.path.join(src_dir, files)
@@ -160,22 +163,39 @@ class FourierDescriptor:
         :return: Preprocessed image.
         """
 
-        sobel_x = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
-        sobel_y = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
+        sobel_x = cv2.Sobel(image, cv2.CV_16S, 1, 0, ksize=3)
+        sobel_y = cv2.Sobel(image, cv2.CV_16S, 0, 1, ksize=3)
         edge_map = cv2.add(np.abs(sobel_x), np.abs(sobel_y))
 
-        _, thresholded_edge_map = cv2.threshold(edge_map, 10, 255, cv2.THRESH_BINARY)
-        dilated_edge_map = cv2.dilate(thresholded_edge_map, kernel=np.ones((5, 5), np.uint8), iterations=1)
+        dilated_edge_map = cv2.dilate(edge_map, kernel=np.ones((7, 7), np.uint8), iterations=10)
         dilated_edge_map = dilated_edge_map.astype(np.uint8)
-        _, labels, stats, centroids = cv2.connectedComponentsWithStats(dilated_edge_map)
+        nb_components, output, stats, centroids = cv2.connectedComponentsWithStats(dilated_edge_map)
 
-        sorted_indices = np.argsort(stats[:, 4])[::-1]
-        second_largest_index = sorted_indices[1]
+        sizes = stats[:, -1]
+        bg = np.argmax(sizes, axis=0)
 
-        pill_mask = np.zeros_like(dilated_edge_map)
-        pill_mask[labels == second_largest_index] = 255
+        if bg == 0:
+            max_label = 1
+            max_size = sizes[1]
+        else:
+            max_label = 0
+            max_size = sizes[0]
 
-        return cv2.bitwise_and(image, image, mask=pill_mask)
+        for i in range(1, nb_components):
+            if (sizes[i] > max_size) and (i != bg):
+                max_label = i
+                max_size = sizes[i]
+
+        img2 = np.zeros(output.shape, dtype=np.uint8)
+
+        img2[output == max_label] = 255
+
+        num_of_operations = 9
+        img2 = cv2.blur(img2, (7, 7), 0) * num_of_operations
+
+        _, bw = cv2.threshold(img2, 50, 255, cv2.THRESH_BINARY)
+
+        return bw
 
     def elliptic_fourier(self, image: np.ndarray, segmented_image: np.ndarray, normalize: bool, filename: str = None):
         """
@@ -197,7 +217,7 @@ class FourierDescriptor:
             np.testing.assert_almost_equal(coefficients[0, 0], 1.0, decimal=14)
             np.testing.assert_almost_equal(coefficients[0, 1], 0.0, decimal=14)
             np.testing.assert_almost_equal(coefficients[0, 2], 0.0, decimal=14)
-            return coefficients.flatten()[3:]
+            return coefficients.flatten()
         else:
             number_of_points = largest_contour.shape[0]
             locus = pyefd.calculate_dc_coefficients(largest_contour)
@@ -252,27 +272,29 @@ class FourierDescriptor:
         :return: Euclidean distance between the two vectors.
         """
 
-        return euclidean(vector1, vector2)
+        return cosine(vector1, vector2)
 
     @staticmethod
-    def extend_ndc11_number(ndc11_id):
+    def extend_ndc11_number(ndc11_id, excel_operation: bool):
         """
         Extend an NDC11 number by adding leading zeros if needed.
 
         :param ndc11_id: NDC11 number to extend.
+        :param excel_operation:
         :return: Extended NDC11 number as a string.
         """
 
         ndc11_id = str(ndc11_id)
 
-        if ndc11_id.endswith('_1'):
-            ndc11_id = int(ndc11_id[:-2])
-        elif ndc11_id.endswith('_2'):
-            ndc11_id = int(ndc11_id[:-2])
-        else:
-            ndc11_id = ndc11_id
+        if not excel_operation:
+            if ndc11_id.endswith('_1'):
+                ndc11_id = int(ndc11_id[:-2])
+            elif ndc11_id.endswith('_2'):
+                ndc11_id = int(ndc11_id[:-2])
+            else:
+                ndc11_id = ndc11_id
 
-        if len(str(ndc11_id)) != 11:
+        if len(str(ndc11_id)) < 11:
             num_zeros = 11 - len(str(ndc11_id))
             ndc11_id = "0" * num_zeros + str(ndc11_id)
 
@@ -283,11 +305,12 @@ class FourierDescriptor:
         Compare the Fourier descriptor of a new image with class averages and print the closest match.
 
         :param class_averages: Dictionary mapping class labels to class averages.
+        :param image_path:
         :return: None
         """
+        hit = 0
+
         if image_path.endswith('.JPG'):
-            hit = 0
-            miss_hit = 0
             new_image_original = cv2.imread(image_path, 1)
             new_image = cv2.cvtColor(new_image_original, cv2.COLOR_BGR2GRAY)
             new_segmented_image = self.preprocess_image(new_image)
@@ -311,22 +334,52 @@ class FourierDescriptor:
             original_shape = []
 
             query_ndc11 = image_path.split("\\")[0].split("/")[-1]
-            query_ndc11 = self.extend_ndc11_number(query_ndc11)
+            query_ndc11 = self.extend_ndc11_number(query_ndc11, excel_operation=False)
 
             for row in sheet.iter_rows(min_row=2, values_only=True):
                 ndc11 = row[0]
                 shape = row[5]
 
-                ndc11 = self.extend_ndc11_number(ndc11)
+                ndc11 = self.extend_ndc11_number(ndc11, excel_operation=False)
                 if query_ndc11 == ndc11:
                     original_shape.append(shape)
 
             if original_shape[0] == closest_class:
                 print(colorama.Fore.LIGHTGREEN_EX +
                       f"The predicted shape {closest_class} matches the original shape {original_shape[0]}")
+                hit += 1
             else:
                 print(colorama.Fore.LIGHTRED_EX +
                       f"The predicted shape {closest_class} does not match the original shape {original_shape[0]}")
+
+            return hit
+
+    @staticmethod
+    def plot_vectors(class_averages):
+        classes = list(class_averages.keys())
+        vectors = list(class_averages.values())
+
+        pca = PCA(n_components=3)
+        reduced_vectors = pca.fit_transform(vectors)
+
+        plt.figure(figsize=(10, 8))
+        ax = plt.axes(projection='3d')
+        ax.scatter(reduced_vectors[:, 0], reduced_vectors[:, 1], reduced_vectors[:, 2],
+                   c=range(len(classes)),
+                   s=80,
+                   marker='o',
+                   cmap="viridis",
+                   alpha=0.7)
+        ax.set_zlim3d(-1, 1)
+
+        for i, label in enumerate(classes):
+            ax.text(reduced_vectors[i, 0], reduced_vectors[i, 1], reduced_vectors[i, 2] + 0.02,
+                    label, ha='center', va='center')
+
+        plt.title('Point Cloud After Dimensionality Reduction')
+        plt.xlabel('Dimension 1')
+        plt.ylabel('Dimension 2')
+        plt.show()
 
     def save_json(self, class_averages: dict) -> None:
         """
@@ -349,6 +402,49 @@ class FourierDescriptor:
         with open(self.json_filename, "r") as json_file:
             class_averages = json.load(json_file)
         return class_averages
+
+    @staticmethod
+    def asd():
+        def create_lab_word_vectors(word_colors):
+            lab_word_vectors = {}
+            for word, rgb_color in word_colors.items():
+                lab_color = rgb2lab(np.array([[rgb_color]]))[0][0]
+                normalized_lab_color = (lab_color + [0, 128, 128]) / [100, 255, 255]
+                lab_word_vectors[word] = normalized_lab_color
+            return lab_word_vectors
+
+        word_colors = {
+            "black": [0, 0, 0],
+            "blue": [0, 0, 255],
+            "brown": [150, 75, 0],
+            "gray": [128, 128, 128],
+            "green": [0, 255, 0],
+            "orange": [255, 165, 0],
+            "pink": [255, 193, 203],
+            "purple": [160, 24, 240],
+            "red": [255, 0, 0],
+            "turquoise": [48, 213, 200],
+            "white": [255, 255, 255],
+            "yellow": [255, 255, 0],
+        }
+
+        lab_word_vectors = create_lab_word_vectors(word_colors)
+
+        lab_values = np.array(list(lab_word_vectors.values()))
+        rgb_values = np.array(list(word_colors.values()))
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(lab_values[:, 0], lab_values[:, 1], lab_values[:, 2], c=rgb_values / 255, marker='o')
+
+        ax.set_xlabel('L')
+        ax.set_ylabel('a')
+        ax.set_zlabel('b')
+
+        for word, lab_value in lab_word_vectors.items():
+            ax.text(lab_value[0], lab_value[1], lab_value[2], word)
+
+        plt.show()
 
     def main(self) -> None:
         """
@@ -390,14 +486,18 @@ class FourierDescriptor:
         else:
             try:
                 class_averages = self.load_json()
+                self.plot_vectors(class_averages)
                 classes = os.listdir(self.images_dir)
+                cnt = 0
                 for clas in classes:
                     image_paths = sorted(glob(self.images_dir + f"/{clas}/" + "*"))
                     for idx, image_path in enumerate(image_paths):
                         if idx == 1:
                             self.query_image_path = image_path
-                            self.compare_distances(class_averages, self.query_image_path)
+                            hit_cnt = self.compare_distances(class_averages, self.query_image_path)
+                            cnt += hit_cnt
 
+                print(cnt)
             except FileNotFoundError as fne:
                 print(f"{fne}")
 

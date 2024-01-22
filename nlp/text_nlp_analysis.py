@@ -21,6 +21,10 @@ from utils.utils import create_timestamp, measure_execution_time, setup_logger
 class TextNLPAnalysis:
     def __init__(self):
         self.timestamp = create_timestamp()
+        self.word_vector_save_path = os.path.join(nlp_configs().get("nlp_vector"), self.timestamp)
+        os.makedirs(self.word_vector_save_path, exist_ok=True)
+        self.num_clusters = 3
+        self.random_seed = 23
 
     @staticmethod
     def load_data():
@@ -121,23 +125,6 @@ class TextNLPAnalysis:
                 clean_tokens.append(token.lemma_)
         cleaned_sentence = ' '.join(clean_tokens)
         return cleaned_sentence
-
-    @staticmethod
-    def calculate_similarity(clean_sentences, cleaned_example):
-        """
-
-        :param clean_sentences:
-        :param cleaned_example:
-        :return:
-        """
-
-        scores = []
-        nlp = spacy.load("hu_core_news_lg")
-        for sentence in clean_sentences:
-            doc = nlp(sentence)
-            similarity = doc.similarity(nlp(cleaned_example))
-            scores.append(similarity)
-        return scores
 
     @measure_execution_time
     def vectorization(self, clean_sentences, nlp):
@@ -252,28 +239,19 @@ class TextNLPAnalysis:
 
         vectors = self.vectorization(clean_sentences, nlp)
 
-        word_vector_save_path = os.path.join(nlp_configs().get("nlp_vector"), self.timestamp)
-        os.makedirs(word_vector_save_path, exist_ok=True)
-
-        np.save(os.path.join(word_vector_save_path, "word_vectors.npy"),
+        np.save(os.path.join(self.word_vector_save_path, "word_vectors.npy"),
                 {'vectors': vectors,
                  'clean_sentences': clean_sentences,
                  'list_of_labels': list_of_labels,
                  'data': data}
                 )
 
-        num_clusters = 3
-        random_seed = 23
-        np.random.seed(random_seed)
-
-        kmeans_model = KMeans(n_clusters=num_clusters, random_state=random_seed, n_init=10)
-        kmeans_model.fit(vectors)
-
-        tsne_model = TSNE(perplexity=25, n_components=2, init='pca', n_iter=5000, random_state=random_seed)
+        tsne_model = TSNE(perplexity=25, n_components=2, init='pca', n_iter=5000, random_state=self.random_seed)
         new_values = tsne_model.fit_transform(vectors)
-
         self.create_matrix(list_of_labels, new_values)
 
+        kmeans_model = KMeans(n_clusters=self.num_clusters, random_state=self.random_seed, n_init=10)
+        kmeans_model.fit(vectors)
         self.visualization(kmeans_model, new_values, list_of_labels)
 
 

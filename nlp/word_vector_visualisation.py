@@ -38,6 +38,23 @@ class WordVectorVisualisation:
 
         return np.load(os.path.join(latest_file, os.listdir(latest_file)[0]), allow_pickle=True)
 
+    @staticmethod
+    def calculate_similarity(clean_sentences, cleaned_example):
+        """
+
+        :param clean_sentences:
+        :param cleaned_example:
+        :return:
+        """
+
+        scores = []
+        nlp = spacy.load("hu_core_news_lg")
+        for sentence in clean_sentences:
+            doc = nlp(sentence)
+            similarity = doc.similarity(nlp(cleaned_example))
+            scores.append(similarity)
+        return scores
+
     def visualization_example(self, clean_sentences, list_of_labels, data, vectors, num_clusters: int = 3,
                               random_seed: int = 23):
         nlp = spacy.load("hu_core_news_lg")
@@ -49,7 +66,7 @@ class WordVectorVisualisation:
 
         cleaned_example = self.text_nlp_analysis.token_cleaning(doc, custom_stopwords, custom_stopwords_2)
 
-        scores = self.text_nlp_analysis.calculate_similarity(clean_sentences, cleaned_example)
+        scores = self.calculate_similarity(clean_sentences, cleaned_example)
         indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:5]
         dataframe = self.print_scores(example, indices, list_of_labels, data, scores)
         logging.info(dataframe)
