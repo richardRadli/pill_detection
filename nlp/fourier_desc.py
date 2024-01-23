@@ -9,15 +9,15 @@ import pyefd
 import os
 import openpyxl
 
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from datetime import datetime
+from concurrent.futures import ProcessPoolExecutor
 from glob import glob
+from multiprocessing import Manager
 from tqdm import tqdm
 from scipy.spatial.distance import directed_hausdorff, pdist, squareform, cosine
 from sklearn.decomposition import PCA
 
 from config.config_selector import Fourier_configs, dataset_images_path_selector
-from utils.utils import find_latest_file_in_directory
+from utils.utils import create_timestamp, find_latest_file_in_directory, measure_execution_time
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -29,7 +29,7 @@ class NumpyEncoder(json.JSONEncoder):
 
 class FourierDescriptor:
     def __init__(self, copy_images, load, order):
-        self.timestamp = self.create_timestamp()
+        self.timestamp = create_timestamp()
         colorama.init()
 
         self.order = order
@@ -42,16 +42,6 @@ class FourierDescriptor:
         self.plot_euc_dir = Fourier_configs().get("Fourier_euclidean_distance")
         self.json_dir = Fourier_configs().get("Fourier_saved_mean_vectors")
         self.excel_path = os.path.join(dataset_images_path_selector().get("nih").get("xlsx"), "ref.xlsx")
-
-    @staticmethod
-    def create_timestamp() -> str:
-        """
-        Creates a timestamp in the format of '%Y-%m-%d_%H-%M-%S', representing the current date and time.
-
-        :return: The timestamp string.
-        """
-
-        return datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
     def get_excel_values(self) -> None:
         """
@@ -350,13 +340,23 @@ class FourierDescriptor:
             class_averages = json.load(json_file)
         return class_averages
 
-    def execute_comparison(self, class_averages, image_path, cnt, label_counts):
+    def execute_comparison(self, class_averages: dict, image_path: str, cnt: int, label_counts: dict):
+        """
+
+        :param class_averages:
+        :param image_path:
+        :param cnt:
+        :param label_counts:
+        :return:
+        """
+
         hit_cnt, original, predicted = self.compare_distances(class_averages, image_path)
         cnt += hit_cnt
         if predicted == original:
-            label_counts[original] = label_counts.get(original, 0) + 1
-        return cnt
+            label_counts[original] += 1
+        return cnt, None
 
+    @measure_execution_time
     def main(self) -> None:
         """
 
@@ -397,11 +397,11 @@ class FourierDescriptor:
                 classes = os.listdir(self.images_dir)
                 cnt = 0
                 class_labels = list(class_averages.keys())
-                label_counts = {key: 0 for key in class_labels}
+                label_counts = Manager().dict({key: 0 for key in class_labels})
 
-                self.plot_vectors(class_averages)
+                # self.plot_vectors(class_averages)
 
-                with ProcessPoolExecutor(max_workers=4) as executor:
+                with ProcessPoolExecutor(max_workers=8) as executor:
                     features = []
                     for clas in classes:
                         image_paths = sorted(glob(self.images_dir + f"/{clas}/" + "*"))
@@ -411,11 +411,15 @@ class FourierDescriptor:
                                     self.execute_comparison, class_averages, image_path, cnt, label_counts
                                 )
                                 features.append(future)
-                    cnt = sum(future.result() for future in features)
 
-                print(colorama.Fore.WHITE + "Hit ratio: ", cnt / len(classes))
-                for label, count in label_counts.items():
-                    print(f'"{label}": {count}')
+                    for future in features:
+                        result_cnt, result_label_counts = future.result()
+                        cnt += result_cnt
+
+                    print(colorama.Fore.WHITE + "Hit ratio: ", cnt / len(classes))
+
+                    for key, value in label_counts.items():
+                        print(f"{key}: {value}")
 
             except FileNotFoundError as fne:
                 print(f"{fne}")
@@ -423,7 +427,7 @@ class FourierDescriptor:
 
 if __name__ == "__main__":
     try:
-        fd = FourierDescriptor(copy_images=False, load=True, order=10)
+        fd = FourierDescriptor(copy_images=False, load=False, order=15)
         fd.main()
     except KeyboardInterrupt:
         print("Ctrl+C pressed")
