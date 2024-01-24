@@ -162,6 +162,12 @@ class FourierDescriptor:
 
     @staticmethod
     def get_largest_contour(segmented_image: np.ndarray):
+        """
+
+        :param segmented_image:
+        :return:
+        """
+
         contours, _ = cv2.findContours(segmented_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         largest_contour = max(contours, key=cv2.contourArea)
         return np.squeeze(largest_contour)
@@ -190,6 +196,12 @@ class FourierDescriptor:
         print(hausdorff_distance)
 
     def elliptic_fourier_w_norm(self, segmented_image: np.ndarray):
+        """
+
+        :param segmented_image:
+        :return:
+        """
+
         largest_contour = self.get_largest_contour(segmented_image)
         coefficients = pyefd.elliptic_fourier_descriptors(largest_contour, order=self.order, normalize=True)
         np.testing.assert_almost_equal(coefficients[0, 0], 1.0, decimal=14)
@@ -248,6 +260,7 @@ class FourierDescriptor:
         :param image_path:
         :return: None
         """
+
         hit = 0
 
         if image_path.endswith('.JPG'):
@@ -261,7 +274,6 @@ class FourierDescriptor:
 
             for class_label, class_vector in class_averages.items():
                 distance = self.calculate_distance(new_fourier_descriptor, class_vector)
-                # print(f"Distance to {class_label}: {distance}")
 
                 if distance < min_distance:
                     min_distance = distance
@@ -292,6 +304,12 @@ class FourierDescriptor:
 
     @staticmethod
     def plot_vectors(class_averages):
+        """
+
+        :param class_averages:
+        :return:
+        """
+
         classes = list(class_averages.keys())
         vectors = list(class_averages.values())
 
@@ -324,6 +342,7 @@ class FourierDescriptor:
         :param class_averages: Dictionary mapping class labels to class averages.
         :return: None
         """
+
         file_name = os.path.join(self.json_dir, f"{self.timestamp}_average-vectors_order_{self.order}.json")
         with open(file_name, "w") as json_file:
             json.dump(class_averages, json_file, cls=NumpyEncoder)
@@ -354,7 +373,7 @@ class FourierDescriptor:
         cnt += hit_cnt
         if predicted == original:
             label_counts[original] += 1
-        return cnt, None
+        return cnt
 
     @measure_execution_time
     def main(self) -> None:
@@ -390,16 +409,16 @@ class FourierDescriptor:
                         class_averages[class_label] = class_average
 
             self.plot_euclidean_distances(class_averages)
+            self.plot_vectors(class_averages)
             self.save_json(class_averages)
         else:
             try:
                 class_averages = self.load_json()
+                self.plot_vectors(class_averages)
                 classes = os.listdir(self.images_dir)
                 cnt = 0
                 class_labels = list(class_averages.keys())
                 label_counts = Manager().dict({key: 0 for key in class_labels})
-
-                # self.plot_vectors(class_averages)
 
                 with ProcessPoolExecutor(max_workers=8) as executor:
                     features = []
@@ -413,7 +432,7 @@ class FourierDescriptor:
                                 features.append(future)
 
                     for future in features:
-                        result_cnt, result_label_counts = future.result()
+                        result_cnt = future.result()
                         cnt += result_cnt
 
                     print(colorama.Fore.WHITE + "Hit ratio: ", cnt / len(classes))
@@ -427,7 +446,7 @@ class FourierDescriptor:
 
 if __name__ == "__main__":
     try:
-        fd = FourierDescriptor(copy_images=False, load=False, order=15)
+        fd = FourierDescriptor(copy_images=False, load=True, order=15)
         fd.main()
     except KeyboardInterrupt:
         print("Ctrl+C pressed")

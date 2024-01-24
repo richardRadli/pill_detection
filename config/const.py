@@ -26,9 +26,9 @@ class _Const(object):
     root_mapping = {
         "ricsi": {
             "PROJECT_ROOT":
-                "C:/Users/ricsi/Documents/project/storage/IVM",
+                "D:/storage/IVM",
             "DATASET_ROOT":
-                "C:/Users/ricsi/Documents/project/storage/IVM/datasets"
+                "D:/storage/IVM/datasets"
         },
         "keplab": {
             "PROJECT_ROOT":
