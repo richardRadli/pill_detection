@@ -2,6 +2,8 @@ import os
 import cv2
 import matplotlib.pyplot as plt
 
+from tqdm import tqdm
+
 
 def convert_yolo_to_bbox(yolo_annotation, img_width, img_height):
     yolo_id = int(yolo_annotation[0])
@@ -27,12 +29,12 @@ def plot_bbox(image_path, bboxes):
     plt.show()
 
 
-def convert_and_plot_annotations(image_folder, label_folder, save_folder):
-    for img_filename in os.listdir(image_folder):
+def convert_and_plot_annotations(img_folder, annotation_folder, dst_path):
+    for img_filename in tqdm(os.listdir(img_folder)):
         if img_filename.endswith(".jpg"):
-            img_path = os.path.join(image_folder, img_filename)
+            img_path = os.path.join(img_folder, img_filename)
             label_filename = os.path.splitext(img_filename)[0] + ".txt"
-            label_path = os.path.join(label_folder, label_filename)
+            label_path = os.path.join(annotation_folder, label_filename)
 
             with open(label_path, 'r') as label_file:
                 annotations = label_file.readlines()
@@ -45,17 +47,17 @@ def convert_and_plot_annotations(image_folder, label_folder, save_folder):
                 bbox = convert_yolo_to_bbox(annotation, img_width, img_height)
                 bboxes.append(bbox)
 
-            plot_bbox(img_path, bboxes)
+            # plot_bbox(img_path, bboxes)
 
-            save_filename = os.path.join(save_folder, label_filename)
+            save_filename = os.path.join(dst_path, label_filename)
             with open(save_filename, 'w') as save_file:
                 for bbox in bboxes:
                     save_file.write(f"{bbox[0]} {bbox[1]} {bbox[2]} {bbox[3]} {bbox[4]}\n")
 
 
 if __name__ == "__main__":
-    image_folder = "images"
-    label_folder = "labels"
-    save_folder = "bbox_labels"
+    image_folder = "D:/storage/IVM/datasets/cure/customer_annotated/train/images"
+    label_folder = "D:/storage/IVM/datasets/cure/customer_annotated/train/labels"
+    save_folder = "D:/storage/IVM/datasets/cure/customer_annotated/train/bbox_labels"
     os.makedirs(save_folder, exist_ok=True)
     convert_and_plot_annotations(image_folder, label_folder, save_folder)

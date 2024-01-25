@@ -664,7 +664,53 @@ class Datasets(_Const):
         "nih_query_images":
             "nih/query",
         "nih_xlsx":
-            "nih/xlsx"
+            "nih/xlsx",
+
+        # C U R E
+        "cure_customer_images":
+            "cure/Customer/images",
+        "cure_customer_segmentation_labels":
+            "cure/Customer/segmentation_labels",
+        "cure_customer_pixel_bbox_labels":
+            "cure/Customer/pixel_bbox_labels",
+
+        "cure_reference_images":
+            "cure/Reference/images",
+        "cure_reference_masks":
+            "cure/Reference_mask/masks",
+
+        "cure_train_bbox_pixel_labels":
+            "cure/train_dir/bbox_labels",
+        "cure_train_images":
+            "cure/train_dir/images",
+        "cure_train_mask_images":
+            "cure/train_dir/mask_images",
+        "cure_train_segmentation_labels":
+            "cure/train_dir/segmentation_labels",
+        "cure_train_yolo_labels":
+            "cure/train_dir/yolo_labels",
+
+        "cure_valid_bbox_pixel_labels":
+            "cure/valid_dir/bbox_labels",
+        "cure_valid_images":
+            "cure/valid_dir/images",
+        "cure_valid_mask_images":
+            "cure/valid_dir/mask_images",
+        "cure_valid_segmentation_labels":
+            "cure/valid_dir/segmentation_labels",
+        "cure_valid_yolo_labels":
+            "cure/valid_dir/yolo_labels",
+
+        "cure_test_bbox_pixel_labels":
+            "cure/test_dir/bbox_labels",
+        "cure_test_images":
+            "cure/test_dir/images",
+        "cure_test_mask_images":
+            "cure/test_dir/mask_images",
+        "cure_test_segmentation_labels":
+            "cure/test_dir/segmentation_labels",
+        "cure_test_yolo_labels":
+            "cure/test_dir/yolo_labels",
     }
 
     # ------------------------------------------------------------------------------------------------------------------

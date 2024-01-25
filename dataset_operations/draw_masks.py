@@ -9,6 +9,7 @@ images.
 """
 
 import concurrent.futures
+import cv2
 import logging
 import numpy as np
 import os
@@ -18,7 +19,7 @@ from pathlib import Path
 from tqdm import tqdm
 from typing import Tuple, List, Dict
 
-from config.const import DATASET_PATH
+from config.config_selector import dataset_images_path_selector
 from utils.utils import setup_logger
 
 
@@ -36,27 +37,21 @@ def path_selector(operation: str):
 
     if operation.lower() == "train":
         path_to_images = {
-            "images": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_train_images"),
-            "labels": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_train_labels"),
-            "masks": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_gt_train_masks")
+            "images": dataset_images_path_selector().get("cure").get("train_images"),
+            "labels": dataset_images_path_selector().get("cure").get("train_segmentation_labels"),
+            "masks": dataset_images_path_selector().get("cure").get("train_mask_images")
         }
     elif operation.lower() == "valid":
         path_to_images = {
-            "images": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_valid_images"),
-            "labels": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_valid_labels"),
-            "masks": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_gt_valid_masks")
+            "images": dataset_images_path_selector().get("cure").get("valid_images"),
+            "labels": dataset_images_path_selector().get("cure").get("valid_segmentation_labels"),
+            "masks": dataset_images_path_selector().get("cure").get("valid_mask_images")
         }
     elif operation.lower() == "test":
         path_to_images = {
-            "images": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_test_images"),
-            "labels": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_test_labels"),
-            "masks": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_gt_test_masks")
-        }
-    elif operation.lower() == "whole":
-        path_to_images = {
-            "images": DATASET_PATH.get_data_path("ogyei_v2_single_unsplitted_images"),
-            "labels": DATASET_PATH.get_data_path("ogyei_v2_single_unsplitted_labels"),
-            "masks": DATASET_PATH.get_data_path("ogyei_v2_single_unsplitted_gt_masks")
+            "images": dataset_images_path_selector().get("cure").get("test_images"),
+            "labels": dataset_images_path_selector().get("cure").get("test_segmentation_labels"),
+            "masks": dataset_images_path_selector().get("cure").get("test_mask_images")
         }
     else:
         raise ValueError("Wrong operation!")
@@ -152,8 +147,8 @@ def save_masks(mask: np.ndarray, img_file: str, path_to_files: Dict[str, str]) -
 
     name = os.path.basename(img_file)
     save_path = (os.path.join(path_to_files.get("masks"), name))
-    mask_pil = Image.fromarray(mask)
-    mask_pil.save(save_path)
+    mask_pil = mask.astype(np.uint8) * 255
+    cv2.imwrite(save_path, mask_pil)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
