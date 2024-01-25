@@ -36,8 +36,8 @@ def plot_bbox_on_image(image_path, annotations):
 
 
 if __name__ == "__main__":
-    yolo_annotation_file = 'D:/storage/IVM/datasets/cure/train_dir/yolo_labels/0_bottom_22_rotated_180_2.txt'
-    image_file = 'D:/storage/IVM/datasets/cure/train_dir/images/0_bottom_22_rotated_180_2.jpg'
+    yolo_annotation_file = 'D:/storage/IVM/datasets/cure/train_dir/yolo_labels/0_bottom_22_zoomed_2.txt'
+    image_file = 'D:/storage/IVM/datasets/cure/train_dir/images/0_bottom_22_zoomed_2.jpg'
 
     yolo_annotations = read_yolo_annotations(yolo_annotation_file)
     plot_bbox_on_image(image_file, yolo_annotations)

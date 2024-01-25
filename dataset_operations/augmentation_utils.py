@@ -317,8 +317,8 @@ def zoom_in_object(image_path: str, annotation_path: str, aug_path: str, crop_si
     for annotation in annotations:
         class_id, x_center, y_center, obj_width, obj_height = map(float, annotation.strip().split())
 
-        x_center = (x_center * (end_x - start_x) + start_x) / width
-        y_center = (y_center * (end_y - start_y) + start_y) / height
+        x_center = ((x_center * width) - start_x) / crop_size
+        y_center = ((y_center * height) - start_y) / crop_size
 
         obj_width /= (crop_size / width)
         obj_height /= (crop_size / height)

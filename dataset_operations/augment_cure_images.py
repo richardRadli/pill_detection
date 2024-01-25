@@ -48,10 +48,10 @@ class AugmentCUREDataset:
             #                   annotation_path=anno_path,
             #                   aug_path=image_path,
             #                   exposure_factor=random.uniform(0.5, 1.5))
-            rotate_image(image_path=image_path,
-                         annotation_path=anno_path,
-                         aug_path=image_path,
-                         angle=180)
+            # rotate_image(image_path=image_path,
+            #              annotation_path=anno_path,
+            #              aug_path=image_path,
+            #              angle=180)
             # rotate_image(image_path=image_path,
             #              annotation_path=anno_path,
             #              aug_path=image_path,
@@ -60,10 +60,10 @@ class AugmentCUREDataset:
             #             annotation_path=anno_path,
             #             aug_path=image_path,
             #             )
-            # zoom_in_object(image_path=image_path,
-            #                annotation_path=anno_path,
-            #                aug_path=image_path,
-            #                crop_size=1500)
+            zoom_in_object(image_path=image_path,
+                           annotation_path=anno_path,
+                           aug_path=image_path,
+                           crop_size=1500)
             break
 
         # for idx, (image_path, mask_path, anno_path) in enumerate(zip(image_files, mask_files, annotation_files)):
