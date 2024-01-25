@@ -79,71 +79,88 @@ def unique_count_app(img: np.ndarray) -> tuple:
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------- G A U S S I A N   S M O O T H --------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def gaussian_smooth(image_path: str, annotation_path: str, aug_path: str, kernel: tuple) -> None:
+def gaussian_smooth(image_path: str, annotation_path: str, mask_path: str, kernel: tuple) -> None:
     """
     Apply Gaussian smoothing to an image and save the smoothed image.
 
     Args:
         image_path (str): Path to the input image.
         annotation_path (str): Path to the annotation file.
-        aug_path (str): Path to save the augmented image.
+        mask_path (str): Path to save the mask image.
         kernel (tuple): Kernel size for Gaussian smoothing in the form of (width, height).
     """
 
     image = cv2.imread(image_path)
+    mask = cv2.imread(mask_path)
+    filename = "gaussian_%s" % str(kernel[0])
+
     smoothed_image = cv2.GaussianBlur(image, kernel, 0)
-    new_image_file_name = rename_file(aug_path, op="gaussian_%s" % str(kernel[0]))
+
+    new_image_file_name = rename_file(image_path, op=filename)
     cv2.imwrite(new_image_file_name, smoothed_image)
 
-    new_annotation_file_name = rename_file(annotation_path, op="gaussian_%s" % str(kernel[0]))
+    new_mask_file_name = rename_file(mask_path, op=filename)
+    cv2.imwrite(new_mask_file_name, mask)
+
+    new_annotation_file_name = rename_file(annotation_path, op=filename)
     shutil.copy(annotation_path, new_annotation_file_name)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------- C H A N G E   B R I G H T N E S S ------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def change_brightness(image_path: str, annotation_path: str, aug_path: str, exposure_factor: float) -> None:
+def change_brightness(image_path: str, annotation_path: str, mask_path: str, exposure_factor: float)\
+        -> None:
     """
     Adjust the brightness of an image and save the adjusted image.
 
     Args:
         image_path (str): Path to the input image.
         annotation_path (str): Path to the annotation file.
-        aug_path (str): Path to save the augmented image.
+        mask_path (str): Path to save the mask image.
         exposure_factor (float): Factor to adjust the brightness.
                                  Values > 1 increase brightness, values < 1 decrease brightness.
     """
 
     image = cv2.imread(image_path)
+    mask = cv2.imread(mask_path)
+    filename = "brightness"
 
     image = image.astype(np.float32) / 255.0
     adjusted_image = image * exposure_factor
     adjusted_image = np.clip(adjusted_image, 0, 1)
     adjusted_image = (adjusted_image * 255).astype(np.uint8)
 
-    new_image_file_name = rename_file(aug_path, op="brightness")
+    new_image_file_name = rename_file(image_path, op=filename)
     cv2.imwrite(new_image_file_name, adjusted_image)
 
-    new_annotation_file_name = rename_file(annotation_path, op="brightness")
+    new_mask_file_name = rename_file(mask_path, op=filename)
+    cv2.imwrite(new_mask_file_name, mask)
+
+    new_annotation_file_name = rename_file(annotation_path, op=filename)
     shutil.copy(annotation_path, new_annotation_file_name)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------------- R O T A T E   I M A G E -----------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def rotate_image(image_path: str, annotation_path: str, aug_path: str, angle: int) -> None:
+def rotate_image(image_path: str, annotation_path: str, mask_path: str, angle: int) -> None:
     """
     Rotate an image and save the rotated image.
 
     Args:
         image_path (str): Path to the input image.
         annotation_path (str): Path to the annotation file.
-        aug_path (str): Path to save the rotated image.
+        mask_path (str): Path to save the rotated image.
         angle (int): Angle of rotation in degrees.
     """
 
     original_image = Image.open(image_path)
+    mask = Image.open(mask_path)
+    filename = f"rotated_{angle}"
+
     rotated_image = original_image.rotate(angle, expand=True)
+    rotated_mask = mask.rotate(angle, expand=True)
 
     with open(annotation_path, 'r') as f:
         annotations = f.readlines()
@@ -181,10 +198,13 @@ def rotate_image(image_path: str, annotation_path: str, aug_path: str, angle: in
 
         rotated_annotations.append(rotated_annotation)
 
-    rotated_image_path = rename_file(aug_path, op=f"rotated_{angle}")
+    rotated_image_path = rename_file(image_path, op=filename)
     rotated_image.save(rotated_image_path)
 
-    new_annotation_file_name = rename_file(annotation_path, op=f"rotated_{angle}")
+    rotated_mask_path = rename_file(mask_path, op=filename)
+    rotated_mask.save(rotated_mask_path)
+
+    new_annotation_file_name = rename_file(annotation_path, op=filename)
     with open(new_annotation_file_name, 'w') as f:
         f.write('\n'.join(rotated_annotations))
 
@@ -192,28 +212,34 @@ def rotate_image(image_path: str, annotation_path: str, aug_path: str, angle: in
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------- S H I F T   I M A G E ------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def shift_image(image_path: str, annotation_path: str, aug_path: str, shift_x: int = 50, shift_y: int = 100):
+def shift_image(image_path: str, annotation_path: str, mask_path: str, shift_x: int = 50, shift_y: int = 100) -> None:
     """
     Shift an image and save the shifted image.
 
     Args:
         image_path (str): Path to the input image.
         annotation_path (str): Path to the annotation file.
-        aug_path (str): Path to save the shifted image.
+        mask_path (str): Path to save the mask image.
         shift_x (int, optional): Amount of horizontal shift. Defaults to 50.
         shift_y (int, optional): Amount of vertical shift. Defaults to 100.
     """
 
     image = cv2.imread(image_path)
+    mask = cv2.imread(mask_path)
+    filename = f"shifting_{shift_x}_{shift_y}"
 
     # Shift image in x and y directions
     rows, cols, _ = image.shape
     M = np.float32([[1, 0, shift_x], [0, 1, shift_y]])
     shifted_image = cv2.warpAffine(image, M, (cols, rows))
+    shifted_mask = cv2.warpAffine(mask, M, (cols, rows))
 
     # Save shifted image
-    new_image_file_name = rename_file(aug_path, op=f"shifting_{shift_x}_{shift_y}")
+    new_image_file_name = rename_file(image_path, op=filename)
     cv2.imwrite(new_image_file_name, shifted_image)
+
+    new_mask_file_name = rename_file(mask_path, op=filename)
+    cv2.imwrite(new_mask_file_name, shifted_mask)
 
     with open(annotation_path, 'r') as f:
         annotations = f.readlines()
@@ -226,7 +252,7 @@ def shift_image(image_path: str, annotation_path: str, aug_path: str, shift_x: i
 
     shifted_annotations = [f"{anno[0]} {anno[1]} {anno[2]} {anno[3]} {anno[4]}" for anno in shifted_annotations]
 
-    new_annotation_file_name = rename_file(annotation_path, op=f"shifting_{shift_x}_{shift_y}")
+    new_annotation_file_name = rename_file(annotation_path, op=filename)
     with open(new_annotation_file_name, 'w') as f:
         f.write('\n'.join(shifted_annotations))
 
@@ -234,20 +260,22 @@ def shift_image(image_path: str, annotation_path: str, aug_path: str, shift_x: i
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------------- D I S T O R T   C O L O R ---------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def change_white_balance(image_path: str, annotation_path: str, aug_path, domain: Tuple[float, float] = (0.7, 1.2)) -> \
-        None:
+def change_white_balance(image_path: str, annotation_path: str, mask_path: str,
+                         domain: Tuple[float, float] = (0.7, 1.2)) -> None:
     """
     Apply white balance distortion to an image and save the distorted image.
 
     Args:
         image_path (str): Path to the input image.
         annotation_path (str): Path to the annotation file
-        aug_path (str): Path to save the distorted image.
+        mask_path (str): Path to the mask.
         domain (Tuple[float, float], optional): Range of scaling factors for white balance distortion.
             Defaults to (0.7, 1.2).
     """
 
     image = cv2.imread(image_path)
+    mask = cv2.imread(mask_path)
+    filename = "distorted_colour"
 
     # Generate random scaling factors for each color channel
     scale_factors = np.random.uniform(low=domain[0], high=domain[1], size=(3,))
@@ -259,10 +287,16 @@ def change_white_balance(image_path: str, annotation_path: str, aug_path, domain
     adjusted_image = np.clip(adjusted_image, 0, 255)
     adjusted_image = adjusted_image.astype(np.uint8)
 
-    new_image_file_name = rename_file(aug_path, op="distorted_colour")
+    # Save new image
+    new_image_file_name = rename_file(image_path, op=filename)
     cv2.imwrite(new_image_file_name, adjusted_image)
 
-    new_annotation_file_name = rename_file(annotation_path, op="distorted_colour")
+    # Save mask
+    new_mask_file_name = rename_file(mask_path, op=filename)
+    cv2.imwrite(new_mask_file_name, mask)
+
+    # Save annotation
+    new_annotation_file_name = rename_file(annotation_path, op=filename)
     shutil.copy(annotation_path, new_annotation_file_name)
 
 
@@ -284,50 +318,58 @@ def copy_original_images(src_path: str, dst_path: str) -> None:
 # ----------------------------------------------------------------------------------------------------------------------
 # --------------------------------------------- Z O O M   I N   O B J E C T --------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def zoom_in_object(image_path: str, annotation_path: str, aug_path: str, crop_size: int) -> None:
+def zoom_in_object(image_path: str, annotation_path: str, mask_path: str, crop_size: int) -> None:
     """
     Zoom in on an object in an image and save the zoomed image.
 
     Args:
         image_path (str): Path to the input image.
         annotation_path (str): Path to the annotation file.
-        aug_path (str): Path to save the zoomed image.
+        mask_path (str): Path to the mask image.
         crop_size (int): Size of the crop to zoom in on.
     """
 
     image = cv2.imread(image_path)
-
     height, width = image.shape[:2]
+    if height > 801 and width > 801:
+        filename = "zoomed"
+        mask = cv2.imread(mask_path)
 
-    start_x = (width - crop_size) // 2
-    start_y = (height - crop_size) // 2
-    end_x = start_x + crop_size
-    end_y = start_y + crop_size
+        start_x = (width - crop_size) // 2
+        start_y = (height - crop_size) // 2
+        end_x = start_x + crop_size
+        end_y = start_y + crop_size
 
-    cropped_image = image[start_y:end_y, start_x:end_x]
-    zoomed_image = cv2.resize(cropped_image, (width, height), interpolation=cv2.INTER_LINEAR)
+        cropped_image = image[start_y:end_y, start_x:end_x]
+        zoomed_image = cv2.resize(cropped_image, (width, height), interpolation=cv2.INTER_LINEAR)
 
-    new_image_file_name = rename_file(aug_path, op="zoomed")
-    cv2.imwrite(new_image_file_name, zoomed_image)
+        cropped_mask = mask[start_y:end_y, start_x:end_x]
+        zoomed_mask = cv2.resize(cropped_mask, (width, height), interpolation=cv2.INTER_LINEAR)
 
-    with open(annotation_path, "r") as file:
-        annotations = file.readlines()
+        new_image_file_name = rename_file(image_path, op=filename)
+        cv2.imwrite(new_image_file_name, zoomed_image)
 
-    adjusted_annotations = []
-    for annotation in annotations:
-        class_id, x_center, y_center, obj_width, obj_height = map(float, annotation.strip().split())
+        new_mask_file_name = rename_file(mask_path, op=filename)
+        cv2.imwrite(new_mask_file_name, zoomed_mask)
 
-        x_center = ((x_center * width) - start_x) / crop_size
-        y_center = ((y_center * height) - start_y) / crop_size
+        with open(annotation_path, "r") as file:
+            annotations = file.readlines()
 
-        obj_width /= (crop_size / width)
-        obj_height /= (crop_size / height)
+        adjusted_annotations = []
+        for annotation in annotations:
+            class_id, x_center, y_center, obj_width, obj_height = map(float, annotation.strip().split())
 
-        adjusted_annotations.append(f"{int(class_id)} {x_center} {y_center} {obj_width} {obj_height}")
+            x_center = ((x_center * width) - start_x) / crop_size
+            y_center = ((y_center * height) - start_y) / crop_size
 
-    new_annotation_file_name = rename_file(annotation_path, op="zoomed")
-    with open(new_annotation_file_name, 'w') as f:
-        f.write('\n'.join(adjusted_annotations))
+            obj_width /= (crop_size / width)
+            obj_height /= (crop_size / height)
+
+            adjusted_annotations.append(f"{int(class_id)} {x_center} {y_center} {obj_width} {obj_height}")
+
+        new_annotation_file_name = rename_file(annotation_path, op=filename)
+        with open(new_annotation_file_name, 'w') as f:
+            f.write('\n'.join(adjusted_annotations))
 
 
 # ------------------------------------------------------------------------------------------------------------------

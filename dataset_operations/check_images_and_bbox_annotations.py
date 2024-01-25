@@ -1,5 +1,7 @@
 import cv2
 
+from glob import glob
+
 
 def read_yolo_annotations(annotation_file):
     with open(annotation_file, 'r') as f:
@@ -31,13 +33,14 @@ def plot_bbox_on_image(image_path, annotations):
         cv2.rectangle(image, (x_min, y_min), (x_max, y_max), color, thickness)
 
     cv2.imshow('Image with Bounding Boxes', cv2.resize(image, (image.shape[1]//3, image.shape[0]//3)))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    cv2.waitKey(100)
 
 
 if __name__ == "__main__":
-    yolo_annotation_file = 'D:/storage/IVM/datasets/cure/train_dir/yolo_labels/0_bottom_22_zoomed_2.txt'
-    image_file = 'D:/storage/IVM/datasets/cure/train_dir/images/0_bottom_22_zoomed_2.jpg'
+    yolo_annotation_file = sorted(glob('D:/storage/IVM/datasets/cure/valid_dir/yolo_labels/*.txt'))
+    image_file = sorted(glob('D:/storage/IVM/datasets/cure/valid_dir/images/*.jpg'))
 
-    yolo_annotations = read_yolo_annotations(yolo_annotation_file)
-    plot_bbox_on_image(image_file, yolo_annotations)
+    for idx, (image_path, annotation_path) in enumerate(zip(image_file, yolo_annotation_file)):
+        print(annotation_path)
+        yolo_annotations = read_yolo_annotations(annotation_path)
+        plot_bbox_on_image(image_path, yolo_annotations)
