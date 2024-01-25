@@ -678,6 +678,8 @@ class Datasets(_Const):
             "cure/Reference/images",
         "cure_reference_masks":
             "cure/Reference_mask/masks",
+        "cure_reference_labels":
+            "cure/Reference/labels",
 
         "cure_train_bbox_pixel_labels":
             "cure/train_dir/bbox_labels",

@@ -37,8 +37,8 @@ def plot_bbox_on_image(image_path, annotations):
 
 
 if __name__ == "__main__":
-    yolo_annotation_file = sorted(glob('D:/storage/IVM/datasets/cure/valid_dir/yolo_labels/*.txt'))
-    image_file = sorted(glob('D:/storage/IVM/datasets/cure/valid_dir/images/*.jpg'))
+    yolo_annotation_file = sorted(glob('D:/storage/IVM/datasets/cure/Reference/labels/*.txt'))
+    image_file = sorted(glob('D:/storage/IVM/datasets/cure/Reference/images/*.png'))
 
     for idx, (image_path, annotation_path) in enumerate(zip(image_file, yolo_annotation_file)):
         print(annotation_path)

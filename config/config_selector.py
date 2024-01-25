@@ -1036,6 +1036,8 @@ def dataset_images_path_selector():
                 DATASET_PATH.get_data_path("cure_reference_images"),
             "reference_masks":
                 DATASET_PATH.get_data_path("cure_reference_masks"),
+            "reference_labels":
+                DATASET_PATH.get_data_path("cure_reference_labels"),
 
             "train_bbox_pixel_labels":
                 DATASET_PATH.get_data_path("cure_train_bbox_pixel_labels"),

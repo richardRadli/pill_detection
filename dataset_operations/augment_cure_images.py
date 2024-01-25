@@ -59,14 +59,18 @@ class AugmentCUREDataset:
                               annotation_path=anno_path,
                               backgrounds_path=self.background_images)
 
-    def main(self):
-        image_files = sorted(glob(self.valid_images + "/*.jpg"))
-        annotation_files = sorted(glob(self.valid_annotations + "/*.txt"))
-        mask_files = sorted(glob(self.valid_masks + "/*.jpg"))
+    def main(self, operation: str):
+        image = self.training_images if operation == "train" else self.valid_images
+        anno = self.training_annotations if operation == "train" else self.valid_annotations
+        mask = self.train_masks if operation == "train" else self.valid_masks
+
+        image_files = sorted(glob(image + "/*.jpg"))
+        annotation_files = sorted(glob(anno + "/*.txt"))
+        mask_files = sorted(glob(mask + "/*.jpg"))
 
         assert len(image_files) == len(annotation_files) == len(mask_files)
 
-        # with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        # with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
         #     futures = []
         #     for image_path, annotation_path, mask_path in zip(image_files, annotation_files, mask_files):
         #         future = executor.submit(self.process_image, image_path, annotation_path, mask_path)
@@ -75,7 +79,7 @@ class AugmentCUREDataset:
         #     for _ in tqdm(concurrent.futures.as_completed(futures), total=len(futures)):
         #         pass
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
             futures = []
             for image_path, annotation_path, mask_path in zip(image_files, annotation_files, mask_files):
                 future = executor.submit(self.change_bg, image_path, annotation_path, mask_path)
@@ -87,4 +91,4 @@ class AugmentCUREDataset:
 
 if __name__ == "__main__":
     aug_cure = AugmentCUREDataset()
-    aug_cure.main()
+    aug_cure.main(operation="train")
