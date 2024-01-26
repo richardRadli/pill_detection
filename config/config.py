@@ -8,6 +8,7 @@ Description: The program holds the configurations for different python files.
 """
 
 import argparse
+import os
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -18,20 +19,19 @@ class ConfigAugmentation:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
+        self.parser.add_argument("--dataset_name", type=str, default="cure", choices=["cure", "nih", "ogyei"])
         self.parser.add_argument('--wb_low_thr', type=float, default=0.7)
         self.parser.add_argument('--wb_high_thr', type=float, default=1.2)
-        self.parser.add_argument('--wb_low_thr_2nd_aug', type=float, default=0.9)
-        self.parser.add_argument('--wb_high_thr_2nd_aug', type=float, default=1.0)
         self.parser.add_argument('--kernel_size', type=int, default=7)
         self.parser.add_argument('--brightness_low_thr', type=float, default=0.7)
         self.parser.add_argument('--brightness_high_thr', type=float, default=1.3)
-        self.parser.add_argument('--brightness_low_thr_2nd_aug', type=float, default=0.9)
-        self.parser.add_argument('--brightness_high_thr_2nd_aug', type=float, default=1.1)
-        self.parser.add_argument('--rotate_low_thr', type=int, default=35)
-        self.parser.add_argument('--rotate_high_thr', type=int, default=270)
-        self.parser.add_argument('--shift_low_thr', type=int, default=150)
-        self.parser.add_argument('--shift_high_thr', type=int, default=200)
+        self.parser.add_argument('--rotate_1', type=int, default=180)
+        self.parser.add_argument('--rotate_2', type=int, default=-180)
+        self.parser.add_argument('--shift_x', type=int, default=50)
+        self.parser.add_argument('--shift_y', type=int, default=100)
+        self.parser.add_argument('--zoom', type=int, default=1500)
         self.parser.add_argument('--scale_pill_img', type=float, default=0.3)
+        self.parser.add_argument('--max_workers', type=int, default=os.cpu_count()//2)
 
     def parse(self):
         self.opt = self.parser.parse_args()

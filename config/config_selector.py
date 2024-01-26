@@ -982,7 +982,7 @@ def fusion_network_config(network_type) -> Dict:
     return network_configs[network_type]
 
 
-def dataset_images_path_selector():
+def dataset_images_path_selector(dataset_name):
     """
     Selects the correct directory paths based on the given operation string.
 
@@ -1070,11 +1070,30 @@ def dataset_images_path_selector():
             "test_segmentation_labels":
                 DATASET_PATH.get_data_path("cure_test_segmentation_labels"),
             "test_yolo_labels":
-                DATASET_PATH.get_data_path("cure_test_yolo_labels")
+                DATASET_PATH.get_data_path("cure_test_yolo_labels"),
+
+            "train_aug_images":
+                DATASET_PATH.get_data_path("cure_train_aug_images"),
+            "train_aug_yolo_labels":
+                DATASET_PATH.get_data_path("cure_train_aug_yolo_labels"),
+            "train_aug_mask_images":
+                DATASET_PATH.get_data_path("cure_train_aug_mask_images"),
+
+            "valid_aug_images":
+                DATASET_PATH.get_data_path("cure_valid_aug_images"),
+            "valid_aug_yolo_labels":
+                DATASET_PATH.get_data_path("cure_valid_aug_yolo_labels"),
+            "valid_aug_mask_images":
+                DATASET_PATH.get_data_path("cure_valid_aug_mask_images"),
+
+            "test_aug_images":
+                DATASET_PATH.get_data_path("cure_test_aug_images"),
+            "test_aug_yolo_labels":
+                DATASET_PATH.get_data_path("cure_test_aug_yolo_labels"),
         },
         "dtd": {
             "dataset_path": DATASET_PATH.get_data_path("dtd_images")
         }
     }
 
-    return path_to_images
+    return path_to_images[dataset_name]
