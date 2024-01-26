@@ -3,12 +3,6 @@ import random
 import shutil
 
 
-def create_subdirectories(base_dir):
-    subdirs = ['bbox_labels', 'labels', 'images']
-    for subdir in subdirs:
-        os.makedirs(os.path.join(base_dir, subdir), exist_ok=True)
-
-
 def copy_files(root_directory, files, operation_directory):
     for file in files:
         src_image = os.path.join(root_directory, 'images', file)
@@ -25,10 +19,6 @@ def copy_files(root_directory, files, operation_directory):
 
 
 def split_images(root_directory, train_directory, valid_directory, test_directory, sr):
-    create_subdirectories(train_directory)
-    create_subdirectories(valid_directory)
-    create_subdirectories(test_directory)
-
     image_files = [f for f in os.listdir(os.path.join(root_directory, 'images')) if f.endswith('.jpg')]
 
     class_files = {}

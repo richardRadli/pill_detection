@@ -95,7 +95,7 @@ def plot_vectors(class_averages):
 
 
 def main():
-    images_path = sorted(glob("pills/*.JPG"))
+    images_path = sorted(glob("D:/storage/IVM/datasets/nih/ref/00002322730/*.JPG"))
 
     pill_dict = {}
 

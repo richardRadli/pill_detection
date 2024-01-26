@@ -1,15 +1,17 @@
 import cv2
 import os
 
-from glob import glob
+from pathlib import Path
 
+from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
 
 
 def main():
-
-    masks_path = sorted(glob("D:/storage/IVM/datasets/cure/Reference/masks/*.png"))
-    annotation_path = dataset_images_path_selector().get("cure").get("reference_labels")
+    cfg = ConfigAugmentation().parse()
+    annotation_path = dataset_images_path_selector(cfg.dataset_name).get("reference_labels")
+    masks = dataset_images_path_selector(cfg.dataset_name).get("reference_masks")
+    masks_path = sorted([str(file) for file in Path(masks).glob("*.jpg")])
 
     for idx, masks in enumerate(masks_path):
         basename = os.path.basename(masks)
