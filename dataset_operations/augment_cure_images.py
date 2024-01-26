@@ -1,3 +1,4 @@
+import colorama
 import concurrent.futures
 import random
 
@@ -12,6 +13,7 @@ from config.config_selector import dataset_images_path_selector
 
 class AugmentCUREDataset:
     def __init__(self):
+        colorama.init()
         self.cfg_aug = ConfigAugmentation().parse()
 
         # Train data paths
@@ -58,7 +60,7 @@ class AugmentCUREDataset:
             dataset_images_path_selector(dataset_name="dtd").get("dataset_path"))
 
     def process_image(self, image_path: str, anno_path: str, mask_path: str, aug_image_path: str, aug_anno_path: str,
-                      aug_mask_path) -> None:
+                      aug_mask_path: str) -> None:
         """
         This function executes the various image augmentation operations.
         :param image_path: Path to the images.
@@ -152,7 +154,7 @@ class AugmentCUREDataset:
         aug_mask = self.train_aug_mask_path if operation == "train" else self.valid_aug_mask_path
 
         image_files = sorted(str(file) for file in Path(image).glob('*.jpg'))
-        annotation_files = sorted(str(file) for file in Path(anno).glob(".txt"))
+        annotation_files = sorted(str(file) for file in Path(anno).glob("*.txt"))
         mask_files = sorted(str(file) for file in Path(mask).glob('*.jpg'))
 
         assert len(image_files) == len(annotation_files) == len(mask_files)
@@ -166,8 +168,12 @@ class AugmentCUREDataset:
                     )
                 futures.append(future)
 
-            for _ in tqdm(concurrent.futures.as_completed(futures), total=len(futures)):
+            for _ in tqdm(concurrent.futures.as_completed(futures),
+                          total=len(futures),
+                          desc=colorama.Fore.BLUE + "Augmenting images"):
                 pass
+
+        assert len(image_files) == len(annotation_files) == len(mask_files)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.cfg_aug.max_workers) as executor:
             futures = []
@@ -175,7 +181,9 @@ class AugmentCUREDataset:
                 future = executor.submit(self.change_bg, image_path, annotation_path, mask_path, aug_image, aug_anno)
                 futures.append(future)
 
-            for _ in tqdm(concurrent.futures.as_completed(futures), total=len(futures)):
+            for _ in tqdm(concurrent.futures.as_completed(futures),
+                          total=len(futures),
+                          desc=colorama.Fore.CYAN + "Changing backgrounds"):
                 pass
 
 

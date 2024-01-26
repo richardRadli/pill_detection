@@ -98,8 +98,8 @@ def save_data(
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------------- D I S T O R T   C O L O R ---------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def change_white_balance(image_path: str, annotation_path: str, mask_path: str, aug_img_path: str,
-                         aug_annotation_path: str, aug_mask_path: str,
+def change_white_balance(image_path: str, annotation_path: str, mask_path: str,
+                         aug_img_path: str, aug_annotation_path: str, aug_mask_path: str,
                          domain: Tuple[float, float] = (0.7, 1.2)) -> None:
     """
     Apply white balance distortion to an image and save the distorted image.
