@@ -10,14 +10,12 @@ Description: The program stores the functions for the augmentation process.
 import cv2
 import gc
 import logging
-import math
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import random
 import shutil
 
-from PIL import Image
 from skimage.transform import resize
 from tqdm import tqdm
 from typing import Tuple, List, Optional
@@ -77,6 +75,26 @@ def unique_count_app(img: np.ndarray) -> tuple:
     return tuple(colors[count.argmax()])
 
 
+def save_data(
+        image_path, aug_img_path, mask_path, aug_mask_path, annotation_path, aug_annotation_path, image, mask, filename,
+        txt_op, annotation=None
+):
+    new_image_file_name = rename_file(src_path=image_path, dst_path=aug_img_path, op=filename)
+    cv2.imwrite(new_image_file_name, image)
+
+    new_mask_file_name = rename_file(src_path=mask_path, dst_path=aug_mask_path, op=filename)
+    cv2.imwrite(new_mask_file_name, mask)
+
+    new_annotation_file_name = rename_file(src_path=annotation_path, dst_path=aug_annotation_path, op=filename)
+    if txt_op == "copy":
+        shutil.copy(annotation_path, new_annotation_file_name)
+    elif txt_op == "overwrite":
+        with open(new_annotation_file_name, 'w') as f:
+            f.write('\n'.join(annotation))
+    else:
+        raise ValueError(f"Wrong txt operation: {txt_op}")
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------------- D I S T O R T   C O L O R ---------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -111,17 +129,10 @@ def change_white_balance(image_path: str, annotation_path: str, mask_path: str, 
     adjusted_image = np.clip(adjusted_image, 0, 255)
     adjusted_image = adjusted_image.astype(np.uint8)
 
-    # Save new image
-    new_image_file_name = rename_file(src_path=image_path, dst_path=aug_img_path, op=filename)
-    cv2.imwrite(new_image_file_name, adjusted_image)
-
-    # Save mask
-    new_mask_file_name = rename_file(src_path=mask_path, dst_path=aug_mask_path, op=filename)
-    cv2.imwrite(new_mask_file_name, mask)
-
-    # Save annotation
-    new_annotation_file_name = rename_file(src_path=annotation_path, dst_path=aug_annotation_path, op=filename)
-    shutil.copy(annotation_path, new_annotation_file_name)
+    save_data(
+        image_path, aug_img_path, mask_path, aug_mask_path, annotation_path, aug_annotation_path,
+        adjusted_image, mask, filename, txt_op="copy"
+    )
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -148,14 +159,9 @@ def gaussian_smooth(image_path: str, annotation_path: str, mask_path: str, aug_i
 
     smoothed_image = cv2.GaussianBlur(image, kernel, 0)
 
-    new_image_file_name = rename_file(src_path=image_path, dst_path=aug_img_path, op=filename)
-    cv2.imwrite(new_image_file_name, smoothed_image)
-
-    new_mask_file_name = rename_file(src_path=mask_path, dst_path=aug_mask_path, op=filename)
-    cv2.imwrite(new_mask_file_name, mask)
-
-    new_annotation_file_name = rename_file(src_path=annotation_path, dst_path=aug_annotation_path, op=filename)
-    shutil.copy(annotation_path, new_annotation_file_name)
+    save_data(image_path, aug_img_path, mask_path, aug_mask_path, annotation_path, aug_annotation_path,
+              smoothed_image, mask, filename, txt_op="copy"
+              )
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -186,14 +192,9 @@ def change_brightness(image_path: str, annotation_path: str, mask_path: str, aug
     adjusted_image = np.clip(adjusted_image, 0, 1)
     adjusted_image = (adjusted_image * 255).astype(np.uint8)
 
-    new_image_file_name = rename_file(src_path=image_path, dst_path=aug_img_path, op=filename)
-    cv2.imwrite(new_image_file_name, adjusted_image)
-
-    new_mask_file_name = rename_file(src_path=mask_path, dst_path=aug_mask_path, op=filename)
-    cv2.imwrite(new_mask_file_name, mask)
-
-    new_annotation_file_name = rename_file(src_path=annotation_path, dst_path=aug_annotation_path, op=filename)
-    shutil.copy(annotation_path, new_annotation_file_name)
+    save_data(image_path, aug_img_path, mask_path, aug_mask_path, annotation_path, aug_annotation_path,
+              adjusted_image, mask, filename, txt_op="copy"
+              )
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -213,14 +214,20 @@ def rotate_image(image_path: str, annotation_path: str, mask_path: str, aug_img_
         aug_mask_path (str): Path to the augmented mask image.
         angle (int): Angle of rotation in degrees.
     """
-
-    original_image = Image.open(image_path)
-    mask = Image.open(mask_path)
+    # Read the original image and mask
+    original_image = cv2.imread(image_path)
+    mask = cv2.imread(mask_path)
     filename = f"rotated_{angle}"
 
-    rotated_image = original_image.rotate(angle, expand=True)
-    rotated_mask = mask.rotate(angle, expand=True)
+    # Get the center of the image
+    center = (original_image.shape[1] // 2, original_image.shape[0] // 2)
 
+    # Perform the rotation
+    rotation_matrix = cv2.getRotationMatrix2D(center, angle, scale=1.0)
+    rotated_image = cv2.warpAffine(original_image, rotation_matrix, (original_image.shape[1], original_image.shape[0]))
+    rotated_mask = cv2.warpAffine(mask, rotation_matrix, (mask.shape[1], mask.shape[0]))
+
+    # Read the annotations file
     with open(annotation_path, 'r') as f:
         annotations = f.readlines()
 
@@ -229,19 +236,17 @@ def rotate_image(image_path: str, annotation_path: str, mask_path: str, aug_img_
         class_id, x_center, y_center, width, height = map(float, annotation.strip().split())
 
         # Convert angles to radians
-        angle_rad = math.radians(angle)
+        angle_rad = np.radians(angle)
 
         # Rotate the center coordinates
-        x_center_rotated = (x_center * original_image.width - original_image.width / 2) * math.cos(angle_rad) - \
-                           (y_center * original_image.height - original_image.height / 2) * math.sin(angle_rad) + \
-                           rotated_image.width / 2
+        x_center_rotated = (x_center * original_image.shape[1] - center[0]) * np.cos(angle_rad) - \
+                           (y_center * original_image.shape[0] - center[1]) * np.sin(angle_rad) + center[0]
 
-        y_center_rotated = (x_center * original_image.width - original_image.width / 2) * math.sin(angle_rad) + \
-                           (y_center * original_image.height - original_image.height / 2) * math.cos(angle_rad) + \
-                           rotated_image.height / 2
+        y_center_rotated = (x_center * original_image.shape[1] - center[0]) * np.sin(angle_rad) + \
+                           (y_center * original_image.shape[0] - center[1]) * np.cos(angle_rad) + center[1]
 
-        width_rotated = width * original_image.width
-        height_rotated = height * original_image.height
+        width_rotated = width * original_image.shape[1]
+        height_rotated = height * original_image.shape[0]
 
         rotated_box = (
             x_center_rotated,
@@ -250,22 +255,15 @@ def rotate_image(image_path: str, annotation_path: str, mask_path: str, aug_img_
             y_center_rotated + height_rotated
         )
 
-        rotated_annotation = f"{int(class_id)} {rotated_box[0] / rotated_image.width:.6f} " \
-                             f"{rotated_box[1] / rotated_image.height:.6f} " \
-                             f"{(rotated_box[2] - rotated_box[0]) / rotated_image.width:.6f} " \
-                             f"{(rotated_box[3] - rotated_box[1]) / rotated_image.height:.6f}"
+        rotated_annotation = f"{int(class_id)} {rotated_box[0] / rotated_image.shape[1]:.6f} " \
+                             f"{rotated_box[1] / rotated_image.shape[0]:.6f} " \
+                             f"{(rotated_box[2] - rotated_box[0]) / rotated_image.shape[1]:.6f} " \
+                             f"{(rotated_box[3] - rotated_box[1]) / rotated_image.shape[0]:.6f}"
 
         rotated_annotations.append(rotated_annotation)
 
-    rotated_image_path = rename_file(src_path=image_path, dst_path=aug_img_path, op=filename)
-    rotated_image.save(rotated_image_path)
-
-    rotated_mask_path = rename_file(src_path=mask_path, dst_path=aug_mask_path, op=filename)
-    rotated_mask.save(rotated_mask_path)
-
-    new_annotation_file_name = rename_file(src_path=annotation_path, dst_path=aug_annotation_path, op=filename)
-    with open(new_annotation_file_name, 'w') as f:
-        f.write('\n'.join(rotated_annotations))
+    save_data(image_path, aug_img_path, mask_path, aug_mask_path, annotation_path, aug_annotation_path,
+              rotated_image, rotated_mask, filename, txt_op="overwrite", annotation=rotated_annotations)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -293,9 +291,9 @@ def shift_image(image_path: str, annotation_path: str, mask_path: str, aug_img_p
 
     # Shift image in x and y directions
     rows, cols, _ = image.shape
-    M = np.float32([[1, 0, shift_x], [0, 1, shift_y]])
-    shifted_image = cv2.warpAffine(image, M, (cols, rows))
-    shifted_mask = cv2.warpAffine(mask, M, (cols, rows))
+    mtx = np.float32([[1, 0, shift_x], [0, 1, shift_y]])
+    shifted_image = cv2.warpAffine(image, mtx, (cols, rows))
+    shifted_mask = cv2.warpAffine(mask, mtx, (cols, rows))
 
     with open(annotation_path, 'r') as f:
         annotations = f.readlines()
@@ -308,16 +306,8 @@ def shift_image(image_path: str, annotation_path: str, mask_path: str, aug_img_p
 
     shifted_annotations = [f"{anno[0]} {anno[1]} {anno[2]} {anno[3]} {anno[4]}" for anno in shifted_annotations]
 
-    # Save shifted image
-    new_image_file_name = rename_file(src_path=image_path, dst_path=aug_img_path, op=filename)
-    cv2.imwrite(new_image_file_name, shifted_image)
-
-    new_mask_file_name = rename_file(src_path=mask_path, dst_path=aug_mask_path, op=filename)
-    cv2.imwrite(new_mask_file_name, shifted_mask)
-
-    new_annotation_file_name = rename_file(src_path=annotation_path, dst_path=aug_annotation_path, op=filename)
-    with open(new_annotation_file_name, 'w') as f:
-        f.write('\n'.join(shifted_annotations))
+    save_data(image_path, aug_img_path, mask_path, aug_mask_path, annotation_path, aug_annotation_path, shifted_image,
+              shifted_mask, filename, txt_op="overwrite", annotation=shifted_annotations)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -370,15 +360,8 @@ def zoom_in_object(image_path: str, annotation_path: str, mask_path: str, aug_im
 
             adjusted_annotations.append(f"{int(class_id)} {x_center} {y_center} {obj_width} {obj_height}")
 
-        new_image_file_name = rename_file(src_path=image_path, dst_path=aug_img_path, op=filename)
-        cv2.imwrite(new_image_file_name, zoomed_image)
-
-        new_mask_file_name = rename_file(src_path=image_path, dst_path=aug_mask_path, op=filename)
-        cv2.imwrite(new_mask_file_name, zoomed_mask)
-
-        new_annotation_file_name = rename_file(src_path=annotation_path, dst_path=aug_annotation_path, op=filename)
-        with open(new_annotation_file_name, 'w') as f:
-            f.write('\n'.join(adjusted_annotations))
+        save_data(image_path, aug_img_path, mask_path, aug_mask_path, annotation_path, aug_annotation_path,
+                  zoomed_image, zoomed_mask, filename, txt_op="overwrite", annotation=adjusted_annotations)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -580,8 +563,8 @@ def create_directories(classes: List[str], images_dir: str, dataset_path: str,
         images = [image for image in os.listdir(dataset_path) if image.startswith(f"{class_name}_")]
         for image in tqdm(images, total=len(images), desc="Copying images"):
             src_path = os.path.join(dataset_path, image)
-            dest_path = os.path.join(class_path, image)
-            shutil.copy(src_path, dest_path)
+            dst_path = os.path.join(class_path, image)
+            shutil.copy(src_path, dst_path)
 
         if masks_dir and masks_path is not None:
             class_path_mask = os.path.join(masks_dir, class_name)
@@ -591,5 +574,5 @@ def create_directories(classes: List[str], images_dir: str, dataset_path: str,
             masks = [mask for mask in os.listdir(masks_path) if mask.startswith(f"{class_name}_")]
             for mask in tqdm(masks, total=len(masks), desc="Copying masks"):
                 src_mask_path = os.path.join(masks_path, mask)
-                dest_mask_path = os.path.join(class_path_mask, mask)
-                shutil.copy(src_mask_path, dest_mask_path)
+                dst_mask_path = os.path.join(class_path_mask, mask)
+                shutil.copy(src_mask_path, dst_mask_path)
