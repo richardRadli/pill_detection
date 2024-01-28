@@ -15,13 +15,12 @@ import numpy as np
 import os
 
 from PIL import Image, ImageDraw
-from pathlib import Path
 from tqdm import tqdm
 from typing import Tuple, List, Dict
 
 from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
-from utils.utils import setup_logger
+from utils.utils import file_reader, setup_logger
 
 cfg = ConfigAugmentation().parse()
 
@@ -79,10 +78,8 @@ def load_files(images_dir: str, labels_dir: str) -> Tuple[List[str], List[str]]:
     if not os.path.isdir(labels_dir):
         raise ValueError(f"Invalid path: {labels_dir} is not a directory")
 
-    image_files = sorted([str(file) for file in Path(images_dir).glob("*.jpg")] +
-                         [str(file) for file in Path(images_dir).glob("*.png")])
-
-    text_files = sorted([str(file) for file in Path(labels_dir).glob("*.txt")])
+    image_files = file_reader(images_dir, "jpg")
+    text_files = file_reader(labels_dir, "txt")
 
     if not image_files:
         raise ValueError(f"No image files found in {images_dir}")

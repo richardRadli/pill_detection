@@ -2,19 +2,20 @@ import colorama
 import concurrent.futures
 import random
 
-from pathlib import Path
 from tqdm import tqdm
 
 from augmentation_utils import (change_brightness, gaussian_smooth, rotate_image, shift_image, zoom_in_object,
                                 change_white_balance, change_background_dtd)
 from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
+from utils.utils import file_reader
 
 
 class AugmentCUREDataset:
-    def __init__(self):
+    def __init__(self, operation):
         colorama.init()
         self.cfg_aug = ConfigAugmentation().parse()
+        self.operation = operation
 
         # Train data paths
         self.training_images = (
@@ -58,6 +59,27 @@ class AugmentCUREDataset:
 
         self.background_images = (
             dataset_images_path_selector(dataset_name="dtd").get("dataset_path"))
+
+    def path_select(self, operation):
+        """
+
+        :param operation:
+        :return:
+        """
+
+        image = self.training_images if operation == "train" else self.valid_images
+        anno = self.training_annotations if operation == "train" else self.valid_annotations
+        mask = self.train_masks if operation == "train" else self.valid_masks
+
+        aug_image = self.train_aug_img_path if operation == "train" else self.valid_aug_img_path
+        aug_anno = self.train_aug_annotation_path if operation == "train" else self.valid_aug_annotation_path
+        aug_mask = self.train_aug_mask_path if operation == "train" else self.valid_aug_mask_path
+
+        image_files = file_reader(image, "jpg")
+        annotation_files = file_reader(anno, "txt")
+        mask_files = file_reader(mask, "jpg")
+
+        return image_files, annotation_files, mask_files, aug_image, aug_anno, aug_mask
 
     def process_image(self, image_path: str, anno_path: str, mask_path: str, aug_image_path: str, aug_anno_path: str,
                       aug_mask_path: str) -> None:
@@ -144,18 +166,8 @@ class AugmentCUREDataset:
                               aug_annotation_path=aug_anno_path,
                               backgrounds_path=self.background_images)
 
-    def main(self, operation: str):
-        image = self.training_images if operation == "train" else self.valid_images
-        anno = self.training_annotations if operation == "train" else self.valid_annotations
-        mask = self.train_masks if operation == "train" else self.valid_masks
-
-        aug_image = self.train_aug_img_path if operation == "train" else self.valid_aug_img_path
-        aug_anno = self.train_aug_annotation_path if operation == "train" else self.valid_aug_annotation_path
-        aug_mask = self.train_aug_mask_path if operation == "train" else self.valid_aug_mask_path
-
-        image_files = sorted(str(file) for file in Path(image).glob('*.jpg'))
-        annotation_files = sorted(str(file) for file in Path(anno).glob("*.txt"))
-        mask_files = sorted(str(file) for file in Path(mask).glob('*.jpg'))
+    def main(self):
+        image_files, annotation_files, mask_files, aug_image, aug_anno, aug_mask = self.path_select(self.operation)
 
         assert len(image_files) == len(annotation_files) == len(mask_files)
 
@@ -188,5 +200,5 @@ class AugmentCUREDataset:
 
 
 if __name__ == "__main__":
-    aug_cure = AugmentCUREDataset()
-    aug_cure.main(operation="train")
+    aug_cure = AugmentCUREDataset(operation="train")
+    aug_cure.main()

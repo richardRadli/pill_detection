@@ -8,20 +8,19 @@ import re
 import pandas as pd
 import win32com.client
 
-from glob import glob
 from fuzzysearch import find_near_matches
 from tqdm import tqdm
 
 from config.config_selector import nlp_configs
-from utils.utils import create_timestamp, setup_logger
+from utils.utils import create_timestamp, file_reader, setup_logger
 
 
 class PillFeatureExtraction:
     def __init__(self):
         setup_logger()
         self.timestamp = create_timestamp()
-        self.doc_files = (
-            sorted(glob(os.path.join(nlp_configs().get("patient_information_leaflet_doc"), "*"))))
+        self.doc_files = file_reader(file_path=os.path.join(nlp_configs().get("patient_information_leaflet_doc")),
+                                     extension="doc")
         self.docx_path = nlp_configs().get("patient_information_leaflet_docx")
         self.dictionary_of_drugs = {}
         self.dictionary_of_drugs_full_sentence = {}
@@ -195,8 +194,9 @@ class PillFeatureExtraction:
 
     def main(self):
         reference_name_list = self.get_ref_name_list()
-        # self.convert_doc_files_to_docx()
-        docx_files = sorted(glob(os.path.join(nlp_configs().get("patient_information_leaflet_docx"), "*")))
+        self.convert_doc_files_to_docx()
+        docx_files = file_reader(file_path=os.path.join(nlp_configs().get("patient_information_leaflet_docx")),
+                                 extension="docx")
 
         for i, docx in tqdm(enumerate(docx_files), total=len(docx_files), desc="Processing files"):
             text = docx2txt.process(docx)

@@ -16,8 +16,6 @@ import os
 import shutil
 
 from concurrent.futures import ThreadPoolExecutor, wait
-from glob import glob
-from pathlib import Path
 from skimage.feature import local_binary_pattern
 from tqdm import tqdm
 from typing import Tuple
@@ -25,7 +23,7 @@ from typing import Tuple
 from config.config import ConfigStreamNetwork
 from config.const import IMAGES_PATH
 from config.config_selector import dataset_images_path_selector, sub_stream_network_configs
-from utils.utils import measure_execution_time, setup_logger, numerical_sort
+from utils.utils import file_reader, measure_execution_time, setup_logger
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -100,9 +98,9 @@ class CreateStreamImages:
         color_path, mask_path = image_paths
         output_name = os.path.basename(color_path)
         output_file = (os.path.join(self.rgb_images_path, output_name))
-        color_imgs = cv2.imread(str(color_path), 1)
-        mask_imgs = cv2.imread(str(mask_path), 0)
-        self.draw_bounding_box(color_imgs, mask_imgs, output_file)
+        color_images = cv2.imread(str(color_path), 1)
+        mask_images = cv2.imread(str(mask_path), 0)
+        self.draw_bounding_box(color_images, mask_images, output_file)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------- S A V E   B O U N D I N G   B O X   I M G S ----------------------------------
@@ -113,13 +111,13 @@ class CreateStreamImages:
         :return: None
         """
 
-        path_to_images = dataset_images_path_selector()
+        path_to_images = dataset_images_path_selector(self.cfg.dataset_type)
 
-        color_images_dir = Path(path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("images"))
-        color_images = sorted(color_images_dir.glob("*.png"))
+        color_images_dir = path_to_images.get(self.cfg.dataset_operation).get("images")
+        color_images = file_reader(color_images_dir, "png")
 
-        mask_images_dir = Path(path_to_images.get(self.cfg.dataset_type).get(self.cfg.dataset_operation).get("masks"))
-        mask_images = sorted(mask_images_dir.glob("*.png"))
+        mask_images_dir = path_to_images.get(self.cfg.dataset_operation).get("masks")
+        mask_images = file_reader(mask_images_dir, "png")
 
         with ThreadPoolExecutor() as executor:
             list(tqdm(executor.map(self.process_image, zip(color_images, mask_images)), total=len(color_images),
@@ -158,14 +156,14 @@ class CreateStreamImages:
         :return: None
         """
 
-        rgb_images = sorted(glob(str(self.rgb_images_path) + "/*.png"), key=numerical_sort)
+        rgb_images = file_reader(self.rgb_images_path, "png")
         args_list = []
 
         for img_path in tqdm(rgb_images, desc="Contour images"):
             output_name = "contour_" + os.path.basename(img_path)
             output_file = os.path.join(self.contour_images_path, output_name)
-            bbox_imgs = cv2.imread(img_path, 0)
-            args_list.append((bbox_imgs, output_file, self.cfg.kernel_median_contour, self.cfg.canny_low_thr,
+            bbox_images = cv2.imread(img_path, 0)
+            args_list.append((bbox_images, output_file, self.cfg.kernel_median_contour, self.cfg.canny_low_thr,
                               self.cfg.canny_high_thr))
 
         with ThreadPoolExecutor() as executor:
@@ -207,14 +205,14 @@ class CreateStreamImages:
         :return: None
         """
 
-        rgb_images = sorted(glob(self.rgb_images_path + "/*.png"), key=numerical_sort)
+        rgb_images = file_reader(self.rgb_images_path, "png")
         args_list = []
 
         for img_path in tqdm(rgb_images, desc="Texture images"):
             output_name = "texture_" + os.path.basename(img_path)
             output_file = os.path.join(self.texture_images_path, output_name)
-            bbox_imgs = cv2.imread(img_path, 0)
-            args_list.append((bbox_imgs, output_file,
+            bbox_images = cv2.imread(img_path, 0)
+            args_list.append((bbox_images, output_file,
                               (self.cfg.kernel_gaussian_texture, self.cfg.kernel_gaussian_texture)))
 
         with ThreadPoolExecutor() as executor:
@@ -225,17 +223,17 @@ class CreateStreamImages:
     # --------------------------------------- P R O C E S S   L B P   I M A G E S --------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def process_lbp_image(img_gray: np.ndarray, dest_image_path: str) -> None:
+    def process_lbp_image(img_gray: np.ndarray, dst_image_path: str) -> None:
         """
         Process the LBP image for a given image file and save it to the destination directory.
 
         :param img_gray: The BGR image as a numpy array.
-        :param dest_image_path: The destination path to save the LBP image.
+        :param dst_image_path: The destination path to save the LBP image.
         :return: None.
         """
 
         lbp_image = local_binary_pattern(image=img_gray, P=8 * 1, R=1, method="default")
-        cv2.imwrite(dest_image_path, lbp_image)
+        cv2.imwrite(dst_image_path, lbp_image)
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- S A V E   L B P   I M A G E S ---------------------------------------
@@ -246,15 +244,15 @@ class CreateStreamImages:
         :return: None
         """
 
-        rgb_images = sorted(glob(self.rgb_images_path + "/*.png"), key=numerical_sort)
+        rgb_images = file_reader(self.rgb_images_path, "png")
 
         with ThreadPoolExecutor() as executor:
             futures = []
             for img_path in tqdm(rgb_images, desc="LBP images"):
                 output_name = "lbp_" + os.path.basename(img_path)
                 output_file = os.path.join(self.lbp_images_path, output_name)
-                bbox_imgs = cv2.imread(img_path, 0)
-                future = executor.submit(self.process_lbp_image, bbox_imgs, output_file)
+                bbox_images = cv2.imread(img_path, 0)
+                future = executor.submit(self.process_lbp_image, bbox_images, str(output_file))
                 futures.append(future)
 
             for future in futures:
@@ -278,9 +276,9 @@ class CreateStreamImages:
         for class_label_dir in class_label_dirs:
             class_label_path = os.path.join(source_root, class_label_dir)
 
-            subdirs = os.listdir(class_label_path)
+            sub_dirs = os.listdir(class_label_path)
 
-            for subdir in subdirs:
+            for subdir in sub_dirs:
                 subdir_path = os.path.join(class_label_path, subdir)
 
                 image_files = [f for f in os.listdir(subdir_path) if
@@ -321,9 +319,9 @@ class CreateStreamImages:
                 if self.cfg.dataset_type == 'ogyei':
                     # match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
                     if "s_" in file_rgb:
-                        match = re.search(r'^(.*?)_[s]_\d{3}\.png$', file_rgb)
+                        match = re.search(r'^(.*?)_s_\d{3}\.png$', file_rgb)
                     elif "u_" in file_rgb:
-                        match = re.search(r'^(.*?)_[u]_\d{3}\.png$', file_rgb)
+                        match = re.search(r'^(.*?)_u_\d{3}\.png$', file_rgb)
                     else:
                         match = None
 
@@ -385,7 +383,7 @@ class CreateStreamImages:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
-        proc_unet_imgs = CreateStreamImages()
-        proc_unet_imgs.main()
+        proc_unet_images = CreateStreamImages()
+        proc_unet_images.main()
     except KeyboardInterrupt as kie:
         logging.error(f'{kie}')

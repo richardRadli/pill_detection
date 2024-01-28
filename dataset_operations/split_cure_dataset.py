@@ -1,58 +1,135 @@
 import os
-import random
 import shutil
 
+from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 
-def copy_files(root_directory, files, operation_directory):
-    for file in files:
-        src_image = os.path.join(root_directory, 'images', file)
-        dst_image = os.path.join(operation_directory, 'images', file)
-        shutil.copy(str(src_image), str(dst_image))
-
-        src_bbox = os.path.join(root_directory, 'bbox_labels', file.replace('.jpg', '.txt'))
-        dst_bbox = os.path.join(operation_directory, 'bbox_labels', file.replace('.jpg', '.txt'))
-        shutil.copy(str(src_bbox), str(dst_bbox))
-
-        src_label = os.path.join(root_directory, 'labels', file.replace('.jpg', '.txt'))
-        dst_label = os.path.join(operation_directory, 'labels', file.replace('.jpg', '.txt'))
-        shutil.copy(str(src_label), str(dst_label))
+from config.config import ConfigAugmentation
+from config.config_selector import dataset_images_path_selector
 
 
-def split_images(root_directory, train_directory, valid_directory, test_directory, sr):
-    image_files = [f for f in os.listdir(os.path.join(root_directory, 'images')) if f.endswith('.jpg')]
-
-    class_files = {}
-    for file in image_files:
-        class_label = file.split('_')[0]
-        if class_label not in class_files:
-            class_files[class_label] = []
-        class_files[class_label].append(file)
-
-    for class_label in class_files:
-        random.shuffle(class_files[class_label])
-
-    train_files = []
-    valid_files = []
-    test_files = []
-
-    for class_label in class_files:
-        split_index1 = int(len(class_files[class_label]) * sr[0])
-        split_index2 = int(len(class_files[class_label]) * (sr[0] + sr[1]))
-        train_files.extend(class_files[class_label][:split_index1])
-        valid_files.extend(class_files[class_label][split_index1:split_index2])
-        test_files.extend(class_files[class_label][split_index2:])
-
-    copy_files(root_directory, train_files, train_directory)
-    copy_files(root_directory, valid_files, valid_directory)
-    copy_files(root_directory, test_files, test_directory)
+def filter_filenames_by_class(filenames, class_id):
+    return [filename for filename in filenames if int(filename.split("_")[0]) == class_id]
 
 
-if __name__ == '__main__':
-    split_ratio = [0.64, 0.16, 0.2]
+def split_dataset(dataset_path, val_ratio=0.16, test_ratio=0.20, random_seed=42):
+    image_filenames = [filename for filename in os.listdir(dataset_path) if filename.endswith(".jpg")]
+    class_ids = set([int(filename.split("_")[0]) for filename in image_filenames])
 
-    root_dir = "D:/storage/IVM/datasets/cure/Customer"
-    train_dir = "D:/storage/IVM/datasets/cure/train_dir"
-    valid_dir = "D:/storage/IVM/datasets/cure/valid_dir"
-    test_dir = "D:/storage/IVM/datasets/cure/test_dir"
+    train_classes, test_classes = train_test_split(list(class_ids),
+                                                   test_size=test_ratio,
+                                                   random_state=random_seed)
+    train_classes, val_classes = train_test_split(train_classes,
+                                                  test_size=val_ratio / (1 - test_ratio),
+                                                  random_state=random_seed)
 
-    split_images(root_dir, train_dir, valid_dir, test_dir, split_ratio)
+    train_set = \
+        [filename for class_id in train_classes for filename in filter_filenames_by_class(image_filenames, class_id)]
+    val_set = \
+        [filename for class_id in val_classes for filename in filter_filenames_by_class(image_filenames, class_id)]
+    test_set = \
+        [filename for class_id in test_classes for filename in filter_filenames_by_class(image_filenames, class_id)]
+
+    return train_set, val_set, test_set
+
+
+def copy_files(split_set, dataset_images_path, dataset_bbox_path, dataset_segmentation_path, dst_dataset_images_path,
+               dst_dataset_bbox_path, dst_segmentation_path):
+    for file in tqdm(split_set):
+        src_img = os.path.join(dataset_images_path, file)
+        file_txt = file.replace(".jpg", ".txt")
+        src_bbox = os.path.join(dataset_bbox_path, file_txt)
+        src_seg = os.path.join(dataset_segmentation_path, file_txt)
+        shutil.copy(str(src_img), dst_dataset_images_path)
+        shutil.copy(str(src_bbox), dst_dataset_bbox_path)
+        shutil.copy(str(src_seg), dst_segmentation_path)
+
+
+def main():
+    cfg = ConfigAugmentation().parse()
+
+    dataset_images_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer_images")
+    )
+    dataset_bbox_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer_pixel_bbox_labels")
+    )
+    dataset_segmentation_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer_segmentation_labels")
+    )
+
+    dst_train_dataset_images_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train_images")
+    )
+    dst_train_dataset_bbox_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train_bbox_pixel_labels")
+    )
+    dst_train_segmentation_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train_segmentation_labels")
+    )
+
+    dst_valid_dataset_images_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid_images")
+    )
+    dst_valid_dataset_bbox_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid_bbox_pixel_labels")
+    )
+    dst_valid_segmentation_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid_segmentation_labels")
+    )
+
+    dst_test_dataset_images_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test_images")
+    )
+    dst_test_dataset_bbox_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test_bbox_pixel_labels")
+    )
+    dst_test_segmentation_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test_segmentation_labels")
+    )
+
+    train_set, val_set, test_set = split_dataset(dataset_images_path)
+
+    # Print the number of classes and instances in each set
+    print(f"Number of classes in training set: {len(set([int(filename.split('_')[0]) for filename in train_set]))}")
+    print(f"Number of classes in validation set: {len(set([int(filename.split('_')[0]) for filename in val_set]))}")
+    print(f"Number of classes in testing set: {len(set([int(filename.split('_')[0]) for filename in test_set]))}")
+
+    # Print the number of instances in each set
+    print(f"Number of instances in training set: {len(train_set)}")
+    print(f"Number of instances in validation set: {len(val_set)}")
+    print(f"Number of instances in testing set: {len(test_set)}")
+
+    copy_files(
+        split_set=train_set,
+        dataset_images_path=dataset_images_path,
+        dataset_bbox_path=dataset_bbox_path,
+        dataset_segmentation_path=dataset_segmentation_path,
+        dst_dataset_images_path=dst_train_dataset_images_path,
+        dst_dataset_bbox_path=dst_train_dataset_bbox_path,
+        dst_segmentation_path=dst_train_segmentation_path
+    )
+
+    copy_files(
+        split_set=val_set,
+        dataset_images_path=dataset_images_path,
+        dataset_bbox_path=dataset_bbox_path,
+        dataset_segmentation_path=dataset_segmentation_path,
+        dst_dataset_images_path=dst_valid_dataset_images_path,
+        dst_dataset_bbox_path=dst_valid_dataset_bbox_path,
+        dst_segmentation_path=dst_valid_segmentation_path
+    )
+
+    copy_files(
+        split_set=test_set,
+        dataset_images_path=dataset_images_path,
+        dataset_bbox_path=dataset_bbox_path,
+        dataset_segmentation_path=dataset_segmentation_path,
+        dst_dataset_images_path=dst_test_dataset_images_path,
+        dst_dataset_bbox_path=dst_test_dataset_bbox_path,
+        dst_segmentation_path=dst_test_segmentation_path
+    )
+
+
+if __name__ == "__main__":
+    main()

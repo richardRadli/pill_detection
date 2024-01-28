@@ -1,11 +1,13 @@
 import cv2
 import os
-from glob import glob
+
 from tqdm import tqdm
+
+from utils.utils import file_reader
 
 
 def save_annotations(image_path, annotation_path, out_path):
-    images = sorted(glob(image_path + "*.png"))
+    images = file_reader(image_path, "png")
 
     for img in tqdm(images, total=len(images)):
         # Get the corresponding annotation file
@@ -66,5 +68,5 @@ def save_annotations(image_path, annotation_path, out_path):
 if __name__ == "__main__":
     img_path = "C:/Users/ricsi/Documents/yolov7/runs/detect/ogyeiv2_binary_class/"
     ann_path = "C:/Users/ricsi/Documents/yolov7/runs/detect/ogyeiv2_binary_class/labels/"
-    out_path = "C:/Users/ricsi/Desktop/crops/"
-    save_annotations(img_path, ann_path, out_path)
+    dst_path = "C:/Users/ricsi/Desktop/crops/"
+    save_annotations(img_path, ann_path, dst_path)

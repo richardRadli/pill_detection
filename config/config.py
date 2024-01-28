@@ -48,7 +48,7 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
-                                 help="CNN | EfficientNet | EfficientNetV2")
+                                 help="EfficientNet | EfficientNetV2")
         self.parser.add_argument("--type_of_stream", type=str, default="LBP", help="Contour | LBP | RGB | Texture")
         self.parser.add_argument("--dataset_operation", type=str, default="valid", help="train | valid | test")
 
@@ -62,10 +62,6 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
 
-        self.parser.add_argument("--learning_rate_cnn_rgb", type=float, default=1e-4)
-        self.parser.add_argument("--learning_rate_cnn_con", type=float, default=3e-4)
-        self.parser.add_argument("--learning_rate_cnn_lbp", type=float, default=3e-4)
-        self.parser.add_argument("--learning_rate_cnn_tex", type=float, default=3e-4)
         self.parser.add_argument("--learning_rate_en_rgb", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_con", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_lbp", type=float, default=1e-4)
@@ -79,7 +75,6 @@ class ConfigStreamNetwork:
                                  help="Number of epochs after which to decay the learning rate")
         self.parser.add_argument('--gamma', type=float, default=0.1, help="Factor by which to decay the learning rate")
 
-        self.parser.add_argument("--img_size_cnn", type=int, default=128)
         self.parser.add_argument("--img_size_en", type=int, default=224)
 
         self.parser.add_argument("--load_ref_vector", type=bool, default=True)
@@ -108,8 +103,7 @@ class ConfigFusionNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetSelfAttention",
-                                 help="CNNFusionNet | EfficientNetSelfAttention | EfficientNetV2SelfAttention "
-                                      "| EfficientNetV2MultiHeadAttention | EfficientNetV2MHAFMHA")
+                                 help="EfficientNetSelfAttention | EfficientNetV2MultiHeadAttention")
         self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | hmtl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
         self.parser.add_argument("--margin", type=float, default=0.5)

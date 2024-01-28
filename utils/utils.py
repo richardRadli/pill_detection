@@ -24,7 +24,6 @@ from glob import glob
 from pathlib import Path
 from PIL import Image
 from sklearn.metrics import confusion_matrix
-from torch import Tensor
 from typing import List, Union
 from tqdm import tqdm
 
@@ -89,6 +88,20 @@ def numerical_sort(value: str) -> List[Union[str, int]]:
     parts = numbers.split(value)
     parts[1::2] = map(int, parts[1::2])
     return parts
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------ F I L E   R E A D E R -----------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def file_reader(file_path: str, extension: str):
+    """
+
+    :param file_path:
+    :param extension:
+    :return:
+    """
+
+    return sorted([str(file) for file in Path(file_path).glob(f'*.{extension}')], key=numerical_sort)
 
 
 # ----------------------------------------------------------------------------------------------------------------------

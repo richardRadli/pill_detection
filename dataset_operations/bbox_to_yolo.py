@@ -1,10 +1,9 @@
 import cv2
 import os
 
-from pathlib import Path
-
 from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
+from utils.utils import file_reader
 
 
 def path_select(cfg, operation):
@@ -36,13 +35,13 @@ def read_annotations_from_file(file_path):
 
 
 def convert_bbox_to_yolo(bbox, image_width, image_height):
-    class_id, xmin, ymin, xmax, ymax = bbox
+    class_id, x_min, y_min, x_max, y_max = bbox
 
-    width = xmax - xmin
-    height = ymax - ymin
+    width = x_max - x_min
+    height = y_max - y_min
 
-    x_center = (xmin + xmax) / 2.0
-    y_center = (ymin + ymax) / 2.0
+    x_center = (x_min + x_max) / 2.0
+    y_center = (y_min + y_max) / 2.0
 
     x_center /= image_width
     y_center /= image_height
@@ -66,8 +65,8 @@ def main(operation: str = "train"):
 
     images, bboxes, yolo_annotations = path_select(cfg, operation)
 
-    images_path = sorted([str(file) for file in Path(images).glob('*.jpg')])
-    annotation_path = sorted([str(file) for file in Path(bboxes).glob('*.txt')])
+    images_path = file_reader(images, "jpg")
+    annotation_path = file_reader(bboxes, "txt")
 
     for idx, (img, annotation) in enumerate(zip(images_path, annotation_path)):
         src_img = cv2.imread(img)

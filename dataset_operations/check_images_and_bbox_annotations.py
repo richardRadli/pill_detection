@@ -1,10 +1,34 @@
 import cv2
 
-from pathlib import Path
 from tqdm import tqdm
 
 from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
+from utils.utils import file_reader
+
+
+def path_select(cfg_aug, operation):
+    train_aug_img_path = (
+        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("train_aug_images")
+    )
+    train_aug_annotation_path = (
+        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("train_aug_yolo_labels")
+    )
+
+    valid_aug_img_path = (
+        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("valid_aug_images")
+    )
+    valid_aug_annotation_path = (
+        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("valid_aug_yolo_labels")
+    )
+
+    aug_image = train_aug_img_path if operation == "train" else valid_aug_img_path
+    aug_anno = train_aug_annotation_path if operation == "train" else valid_aug_annotation_path
+
+    image_file = file_reader(aug_image, "jpg")
+    yolo_annotation_file = file_reader(aug_anno, "txt")
+
+    return image_file, yolo_annotation_file
 
 
 def read_yolo_annotations(annotation_file: str) -> list:
@@ -62,25 +86,7 @@ def main(operation: str = "train") -> None:
 
     cfg_aug = ConfigAugmentation().parse()
 
-    train_aug_img_path = (
-        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("train_aug_images")
-    )
-    train_aug_annotation_path = (
-        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("train_aug_yolo_labels")
-    )
-
-    valid_aug_img_path = (
-        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("valid_aug_images")
-    )
-    valid_aug_annotation_path = (
-        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("valid_aug_yolo_labels")
-    )
-
-    aug_image = train_aug_img_path if operation == "train" else valid_aug_img_path
-    aug_anno = train_aug_annotation_path if operation == "train" else valid_aug_annotation_path
-
-    image_file = [str(file) for file in Path(aug_image).glob("*.jpg")]
-    yolo_annotation_file = [str(file) for file in Path(aug_anno).glob("*.txt")]
+    image_file, yolo_annotation_file = path_select(cfg_aug, operation)
 
     for idx, (image_path, annotation_path) in tqdm(enumerate(zip(image_file, yolo_annotation_file)),
                                                    total=len(image_file),

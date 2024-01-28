@@ -47,7 +47,7 @@ def convert_and_plot_annotations(img_folder, annotation_folder, dst_path):
                 bbox = convert_yolo_to_bbox(annotation, img_width, img_height)
                 bboxes.append(bbox)
 
-            # plot_bbox(img_path, bboxes)
+            plot_bbox(img_path, bboxes)
 
             save_filename = os.path.join(dst_path, label_filename)
             with open(save_filename, 'w') as save_file:
