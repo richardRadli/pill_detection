@@ -285,6 +285,10 @@ class TrainFusionNet:
 if __name__ == "__main__":
     try:
         tm = TrainFusionNet()
-        tm.train()
+        try:
+            tm.train()
+        except torch.cuda.OutOfMemoryError:
+            logging.error('Detected OutOfMemoryError!')
+            torch.cuda.empty_cache()
     except KeyboardInterrupt:
         logging.error('Keyboard interrupt has been occurred!')

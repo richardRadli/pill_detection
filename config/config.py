@@ -49,7 +49,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--dataset_type", type=str, default="cure", choices=["cure | ogyei"])
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
                                  help="EfficientNet | EfficientNetV2")
-        self.parser.add_argument("--type_of_stream", type=str, default="LBP",
+        self.parser.add_argument("--type_of_stream", type=str, default="Texture",
                                  choices=["Contour | LBP | RGB | Texture"])
         self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
 

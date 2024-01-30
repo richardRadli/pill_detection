@@ -589,75 +589,102 @@ class Data(_Const):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Datasets(_Const):
     dirs_dataset = {
-        # D T D
+        # --------------------------------------------------- D T D ----------------------------------------------------
         "dtd_images":
             "dtd_images",
 
-        # O G Y E I   V 2
-        # Single
+        # ------------------------------------------------- O G Y E I --------------------------------------------------
         # Unsplitted
-        "ogyei_v2_single_unsplitted_images":
-            "ogyei_v2/single/unsplitted/images",
-        "ogyei_v2_single_unsplitted_labels":
-            "ogyei_v2/single/unsplitted/labels",
-        "ogyei_v2_single_unsplitted_gt_masks":
-            "ogyei_v2/single/unsplitted/gt_masks",
-        "ogyei_v2_single_unsplitted_pred_masks":
-            "ogyei_v2/single/unsplitted/pred_masks",
+        "ogyei_v2_unsplitted_images":
+            "ogyei_v2/unsplitted/images",
+        "ogyei_v2_unsplitted_labels":
+            "ogyei_v2/unsplitted/labels",
+        "ogyei_v2_unsplitted_gt_masks":
+            "ogyei_v2/unsplitted/gt_masks",
 
         # Train images, labels and masks
-        "ogyei_v2_single_splitted_train_images":
-            "ogyei_v2/single/splitted/train/images",
-        "ogyei_v2_single_splitted_train_labels":
-            "ogyei_v2/single/splitted/train/labels",
-        "ogyei_v2_single_splitted_gt_train_masks":
-            "ogyei_v2/single/splitted/train/gt_train_masks",
-        "ogyei_v2_single_splitted_pred_train_masks":
-            "ogyei_v2/single/splitted/train/pred_train_masks",
+        "ogyei_v2_splitted_train_images":
+            "ogyei_v2/splitted/train/images",
+        "ogyei_v2_splitted_train_labels":
+            "ogyei_v2/splitted/train/labels",
+        "ogyei_v2_splitted_gt_train_masks":
+            "ogyei_v2/splitted/train/gt_train_masks",
+        "ogyei_v2_splitted_train_bbox_pixel_labels":
+            "ogyei_v2/splitted/train/bbox_labels",
+        "ogyei_v2_splitted_train_yolo_labels":
+            "ogyei_v2/splitted/train/yolo_labels",
+        "ogyei_v2_splitted_train_aug_images":
+            "ogyei_v2/splitted_aug/train_dir/images",
+        "ogyei_v2_splitted_train_aug_yolo_labels":
+            "ogyei_v2/splitted_aug/train_dir/yolo_labels",
+        "ogyei_v2_splitted_train_aug_mask_images":
+            "ogyei_v2/splitted_aug/train_dir/mask_images",
 
         # Validation images, labels and masks
-        "ogyei_v2_single_splitted_valid_images":
-            "ogyei_v2/single/splitted/valid/images",
-        "ogyei_v2_single_splitted_valid_labels":
-            "ogyei_v2/single/splitted/valid/labels",
-        "ogyei_v2_single_splitted_gt_valid_masks":
-            "ogyei_v2/single/splitted/valid/gt_valid_masks",
-        "ogyei_v2_single_splitted_pred_valid_masks":
-            "ogyei_v2/single/splitted/valid/pred_valid_masks",
+        "ogyei_v2_splitted_valid_images":
+            "ogyei_v2/splitted/valid/images",
+        "ogyei_v2_splitted_valid_labels":
+            "ogyei_v2/splitted/valid/labels",
+        "ogyei_v2_splitted_gt_valid_masks":
+            "ogyei_v2/splitted/valid/gt_valid_masks",
+        "ogyei_v2_splitted_valid_bbox_pixel_labels":
+            "ogyei_v2/splitted/valid/bbox_labels",
+        "ogyei_v2_splitted_valid_yolo_labels":
+            "ogyei_v2/splitted/valid/yolo_labels",
+        "ogyei_v2_splitted_valid_aug_images":
+            "ogyei_v2/splitted_aug/valid_dir/images",
+        "ogyei_v2_splitted_valid_aug_yolo_labels":
+            "ogyei_v2/splitted_aug/valid_dir/yolo_labels",
+        "ogyei_v2_splitted_valid_aug_mask_images":
+            "ogyei_v2/splitted_aug/valid_dir/mask_images",
 
         # Test images, labels and masks
-        "ogyei_v2_single_splitted_test_images":
-            "ogyei_v2/single/splitted/test/images",
-        "ogyei_v2_single_splitted_test_labels":
-            "ogyei_v2/single/splitted/test/labels",
-        "ogyei_v2_single_splitted_gt_test_masks":
-            "ogyei_v2/single/splitted/test/gt_test_masks",
-        "ogyei_v2_single_splitted_pred_test_masks":
-            "ogyei_v2/single/splitted/test/pred_test_masks",
+        "ogyei_v2_splitted_test_images":
+            "ogyei_v2/splitted/test/images",
+        "ogyei_v2_splitted_test_labels":
+            "ogyei_v2/splitted/test/labels",
+        "ogyei_v2_splitted_gt_test_masks":
+            "ogyei_v2/splitted/test/gt_test_masks",
+        "ogyei_v2_splitted_test_bbox_pixel_labels":
+            "ogyei_v2/splitted/test/bbox_labels",
+        "ogyei_v2_splitted_test_yolo_labels":
+            "ogyei_v2/splitted/test/yolo_labels",
+        "ogyei_v2_splitted_test_aug_images":
+            "ogyei_v2/splitted_aug/test_dir/images",
+        "ogyei_v2_splitted_test_aug_yolo_labels":
+            "ogyei_v2/splitted_aug/test_dir/yolo_labels",
+        "ogyei_v2_splitted_test_aug_mask_images":
+            "ogyei_v2/splitted_aug/test_dir/mask_images",
 
-        # T R A Y
-        "tray_original_images":
-            "tray/original_images",
-        "tray_diff_images":
-            "tray/diff_images",
-        "tray_plots":
-            "tray/plots",
-        "tray_images_aug":
-            "tray/tray_images_aug",
-        "tray_images_aug_w_med":
-            "tray/tray_images_aug_w_med",
-        "tray_images_aug_w_med_aug":
-            "tray/tray_images_aug_w_med_aug",
+        # --------------------------------------------------- N I H ----------------------------------------------------
+        # CUSTOMER
+        "nih_customer_images":
+            "nih/Customer/images",
+        "nih_customer_csv":
+            "nih/Customer/csv",
+        "nih_customer_xlsx":
+            "nih/Customer/xlsx",
+        "nih_customer_txt":
+            "nih/Customer/txt",
 
-        # N I H
-        "nih_ref_images":
-            "nih/ref",
-        "nih_query_images":
-            "nih/query",
-        "nih_xlsx":
-            "nih/xlsx",
+        # REFERENCE
+        "nih_reference_images":
+            "cure/Reference/images",
+        "nih_reference_masks":
+            "nih/Reference/masks",
+        "nih_reference_labels":
+            "nih/Reference/labels",
+        "nih_reference_csv":
+            "nih/Reference/csv",
+        "nih_reference_xlsx":
+            "nih/Reference/xlsx",
+        "nih_reference_txt":
+            "nih/Reference/txt",
 
-        # C U R E
+        # OTHER
+
+
+        # -------------------------------------------------- C U R E ---------------------------------------------------
         # CUSTOMER
         "cure_customer_images":
             "cure/Customer/images",
