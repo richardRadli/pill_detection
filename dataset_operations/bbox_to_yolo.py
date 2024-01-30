@@ -7,17 +7,17 @@ from utils.utils import file_reader
 
 
 def path_select(cfg, operation):
-    train_images = dataset_images_path_selector(cfg.dataset_name).get("train_images")
-    train_bboxes = dataset_images_path_selector(cfg.dataset_name).get("train_bbox_pixel_labels")
-    train_yolo_annotations = dataset_images_path_selector(cfg.dataset_name).get("train_yolo_labels")
+    train_images = dataset_images_path_selector(cfg.dataset_name).get("train").get("images")
+    train_bboxes = dataset_images_path_selector(cfg.dataset_name).get("train").get("bbox_pixel_labels")
+    train_yolo_annotations = dataset_images_path_selector(cfg.dataset_name).get("train").get("yolo_labels")
 
-    valid_images = dataset_images_path_selector(cfg.dataset_name).get("valid_images")
-    valid_bboxes = dataset_images_path_selector(cfg.dataset_name).get("valid_bbox_pixel_labels")
-    valid_yolo_annotations = dataset_images_path_selector(cfg.dataset_name).get("valid_yolo_labels")
+    valid_images = dataset_images_path_selector(cfg.dataset_name).get("valid").get("images")
+    valid_bboxes = dataset_images_path_selector(cfg.dataset_name).get("valid").get("bbox_pixel_labels")
+    valid_yolo_annotations = dataset_images_path_selector(cfg.dataset_name).get("valid").get("yolo_labels")
 
-    test_images = dataset_images_path_selector(cfg.dataset_name).get("test_images")
-    test_bboxes = dataset_images_path_selector(cfg.dataset_name).get("test_bbox_pixel_labels")
-    test_yolo_annotations = dataset_images_path_selector(cfg.dataset_name).get("test_yolo_labels")
+    test_images = dataset_images_path_selector(cfg.dataset_name).get("test").get("images")
+    test_bboxes = dataset_images_path_selector(cfg.dataset_name).get("test").get("bbox_pixel_labels")
+    test_yolo_annotations = dataset_images_path_selector(cfg.dataset_name).get("test").get("yolo_labels")
 
     images = train_images if operation == "train" else (valid_images if operation == "valid" else test_images)
     bboxes = train_bboxes if operation == "train" else (valid_bboxes if operation == "valid" else test_bboxes)

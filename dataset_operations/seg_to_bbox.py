@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 
 from tqdm import tqdm
 
+from config.config import ConfigAugmentation
+from config.config_selector import dataset_images_path_selector
+
 
 def convert_yolo_to_bbox(yolo_annotation, img_width, img_height):
     yolo_id = int(yolo_annotation[0])
@@ -55,9 +58,13 @@ def convert_and_plot_annotations(img_folder, annotation_folder, dst_path):
                     save_file.write(f"{bbox[0]} {bbox[1]} {bbox[2]} {bbox[3]} {bbox[4]}\n")
 
 
-if __name__ == "__main__":
-    image_folder = "D:/storage/IVM/datasets/cure/customer_annotated/train/images"
-    label_folder = "D:/storage/IVM/datasets/cure/customer_annotated/train/labels"
-    save_folder = "D:/storage/IVM/datasets/cure/customer_annotated/train/bbox_labels"
-    os.makedirs(save_folder, exist_ok=True)
+def main():
+    cfg = ConfigAugmentation().parse()
+    image_folder = dataset_images_path_selector(cfg.dataset_name).get("train").get("images")
+    label_folder = dataset_images_path_selector(cfg.dataset_name).get("train").get("segmentation_labels")
+    save_folder = dataset_images_path_selector(cfg.dataset_name).get("train").get("bbox_pixel_labels")
     convert_and_plot_annotations(image_folder, label_folder, save_folder)
+
+
+if __name__ == "__main__":
+    main()

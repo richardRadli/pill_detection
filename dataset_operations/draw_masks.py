@@ -39,21 +39,21 @@ def path_selector(operation: str):
 
     if operation.lower() == "train":
         path_to_images = {
-            "images": dataset_images_path_selector(cfg.dataset_name).get("train_images"),
-            "labels": dataset_images_path_selector(cfg.dataset_name).get("train_segmentation_labels"),
-            "masks": dataset_images_path_selector(cfg.dataset_name).get("train_mask_images")
+            "images": dataset_images_path_selector(cfg.dataset_name).get("train").get("images"),
+            "labels": dataset_images_path_selector(cfg.dataset_name).get("train").get("segmentation_labels"),
+            "masks": dataset_images_path_selector(cfg.dataset_name).get("train").get("mask_images")
         }
     elif operation.lower() == "valid":
         path_to_images = {
-            "images": dataset_images_path_selector(cfg.dataset_name).get("valid_images"),
-            "labels": dataset_images_path_selector(cfg.dataset_name).get("valid_segmentation_labels"),
-            "masks": dataset_images_path_selector(cfg.dataset_name).get("valid_mask_images")
+            "images": dataset_images_path_selector(cfg.dataset_name).get("valid").get("images"),
+            "labels": dataset_images_path_selector(cfg.dataset_name).get("valid").get("segmentation_labels"),
+            "masks": dataset_images_path_selector(cfg.dataset_name).get("valid").get("mask_images")
         }
     elif operation.lower() == "test":
         path_to_images = {
-            "images": dataset_images_path_selector(cfg.dataset_name).get("test_images"),
-            "labels": dataset_images_path_selector(cfg.dataset_name).get("test_segmentation_labels"),
-            "masks": dataset_images_path_selector(cfg.dataset_name).get("test_mask_images")
+            "images": dataset_images_path_selector(cfg.dataset_name).get("test").get("images"),
+            "labels": dataset_images_path_selector(cfg.dataset_name).get("test").get("segmentation_labels"),
+            "masks": dataset_images_path_selector(cfg.dataset_name).get("test").get("mask_images")
         }
     else:
         raise ValueError("Wrong operation!")

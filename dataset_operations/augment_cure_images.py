@@ -19,42 +19,42 @@ class AugmentCUREDataset:
 
         # Train data paths
         self.training_images = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train_images")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("images")
         )
         self.training_annotations = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train_yolo_labels")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("yolo_labels")
         )
         self.train_masks = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train_mask_images")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("mask_images")
         )
         self.train_aug_img_path = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train_aug_images")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("aug_images")
         )
         self.train_aug_annotation_path = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train_aug_yolo_labels")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("aug_yolo_labels")
         )
         self.train_aug_mask_path = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train_aug_mask_images")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("aug_mask_images")
         )
 
         # Valid data paths
         self.valid_images = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid_images")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("images")
         )
         self.valid_annotations = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid_yolo_labels")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("yolo_labels")
         )
         self.valid_masks = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid_mask_images")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("mask_images")
         )
         self.valid_aug_img_path = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid_aug_images")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("aug_images")
         )
         self.valid_aug_annotation_path = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid_aug_yolo_labels")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("aug_yolo_labels")
         )
         self.valid_aug_mask_path = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid_aug_mask_images")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("aug_mask_images")
         )
 
         self.background_images = (

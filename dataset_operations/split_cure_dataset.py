@@ -15,7 +15,6 @@ def filter_filenames_by_class(filenames, class_id):
 def split_dataset(dataset_path, test_ratio=0.20, random_seed=42):
     image_filenames = [filename for filename in os.listdir(dataset_path) if filename.endswith(".jpg")]
     class_ids = set([int(filename.split("_")[0]) for filename in image_filenames])
-    num_classes = len(class_ids)
 
     # Select 20% of the classes for the test set
     train_classes, test_classes = train_test_split(list(class_ids),
@@ -62,43 +61,43 @@ def main():
     cfg = ConfigAugmentation().parse()
 
     dataset_images_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer_images")
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer").get("customer_images")
     )
     dataset_bbox_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer_pixel_bbox_labels")
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer").get("customer_pixel_bbox_labels")
     )
     dataset_segmentation_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer_segmentation_labels")
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer").get("customer_segmentation_labels")
     )
 
     dst_train_dataset_images_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train_images")
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train").get("images")
     )
     dst_train_dataset_bbox_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train_bbox_pixel_labels")
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train").get("bbox_pixel_labels")
     )
     dst_train_segmentation_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train_segmentation_labels")
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train").get("segmentation_labels")
     )
 
     dst_valid_dataset_images_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid_images")
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid").get("images")
     )
     dst_valid_dataset_bbox_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid_bbox_pixel_labels")
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid").get("bbox_pixel_labels")
     )
     dst_valid_segmentation_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid_segmentation_labels")
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid").get("segmentation_labels")
     )
 
     dst_test_dataset_images_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test_images")
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test").get("images")
     )
     dst_test_dataset_bbox_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test_bbox_pixel_labels")
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test").get("bbox_pixel_labels")
     )
     dst_test_segmentation_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test_segmentation_labels")
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test").get("segmentation_labels")
     )
 
     train_set, val_set, test_set, number_of_images = split_dataset(dataset_path=dataset_images_path)

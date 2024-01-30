@@ -36,12 +36,12 @@ class FourierDescriptor:
         self.copy_images = copy_images
         self.load = load
 
-        self.images_dir = dataset_images_path_selector().get("nih").get("ref")
+        self.images_dir = dataset_images_path_selector("nih").get("other").get("images")
         self.file_path = Fourier_configs().get("Fourier_collected_images_by_shape_nih")
         self.plot_efd_dir = Fourier_configs().get("Fourier_plot_shape")
         self.plot_euc_dir = Fourier_configs().get("Fourier_euclidean_distance")
         self.json_dir = Fourier_configs().get("Fourier_saved_mean_vectors")
-        self.excel_path = os.path.join(dataset_images_path_selector().get("nih").get("xlsx"), "ref.xlsx")
+        self.excel_path = os.path.join(dataset_images_path_selector("nih").get("other").get("xlsx"), "ref.xlsx")
 
     def get_excel_values(self) -> None:
         """

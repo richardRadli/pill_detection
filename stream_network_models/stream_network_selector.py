@@ -12,7 +12,7 @@ import torch
 from abc import ABC, abstractmethod
 
 from stream_network_models.efficient_net_b0 import EfficientNet
-from stream_network_models.efficient_net_v2 import EfficientNetV2
+from stream_network_models.efficient_net_v2_s import EfficientNetV2s
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -33,8 +33,12 @@ class BaseNetwork(ABC):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class EfficientNetWrapper(BaseNetwork):
     def __init__(self, network_cfg):
-        self.model = EfficientNet(num_out_feature=network_cfg.get('embedded_dim'),
-                                  grayscale=network_cfg.get('grayscale'))
+        self.model = (
+            EfficientNet(
+                num_out_feature=network_cfg.get('embedded_dim'),
+                grayscale=network_cfg.get('grayscale')
+            )
+        )
 
     def forward(self, x):
         return self.model(x)
@@ -46,8 +50,10 @@ class EfficientNetWrapper(BaseNetwork):
 class EfficientNetV2Wrapper(BaseNetwork):
     def __init__(self, network_cfg):
         self.model = \
-            EfficientNetV2(version='s', dropout_rate=0.2, num_classes=network_cfg.get("embedded_dim"),
-                           is_grayscale=network_cfg.get('grayscale'))
+            EfficientNetV2s(
+                num_out_feature=network_cfg.get("embedded_dim"),
+                grayscale=network_cfg.get('grayscale')
+            )
 
     def forward(self, x):
         return self.model(x)

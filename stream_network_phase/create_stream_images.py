@@ -21,7 +21,6 @@ from tqdm import tqdm
 from typing import Tuple
 
 from config.config import ConfigStreamNetwork
-from config.const import IMAGES_PATH
 from config.config_selector import dataset_images_path_selector, sub_stream_network_configs
 from utils.utils import file_reader, measure_execution_time, setup_logger
 
@@ -113,11 +112,23 @@ class CreateStreamImages:
 
         path_to_images = dataset_images_path_selector(self.cfg.dataset_type)
 
-        color_images_dir = path_to_images.get(self.cfg.dataset_operation).get("images")
-        color_images = file_reader(color_images_dir, "png")
+        if self.cfg.dataset_type == 'ogyei':
+            color_images_dir = path_to_images.get(self.cfg.dataset_operation).get("images")
+            mask_images_dir = path_to_images.get(self.cfg.dataset_operation).get("masks")
+        elif self.cfg.dataset_type == 'cure':
+            color_images_dir = path_to_images.get("train_images") if self.cfg.dataset_operation == "train" else (
+                path_to_images.get("valid_images") if self.cfg.dataset_operation == "valid"
+                else path_to_images.get("test_images")
+            )
+            mask_images_dir = path_to_images.get("train_mask_images") if self.cfg.dataset_operation == "train" else (
+                path_to_images.get("valid_mask_images") if self.cfg.dataset_operation == "valid"
+                else path_to_images.get("test_mask_images")
+            )
+        else:
+            raise ValueError("Invalid dataset")
 
-        mask_images_dir = path_to_images.get(self.cfg.dataset_operation).get("masks")
-        mask_images = file_reader(mask_images_dir, "png")
+        color_images = file_reader(color_images_dir, "png" if self.cfg.dataset_type == 'ogyei' else "jpg")
+        mask_images = file_reader(mask_images_dir, "png" if self.cfg.dataset_type == 'ogyei' else "jpg")
 
         with ThreadPoolExecutor() as executor:
             list(tqdm(executor.map(self.process_image, zip(color_images, mask_images)), total=len(color_images),
@@ -156,7 +167,7 @@ class CreateStreamImages:
         :return: None
         """
 
-        rgb_images = file_reader(self.rgb_images_path, "png")
+        rgb_images = file_reader(self.rgb_images_path, "png" if self.cfg.dataset_type == 'ogyei' else "jpg")
         args_list = []
 
         for img_path in tqdm(rgb_images, desc="Contour images"):
@@ -205,7 +216,7 @@ class CreateStreamImages:
         :return: None
         """
 
-        rgb_images = file_reader(self.rgb_images_path, "png")
+        rgb_images = file_reader(self.rgb_images_path, "png" if self.cfg.dataset_type == 'ogyei' else "jpg")
         args_list = []
 
         for img_path in tqdm(rgb_images, desc="Texture images"):
@@ -244,7 +255,7 @@ class CreateStreamImages:
         :return: None
         """
 
-        rgb_images = file_reader(self.rgb_images_path, "png")
+        rgb_images = file_reader(self.rgb_images_path, "png" if self.cfg.dataset_type == 'ogyei' else "jpg")
 
         with ThreadPoolExecutor() as executor:
             futures = []
@@ -261,15 +272,14 @@ class CreateStreamImages:
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------ C O P Y   Q U E R Y   I M A G E S -------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def copy_query_images():
+    def copy_query_images(self):
         """
 
         :return:
         """
 
-        source_root = IMAGES_PATH.get_data_path("test_ref_ogyei")
-        destination_root = IMAGES_PATH.get_data_path("test_query_ogyei")
+        source_root = dataset_images_path_selector(self.cfg.dataset_type).get("other").get("ref")
+        destination_root = dataset_images_path_selector(self.cfg.dataset_type).get("other").get("query")
 
         class_label_dirs = [d for d in os.listdir(source_root) if os.path.isdir(os.path.join(source_root, d))]
 
@@ -317,7 +327,6 @@ class CreateStreamImages:
                 tqdm(enumerate(zip(files_rgb, files_contour, files_texture, files_lbp)), desc="Copying image files"):
             if file_rgb.endswith(".png"):
                 if self.cfg.dataset_type == 'ogyei':
-                    # match = re.search(r'^id_\d{3}_([a-zA-Z0-9_]+)_\d{3}\.png$', file_rgb)
                     if "s_" in file_rgb:
                         match = re.search(r'^(.*?)_s_\d{3}\.png$', file_rgb)
                     elif "u_" in file_rgb:
@@ -327,28 +336,29 @@ class CreateStreamImages:
 
                     if match:
                         value = match.group(1)
-                elif self.cfg.dataset_type == 'cure':
+            elif file_rgb.endswith(".jpg"):
+                if self.cfg.dataset_type == 'cure':
                     value = os.path.basename(file_rgb).split("_")[0]
                 else:
                     raise ValueError("wrong dataset type has given!")
 
-                out_path_rgb = os.path.join(rgb_path, value)
-                out_path_contour = os.path.join(contour_path, value)
-                out_path_texture = os.path.join(texture_path, value)
-                out_path_lbp = os.path.join(lbp_path, value)
+            out_path_rgb = os.path.join(rgb_path, value)
+            out_path_contour = os.path.join(contour_path, value)
+            out_path_texture = os.path.join(texture_path, value)
+            out_path_lbp = os.path.join(lbp_path, value)
 
-                os.makedirs(out_path_rgb, exist_ok=True)
-                os.makedirs(out_path_contour, exist_ok=True)
-                os.makedirs(out_path_texture, exist_ok=True)
-                os.makedirs(out_path_lbp, exist_ok=True)
+            os.makedirs(out_path_rgb, exist_ok=True)
+            os.makedirs(out_path_contour, exist_ok=True)
+            os.makedirs(out_path_texture, exist_ok=True)
+            os.makedirs(out_path_lbp, exist_ok=True)
 
-                try:
-                    shutil.move(os.path.join(rgb_path, file_rgb), out_path_rgb)
-                    shutil.move(os.path.join(contour_path, file_contour), out_path_contour)
-                    shutil.move(os.path.join(texture_path, file_texture), out_path_texture)
-                    shutil.move(os.path.join(lbp_path, file_lbp), out_path_lbp)
-                except shutil.Error as se:
-                    logging.error(f"Error moving file: {se.args[0]}")
+            try:
+                shutil.move(os.path.join(rgb_path, file_rgb), out_path_rgb)
+                shutil.move(os.path.join(contour_path, file_contour), out_path_contour)
+                shutil.move(os.path.join(texture_path, file_texture), out_path_texture)
+                shutil.move(os.path.join(lbp_path, file_lbp), out_path_lbp)
+            except shutil.Error as se:
+                logging.error(f"Error moving file: {se.args[0]}")
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------- M A I N ----------------------------------------------------
@@ -361,18 +371,17 @@ class CreateStreamImages:
         :return: None
         """
 
-        if self.cfg.dataset_type == "ogyei":
-            self.save_rgb_images()
-        self.save_contour_images()
-        self.save_texture_images()
-        self.save_lbp_images()
-
-        self.create_label_dirs(
-            rgb_path=self.rgb_images_path,
-            contour_path=self.contour_images_path,
-            texture_path=self.texture_images_path,
-            lbp_path=self.lbp_images_path
-        )
+        # self.save_rgb_images()
+        # self.save_contour_images()
+        # self.save_texture_images()
+        # self.save_lbp_images()
+        #
+        # self.create_label_dirs(
+        #     rgb_path=self.rgb_images_path,
+        #     contour_path=self.contour_images_path,
+        #     texture_path=self.texture_images_path,
+        #     lbp_path=self.lbp_images_path
+        # )
 
         if self.cfg.dataset_operation == "test":
             self.copy_query_images()

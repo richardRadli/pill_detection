@@ -248,6 +248,10 @@ class TrainModel:
 if __name__ == "__main__":
     try:
         tm = TrainModel()
-        tm.train()
+        try:
+            tm.train()
+        except torch.cuda.OutOfMemoryError:
+            logging.error('Detected OutOfMemoryError!')
+            torch.cuda.empty_cache()
     except KeyboardInterrupt as kbe:
         logging.error("Keyboard interrupt, program has been shut down!")

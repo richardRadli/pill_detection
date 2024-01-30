@@ -9,17 +9,17 @@ from utils.utils import file_reader
 
 def path_select(cfg_aug, operation):
     train_aug_img_path = (
-        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("train_aug_images")
+        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("train").get("aug_images")
     )
     train_aug_annotation_path = (
-        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("train_aug_yolo_labels")
+        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("train").get("aug_yolo_labels")
     )
 
     valid_aug_img_path = (
-        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("valid_aug_images")
+        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("valid").get("aug_images")
     )
     valid_aug_annotation_path = (
-        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("valid_aug_yolo_labels")
+        dataset_images_path_selector(dataset_name=cfg_aug.dataset_name).get("valid").get("aug_yolo_labels")
     )
 
     aug_image = train_aug_img_path if operation == "train" else valid_aug_img_path

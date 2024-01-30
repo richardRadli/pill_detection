@@ -205,7 +205,7 @@ def sub_stream_network_configs(cfg) -> Dict:
             "query":
                 {
                     "cure":
-                        IMAGES_PATH.get_data_path("test_lpp_stream_query_cure"),
+                        IMAGES_PATH.get_data_path("test_lbp_stream_query_cure"),
                     "nih":
                         IMAGES_PATH.get_data_path("test_lbp_stream_query_nih"),
                     "ogyei":
@@ -722,9 +722,10 @@ def dataset_images_path_selector(dataset_name):
                 "masks": DATASET_PATH.get_data_path("ogyei_v2_single_splitted_gt_test_masks"),
             }
         },
+
         "nih": {
             "train": {
-                "images": DATASET_PATH.get_data_path(""),
+                "images": DATASET_PATH.get_data_path("nih_ref_images"),
                 "masks": DATASET_PATH.get_data_path(""),
 
             },
@@ -737,76 +738,94 @@ def dataset_images_path_selector(dataset_name):
                 "images": DATASET_PATH.get_data_path(""),
                 "masks": IMAGES_PATH.get_data_path(""),
             },
-            "ref": DATASET_PATH.get_data_path("nih_ref_images"),
-            "query": DATASET_PATH.get_data_path("nih_query_images"),
-            "xlsx": DATASET_PATH.get_data_path("nih_xlsx")
+            "other": {
+                "ref": DATASET_PATH.get_data_path("nih_ref_images"),
+                "query": DATASET_PATH.get_data_path("nih_query_images"),
+                "xlsx": DATASET_PATH.get_data_path("nih_xlsx")
+            }
         },
+
         "cure": {
-            "customer_images":
-                DATASET_PATH.get_data_path("cure_customer_images"),
-            "customer_segmentation_labels":
-                DATASET_PATH.get_data_path("cure_customer_segmentation_labels"),
-            "customer_pixel_bbox_labels":
-                DATASET_PATH.get_data_path("cure_customer_pixel_bbox_labels"),
+            "customer": {
+                "customer_images":
+                    DATASET_PATH.get_data_path("cure_customer_images"),
+                "customer_segmentation_labels":
+                    DATASET_PATH.get_data_path("cure_customer_segmentation_labels"),
+                "customer_pixel_bbox_labels":
+                    DATASET_PATH.get_data_path("cure_customer_pixel_bbox_labels"),
+            },
 
-            "reference_images":
-                DATASET_PATH.get_data_path("cure_reference_images"),
-            "reference_masks":
-                DATASET_PATH.get_data_path("cure_reference_masks"),
-            "reference_labels":
-                DATASET_PATH.get_data_path("cure_reference_labels"),
+            "reference": {
+                "reference_images":
+                    DATASET_PATH.get_data_path("cure_reference_images"),
+                "reference_masks":
+                    DATASET_PATH.get_data_path("cure_reference_masks"),
+                "reference_labels":
+                    DATASET_PATH.get_data_path("cure_reference_labels"),
+            },
 
-            "train_bbox_pixel_labels":
-                DATASET_PATH.get_data_path("cure_train_bbox_pixel_labels"),
-            "train_images":
-                DATASET_PATH.get_data_path("cure_train_images"),
-            "train_mask_images":
-                DATASET_PATH.get_data_path("cure_train_mask_images"),
-            "train_segmentation_labels":
-                DATASET_PATH.get_data_path("cure_train_segmentation_labels"),
-            "train_yolo_labels":
-                DATASET_PATH.get_data_path("cure_train_yolo_labels"),
+            "train": {
+                "bbox_pixel_labels":
+                    DATASET_PATH.get_data_path("cure_train_bbox_pixel_labels"),
+                "images":
+                    DATASET_PATH.get_data_path("cure_train_images"),
+                "mask_images":
+                    DATASET_PATH.get_data_path("cure_train_mask_images"),
+                "segmentation_labels":
+                    DATASET_PATH.get_data_path("cure_train_segmentation_labels"),
+                "yolo_labels":
+                    DATASET_PATH.get_data_path("cure_train_yolo_labels"),
+                "aug_images":
+                    DATASET_PATH.get_data_path("cure_train_aug_images"),
+                "aug_yolo_labels":
+                    DATASET_PATH.get_data_path("cure_train_aug_yolo_labels"),
+                "aug_mask_images":
+                    DATASET_PATH.get_data_path("cure_train_aug_mask_images"),
+            },
 
-            "valid_bbox_pixel_labels":
-                DATASET_PATH.get_data_path("cure_valid_bbox_pixel_labels"),
-            "valid_images":
-                DATASET_PATH.get_data_path("cure_valid_images"),
-            "valid_mask_images":
-                DATASET_PATH.get_data_path("cure_valid_mask_images"),
-            "valid_segmentation_labels":
-                DATASET_PATH.get_data_path("cure_valid_segmentation_labels"),
-            "valid_yolo_labels":
-                DATASET_PATH.get_data_path("cure_valid_yolo_labels"),
+            "valid": {
+                "bbox_pixel_labels":
+                    DATASET_PATH.get_data_path("cure_valid_bbox_pixel_labels"),
+                "images":
+                    DATASET_PATH.get_data_path("cure_valid_images"),
+                "mask_images":
+                    DATASET_PATH.get_data_path("cure_valid_mask_images"),
+                "segmentation_labels":
+                    DATASET_PATH.get_data_path("cure_valid_segmentation_labels"),
+                "yolo_labels":
+                    DATASET_PATH.get_data_path("cure_valid_yolo_labels"),
+                "aug_images":
+                    DATASET_PATH.get_data_path("cure_valid_aug_images"),
+                "aug_yolo_labels":
+                    DATASET_PATH.get_data_path("cure_valid_aug_yolo_labels"),
+                "aug_mask_images":
+                    DATASET_PATH.get_data_path("cure_valid_aug_mask_images"),
+            },
 
-            "test_bbox_pixel_labels":
-                DATASET_PATH.get_data_path("cure_test_bbox_pixel_labels"),
-            "test_images":
-                DATASET_PATH.get_data_path("cure_test_images"),
-            "test_mask_images":
-                DATASET_PATH.get_data_path("cure_test_mask_images"),
-            "test_segmentation_labels":
-                DATASET_PATH.get_data_path("cure_test_segmentation_labels"),
-            "test_yolo_labels":
-                DATASET_PATH.get_data_path("cure_test_yolo_labels"),
+            "test": {
+                "bbox_pixel_labels":
+                    DATASET_PATH.get_data_path("cure_test_bbox_pixel_labels"),
+                "images":
+                    DATASET_PATH.get_data_path("cure_test_images"),
+                "mask_images":
+                    DATASET_PATH.get_data_path("cure_test_mask_images"),
+                "segmentation_labels":
+                    DATASET_PATH.get_data_path("cure_test_segmentation_labels"),
+                "yolo_labels":
+                    DATASET_PATH.get_data_path("cure_test_yolo_labels"),
+                "aug_images":
+                    DATASET_PATH.get_data_path("cure_test_aug_images"),
+                "aug_yolo_labels":
+                    DATASET_PATH.get_data_path("cure_test_aug_yolo_labels"),
+            },
 
-            "train_aug_images":
-                DATASET_PATH.get_data_path("cure_train_aug_images"),
-            "train_aug_yolo_labels":
-                DATASET_PATH.get_data_path("cure_train_aug_yolo_labels"),
-            "train_aug_mask_images":
-                DATASET_PATH.get_data_path("cure_train_aug_mask_images"),
-
-            "valid_aug_images":
-                DATASET_PATH.get_data_path("cure_valid_aug_images"),
-            "valid_aug_yolo_labels":
-                DATASET_PATH.get_data_path("cure_valid_aug_yolo_labels"),
-            "valid_aug_mask_images":
-                DATASET_PATH.get_data_path("cure_valid_aug_mask_images"),
-
-            "test_aug_images":
-                DATASET_PATH.get_data_path("cure_test_aug_images"),
-            "test_aug_yolo_labels":
-                DATASET_PATH.get_data_path("cure_test_aug_yolo_labels"),
+            "other": {
+                'k_fold': DATA_PATH.get_data_path("cure_k_fold"),
+                'stream_images': IMAGES_PATH.get_data_path("stream_images_cure"),
+                'stream_test_images': IMAGES_PATH.get_data_path("stream_images_cure_test"),
+                'ref': IMAGES_PATH.get_data_path("test_ref_cure"),
+                'query': IMAGES_PATH.get_data_path("test_query_nih")
+            },
         },
         "dtd": {
             "dataset_path": DATASET_PATH.get_data_path("dtd_images")

@@ -8,8 +8,8 @@ from utils.utils import file_reader
 
 def main():
     cfg = ConfigAugmentation().parse()
-    annotation_path = dataset_images_path_selector(cfg.dataset_name).get("reference_labels")
-    masks = dataset_images_path_selector(cfg.dataset_name).get("reference_masks")
+    annotation_path = dataset_images_path_selector(cfg.dataset_name).get("reference").get("reference_labels")
+    masks = dataset_images_path_selector(cfg.dataset_name).get("reference").get("reference_masks")
     masks_path = file_reader(masks, "jpg")
 
     for idx, masks in enumerate(masks_path):

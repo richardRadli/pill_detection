@@ -6,6 +6,7 @@ import openpyxl
 
 from glob import glob
 
+from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
 
 
@@ -56,8 +57,12 @@ def plot_image(image, width, height, x1, y1, x2, y2, filename):
 
 
 def main():
-    images_dir = dataset_images_path_selector().get("nih").get("ref")
-    excel_path = os.path.join(dataset_images_path_selector().get("nih").get("xlsx"), "ref.xlsx")
+    cfg = ConfigAugmentation().parse()
+    images_dir = dataset_images_path_selector(cfg.dataset_name).get("train").get("images")
+    excel_path = os.path.join(
+        dataset_images_path_selector(cfg.dataset_name).get("other").get("xlsx"),
+        "ref.xlsx"
+    )
 
     width, height = 30, 30
 

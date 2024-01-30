@@ -47,9 +47,9 @@ class ConfigStreamNetwork:
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument("--dataset_type", type=str, default="cure", choices=["cure | ogyei"])
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
+        self.parser.add_argument("--type_of_net", type=str, default="EfficientNetV2",
                                  help="EfficientNet | EfficientNetV2")
-        self.parser.add_argument("--type_of_stream", type=str, default="Contour",
+        self.parser.add_argument("--type_of_stream", type=str, default="LBP",
                                  choices=["Contour | LBP | RGB | Texture"])
         self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
 
@@ -105,7 +105,7 @@ class ConfigFusionNetwork:
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetSelfAttention",
                                  help="EfficientNetSelfAttention | EfficientNetV2MultiHeadAttention")
-        self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | hmtl | dmtl")
+        self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_split", type=float, default=0.8)
@@ -116,7 +116,7 @@ class ConfigFusionNetwork:
         self.parser.add_argument('--step_size', type=int, default=5,
                                  help="Number of epochs after which to decay the learning rate")
         self.parser.add_argument('--gamma', type=float, default=0.1, help="Factor by which to decay the learning rate")
-        self.parser.add_argument('--comparison_type', type=str, default="knn", help="knn | euclidean")
+        self.parser.add_argument('--comparison_type', type=str, default="euclidean", help="knn | euclidean")
 
     def parse(self):
         self.opt = self.parser.parse_args()
