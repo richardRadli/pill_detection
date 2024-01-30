@@ -46,19 +46,20 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--dataset_type", type=str, default="ogyei", help="cure | ogyei")
+        self.parser.add_argument("--dataset_type", type=str, default="cure", choices=["cure | ogyei"])
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNet",
                                  help="EfficientNet | EfficientNetV2")
-        self.parser.add_argument("--type_of_stream", type=str, default="LBP", help="Contour | LBP | RGB | Texture")
-        self.parser.add_argument("--dataset_operation", type=str, default="valid", help="train | valid | test")
+        self.parser.add_argument("--type_of_stream", type=str, default="Contour",
+                                 choices=["Contour | LBP | RGB | Texture"])
+        self.parser.add_argument("--dataset_operation", type=str, default="test", help="train | valid | test")
 
         self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | hmtl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
-        self.parser.add_argument("--num_triplets", type=int, default=6000, help="Number of triplets to be generated")
+        self.parser.add_argument("--num_triplets", type=int, default=10000, help="Number of triplets to be generated")
         self.parser.add_argument("--margin", type=float, default=0.5)
 
         self.parser.add_argument("--epochs", type=int, default=30)
-        self.parser.add_argument("--batch_size", type=int, default=32)
+        self.parser.add_argument("--batch_size", type=int, default=128)
 
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
 
@@ -88,7 +89,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--split_by_light", type=bool, default=False)
         self.parser.add_argument("--light_source", type=str, default="s", help="s (side) | u (upper")
 
-        self.parser.add_argument("--comparison_type", type=str, default="knn", help="euclidean | knn")
+        self.parser.add_argument("--comparison_type", type=str, default="euclidean", help="euclidean | knn")
 
     def parse(self):
         self.opt = self.parser.parse_args()

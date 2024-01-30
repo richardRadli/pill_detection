@@ -76,7 +76,7 @@ def main():
     cfg = ConfigAugmentation().parse()
     gt_path = dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test_yolo_labels")
     gt_files = file_reader(gt_path, "txt")
-    prediction_path = "C:/Users/ricsi/Documents/yolov7/runs/detect/cure-test/labels"
+    prediction_path = "C:/Users/ricsi/Documents/yolov7/runs/detect/cure_binary_classification_64_16_203/labels"
     prediction_files = file_reader(prediction_path, "txt")
     avg_iou = []
 

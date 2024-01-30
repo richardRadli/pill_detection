@@ -154,7 +154,7 @@ def save_masks(mask: np.ndarray, img_file: str, path_to_files: Dict[str, str]) -
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------- M A I N --------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def main(operation: str = "Train") -> None:
+def main(operation: str = "train") -> None:
     """
     Runs the main processing pipeline.
     :return: None
@@ -165,7 +165,7 @@ def main(operation: str = "Train") -> None:
 
     img_files, txt_files = load_files(images_dir=path_to_files.get("images"), labels_dir=path_to_files.get("labels"))
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()//2) as executor:
         futures = []
         for img_file, txt_file in zip(img_files, txt_files):
             futures.append(executor.submit(process_data, img_file, txt_file))

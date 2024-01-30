@@ -12,25 +12,34 @@ def filter_filenames_by_class(filenames, class_id):
     return [filename for filename in filenames if int(filename.split("_")[0]) == class_id]
 
 
-def split_dataset(dataset_path, val_ratio=0.16, test_ratio=0.20, random_seed=42):
+def split_dataset(dataset_path, test_ratio=0.20, random_seed=42):
     image_filenames = [filename for filename in os.listdir(dataset_path) if filename.endswith(".jpg")]
     class_ids = set([int(filename.split("_")[0]) for filename in image_filenames])
+    num_classes = len(class_ids)
 
+    # Select 20% of the classes for the test set
     train_classes, test_classes = train_test_split(list(class_ids),
                                                    test_size=test_ratio,
                                                    random_state=random_seed)
-    train_classes, val_classes = train_test_split(train_classes,
-                                                  test_size=val_ratio / (1 - test_ratio),
-                                                  random_state=random_seed)
+    test_set = [filename for filename in image_filenames if int(filename.split("_")[0]) in test_classes]
 
-    train_set = \
-        [filename for class_id in train_classes for filename in filter_filenames_by_class(image_filenames, class_id)]
-    val_set = \
-        [filename for class_id in val_classes for filename in filter_filenames_by_class(image_filenames, class_id)]
-    test_set = \
-        [filename for class_id in test_classes for filename in filter_filenames_by_class(image_filenames, class_id)]
+    # Calculate the remaining classes after selecting the test set
+    remaining_classes = class_ids - set(test_classes)
+    train_set, val_set = [], []
 
-    return train_set, val_set, test_set
+    # Split the remaining classes into train and valid sets
+    for class_id in remaining_classes:
+        class_images = [filename for filename in image_filenames if int(filename.split("_")[0]) == class_id]
+        train_image, valid_image = train_test_split(class_images,
+                                                    test_size=0.2,
+                                                    random_state=random_seed)
+        train_set.append(train_image)
+        val_set.append(valid_image)
+
+    train_set = [item for sublist in train_set for item in sublist]
+    val_set = [item for sublist in val_set for item in sublist]
+
+    return train_set, val_set, test_set, len(image_filenames)
 
 
 def copy_files(split_set, dataset_images_path, dataset_bbox_path, dataset_segmentation_path, dst_dataset_images_path,
@@ -43,6 +52,10 @@ def copy_files(split_set, dataset_images_path, dataset_bbox_path, dataset_segmen
         shutil.copy(str(src_img), dst_dataset_images_path)
         shutil.copy(str(src_bbox), dst_dataset_bbox_path)
         shutil.copy(str(src_seg), dst_segmentation_path)
+
+
+def set_len(set_name):
+    return len(set([int(filename.split('_')[0]) for filename in set_name]))
 
 
 def main():
@@ -88,17 +101,21 @@ def main():
         dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test_segmentation_labels")
     )
 
-    train_set, val_set, test_set = split_dataset(dataset_images_path)
+    train_set, val_set, test_set, number_of_images = split_dataset(dataset_path=dataset_images_path)
 
     # Print the number of classes and instances in each set
-    print(f"Number of classes in training set: {len(set([int(filename.split('_')[0]) for filename in train_set]))}")
-    print(f"Number of classes in validation set: {len(set([int(filename.split('_')[0]) for filename in val_set]))}")
-    print(f"Number of classes in testing set: {len(set([int(filename.split('_')[0]) for filename in test_set]))}")
+    print(f"Number of classes in training set: {set_len(train_set)}")
+    print(f"Number of classes in validation set: {set_len(val_set)}")
+    print(f"Number of classes in testing set: {set_len(test_set)}")
 
     # Print the number of instances in each set
     print(f"Number of instances in training set: {len(train_set)}")
     print(f"Number of instances in validation set: {len(val_set)}")
     print(f"Number of instances in testing set: {len(test_set)}")
+
+    print(f"Split ratio, train: {(len(train_set) / number_of_images) * 100:.4f}%, "
+          f"valid: {(len(val_set) / number_of_images) * 100:.4f}%, "
+          f"test: {(len(test_set) / number_of_images) * 100:.4f}%")
 
     copy_files(
         split_set=train_set,

@@ -75,7 +75,12 @@ class _Const(object):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Images(_Const):
     dirs_images = {
-        # ----------------------------------------------------- N I H-- ------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++ C U R E ++++++++++++++++++++++++++++++++++++++++++++++++++
+        "stream_images_cure":
+            "images/cure/stream_images",
+        "stream_images_cure_test":
+            "images/cure/test",
+
         # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
         "train_contour_stream_cure":
             "images/cure/stream_images/contour/train",
@@ -145,7 +150,7 @@ class Images(_Const):
             "images/ogyei/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_v2_multi_head_attention",
 
 
-        # --------------------------------------------------- O G Y E I ------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I ++++++++++++++++++++++++++++++++++++++++++++++++
         "stream_images_ogyei":
             "images/ogyei/stream_images",
         "stream_images_ogyei_test":
@@ -313,11 +318,15 @@ class Data(_Const):
     dirs_data = {
         # ------------------------------------------------- O T H E R --------------------------------------------------
         # k-fold directory names
-        "k_folds":
-            "data/other/k_folds",
-
         "Fourier_saved_mean_vectors":
             "data/Fourier_desc/saved_mean_vectors",
+
+        "cure_k_fold":
+            "data/cure/k_fold",
+        "ogye_v2_k_fold":
+            "data/ogyei/k_fold",
+        "nih_k_fold":
+            "data/nih/k_fold",
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ C U R E ++++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
