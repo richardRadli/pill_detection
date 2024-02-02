@@ -50,7 +50,9 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNet")
         self.parser.add_argument("--type_of_stream", type=str, default="Texture",
                                  choices=["Contour | LBP | RGB | Texture"])
+
         self.parser.add_argument("--operation", type=str, default="customer", choices=["reference", "customer"])
+        self.parser.add_argument("--data_role", type=str, default="test", choices=["train", "test"])
 
         self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | hmtl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)

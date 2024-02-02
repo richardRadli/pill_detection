@@ -647,6 +647,8 @@ def dataset_images_path_selector(dataset_name):
 
             "src_stream_images": {
                 "reference": {
+                    "stream_images":
+                        DATASET_PATH.get_data_path("stream_images_cure_reference"),
                     "stream_images_contour":
                         DATASET_PATH.get_data_path("stream_images_cure_reference_contour"),
                     "stream_images_lbp":
@@ -657,6 +659,8 @@ def dataset_images_path_selector(dataset_name):
                         DATASET_PATH.get_data_path("stream_images_cure_reference_texture"),
                 },
                 "customer": {
+                    "stream_images":
+                        DATASET_PATH.get_data_path("stream_images_cure_customer"),
                     "stream_images_contour":
                         DATASET_PATH.get_data_path("stream_images_cure_customer_contour"),
                     "stream_images_lbp":
@@ -669,10 +673,10 @@ def dataset_images_path_selector(dataset_name):
             },
 
             "dst_stream_images": {
-                'stream_images':
-                    IMAGES_PATH.get_data_path("stream_images_cure"),
-                'stream_test_images':
-                    IMAGES_PATH.get_data_path("stream_images_cure_test"),
+                'stream_images_anchor':
+                    IMAGES_PATH.get_data_path("stream_images_cure_anchor"),
+                "stream_images_pos_neg":
+                    IMAGES_PATH.get_data_path("stream_images_cure_pos_neg"),
                 'ref':
                     IMAGES_PATH.get_data_path("test_ref_cure"),
                 'query':

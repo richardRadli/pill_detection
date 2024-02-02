@@ -76,10 +76,10 @@ class _Const(object):
 class Images(_Const):
     dirs_images = {
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ C U R E ++++++++++++++++++++++++++++++++++++++++++++++++++
-        "stream_images_cure":
-            "images/cure/stream_images",
-        "stream_images_cure_test":
-            "images/cure/test",
+        "stream_images_cure_anchor":
+            "images/cure/stream_images/anchor",
+        "stream_images_cure_pos_neg":
+            "images/cure/stream_images/pos_neg",
 
         # --------------------------------------- R E F   T R A I N   A N C H O R --------------------------------------
         "train_contour_stream_cure_anchor":
@@ -90,16 +90,6 @@ class Images(_Const):
             "images/cure/stream_images/anchor/rgb/train",
         "train_texture_stream_cure_anchor":
             "images/cure/stream_images/anchor/texture/train",
-
-        # --------------------------------------- R E F   V A L I D   A N C H O R --------------------------------------
-        "valid_contour_stream_cure_anchor":
-            "images/cure/stream_images/anchor/contour/valid",
-        "valid_lbp_stream_cure_anchor":
-            "images/cure/stream_images/anchor/lbp/valid",
-        "valid_rgb_stream_cure_anchor":
-            "images/cure/stream_images/anchor/rgb/valid",
-        "valid_texture_stream_cure_anchor":
-            "images/cure/stream_images/anchor/texture/valid",
 
         # -------------------------------------------- R E F   A N C H O R ---------------------------------------------
         "contour_stream_cure_pos_neg":
@@ -168,16 +158,6 @@ class Images(_Const):
         "train_texture_stream_ogyei":
             "images/ogyei/stream_images/texture/train",
 
-        # ---------------------------------------------- R E F   V A L I D ---------------------------------------------
-        "valid_contour_stream_ogyei":
-            "images/ogyei/stream_images/contour/valid",
-        "valid_lbp_stream_ogyei":
-            "images/ogyei/stream_images/lbp/valid",
-        "valid_rgb_stream_ogyei":
-            "images/ogyei/stream_images/rgb/valid",
-        "valid_texture_stream_ogyei":
-            "images/ogyei/stream_images/texture/valid",
-
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
         "test_query_ogyei":
             "images/ogyei/test/query",
@@ -228,16 +208,6 @@ class Images(_Const):
             "images/nih/stream_images/rgb/train",
         "train_texture_stream_nih":
             "images/nih/stream_images/texture/train",
-
-        # ---------------------------------------------- R E F   V A L I D ---------------------------------------------
-        "valid_contour_stream_nih":
-            "images/nih/stream_images/contour/valid",
-        "valid_lbp_stream_nih":
-            "images/nih/stream_images/lbp/valid",
-        "valid_rgb_stream_nih":
-            "images/nih/stream_images/rgb/valid",
-        "valid_texture_stream_nih":
-            "images/nih/stream_images/texture/valid",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
         "test_contour_stream_ref_nih":
@@ -554,6 +524,8 @@ class Datasets(_Const):
             "cure/Customer_splitted_aug/test_dir/yolo_labels",
 
         # STREAM - Customer
+        "stream_images_cure_customer":
+            "cure/Customer/stream_images",
         "stream_images_cure_customer_contour":
             "cure/Customer/stream_images/contour",
         "stream_images_cure_customer_lbp":
@@ -564,6 +536,8 @@ class Datasets(_Const):
             "cure/Customer/stream_images/texture",
 
         # STREAM - Reference
+        "stream_images_cure_reference":
+            "cure/Reference/stream_images",
         "stream_images_cure_reference_contour":
             "cure/Reference/stream_images/contour",
         "stream_images_cure_reference_lbp":

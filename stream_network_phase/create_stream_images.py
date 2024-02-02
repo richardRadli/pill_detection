@@ -288,39 +288,6 @@ class CreateStreamImages:
                 future.result()
 
     # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------ C O P Y   Q U E R Y   I M A G E S -------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def copy_query_images(self):
-        """
-
-        :return:
-        """
-
-        source_root = dataset_images_path_selector(self.cfg.dataset_type).get("other").get("ref")
-        destination_root = dataset_images_path_selector(self.cfg.dataset_type).get("other").get("query")
-
-        class_label_dirs = [d for d in os.listdir(source_root) if os.path.isdir(os.path.join(source_root, d))]
-
-        for class_label_dir in class_label_dirs:
-            class_label_path = os.path.join(source_root, class_label_dir)
-
-            sub_dirs = os.listdir(class_label_path)
-
-            for subdir in sub_dirs:
-                subdir_path = os.path.join(class_label_path, subdir)
-
-                image_files = [f for f in os.listdir(subdir_path) if f.endswith('.jpg')]
-
-                destination_subdir = os.path.join(destination_root, class_label_dir, subdir)
-                os.makedirs(destination_subdir, exist_ok=True)
-
-                for i, image_file in enumerate(image_files):
-                    if (i + 1) % 3 == 0:
-                        source_image_path = os.path.join(subdir_path, image_file)
-                        destination_image_path = os.path.join(destination_subdir, image_file)
-                        shutil.move(source_image_path, destination_image_path)
-
-    # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------ C R E A T E   L A B E L   D I R S -------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def create_label_dirs(self, rgb_path: str, contour_path: str, texture_path: str, lbp_path: str) -> None:
