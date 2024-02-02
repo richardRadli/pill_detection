@@ -26,15 +26,15 @@ class _Const(object):
     root_mapping = {
         "ricsi": {
             "PROJECT_ROOT":
-                "D:/storage/IVM",
+                "D:/storage/pill_detection",
             "DATASET_ROOT":
-                "D:/storage/IVM/datasets"
+                "D:/storage/pill_detection/datasets"
         },
         "keplab": {
             "PROJECT_ROOT":
-                "/home/keplab/Documents/users/radli_richard/storage/IVM",
+                "/home/keplab/Documents/users/radli_richard/storage/pill_detection",
             "DATASET_ROOT":
-                "/home/keplab/Documents/users/radli_richard/datasets/IVM"
+                "/home/keplab/Documents/users/radli_richard/datasets/pill_detection"
         }
     }
 
@@ -81,25 +81,35 @@ class Images(_Const):
         "stream_images_cure_test":
             "images/cure/test",
 
-        # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
-        "train_contour_stream_cure":
-            "images/cure/stream_images/contour/train",
-        "train_lbp_stream_cure":
-            "images/cure/stream_images/lbp/train",
-        "train_rgb_stream_cure":
-            "images/cure/stream_images/rgb/train",
-        "train_texture_stream_cure":
-            "images/cure/stream_images/texture/train",
+        # --------------------------------------- R E F   T R A I N   A N C H O R --------------------------------------
+        "train_contour_stream_cure_anchor":
+            "images/cure/stream_images/anchor/contour/train",
+        "train_lbp_stream_cure_anchor":
+            "images/cure/stream_images/anchor/lbp/train",
+        "train_rgb_stream_cure_anchor":
+            "images/cure/stream_images/anchor/rgb/train",
+        "train_texture_stream_cure_anchor":
+            "images/cure/stream_images/anchor/texture/train",
 
-        # ---------------------------------------------- R E F   V A L I D ---------------------------------------------
-        "valid_contour_stream_cure":
-            "images/cure/stream_images/contour/valid",
-        "valid_lbp_stream_cure":
-            "images/cure/stream_images/lbp/valid",
-        "valid_rgb_stream_cure":
-            "images/cure/stream_images/rgb/valid",
-        "valid_texture_stream_cure":
-            "images/cure/stream_images/texture/valid",
+        # --------------------------------------- R E F   V A L I D   A N C H O R --------------------------------------
+        "valid_contour_stream_cure_anchor":
+            "images/cure/stream_images/anchor/contour/valid",
+        "valid_lbp_stream_cure_anchor":
+            "images/cure/stream_images/anchor/lbp/valid",
+        "valid_rgb_stream_cure_anchor":
+            "images/cure/stream_images/anchor/rgb/valid",
+        "valid_texture_stream_cure_anchor":
+            "images/cure/stream_images/anchor/texture/valid",
+
+        # -------------------------------------------- R E F   A N C H O R ---------------------------------------------
+        "contour_stream_cure_pos_neg":
+            "images/cure/stream_images/pos_neg/contour",
+        "lbp_stream_cure_pos_neg":
+            "images/cure/stream_images/pos_neg/lbp",
+        "rgb_stream_cure_pos_neg":
+            "images/cure/stream_images/pos_neg/rgb",
+        "texture_stream_cure_pos_neg":
+            "images/cure/stream_images/pos_neg/texture",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
         "test_query_cure":
@@ -128,26 +138,18 @@ class Images(_Const):
         # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
         "plotting_efficient_net_cure":
             "images/cure/plotting/stream_net/plotting_efficient_net",
-        "plotting_efficient_net_v2_cure":
-            "images/cure/plotting/stream_net/plotting_efficient_net_v2",
 
         # ------------------------------------ P L O T T I N G   F U S I O N   N E T -----------------------------------
-        "plotting_fusion_network_efficient_net_self_attention_cure":
-            "images/cure/plotting/fusion_net/plotting_fusion_network_efficient_net_self_attention",
-        "plotting_fusion_network_efficient_net_v2_multi_head_attention_cure":
-            "images/cure/plotting/fusion_net/plotting_fusion_network_efficient_net_v2_multi_head_attention",
+        "plotting_fusion_network_efficient_net_multi_head_attention_cure":
+            "images/cure/plotting/fusion_net/plotting_fusion_network_efficient_net_multi_head_attention",
 
         # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
         "conf_mtx_efficient_net_cure":
             "images/cure/conf_mtx/stream_net/conf_mtx_efficient_net",
-        "conf_mtx_efficient_net_v2_cure":
-            "images/cure/conf_mtx/stream_net/conf_mtx_efficient_net_v2",
 
         # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
-        "conf_mtx_fusion_network_efficient_net_self_attention_cure":
-            "images/cure/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_self_attention",
-        "conf_mtx_fusion_network_efficient_net_v2_multi_head_attention_cure":
-            "images/ogyei/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_v2_multi_head_attention",
+        "conf_mtx_fusion_network_efficient_net_multi_head_attention_cure":
+            "images/cure/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
 
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I ++++++++++++++++++++++++++++++++++++++++++++++++
@@ -203,26 +205,18 @@ class Images(_Const):
         # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
         "plotting_efficient_net_ogyei":
             "images/ogyei/plotting/stream_net/plotting_efficient_net",
-        "plotting_efficient_net_v2_ogyei":
-            "images/ogyei/plotting/stream_net/plotting_efficient_net_v2",
 
         # ------------------------------------ P L O T T I N G   F U S I O N   N E T -----------------------------------
-        "plotting_fusion_network_efficient_net_self_attention_ogyei":
-            "images/ogyei/plotting/fusion_net/plotting_fusion_network_efficient_net_self_attention",
-        "plotting_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
-            "images/ogyei/plotting/fusion_net/plotting_fusion_network_efficient_net_v2_multi_head_attention",
+        "plotting_fusion_network_efficient_net_multi_head_attention_ogyei":
+            "images/ogyei/plotting/fusion_net/plotting_fusion_network_efficient_net_multi_head_attention",
 
         # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
         "conf_mtx_efficient_net_ogyei":
             "images/ogyei/conf_mtx/stream_net/conf_mtx_efficient_net",
-        "conf_mtx_efficient_net_v2_ogyei":
-            "images/ogyei/conf_mtx/stream_net/conf_mtx_efficient_net_v2",
 
         # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
-        "conf_mtx_fusion_network_efficient_net_self_attention_ogyei":
-            "images/ogyei/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_self_attention",
-        "conf_mtx_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
-            "images/ogyei/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_v2_multi_head_attention",
+        "conf_mtx_fusion_network_efficient_net_multi_head_attention_ogyei":
+            "images/ogyei/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++ N I H +++++++++++++++++++++++++++++++++++++++++++++++++++
         # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
@@ -266,26 +260,18 @@ class Images(_Const):
         # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
         "plotting_efficient_net_nih":
             "images/nih/plotting/stream_net/plotting_efficient_net",
-        "plotting_efficient_net_v2_nih":
-            "images/nih/plotting/stream_net/plotting_efficient_net_v2",
 
         # ------------------------------------ P L O T T I N G   F U S I O N   N E T -----------------------------------
-        "plotting_fusion_network_efficient_net_self_attention_nih":
-            "images/nih/plotting/fusion_net/plotting_fusion_network_efficient_net_self_attention",
-        "plotting_fusion_network_efficient_net_v2_multi_head_attention_nih":
-            "images/nih/plotting/fusion_net/plotting_fusion_network_efficient_net_v2_multi_head_attention",
+        "plotting_fusion_network_efficient_net_multi_head_attention_nih":
+            "images/nih/plotting/fusion_net/plotting_fusion_network_efficient_net_multi_head_attention",
 
         # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
         "conf_mtx_efficient_net_nih":
             "images/nih/conf_mtx/stream_net/conf_mtx_efficient_net",
-        "conf_mtx_efficient_net_v2_nih":
-            "images/nih/conf_mtx/stream_net/conf_mtx_efficient_net_v2",
 
         # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
-        "conf_mtx_fusion_network_efficient_net_self_attention_nih":
-            "images/nih/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_self_attention",
-        "conf_mtx_fusion_network_efficient_net_v2_multi_head_attention_nih":
-            "images/nih/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_v2_multi_head_attention",
+        "conf_mtx_fusion_network_efficient_net_multi_head_attention_nih":
+            "images/nih/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O T H E R +++++++++++++++++++++++++++++++++++++++++++++++++
         # ----------------------------------------------- F O U R I E R ------------------------------------------------
@@ -330,7 +316,7 @@ class Data(_Const):
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ C U R E ++++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
-        # EfficientNet b0 - StreamNetwork
+        # EfficientNet - StreamNetwork
         "weights_efficient_net_contour_cure":
             "data/cure/weights/stream_net/efficient_net/weights_efficient_net_contour",
         "weights_efficient_net_lbp_cure":
@@ -340,24 +326,12 @@ class Data(_Const):
         "weights_efficient_net_texture_cure":
             "data/cure/weights/stream_net/efficient_net/weights_efficient_net_texture",
 
-        # EfficientNet V2 - StreamNetwork
-        "weights_efficient_net_v2_contour_cure":
-            "data/cure/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_contour",
-        "weights_efficient_net_v2_lbp_cure":
-            "data/cure/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_lbp",
-        "weights_efficient_net_v2_rgb_cure":
-            "data/cure/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_rgb",
-        "weights_efficient_net_v2_texture_cure":
-            "data/cure/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_texture",
-
         # ------------------------------------- W E I G H T S   F U S I O N   N E T ------------------------------------
-        "weights_fusion_network_efficient_net_self_attention_cure":
-            "data/cure/weights/fusion_net/efficient_net_self_attention",
-        "weights_fusion_network_efficient_net_v2_multi_head_attention_cure":
-            "data/cure/weights/fusion_net/efficient_net_v2_multi_head_attention",
+        "weights_fusion_network_efficient_net_multi_head_attention_cure":
+            "data/cure/weights/fusion_net/efficient_net_multi_head_attention",
 
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
-        # EfficientNet b0
+        # EfficientNet 
         "logs_efficient_net_contour_cure":
             "data/cure/logs/stream_net/efficient_net/logs_efficient_net_contour",
         "logs_efficient_net_lbp_cure":
@@ -367,52 +341,31 @@ class Data(_Const):
         "logs_efficient_net_texture_cure":
             "data/cure/logs/stream_net/efficient_net/logs_efficient_net_texture",
 
-        # EfficientNet V2
-        "logs_efficient_net_v2_contour_cure":
-            "data/cure/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_contour",
-        "logs_efficient_net_v2_lbp_cure":
-            "data/cure/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_lbp",
-        "logs_efficient_net_v2_rgb_cure":
-            "data/cure/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_rgb",
-        "logs_efficient_net_v2_texture_cure":
-            "data/cure/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_texture",
-
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
-        "logs_fusion_network_efficient_net_self_attention_cure":
-            "data/cure/logs/fusion_net/efficient_net_self_attention",
-        "logs_fusion_network_efficient_net_v2_multi_head_attention_cure":
-            "data/cure/logs/fusion_net/efficient_net_v2_multi_head",
+        "logs_fusion_network_efficient_net_multi_head_attention_cure":
+            "data/cure/logs/fusion_net/efficient_net_multi_head_attention",
 
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
         "predictions_efficient_net_cure":
             "data/cure/predictions/stream_net/predictions_efficient_net",
-        "predictions_efficient_net_v2_cure":
-            "data/cure/predictions/stream_net/predictions_efficient_net_v2",
 
         # -------------------------------- P R E D I C T I O N S    F U S I O N   N E T --------------------------------
         # Predictions
-        "predictions_fusion_network_efficient_net_self_attention_cure":
-            "data/cure/predictions/fusion_net/predictions_fusion_network_efficient_net_self_attention_net",
-        "predictions_fusion_network_efficient_net_v2_multi_head_attention_cure":
-            "data/cure/predictions/fusion_net/predictions_fusion_network_efficient_net_v2_multi_head_attention",
+        "predictions_fusion_network_efficient_net_multi_head_attention_cure":
+            "data/cure/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
         "reference_vectors_efficient_net_cure":
             "data/cure/ref_vec/stream_net/reference_vectors_efficient_net",
-        "reference_vectors_efficient_net_v2_cure":
-            "data/cure/ref_vec/stream_net/reference_vectors_efficient_net_v2",
 
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
-        "reference_vectors_fusion_network_efficient_net_self_attention_cure":
-            "data/cure/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_self_attention",
-        "reference_vectors_fusion_network_efficient_net_v2_multi_head_attention_cure":
-            "data/cure/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_v2_multi_head_attention",
-
+        "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure":
+            "data/cure/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
-        # EfficientNet b0 - StreamNetwork
+        # EfficientNet - StreamNetwork
         "weights_efficient_net_contour_ogyei":
             "data/ogyei/weights/stream_net/efficient_net/weights_efficient_net_contour",
         "weights_efficient_net_lbp_ogyei":
@@ -422,24 +375,12 @@ class Data(_Const):
         "weights_efficient_net_texture_ogyei":
             "data/ogyei/weights/stream_net/efficient_net/weights_efficient_net_texture",
 
-        # EfficientNet V2 - StreamNetwork
-        "weights_efficient_net_v2_contour_ogyei":
-            "data/ogyei/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_contour",
-        "weights_efficient_net_v2_lbp_ogyei":
-            "data/ogyei/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_lbp",
-        "weights_efficient_net_v2_rgb_ogyei":
-            "data/ogyei/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_rgb",
-        "weights_efficient_net_v2_texture_ogyei":
-            "data/ogyei/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_texture",
-
         # ------------------------------------- W E I G H T S   F U S I O N   N E T ------------------------------------
-        "weights_fusion_network_efficient_net_self_attention_ogyei":
-            "data/ogyei/weights/fusion_net/efficient_net_self_attention",
-        "weights_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
-            "data/ogyei/weights/fusion_net/efficient_net_v2_multi_head_attention",
+        "weights_fusion_network_efficient_net_multi_head_attention_ogyei":
+            "data/ogyei/weights/fusion_net/efficient_net_multi_head_attention",
 
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
-        # EfficientNet b0
+        # EfficientNet 
         "logs_efficient_net_contour_ogyei":
             "data/ogyei/logs/stream_net/efficient_net/logs_efficient_net_contour",
         "logs_efficient_net_lbp_ogyei":
@@ -449,54 +390,34 @@ class Data(_Const):
         "logs_efficient_net_texture_ogyei":
             "data/ogyei/logs/stream_net/efficient_net/logs_efficient_net_texture",
 
-        # EfficientNet V2
-        "logs_efficient_net_v2_contour_ogyei":
-            "data/ogyei/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_contour",
-        "logs_efficient_net_v2_lbp_ogyei":
-            "data/ogyei/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_lbp",
-        "logs_efficient_net_v2_rgb_ogyei":
-            "data/ogyei/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_rgb",
-        "logs_efficient_net_v2_texture_ogyei":
-            "data/ogyei/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_texture",
-
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
-        "logs_fusion_network_efficient_net_self_attention_ogyei":
-            "data/ogyei/logs/fusion_net/efficient_net_self_attention",
-        "logs_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
-            "data/ogyei/logs/fusion_net/efficient_net_v2_multi_head",
+        "logs_fusion_network_efficient_net_multi_head_attention_ogyei":
+            "data/ogyei/logs/fusion_net/efficient_net_multi_head_attention",
 
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
         "predictions_efficient_net_ogyei":
             "data/ogyei/predictions/stream_net/predictions_efficient_net",
-        "predictions_efficient_net_v2_ogyei":
-            "data/ogyei/predictions/stream_net/predictions_efficient_net_v2",
 
         # -------------------------------- P R E D I C T I O N S    F U S I O N   N E T --------------------------------
         # Predictions
-        "predictions_fusion_network_efficient_net_self_attention_ogyei":
-            "data/ogyei/predictions/fusion_net/predictions_fusion_network_efficient_net_self_attention_net",
-        "predictions_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
-            "data/ogyei/predictions/fusion_net/predictions_fusion_network_efficient_net_v2_multi_head_attention",
+        "predictions_fusion_network_efficient_net_multi_head_attention_ogyei":
+            "data/ogyei/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
         "reference_vectors_efficient_net_ogyei":
             "data/ogyei/ref_vec/stream_net/reference_vectors_efficient_net",
-        "reference_vectors_efficient_net_v2_ogyei":
-            "data/ogyei/ref_vec/stream_net/reference_vectors_efficient_net_v2",
 
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
-        "reference_vectors_fusion_network_efficient_net_self_attention_ogyei":
-            "data/ogyei/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_self_attention",
-        "reference_vectors_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
-            "data/ogyei/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_v2_multi_head_attention",
+        "reference_vectors_fusion_network_efficient_net_multi_head_attention_ogyei":
+            "data/ogyei/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++ N I H +++++++++++++++++++++++++++++++++++++++++++++++++++
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
-        # EfficientNet b0 - StreamNetwork
+        # EfficientNet - StreamNetwork
         "weights_efficient_net_contour_nih":
             "data/nih/weights/stream_net/efficient_net/weights_efficient_net_contour",
         "weights_efficient_net_lbp_nih":
@@ -505,25 +426,13 @@ class Data(_Const):
             "data/nih/weights/stream_net/efficient_net/weights_efficient_net_rgb",
         "weights_efficient_net_texture_nih":
             "data/nih/weights/stream_net/efficient_net/weights_efficient_net_texture",
-
-        # EfficientNet V2 - StreamNetwork
-        "weights_efficient_net_v2_contour_nih":
-            "data/nih/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_contour",
-        "weights_efficient_net_v2_lbp_nih":
-            "data/nih/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_lbp",
-        "weights_efficient_net_v2_rgb_nih":
-            "data/nih/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_rgb",
-        "weights_efficient_net_v2_texture_nih":
-            "data/nih/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_texture",
-
+        
         # ------------------------------------- W E I G H T S   F U S I O N   N E T ------------------------------------
-        "weights_fusion_network_efficient_net_self_attention_nih":
-            "data/nih/weights/fusion_net/efficient_net_self_attention",
-        "weights_fusion_network_efficient_net_v2_multi_head_attention_nih":
-            "data/nih/weights/fusion_net/efficient_net_v2_multi_head_attention",
+        "weights_fusion_network_efficient_net_multi_head_attention_nih":
+            "data/nih/weights/fusion_net/efficient_net_multi_head_attention",
 
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
-        # EfficientNet b0
+        # EfficientNet 
         "logs_efficient_net_contour_nih":
             "data/nih/logs/stream_net/efficient_net/logs_efficient_net_contour",
         "logs_efficient_net_lbp_nih":
@@ -533,47 +442,27 @@ class Data(_Const):
         "logs_efficient_net_texture_nih":
             "data/nih/logs/stream_net/efficient_net/logs_efficient_net_texture",
 
-        # EfficientNet V2
-        "logs_efficient_net_v2_contour_nih":
-            "data/nih/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_contour",
-        "logs_efficient_net_v2_lbp_nih":
-            "data/nih/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_lbp",
-        "logs_efficient_net_v2_rgb_nih":
-            "data/nih/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_rgb",
-        "logs_efficient_net_v2_texture_nih":
-            "data/nih/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_texture",
-
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
-        "logs_fusion_network_efficient_net_self_attention_nih":
-            "data/nih/logs/fusion_net/efficient_net_self_attention",
-        "logs_fusion_network_efficient_net_v2_multi_head_attention_nih":
-            "data/nih/logs/fusion_net/efficient_net_v2_multi_head",
+        "logs_fusion_network_efficient_net_multi_head_attention_nih":
+            "data/nih/logs/fusion_net/efficient_net_multi_head_attention",
 
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
         "predictions_efficient_net_nih":
             "data/nih/predictions/stream_net/predictions_efficient_net",
-        "predictions_efficient_net_v2_nih":
-            "data/nih/predictions/stream_net/predictions_efficient_net_v2",
 
         # -------------------------------- P R E D I C T I O N S    F U S I O N   N E T --------------------------------
         # Predictions
-        "predictions_fusion_network_efficient_net_self_attention_nih":
-            "data/nih/predictions/fusion_net/predictions_fusion_network_efficient_net_self_attention_net",
-        "predictions_fusion_network_efficient_net_v2_multi_head_attention_nih":
-            "data/nih/predictions/fusion_net/predictions_fusion_network_efficient_net_v2_multi_head_attention",
+        "predictions_fusion_network_efficient_net_multi_head_attention_nih":
+            "data/nih/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
         "reference_vectors_efficient_net_nih":
             "data/nih/ref_vec/stream_net/reference_vectors_efficient_net",
-        "reference_vectors_efficient_net_v2_nih":
-            "data/nih/ref_vec/stream_net/reference_vectors_efficient_net_v2",
 
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
-        "reference_vectors_fusion_net_efficient_net_self_attention_nih":
-            "data/nih/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_self_attention",
-        "reference_vectors_fusion_net_efficient_net_v2_multi_head_attention_nih":
-            "data/nih/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_v2_multi_head_attention",
+        "reference_vectors_fusion_net_efficient_net_multi_head_attention_nih":
+            "data/nih/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
     }
 
     def __init__(self):

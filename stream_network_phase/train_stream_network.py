@@ -65,8 +65,9 @@ class TrainModel:
 
         # Load dataset
         dataset = \
-            StreamDataset(dataset_dirs=[network_cfg.get("train").get(self.cfg.dataset_type),
-                                        network_cfg.get("valid").get(self.cfg.dataset_type)],
+            StreamDataset(dataset_dirs_anchor=[network_cfg.get("train").get(self.cfg.dataset_type).get("anchor"),
+                                               network_cfg.get("valid").get(self.cfg.dataset_type).get("anchor")],
+                          dataset_dirs_pos_neg=[network_cfg.get("train").get(self.cfg.dataset_type).get("pos_neg")],
                           type_of_stream=self.cfg.type_of_stream,
                           image_size=network_cfg.get("image_size"),
                           num_triplets=self.cfg.num_triplets)

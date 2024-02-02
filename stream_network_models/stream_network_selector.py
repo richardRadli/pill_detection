@@ -12,7 +12,6 @@ import torch
 from abc import ABC, abstractmethod
 
 from stream_network_models.efficient_net_b0 import EfficientNet
-from stream_network_models.efficient_net_v2_s import EfficientNetV2s
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -45,21 +44,6 @@ class EfficientNetWrapper(BaseNetwork):
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++ E F F I C I E N T N E T V 2   W R A P P E R +++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class EfficientNetV2Wrapper(BaseNetwork):
-    def __init__(self, network_cfg):
-        self.model = \
-            EfficientNetV2s(
-                num_out_feature=network_cfg.get("embedded_dim"),
-                grayscale=network_cfg.get('grayscale')
-            )
-
-    def forward(self, x):
-        return self.model(x)
-
-
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++ N E T   F A C T O R Y +++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class NetworkFactory:
@@ -67,8 +51,6 @@ class NetworkFactory:
     def create_network(network_type, network_cfg, device=None):
         if network_type == "EfficientNet":
             model = EfficientNetWrapper(network_cfg).model
-        elif network_type == "EfficientNetV2":
-            model = EfficientNetV2Wrapper(network_cfg).model
         else:
             raise ValueError("Wrong type was given!")
 

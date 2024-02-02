@@ -9,9 +9,7 @@ Description: The program creates the different images (contour, lbp, rgb, textur
 
 import numpy as np
 import os
-import random
 
-from itertools import combinations
 from PIL import Image
 from typing import List, Tuple
 from torch.utils.data import Dataset
@@ -24,21 +22,22 @@ from config.config import ConfigStreamNetwork
 # +++++++++++++++++++++++++++++++++++++++++++++ S T R E A M   D A T A S E T ++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class StreamDataset(Dataset):
-    def __init__(self, dataset_dirs: List[str], type_of_stream: str, image_size: int, num_triplets: int = -1) -> None:
+    def __init__(self, dataset_dirs_anchor: List[str], dataset_dirs_pos_neg, type_of_stream: str, image_size: int,
+                 num_triplets: int = -1) -> None:
         """
         Initialize the StreamDataset class.
 
-        :param dataset_dirs: A list of directory paths containing the dataset.
+        :param dataset_dirs_anchor: A list of directory paths containing the anchor dataset.
+        :param dataset_dirs_pos_neg: A list of directory paths containing the positive and negative dataset
         :param type_of_stream: The type of stream (RGB, Contour, Texture, LBP).
         :param image_size: The size of the images.
         :param num_triplets: The number of triplets to generate (-1 means all possible triplets).
         """
+
         self.cfg = ConfigStreamNetwork().parse()
 
-        self.labels_set = None
-        self.label_to_indices = None
-        self.labels = None
-        self.dataset_paths = dataset_dirs
+        self.dataset_dirs_anchor = dataset_dirs_anchor
+        self.dataset_dirs_pos_neg = dataset_dirs_pos_neg
         self.type_of_stream = type_of_stream
 
         if self.type_of_stream == "RGB":
@@ -58,24 +57,28 @@ class StreamDataset(Dataset):
         else:
             raise ValueError("Wrong kind of network")
 
-        self.dataset = self.load_dataset()
+        self.dataset_anchor, self.labels_set_anchor, self.label_to_indices_anchor = (
+            self.load_dataset(self.dataset_dirs_anchor)
+        )
+        self.dataset_pos_neg, _, self.label_to_indices_pos_neg = self.load_dataset(self.dataset_dirs_pos_neg)
         self.triplets = self.generate_triplets(num_triplets)
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   D A T A S E T ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def load_dataset(self) -> List[Tuple[str, str]]:
+    @staticmethod
+    def load_dataset(dataset_dirs):
         """
         Load the dataset from the specified directory paths.
 
-        :return: A list of tuples containing the image paths and their corresponding labels.
+        :return:
         """
 
         dataset = []
         labels = set()
 
         # Iterate over the dataset directories
-        for dataset_path in self.dataset_paths:
+        for dataset_path in dataset_dirs:
             # Iterate over the label directories in each dataset directory
             for label_name in os.listdir(dataset_path):
                 label_path = os.path.join(dataset_path, label_name)
@@ -89,19 +92,15 @@ class StreamDataset(Dataset):
 
                 # Iterate over the image files in the label directory
                 for image_name in os.listdir(label_path):
-                    if self.cfg.split_by_light:
-                        if image_name.split(".")[0].split("_")[-2] == self.cfg.light_source:
-                            image_path = os.path.join(label_path, image_name)
-                            dataset.append((image_path, label))
-                    else:
-                        image_path = os.path.join(label_path, image_name)
-                        dataset.append((image_path, label))
+                    image_path = os.path.join(label_path, image_name)
+                    dataset.append((image_path, label))
 
-        self.labels = np.array([x[1] for x in dataset])
-        self.labels_set = set(self.labels)
-        self.label_to_indices = {label: np.where(self.labels == label)[0] for label in self.labels_set}
+        labels_all = np.array([x[1] for x in dataset])
+        labels_set = set(labels_all)
+        label_to_indices = \
+            {label: np.where(labels_all == label)[0] for label in labels_set}
 
-        return dataset
+        return dataset, labels_set, label_to_indices
 
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------- G E N E R A T E   T R I P L E T S ----------------------------------------
@@ -115,19 +114,24 @@ class StreamDataset(Dataset):
         """
 
         triplets = []
-        for label in self.labels_set:
-            label_indices = self.label_to_indices[label]
-            if len(label_indices) < 2:
-                continue
-            anchor_positive_pairs = list(combinations(label_indices, 2))
-            for anchor_index, positive_index in anchor_positive_pairs:
-                negative_label = np.random.choice(list(self.labels_set - {label}))
-                negative_index = np.random.choice(self.label_to_indices[negative_label])
-                triplets.append((anchor_index, positive_index, negative_index))
 
-        # Shuffle the triplets and select a fixed number
-        random.shuffle(triplets)
-        triplets = triplets[:num_triplets]
+        for _ in range(num_triplets):
+            # Select a random anchor class
+            anchor_class = np.random.choice(list(self.labels_set_anchor))
+
+            # Select a random anchor image from the anchor class
+            anchor_index = np.random.choice(self.label_to_indices_anchor[anchor_class])
+
+            # Select a random positive image from the same class as the anchor
+            positive_index = np.random.choice(self.label_to_indices_pos_neg[anchor_class])
+
+            # Select a random negative class different from the anchor class
+            negative_class = np.random.choice(list(self.labels_set_anchor - {anchor_class}))
+
+            # Select a random negative image from the negative class
+            negative_index = np.random.choice(self.label_to_indices_pos_neg[negative_class])
+
+            triplets.append((anchor_index, positive_index, negative_index))
 
         return triplets
 
@@ -144,9 +148,9 @@ class StreamDataset(Dataset):
 
         anchor_index, positive_index, negative_index = self.triplets[index]
 
-        anchor_img_path, _ = self.dataset[anchor_index]
-        positive_img_path, _ = self.dataset[positive_index]
-        negative_img_path, _ = self.dataset[negative_index]
+        anchor_img_path, _ = self.dataset_anchor[anchor_index]
+        positive_img_path, _ = self.dataset_pos_neg[positive_index]
+        negative_img_path, _ = self.dataset_pos_neg[negative_index]
 
         anchor_img = Image.open(anchor_img_path)
         positive_img = Image.open(positive_img_path)

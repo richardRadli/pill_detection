@@ -19,7 +19,7 @@ from torchvision.transforms import transforms
 from typing import Tuple
 
 from config.config import ConfigStreamNetwork
-from config.config_selector import stream_network_config, sub_stream_network_configs
+from config.config_selector import sub_stream_network_configs
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -68,7 +68,6 @@ class FusionDataset(Dataset):
         ])
 
         # Load datasets
-        selected_network_config = stream_network_config(self.cfg)
         selected_subnetwork_config = sub_stream_network_configs(self.cfg)
         network_cfg_contour = selected_subnetwork_config.get("Contour")
         network_cfg_lpb = selected_subnetwork_config.get("LBP")
