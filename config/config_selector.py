@@ -577,15 +577,17 @@ def dataset_images_path_selector(dataset_name):
                     DATASET_PATH.get_data_path("cure_customer_segmentation_labels"),
                 "customer_pixel_bbox_labels":
                     DATASET_PATH.get_data_path("cure_customer_pixel_bbox_labels"),
+                "customer_mask_images":
+                    DATASET_PATH.get_data_path("cure_customer_mask_images")
             },
 
             "reference": {
                 "reference_images":
                     DATASET_PATH.get_data_path("cure_reference_images"),
-                "reference_masks":
-                    DATASET_PATH.get_data_path("cure_reference_masks"),
+                "reference_mask_images":
+                    DATASET_PATH.get_data_path("cure_reference_mask_images"),
                 "reference_labels":
-                    DATASET_PATH.get_data_path("cure_reference_labels"),
+                    DATASET_PATH.get_data_path("cure_reference_yolo_labels"),
             },
 
             "train": {
@@ -643,9 +645,30 @@ def dataset_images_path_selector(dataset_name):
                     DATASET_PATH.get_data_path("cure_test_aug_yolo_labels"),
             },
 
-            "other": {
-                'k_fold':
-                    DATA_PATH.get_data_path("cure_k_fold"),
+            "src_stream_images": {
+                "reference": {
+                    "stream_images_contour":
+                        DATASET_PATH.get_data_path("stream_images_cure_reference_contour"),
+                    "stream_images_lbp":
+                        DATASET_PATH.get_data_path("stream_images_cure_reference_lbp"),
+                    "stream_images_rgb":
+                        DATASET_PATH.get_data_path("stream_images_cure_reference_rgb"),
+                    "stream_images_texture":
+                        DATASET_PATH.get_data_path("stream_images_cure_reference_texture"),
+                },
+                "customer": {
+                    "stream_images_contour":
+                        DATASET_PATH.get_data_path("stream_images_cure_customer_contour"),
+                    "stream_images_lbp":
+                        DATASET_PATH.get_data_path("stream_images_cure_customer_lbp"),
+                    "stream_images_rgb":
+                        DATASET_PATH.get_data_path("stream_images_cure_customer_rgb"),
+                    "stream_images_texture":
+                        DATASET_PATH.get_data_path("stream_images_cure_customer_texture"),
+                }
+            },
+
+            "dst_stream_images": {
                 'stream_images':
                     IMAGES_PATH.get_data_path("stream_images_cure"),
                 'stream_test_images':
@@ -653,7 +676,12 @@ def dataset_images_path_selector(dataset_name):
                 'ref':
                     IMAGES_PATH.get_data_path("test_ref_cure"),
                 'query':
-                    IMAGES_PATH.get_data_path("test_query_nih")
+                    IMAGES_PATH.get_data_path("test_query_cure")
+            },
+
+            "other": {
+                'k_fold':
+                    DATA_PATH.get_data_path("cure_k_fold")
             },
         },
         # -------------------------------------------------- O G Y E I -------------------------------------------------

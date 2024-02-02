@@ -50,7 +50,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNet")
         self.parser.add_argument("--type_of_stream", type=str, default="Texture",
                                  choices=["Contour | LBP | RGB | Texture"])
-        self.parser.add_argument("--dataset_operation", type=str, default="train", help="train | valid | test")
+        self.parser.add_argument("--operation", type=str, default="customer", choices=["reference", "customer"])
 
         self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | hmtl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
@@ -81,8 +81,8 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--threshold_area", type=int, default=100)
         self.parser.add_argument("--kernel_median_contour", type=int, default=7)
-        self.parser.add_argument("--canny_low_thr", type=int, default=5)
-        self.parser.add_argument("--canny_high_thr", type=int, default=25)
+        self.parser.add_argument("--canny_low_thr", type=int, default=15)
+        self.parser.add_argument("--canny_high_thr", type=int, default=30)
         self.parser.add_argument("--kernel_gaussian_texture", type=int, default=7)
 
     def parse(self):

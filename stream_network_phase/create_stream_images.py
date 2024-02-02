@@ -21,7 +21,7 @@ from tqdm import tqdm
 from typing import Tuple
 
 from config.config import ConfigStreamNetwork
-from config.config_selector import dataset_images_path_selector, sub_stream_network_configs
+from config.config_selector import dataset_images_path_selector
 from utils.utils import file_reader, measure_execution_time, setup_logger
 
 
@@ -34,15 +34,23 @@ class CreateStreamImages:
 
         self.cfg = ConfigStreamNetwork().parse()
 
-        path_to_stream_images = sub_stream_network_configs(self.cfg)
-        self.rgb_images_path = (
-            path_to_stream_images.get("RGB").get(self.cfg.dataset_operation).get(self.cfg.dataset_type))
-        self.contour_images_path =\
-            path_to_stream_images.get("Contour").get(self.cfg.dataset_operation).get(self.cfg.dataset_type)
-        self.texture_images_path = (
-            path_to_stream_images.get("Texture").get(self.cfg.dataset_operation).get(self.cfg.dataset_type))
+        # Output paths
+        self.contour_images_path = (
+        dataset_images_path_selector(
+            self.cfg.dataset_type).get("src_stream_images").get(self.cfg.operation).get("stream_images_contour")
+        )
         self.lbp_images_path = (
-            path_to_stream_images.get("LBP").get(self.cfg.dataset_operation).get(self.cfg.dataset_type))
+            dataset_images_path_selector(
+                self.cfg.dataset_type).get("src_stream_images").get(self.cfg.operation).get("stream_images_lbp")
+        )
+        self.rgb_images_path = (
+            dataset_images_path_selector(
+                self.cfg.dataset_type).get("src_stream_images").get(self.cfg.operation).get("stream_images_rgb")
+        )
+        self.texture_images_path = (
+        dataset_images_path_selector(
+            self.cfg.dataset_type).get("src_stream_images").get(self.cfg.operation).get("stream_images_texture")
+        )
 
         df = pd.DataFrame.from_dict(vars(self.cfg), orient='index', columns=['value'])
         logging.info(df)
@@ -116,19 +124,28 @@ class CreateStreamImages:
             color_images_dir = path_to_images.get(self.cfg.dataset_operation).get("images")
             mask_images_dir = path_to_images.get(self.cfg.dataset_operation).get("masks")
         elif self.cfg.dataset_type == 'cure':
-            color_images_dir = path_to_images.get("train_images") if self.cfg.dataset_operation == "train" else (
-                path_to_images.get("valid_images") if self.cfg.dataset_operation == "valid"
-                else path_to_images.get("test_images")
+            images = (
+                "customer_images" if self.cfg.operation == "customer"
+                else ("reference_images" if self.cfg.operation == "reference"
+                      else None)
             )
-            mask_images_dir = path_to_images.get("train_mask_images") if self.cfg.dataset_operation == "train" else (
-                path_to_images.get("valid_mask_images") if self.cfg.dataset_operation == "valid"
-                else path_to_images.get("test_mask_images")
+
+            if images is None:
+                raise ValueError("Invalid value for self.cfg.operation")
+
+            masks = (
+                "customer_mask_images" if self.cfg.operation == "customer"
+                else ("reference_mask_images" if self.cfg.operation == "reference"
+                      else None)
             )
+
+            color_images_dir = dataset_images_path_selector(self.cfg.dataset_type).get(self.cfg.operation).get(images)
+            mask_images_dir = dataset_images_path_selector(self.cfg.dataset_type).get(self.cfg.operation).get(masks)
         else:
             raise ValueError("Invalid dataset")
 
-        color_images = file_reader(color_images_dir, "png" if self.cfg.dataset_type == 'ogyei' else "jpg")
-        mask_images = file_reader(mask_images_dir, "png" if self.cfg.dataset_type == 'ogyei' else "jpg")
+        color_images = file_reader(color_images_dir, "jpg")
+        mask_images = file_reader(mask_images_dir, "jpg")
 
         with ThreadPoolExecutor() as executor:
             list(tqdm(executor.map(self.process_image, zip(color_images, mask_images)), total=len(color_images),
@@ -167,7 +184,7 @@ class CreateStreamImages:
         :return: None
         """
 
-        rgb_images = file_reader(self.rgb_images_path, "png" if self.cfg.dataset_type == 'ogyei' else "jpg")
+        rgb_images = file_reader(self.rgb_images_path, "jpg")
         args_list = []
 
         for img_path in tqdm(rgb_images, desc="Contour images"):
@@ -216,7 +233,7 @@ class CreateStreamImages:
         :return: None
         """
 
-        rgb_images = file_reader(self.rgb_images_path, "png" if self.cfg.dataset_type == 'ogyei' else "jpg")
+        rgb_images = file_reader(self.rgb_images_path, "jpg")
         args_list = []
 
         for img_path in tqdm(rgb_images, desc="Texture images"):
@@ -243,7 +260,8 @@ class CreateStreamImages:
         :return: None.
         """
 
-        lbp_image = local_binary_pattern(image=img_gray, P=8 * 1, R=1, method="default")
+        lbp_image = local_binary_pattern(image=img_gray, P=8 * 1, R=2, method="default")
+        lbp_image = np.clip(lbp_image, 0, 255)
         cv2.imwrite(dst_image_path, lbp_image)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -255,7 +273,7 @@ class CreateStreamImages:
         :return: None
         """
 
-        rgb_images = file_reader(self.rgb_images_path, "png" if self.cfg.dataset_type == 'ogyei' else "jpg")
+        rgb_images = file_reader(self.rgb_images_path, "jpg")
 
         with ThreadPoolExecutor() as executor:
             futures = []
@@ -291,8 +309,7 @@ class CreateStreamImages:
             for subdir in sub_dirs:
                 subdir_path = os.path.join(class_label_path, subdir)
 
-                image_files = [f for f in os.listdir(subdir_path) if
-                               f.endswith('.jpg') or f.endswith('.png')]
+                image_files = [f for f in os.listdir(subdir_path) if f.endswith('.jpg')]
 
                 destination_subdir = os.path.join(destination_root, class_label_dir, subdir)
                 os.makedirs(destination_subdir, exist_ok=True)
@@ -325,22 +342,21 @@ class CreateStreamImages:
 
         for idx, (file_rgb, file_contour, file_texture, file_lbp) in \
                 tqdm(enumerate(zip(files_rgb, files_contour, files_texture, files_lbp)), desc="Copying image files"):
-            if file_rgb.endswith(".png"):
-                if self.cfg.dataset_type == 'ogyei':
-                    if "s_" in file_rgb:
-                        match = re.search(r'^(.*?)_s_\d{3}\.png$', file_rgb)
-                    elif "u_" in file_rgb:
-                        match = re.search(r'^(.*?)_u_\d{3}\.png$', file_rgb)
-                    else:
-                        match = None
 
-                    if match:
-                        value = match.group(1)
-            elif file_rgb.endswith(".jpg"):
-                if self.cfg.dataset_type == 'cure':
-                    value = os.path.basename(file_rgb).split("_")[0]
+            if self.cfg.dataset_type == 'ogyei':
+                if "s_" in file_rgb:
+                    match = re.search(r'^(.*?)_s_\d{3}\.jpg$', file_rgb)
+                elif "u_" in file_rgb:
+                    match = re.search(r'^(.*?)_u_\d{3}\.jpg$', file_rgb)
                 else:
-                    raise ValueError("wrong dataset type has given!")
+                    match = None
+
+                if match:
+                    value = match.group(1)
+            elif self.cfg.dataset_type == 'cure':
+                value = os.path.basename(file_rgb).split("_")[0]
+            else:
+                raise ValueError("wrong dataset type has given!")
 
             out_path_rgb = os.path.join(rgb_path, value)
             out_path_contour = os.path.join(contour_path, value)
@@ -371,20 +387,17 @@ class CreateStreamImages:
         :return: None
         """
 
-        # self.save_rgb_images()
-        # self.save_contour_images()
-        # self.save_texture_images()
-        # self.save_lbp_images()
-        #
-        # self.create_label_dirs(
-        #     rgb_path=self.rgb_images_path,
-        #     contour_path=self.contour_images_path,
-        #     texture_path=self.texture_images_path,
-        #     lbp_path=self.lbp_images_path
-        # )
+        self.save_rgb_images()
+        self.save_contour_images()
+        self.save_texture_images()
+        self.save_lbp_images()
 
-        if self.cfg.dataset_operation == "test":
-            self.copy_query_images()
+        self.create_label_dirs(
+            rgb_path=self.rgb_images_path,
+            contour_path=self.contour_images_path,
+            texture_path=self.texture_images_path,
+            lbp_path=self.lbp_images_path
+        )
 
 
 # ----------------------------------------------------------------------------------------------------------------------

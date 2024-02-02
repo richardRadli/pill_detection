@@ -478,6 +478,101 @@ class Data(_Const):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Datasets(_Const):
     dirs_dataset = {
+        # -------------------------------------------------- C U R E ---------------------------------------------------
+        # CUSTOMER
+        "cure_customer_pixel_bbox_labels":
+            "cure/Customer/pixel_bbox_labels",
+        "cure_customer_images":
+            "cure/Customer/images",
+        "cure_customer_mask_images":
+            "cure/Customer/mask_images",
+        "cure_customer_segmentation_labels":
+            "cure/Customer/segmentation_labels",
+        "cure_customer_yolo_labels":
+            "cure/Customer/yolo_labels",
+
+        # REFERENCE
+        "cure_reference_images":
+            "cure/Reference/images",
+        "cure_reference_mask_images":
+            "cure/Reference/mask_images",
+        "cure_reference_yolo_labels":
+            "cure/Reference/yolo_labels",
+
+        # CUSTOMER SPLITTED
+        "cure_train_bbox_pixel_labels":
+            "cure/Customer_splitted/train_dir/bbox_labels",
+        "cure_train_images":
+            "cure/Customer_splitted/train_dir/images",
+        "cure_train_mask_images":
+            "cure/Customer_splitted/train_dir/mask_images",
+        "cure_train_segmentation_labels":
+            "cure/Customer_splitted/train_dir/segmentation_labels",
+        "cure_train_yolo_labels":
+            "cure/Customer_splitted/train_dir/yolo_labels",
+
+        "cure_valid_bbox_pixel_labels":
+            "cure/Customer_splitted/valid_dir/bbox_labels",
+        "cure_valid_images":
+            "cure/Customer_splitted/valid_dir/images",
+        "cure_valid_mask_images":
+            "cure/Customer_splitted/valid_dir/mask_images",
+        "cure_valid_segmentation_labels":
+            "cure/Customer_splitted/valid_dir/segmentation_labels",
+        "cure_valid_yolo_labels":
+            "cure/Customer_splitted/valid_dir/yolo_labels",
+
+        "cure_test_bbox_pixel_labels":
+            "cure/Customer_splitted/test_dir/bbox_labels",
+        "cure_test_images":
+            "cure/Customer_splitted/test_dir/images",
+        "cure_test_mask_images":
+            "cure/Customer_splitted/test_dir/mask_images",
+        "cure_test_segmentation_labels":
+            "cure/Customer_splitted/test_dir/segmentation_labels",
+        "cure_test_yolo_labels":
+            "cure/Customer_splitted/test_dir/yolo_labels",
+
+        # CUSTOMER SPLITTED AUGMENTED
+        "cure_train_aug_images":
+            "cure/Customer_splitted_aug/train_dir/images",
+        "cure_train_aug_yolo_labels":
+            "cure/Customer_splitted_aug/train_dir/yolo_labels",
+        "cure_train_aug_mask_images":
+            "cure/Customer_splitted_aug/train_dir/mask_images",
+
+        "cure_valid_aug_images":
+            "cure/Customer_splitted_aug/valid_dir/images",
+        "cure_valid_aug_yolo_labels":
+            "cure/Customer_splitted_aug/valid_dir/yolo_labels",
+        "cure_valid_aug_mask_images":
+            "cure/Customer_splitted_aug/valid_dir/mask_images",
+
+        "cure_test_aug_images":
+            "cure/Customer_splitted_aug/test_dir/images",
+        "cure_test_aug_yolo_labels":
+            "cure/Customer_splitted_aug/test_dir/yolo_labels",
+
+        # STREAM - Customer
+        "stream_images_cure_customer_contour":
+            "cure/Customer/stream_images/contour",
+        "stream_images_cure_customer_lbp":
+            "cure/Customer/stream_images/lbp",
+        "stream_images_cure_customer_rgb":
+            "cure/Customer/stream_images/rgb",
+        "stream_images_cure_customer_texture":
+            "cure/Customer/stream_images/texture",
+
+        # STREAM - Reference
+        "stream_images_cure_reference_contour":
+            "cure/Reference/stream_images/contour",
+        "stream_images_cure_reference_lbp":
+            "cure/Reference/stream_images/lbp",
+        "stream_images_cure_reference_rgb":
+            "cure/Reference/stream_images/rgb",
+        "stream_images_cure_reference_texture":
+            "cure/Reference/stream_images/texture",
+
         # --------------------------------------------------- D T D ----------------------------------------------------
         "dtd_images":
             "dtd_images",
@@ -571,78 +666,6 @@ class Datasets(_Const):
             "nih/Reference/txt",
 
         # OTHER
-
-
-        # -------------------------------------------------- C U R E ---------------------------------------------------
-        # CUSTOMER
-        "cure_customer_images":
-            "cure/Customer/images",
-        "cure_customer_segmentation_labels":
-            "cure/Customer/segmentation_labels",
-        "cure_customer_pixel_bbox_labels":
-            "cure/Customer/pixel_bbox_labels",
-
-        # REFERENCE
-        "cure_reference_images":
-            "cure/Reference/images",
-        "cure_reference_masks":
-            "cure/Reference/masks",
-        "cure_reference_labels":
-            "cure/Reference/labels",
-
-        # CUSTOMER SPLITTED
-        "cure_train_bbox_pixel_labels":
-            "cure/Customer_splitted/train_dir/bbox_labels",
-        "cure_train_images":
-            "cure/Customer_splitted/train_dir/images",
-        "cure_train_mask_images":
-            "cure/Customer_splitted/train_dir/mask_images",
-        "cure_train_segmentation_labels":
-            "cure/Customer_splitted/train_dir/segmentation_labels",
-        "cure_train_yolo_labels":
-            "cure/Customer_splitted/train_dir/yolo_labels",
-
-        "cure_valid_bbox_pixel_labels":
-            "cure/Customer_splitted/valid_dir/bbox_labels",
-        "cure_valid_images":
-            "cure/Customer_splitted/valid_dir/images",
-        "cure_valid_mask_images":
-            "cure/Customer_splitted/valid_dir/mask_images",
-        "cure_valid_segmentation_labels":
-            "cure/Customer_splitted/valid_dir/segmentation_labels",
-        "cure_valid_yolo_labels":
-            "cure/Customer_splitted/valid_dir/yolo_labels",
-
-        "cure_test_bbox_pixel_labels":
-            "cure/Customer_splitted/test_dir/bbox_labels",
-        "cure_test_images":
-            "cure/Customer_splitted/test_dir/images",
-        "cure_test_mask_images":
-            "cure/Customer_splitted/test_dir/mask_images",
-        "cure_test_segmentation_labels":
-            "cure/Customer_splitted/test_dir/segmentation_labels",
-        "cure_test_yolo_labels":
-            "cure/Customer_splitted/test_dir/yolo_labels",
-
-        # CUSTOMER SPLITTED AUGMENTED
-        "cure_train_aug_images":
-            "cure/Customer_splitted_aug/train_dir/images",
-        "cure_train_aug_yolo_labels":
-            "cure/Customer_splitted_aug/train_dir/yolo_labels",
-        "cure_train_aug_mask_images":
-            "cure/Customer_splitted_aug/train_dir/mask_images",
-
-        "cure_valid_aug_images":
-            "cure/Customer_splitted_aug/valid_dir/images",
-        "cure_valid_aug_yolo_labels":
-            "cure/Customer_splitted_aug/valid_dir/yolo_labels",
-        "cure_valid_aug_mask_images":
-            "cure/Customer_splitted_aug/valid_dir/mask_images",
-
-        "cure_test_aug_images":
-            "cure/Customer_splitted_aug/test_dir/images",
-        "cure_test_aug_yolo_labels":
-            "cure/Customer_splitted_aug/test_dir/yolo_labels"
     }
 
     # ------------------------------------------------------------------------------------------------------------------
