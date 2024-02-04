@@ -393,21 +393,14 @@ class PredictFusionNetwork:
             operation="query")
 
         ref_vectors, r_labels, r_images_path = self.get_vectors(
-            contour_dir=self.subnetwork_config.get("Contour").get("test").get(self.cfg_stream_net.dataset_type),
-            lbp_dir=self.subnetwork_config.get("LBP").get("test").get(self.cfg_stream_net.dataset_type),
-            rgb_dir=self.subnetwork_config.get("RGB").get("test").get(self.cfg_stream_net.dataset_type),
-            texture_dir=self.subnetwork_config.get("Texture").get("test").get(self.cfg_stream_net.dataset_type),
+            contour_dir=self.subnetwork_config.get("Contour").get("ref").get(self.cfg_stream_net.dataset_type),
+            lbp_dir=self.subnetwork_config.get("LBP").get("ref").get(self.cfg_stream_net.dataset_type),
+            rgb_dir=self.subnetwork_config.get("RGB").get("ref").get(self.cfg_stream_net.dataset_type),
+            texture_dir=self.subnetwork_config.get("Texture").get("ref").get(self.cfg_stream_net.dataset_type),
             operation="reference")
 
-        # Compare query and reference vectors
-        if self.cfg_fusion_net.comparison_type == "euclidean":
-            gt, pred_ed, indices = (
-                self.compare_query_ref_vectors_euc_dist(q_labels, r_labels, ref_vectors, query_vectors))
-        elif self.cfg_fusion_net.comparison_type == "knn":
-            gt, pred_ed, indices = (
-                self.compare_query_ref_vectors_knn(q_labels, r_labels, ref_vectors, query_vectors))
-        else:
-            raise ValueError("Unknown comparison")
+        gt, pred_ed, indices = (
+            self.compare_query_ref_vectors_euc_dist(q_labels, r_labels, ref_vectors, query_vectors))
 
         self.display_results(gt, pred_ed, query_vectors)
 

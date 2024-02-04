@@ -8,7 +8,8 @@ class TripletMarginLoss(nn.Module):
         self.margin = margin
 
     def forward(self, anchor_embedding, positive_embedding, negative_embedding):
-        distance_positive = torch.pairwise_distance(anchor_embedding, positive_embedding)
-        distance_negative = torch.pairwise_distance(anchor_embedding, negative_embedding)
+        distance_positive = torch.pairwise_distance(anchor_embedding, positive_embedding, p=2)
+        distance_negative = torch.pairwise_distance(anchor_embedding, negative_embedding, p=2)
         loss = torch.relu(distance_positive - distance_negative + self.margin)
+
         return torch.mean(loss)

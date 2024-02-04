@@ -65,8 +65,7 @@ class TrainModel:
 
         # Load dataset
         dataset = \
-            StreamDataset(dataset_dirs_anchor=[network_cfg.get("train").get(self.cfg.dataset_type).get("anchor"),
-                                               network_cfg.get("valid").get(self.cfg.dataset_type).get("anchor")],
+            StreamDataset(dataset_dirs_anchor=[network_cfg.get("train").get(self.cfg.dataset_type).get("anchor")],
                           dataset_dirs_pos_neg=[network_cfg.get("train").get(self.cfg.dataset_type).get("pos_neg")],
                           type_of_stream=self.cfg.type_of_stream,
                           image_size=network_cfg.get("image_size"),
@@ -86,8 +85,9 @@ class TrainModel:
         self.model.to(self.device)
 
         # Print model configuration
-        summary(self.model,
-                (network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size")))
+        summary(
+            self.model, (network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size"))
+        )
 
         # Specify loss function
         if self.cfg.type_of_loss_func == "dmtl":

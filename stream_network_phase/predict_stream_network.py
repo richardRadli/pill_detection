@@ -453,14 +453,7 @@ class PredictStreamNetwork:
                     texture_dir=self.sub_network_config.get("Texture").get("ref").get(self.cfg.dataset_type),
                     operation="reference")
 
-        # Compare query and reference vectors
-        if self.cfg.comparison_type == "euclidean":
-            gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
-        elif self.cfg.comparison_type == "knn":
-            gt, pred_ed, indices = self.compare_query_ref_vectors_knn(q_labels, r_labels, ref_vecs, query_vecs)
-        else:
-            raise ValueError("Unknown comparison")
-
+        gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
         self.display_results(gt, pred_ed, query_vecs)
 
         # Plot query and reference medicines

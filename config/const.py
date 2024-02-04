@@ -83,13 +83,13 @@ class Images(_Const):
 
         # --------------------------------------- R E F   T R A I N   A N C H O R --------------------------------------
         "train_contour_stream_cure_anchor":
-            "images/cure/stream_images/anchor/contour/train",
+            "images/cure/stream_images/anchor/contour",
         "train_lbp_stream_cure_anchor":
-            "images/cure/stream_images/anchor/lbp/train",
+            "images/cure/stream_images/anchor/lbp",
         "train_rgb_stream_cure_anchor":
-            "images/cure/stream_images/anchor/rgb/train",
+            "images/cure/stream_images/anchor/rgb",
         "train_texture_stream_cure_anchor":
-            "images/cure/stream_images/anchor/texture/train",
+            "images/cure/stream_images/anchor/texture",
 
         # -------------------------------------------- R E F   A N C H O R ---------------------------------------------
         "contour_stream_cure_pos_neg":
@@ -150,13 +150,13 @@ class Images(_Const):
 
         # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
         "train_contour_stream_ogyei":
-            "images/ogyei/stream_images/contour/train",
+            "images/ogyei/stream_images/contour",
         "train_lbp_stream_ogyei":
-            "images/ogyei/stream_images/lbp/train",
+            "images/ogyei/stream_images/lbp",
         "train_rgb_stream_ogyei":
-            "images/ogyei/stream_images/rgb/train",
+            "images/ogyei/stream_images/rgb",
         "train_texture_stream_ogyei":
-            "images/ogyei/stream_images/texture/train",
+            "images/ogyei/stream_images/texture",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
         "test_query_ogyei":
@@ -201,13 +201,13 @@ class Images(_Const):
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++ N I H +++++++++++++++++++++++++++++++++++++++++++++++++++
         # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
         "train_contour_stream_nih":
-            "images/nih/stream_images/contour/train",
+            "images/nih/stream_images/contour",
         "train_lbp_stream_nih":
-            "images/nih/stream_images/lbp/train",
+            "images/nih/stream_images/lbp",
         "train_rgb_stream_nih":
-            "images/nih/stream_images/rgb/train",
+            "images/nih/stream_images/rgb",
         "train_texture_stream_nih":
-            "images/nih/stream_images/texture/train",
+            "images/nih/stream_images/texture",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
         "test_contour_stream_ref_nih":

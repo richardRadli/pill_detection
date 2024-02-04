@@ -69,8 +69,7 @@ class CreateStreamImages:
         :return: None
         """
 
-        ret, thresh = cv2.threshold(seg_map, 0, 255, cv2.THRESH_BINARY)
-        n_objects, labels, stats, centroids = cv2.connectedComponentsWithStats(thresh, connectivity=8, ltype=cv2.CV_32S)
+        n_objects, _, stats, _ = cv2.connectedComponentsWithStats(seg_map, connectivity=8, ltype=cv2.CV_32S)
 
         max_area = 0
         max_x, max_y, max_w, max_h = None, None, None, None
@@ -88,6 +87,9 @@ class CreateStreamImages:
             square_x = int(center_x - side_length / 2)
             square_y = int(center_y - side_length / 2)
             obj = in_img[square_y:square_y + side_length, square_x:square_x + side_length]
+            mask = seg_map[square_y:square_y + side_length, square_x:square_x + side_length]
+            mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)[1]
+
             if obj.size != 0:
                 cv2.imwrite(output_path, obj)
 
@@ -169,7 +171,7 @@ class CreateStreamImages:
         """
 
         cropped_image, output_path, kernel_size, canny_low_thr, canny_high_thr = args
-        blured_images = cv2.medianBlur(cropped_image, kernel_size, 0)
+        blured_images = cv2.GaussianBlur(cropped_image, (kernel_size, kernel_size), 0)
         edges = cv2.Canny(blured_images, canny_low_thr, canny_high_thr)
         cv2.imwrite(output_path, edges)
 
@@ -260,7 +262,7 @@ class CreateStreamImages:
         :return: None.
         """
 
-        lbp_image = local_binary_pattern(image=img_gray, P=8 * 1, R=2, method="default")
+        lbp_image = local_binary_pattern(image=img_gray, P=8, R=2, method="default")
         lbp_image = np.clip(lbp_image, 0, 255)
         cv2.imwrite(dst_image_path, lbp_image)
 

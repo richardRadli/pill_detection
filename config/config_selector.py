@@ -91,19 +91,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     "ogyei":
                         IMAGES_PATH.get_data_path("train_contour_stream_ogyei"),
                 },
-            "valid":
-                {
-                    "cure": {
-                        "anchor":
-                            IMAGES_PATH.get_data_path("valid_contour_stream_cure_anchor"),
-                        "pos_neg":
-                            IMAGES_PATH.get_data_path("contour_stream_cure_pos_neg")
-                    },
-                    "nih":
-                        IMAGES_PATH.get_data_path("valid_contour_stream_nih"),
-                    "ogyei":
-                        IMAGES_PATH.get_data_path("valid_contour_stream_ogyei"),
-                },
             "ref":
                 {
                     "cure":
@@ -174,19 +161,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     "ogyei":
                         IMAGES_PATH.get_data_path("train_lbp_stream_ogyei"),
                 },
-            "valid":
-                {
-                    "cure": {
-                        "anchor":
-                            IMAGES_PATH.get_data_path("valid_lbp_stream_cure_anchor"),
-                        "pos_neg":
-                            IMAGES_PATH.get_data_path("lbp_stream_cure_pos_neg")
-                    },
-                    "nih":
-                        IMAGES_PATH.get_data_path("valid_lbp_stream_nih"),
-                    "ogyei":
-                        IMAGES_PATH.get_data_path("valid_lbp_stream_ogyei"),
-                },
             "ref":
                 {
                     "cure":
@@ -256,19 +230,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                     "ogyei":
                         IMAGES_PATH.get_data_path("train_rgb_stream_ogyei"),
                 },
-            "valid":
-                {
-                    "cure": {
-                        "anchor":
-                            IMAGES_PATH.get_data_path("valid_rgb_stream_cure_anchor"),
-                        "pos_neg":
-                            IMAGES_PATH.get_data_path("rgb_stream_cure_pos_neg")
-                    },
-                    "nih":
-                        IMAGES_PATH.get_data_path("valid_rgb_stream_nih"),
-                    "ogyei":
-                        IMAGES_PATH.get_data_path("valid_rgb_stream_ogyei"),
-                },
             "ref":
                 {
                     "cure":
@@ -337,19 +298,6 @@ def sub_stream_network_configs(cfg) -> Dict:
                         IMAGES_PATH.get_data_path("train_texture_stream_nih"),
                     "ogyei":
                         IMAGES_PATH.get_data_path("train_texture_stream_ogyei"),
-                },
-            "valid":
-                {
-                    "cure": {
-                        "anchor":
-                            IMAGES_PATH.get_data_path("valid_texture_stream_cure_anchor"),
-                        "pos_neg":
-                            IMAGES_PATH.get_data_path("texture_stream_cure_pos_neg")
-                    },
-                    "nih":
-                        IMAGES_PATH.get_data_path("valid_texture_stream_nih"),
-                    "ogyei":
-                        IMAGES_PATH.get_data_path("valid_texture_stream_ogyei"),
                 },
             "ref":
                 {

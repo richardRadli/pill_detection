@@ -39,30 +39,49 @@ class FusionDataset(Dataset):
         self.cfg = ConfigStreamNetwork().parse()
 
         self.label_to_indices = None
-        self.labels = None
 
         # Transforms for each dataset
         self.contour_transform = transforms.Compose([
             transforms.Resize(image_size),
             transforms.CenterCrop(image_size),
+            transforms.RandomApply([transforms.GaussianBlur(kernel_size=5)], p=0.5),
+            transforms.RandomRotation(degrees=6),
+            transforms.RandomRotation(degrees=354),
+            transforms.RandomAffine(degrees=0, translate=(0.2, 0.2), scale=(0.8, 1.2)),
+            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
             transforms.Grayscale(),
             transforms.ToTensor()
         ])
         self.lbp_transform = transforms.Compose([
             transforms.Resize(image_size),
             transforms.CenterCrop(image_size),
+            transforms.RandomApply([transforms.GaussianBlur(kernel_size=5)], p=0.5),
+            transforms.RandomRotation(degrees=6),
+            transforms.RandomRotation(degrees=354),
+            transforms.RandomAffine(degrees=0, translate=(0.2, 0.2), scale=(0.8, 1.2)),
+            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
             transforms.Grayscale(),
             transforms.ToTensor()
         ])
         self.rgb_transform = transforms.Compose([
             transforms.Resize(image_size),
             transforms.CenterCrop(image_size),
+            transforms.RandomApply([transforms.GaussianBlur(kernel_size=5)], p=0.5),
+            transforms.RandomRotation(degrees=6),
+            transforms.RandomRotation(degrees=354),
+            transforms.RandomAffine(degrees=0, translate=(0.2, 0.2), scale=(0.8, 1.2)),
+            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
             transforms.ToTensor(),
             transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
         ])
         self.texture_transform = transforms.Compose([
             transforms.Resize(image_size),
             transforms.CenterCrop(image_size),
+            transforms.RandomApply([transforms.GaussianBlur(kernel_size=5)], p=0.5),
+            transforms.RandomRotation(degrees=6),
+            transforms.RandomRotation(degrees=354),
+            transforms.RandomAffine(degrees=0, translate=(0.2, 0.2), scale=(0.8, 1.2)),
+            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
             transforms.Grayscale(),
             transforms.ToTensor()
         ])
@@ -73,24 +92,33 @@ class FusionDataset(Dataset):
         network_cfg_lpb = selected_subnetwork_config.get("LBP")
         network_cfg_rgb = selected_subnetwork_config.get("RGB")
         network_cfg_texture = selected_subnetwork_config.get("Texture")
-        self.contour_dataset = self.load_dataset([
-            network_cfg_contour.get("train").get(self.cfg.dataset_type),
-            network_cfg_contour.get("valid").get(self.cfg.dataset_type)
+
+        self.contour_dataset_anchor, _, _ = self.load_dataset([
+            network_cfg_contour.get("train").get(self.cfg.dataset_type).get("anchor")
         ])
-        self.lbp_dataset = self.load_dataset([
-            network_cfg_lpb.get("train").get(self.cfg.dataset_type),
-            network_cfg_lpb.get("valid").get(self.cfg.dataset_type)
+        self.contour_dataset_pos_neg, _, _ = self.load_dataset([
+            network_cfg_contour.get("train").get(self.cfg.dataset_type).get("pos_neg")
         ])
-        self.rgb_dataset = self.load_dataset([
-            network_cfg_rgb.get("train").get(self.cfg.dataset_type),
-            network_cfg_rgb.get("valid").get(self.cfg.dataset_type)
+        self.lbp_dataset_anchor, _, _ = self.load_dataset([
+            network_cfg_lpb.get("train").get(self.cfg.dataset_type).get("anchor")
         ])
-        self.texture_dataset = self.load_dataset([
-            network_cfg_texture.get("train").get(self.cfg.dataset_type),
-            network_cfg_texture.get("valid").get(self.cfg.dataset_type)
+        self.lbp_dataset_pos_neg, _, _ = self.load_dataset([
+            network_cfg_lpb.get("train").get(self.cfg.dataset_type).get("pos_neg")
         ])
-        self.labels_set = set(label for _, label in self.rgb_dataset)
-        self.prepare_labels()
+        self.rgb_dataset_anchor, self.rgb_labels_set_anchor, self.rgb_label_to_indices_anchor = self.load_dataset([
+            network_cfg_rgb.get("train").get(self.cfg.dataset_type).get("anchor")
+        ])
+        self.rgb_dataset_pos_neg, _, self.rgb_label_to_indices_pos_neg = self.load_dataset([
+            network_cfg_rgb.get("train").get(self.cfg.dataset_type).get("pos_neg")
+        ])
+        self.texture_dataset_anchor, _, _ = self.load_dataset([
+            network_cfg_texture.get("train").get(self.cfg.dataset_type).get("anchor")
+        ])
+        self.texture_dataset_pos_neg, _, _ = self.load_dataset([
+            network_cfg_texture.get("train").get(self.cfg.dataset_type).get("pos_neg")
+        ])
+
+        self.triplets = self.generate_triplets(5000)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- __ G E T I T E M __ ----------------------------------------------
@@ -107,28 +135,25 @@ class FusionDataset(Dataset):
         :return: A tuple of 12 elements, where each element corresponds to an image with a specific transformation.
         """
 
+        anchor_index, positive_index, negative_index = self.triplets[index]
+
         # Load corresponding images from all datasets
-        contour_anchor_img_path, _ = self.contour_dataset[index]
-        lbp_anchor_img_path, _ = self.lbp_dataset[index]
-        rgb_anchor_img_path, anchor_label = self.rgb_dataset[index]
-        texture_anchor_img_path, _ = self.texture_dataset[index]
+        contour_anchor_img_path, _ = self.contour_dataset_anchor[anchor_index]
+        lbp_anchor_img_path, _ = self.lbp_dataset_anchor[anchor_index]
+        rgb_anchor_img_path, anchor_label = self.rgb_dataset_anchor[anchor_index]
+        texture_anchor_img_path, _ = self.texture_dataset_anchor[anchor_index]
 
         # Load positive sample from the same class as anchor
-        positive_index = index
-        while positive_index == index:
-            positive_index = np.random.choice(self.label_to_indices[anchor_label])
-        contour_positive_img_path, _ = self.contour_dataset[positive_index]
-        lbp_positive_img_path, _ = self.lbp_dataset[positive_index]
-        rgb_positive_img_path, _ = self.rgb_dataset[positive_index]
-        texture_positive_img_path, _ = self.texture_dataset[positive_index]
+        contour_positive_img_path, _ = self.contour_dataset_pos_neg[positive_index]
+        lbp_positive_img_path, _ = self.lbp_dataset_pos_neg[positive_index]
+        rgb_positive_img_path, _ = self.rgb_dataset_pos_neg[positive_index]
+        texture_positive_img_path, _ = self.texture_dataset_pos_neg[positive_index]
 
         # Load negative sample from a different class
-        negative_label = np.random.choice(list(self.labels_set - {anchor_label}))
-        negative_index = np.random.choice(self.label_to_indices[negative_label])
-        contour_negative_img_path, _ = self.contour_dataset[negative_index]
-        lbp_negative_img_path, _ = self.lbp_dataset[negative_index]
-        rgb_negative_img_path, _ = self.rgb_dataset[negative_index]
-        texture_negative_img_path, _ = self.texture_dataset[negative_index]
+        contour_negative_img_path, _ = self.contour_dataset_pos_neg[negative_index]
+        lbp_negative_img_path, _ = self.lbp_dataset_pos_neg[negative_index]
+        rgb_negative_img_path, _ = self.rgb_dataset_pos_neg[negative_index]
+        texture_negative_img_path, _ = self.texture_dataset_pos_neg[negative_index]
 
         # Load images and apply transforms
         contour_anchor_img = Image.open(contour_anchor_img_path)
@@ -178,59 +203,76 @@ class FusionDataset(Dataset):
         :return:
         """
 
-        return len(self.rgb_dataset)
+        return len(self.triplets)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- L O A D   T H E   D A T A S E T -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def load_dataset(self, dataset_paths: list) -> list:
+    @staticmethod
+    def load_dataset(dataset_dirs):
         """
-        Loads a dataset with the specified paths from the dataset directories and returns a list of image paths and
-        their corresponding labels, as well as storing the labels separately in the 'labels' attribute of the class
-        instance.
+        Load the dataset from the specified directory paths.
 
-        :param dataset_paths: a list of paths to datasets to be loaded
-        :return: a list of tuples containing image paths and their corresponding labels, extracted from the specified
-        dataset directories. The labels are also stored separately in the class attribute 'labels'.
+        :return:
         """
 
         dataset = []
-        labels = []
+        labels = set()
 
-        for dataset_path in dataset_paths:
+        # Iterate over the dataset directories
+        for dataset_path in dataset_dirs:
+            # Iterate over the label directories in each dataset directory
             for label_name in os.listdir(dataset_path):
                 label_path = os.path.join(dataset_path, label_name)
+
+                # Skip non-directory files
                 if not os.path.isdir(label_path):
                     continue
 
                 label = label_name
+                labels.add(label)
 
+                # Iterate over the image files in the label directory
                 for image_name in os.listdir(label_path):
-                    if self.cfg.split_by_light:
-                        if image_name.split(".")[0].split("_")[-2] == self.cfg.light_source:
-                            image_path = os.path.join(label_path, image_name)
-                            dataset.append((image_path, label))
-                            labels.append(label)
-                    else:
-                        image_path = os.path.join(label_path, image_name)
-                        dataset.append((image_path, label))
-                        labels.append(label)
+                    image_path = os.path.join(label_path, image_name)
+                    dataset.append((image_path, label))
 
-        self.labels = labels
+        labels_all = np.array([x[1] for x in dataset])
+        labels_set = set(labels_all)
+        label_to_indices = \
+            {label: np.where(labels_all == label)[0] for label in labels_set}
 
-        return dataset
+        return dataset, labels_set, label_to_indices
 
     # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------- P R E P A R E   L A B E L S ------------------------------------------
+    # --------------------------------------- G E N E R A T E   T R I P L E T S ----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def prepare_labels(self) -> None:
+    def generate_triplets(self, num_triplets: int = 1000):
         """
-        # Initialize dictionary that maps each label to corresponding indices in dataset
+        Generate triplets of indices for anchor, positive, and negative images.
 
-        :return: None
+        :param num_triplets: The number of triplets to generate.
+        :return: A list of triplets, where each triplet contains the indices of anchor, positive, and negative images.
         """
 
-        self.label_to_indices = {label: [] for label in self.labels_set}
-        for i in range(len(self.labels)):
-            label = self.labels[i]
-            self.label_to_indices[label].append(i)
+        triplets = []
+
+        for _ in range(num_triplets):
+            # Select a random anchor class
+            anchor_class = np.random.choice(list(self.rgb_labels_set_anchor))
+
+            # Select a random anchor image from the anchor class
+            anchor_index = np.random.choice(self.rgb_label_to_indices_anchor[anchor_class])
+
+            # Select a random positive image from the same class as the anchor
+            positive_index = np.random.choice(self.rgb_label_to_indices_pos_neg[anchor_class])
+
+            # Select a random negative class different from the anchor class
+            negative_class = np.random.choice(list(self.rgb_labels_set_anchor - {anchor_class}))
+
+            # Select a random negative image from the negative class
+            negative_index = np.random.choice(self.rgb_label_to_indices_pos_neg[negative_class])
+
+            triplets.append((anchor_index, positive_index, negative_index))
+
+        return triplets

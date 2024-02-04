@@ -44,6 +44,17 @@ class StreamDataset(Dataset):
             self.transform = transforms.Compose([
                 transforms.Resize(image_size),
                 transforms.CenterCrop(image_size),
+                transforms.RandomApply([transforms.GaussianBlur(kernel_size=5)], p=0.5),
+                transforms.RandomRotation(degrees=6),
+                transforms.RandomRotation(degrees=12),
+                transforms.RandomRotation(degrees=354),
+                transforms.RandomRotation(degrees=348),
+                transforms.RandomAffine(degrees=0, translate=(0.2, 0.2), scale=(0.8, 1.2)),
+                transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+                transforms.ColorJitter(brightness=0.0, contrast=0.0, saturation=0.5, hue=0.0),
+                transforms.ColorJitter(brightness=0.0, contrast=0.0, saturation=0.0, hue=0.5),
+                transforms.ColorJitter(brightness=0.5, contrast=0.0, saturation=0.0, hue=0.0),
+                transforms.ColorJitter(brightness=0.0, contrast=0.5, saturation=0.0, hue=0.0),
                 transforms.ToTensor(),
                 transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
             ])
@@ -51,6 +62,15 @@ class StreamDataset(Dataset):
             self.transform = transforms.Compose([
                 transforms.Resize(image_size),
                 transforms.CenterCrop(image_size),
+                transforms.RandomApply([transforms.GaussianBlur(kernel_size=5)], p=0.5),
+                transforms.RandomRotation(degrees=6),
+                transforms.RandomRotation(degrees=12),
+                transforms.RandomRotation(degrees=354),
+                transforms.RandomRotation(degrees=348),
+                transforms.RandomAffine(degrees=0, translate=(0.2, 0.2), scale=(0.8, 1.2)),
+                transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+                transforms.ColorJitter(brightness=0.5, contrast=0.0, saturation=0.0, hue=0.0),
+                transforms.ColorJitter(brightness=0.0, contrast=0.5, saturation=0.0, hue=0.0),
                 transforms.Grayscale(),
                 transforms.ToTensor(),
             ])
@@ -115,20 +135,22 @@ class StreamDataset(Dataset):
 
         triplets = []
 
-        for _ in range(num_triplets):
-            # Select a random anchor class
-            anchor_class = np.random.choice(list(self.labels_set_anchor))
-
-            # Select a random anchor image from the anchor class
+        for anchor_class in self.labels_set_anchor:
             anchor_index = np.random.choice(self.label_to_indices_anchor[anchor_class])
-
-            # Select a random positive image from the same class as the anchor
             positive_index = np.random.choice(self.label_to_indices_pos_neg[anchor_class])
 
-            # Select a random negative class different from the anchor class
             negative_class = np.random.choice(list(self.labels_set_anchor - {anchor_class}))
+            negative_index = np.random.choice(self.label_to_indices_pos_neg[negative_class])
 
-            # Select a random negative image from the negative class
+            triplets.append((anchor_index, positive_index, negative_index))
+
+        for _ in range(num_triplets - len(self.labels_set_anchor)):
+            anchor_class = np.random.choice(list(self.labels_set_anchor))
+            anchor_index = np.random.choice(self.label_to_indices_anchor[anchor_class])
+
+            positive_index = np.random.choice(self.label_to_indices_pos_neg[anchor_class])
+
+            negative_class = np.random.choice(list(self.labels_set_anchor - {anchor_class}))
             negative_index = np.random.choice(self.label_to_indices_pos_neg[negative_class])
 
             triplets.append((anchor_index, positive_index, negative_index))
