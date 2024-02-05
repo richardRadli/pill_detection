@@ -125,6 +125,17 @@ class Images(_Const):
         "test_texture_stream_ref_cure":
             "images/cure/test/ref/texture",
 
+        # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
+        # EfficientNet b0
+        "contour_hardest_efficient_net_cure":
+            "images/cure/hardest_samples/efficient_net/contour_hardest",
+        "lbp_hardest_efficient_net_cure":
+            "images/cure/hardest_samples/efficient_net/lbp_hardest",
+        "rgb_hardest_efficient_net_cure":
+            "images/cure/hardest_samples/efficient_net/rgb_hardest",
+        "texture_hardest_efficient_net_cure":
+            "images/cure/hardest_samples/efficient_net/texture_hardest",
+
         # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
         "plotting_efficient_net_cure":
             "images/cure/plotting/stream_net/plotting_efficient_net",
@@ -314,6 +325,24 @@ class Data(_Const):
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
         "logs_fusion_network_efficient_net_multi_head_attention_cure":
             "data/cure/logs/fusion_net/efficient_net_multi_head_attention",
+
+        # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
+        "negative_efficient_net_contour_cure":
+            "data/cure/hardest_samples/efficient_net/negative/contour",
+        "positive_efficient_net_contour_cure":
+            "data/cure/hardest_samples/efficient_net/positive/contour",
+        "negative_efficient_net_lbp_cure":
+            "data/cure/hardest_samples/efficient_net/negative/lbp",
+        "positive_efficient_net_lbp_cure":
+            "data/cure/hardest_samples/efficient_net/positive/lbp",
+        "negative_efficient_net_rgb_cure":
+            "data/cure/hardest_samples/efficient_net/negative/rgb",
+        "positive_efficient_net_rgb_cure":
+            "data/cure/hardest_samples/efficient_net/positive/rgb",
+        "negative_efficient_net_texture_cure":
+            "data/cure/hardest_samples/efficient_net/negative/texture",
+        "positive_efficient_net_texture_cure":
+            "data/cure/hardest_samples/efficient_net/positive/texture",
 
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions

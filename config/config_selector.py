@@ -131,6 +131,20 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_efficient_net_contour_ogyei"),
                     }
             },
+            "hardest_negative_samples": {
+                "EfficientNet":
+                    {
+                        "cure":
+                            DATA_PATH.get_data_path("negative_efficient_net_contour_cure")
+                    }
+            },
+            "hardest_positive_samples": {
+                "EfficientNet":
+                    {
+                        "cure":
+                            DATA_PATH.get_data_path("positive_efficient_net_contour_cure")
+                    }
+            },
             "learning_rate": {
                 "EfficientNet":
                     cfg.learning_rate_en_con,
@@ -199,6 +213,20 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_efficient_net_lbp_nih"),
                         "ogyei":
                             DATA_PATH.get_data_path("logs_efficient_net_lbp_ogyei"),
+                    }
+            },
+            "hardest_negative_samples": {
+                "EfficientNet":
+                    {
+                        "cure":
+                            DATA_PATH.get_data_path("negative_efficient_net_lbp_cure")
+                    }
+            },
+            "hardest_positive_samples": {
+                "EfficientNet":
+                    {
+                        "cure":
+                            DATA_PATH.get_data_path("positive_efficient_net_lbp_cure")
                     }
             },
             "learning_rate": {
@@ -270,6 +298,20 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_efficient_net_rgb_ogyei"),
                     }
             },
+            "hardest_negative_samples": {
+                "EfficientNet":
+                    {
+                        "cure":
+                            DATA_PATH.get_data_path("negative_efficient_net_rgb_cure")
+                    }
+            },
+            "hardest_positive_samples": {
+                "EfficientNet":
+                    {
+                        "cure":
+                            DATA_PATH.get_data_path("positive_efficient_net_rgb_cure")
+                    }
+            },
             "learning_rate": {
                 "EfficientNet":
                     cfg.learning_rate_en_rgb,
@@ -339,6 +381,20 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_efficient_net_texture_ogyei"),
                     }
             },
+            "hardest_negative_samples": {
+                "EfficientNet":
+                    {
+                        "cure":
+                            DATA_PATH.get_data_path("negative_efficient_net_texture_cure")
+                    }
+            },
+            "hardest_positive_samples": {
+                "EfficientNet":
+                    {
+                        "cure":
+                            DATA_PATH.get_data_path("positive_efficient_net_texture_cure")
+                    }
+            },
             "learning_rate": {
                 "EfficientNet":
                     cfg.learning_rate_en_tex,
@@ -395,11 +451,59 @@ def stream_network_config(cfg) -> Dict:
                 },
                 'ref_vectors_folder': {
                     "cure":
-                        DATA_PATH.get_data_path("reference_vectors_efficient_net_cure"),
-                    "nih":
-                        DATA_PATH.get_data_path("reference_vectors_efficient_net_nih"),
-                    "ogyei":
-                        DATA_PATH.get_data_path("reference_vectors_efficient_net_ogyei"),
+                        DATA_PATH.get_data_path("reference_vectors_efficient_net_cure")
+                },
+                'hardest_contour_directory': {
+                    "cure":
+                        IMAGES_PATH.get_data_path("contour_hardest_efficient_net_cure")
+                },
+                'hardest_lbp_directory': {
+                    "cure":
+                        IMAGES_PATH.get_data_path("lbp_hardest_efficient_net_cure")
+                },
+                'hardest_rgb_directory': {
+                    "cure":
+                        IMAGES_PATH.get_data_path("rgb_hardest_efficient_net_cure")
+                },
+                'hardest_texture_directory': {
+                    "cure":
+                        IMAGES_PATH.get_data_path("texture_hardest_efficient_net_cure")
+                },
+                'hard_negative': {
+                    "contour": {
+                        "cure":
+                            DATA_PATH.get_data_path("negative_efficient_net_contour_cure")
+                    },
+                    "lbp": {
+                        "cure":
+                            DATA_PATH.get_data_path("negative_efficient_net_lbp_cure")
+                    },
+                    "rgb": {
+                        "cure":
+                            DATA_PATH.get_data_path("negative_efficient_net_rgb_cure")
+                    },
+                    "texture": {
+                        "cure":
+                            DATA_PATH.get_data_path("negative_efficient_net_texture_cure")
+                    },
+                },
+                'hard_positive': {
+                    "contour": {
+                        "cure":
+                            DATA_PATH.get_data_path("positive_efficient_net_contour_cure")
+                    },
+                    "lbp": {
+                        "cure":
+                            DATA_PATH.get_data_path("positive_efficient_net_lbp_cure"),
+                    },
+                    "rgb": {
+                        "cure":
+                            DATA_PATH.get_data_path("positive_efficient_net_rgb_cure"),
+                    },
+                    "texture": {
+                        "cure":
+                            DATA_PATH.get_data_path("positive_efficient_net_texture_cure"),
+                    }
                 }
             }
     }

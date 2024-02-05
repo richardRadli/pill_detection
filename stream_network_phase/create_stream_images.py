@@ -219,10 +219,7 @@ class CreateStreamImages:
         cropped_image, output_path, kernel_size = args
         blured_image = cv2.GaussianBlur(cropped_image, kernel_size, 0)
         sub_img = cv2.subtract(cropped_image, blured_image)
-        min_val = sub_img.min()
-        max_val = sub_img.max()
-        sub_img = (sub_img - min_val) * (255.0 / (max_val - min_val))
-        sub_img = sub_img.astype(np.uint8)
+        sub_img = np.clip(sub_img, 0, 255).astype(np.uint8)
         cv2.imwrite(output_path, sub_img)
 
     # ------------------------------------------------------------------------------------------------------------------

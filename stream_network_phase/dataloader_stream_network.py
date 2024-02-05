@@ -49,8 +49,6 @@ class StreamDataset(Dataset):
                 transforms.RandomRotation(degrees=12),
                 transforms.RandomRotation(degrees=354),
                 transforms.RandomRotation(degrees=348),
-                transforms.RandomAffine(degrees=0, translate=(0.2, 0.2), scale=(0.8, 1.2)),
-                transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
                 transforms.ColorJitter(brightness=0.0, contrast=0.0, saturation=0.5, hue=0.0),
                 transforms.ColorJitter(brightness=0.0, contrast=0.0, saturation=0.0, hue=0.5),
                 transforms.ColorJitter(brightness=0.5, contrast=0.0, saturation=0.0, hue=0.0),
@@ -63,12 +61,7 @@ class StreamDataset(Dataset):
                 transforms.Resize(image_size),
                 transforms.CenterCrop(image_size),
                 transforms.RandomApply([transforms.GaussianBlur(kernel_size=5)], p=0.5),
-                transforms.RandomRotation(degrees=6),
-                transforms.RandomRotation(degrees=12),
-                transforms.RandomRotation(degrees=354),
-                transforms.RandomRotation(degrees=348),
-                transforms.RandomAffine(degrees=0, translate=(0.2, 0.2), scale=(0.8, 1.2)),
-                transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+                transforms.RandomRotation(degrees=np.random.randint(6, 354)),
                 transforms.ColorJitter(brightness=0.5, contrast=0.0, saturation=0.0, hue=0.0),
                 transforms.ColorJitter(brightness=0.0, contrast=0.5, saturation=0.0, hue=0.0),
                 transforms.Grayscale(),
@@ -125,7 +118,7 @@ class StreamDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------- G E N E R A T E   T R I P L E T S ----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def generate_triplets(self, num_triplets: int = 1000) -> List[Tuple[int, int, int]]:
+    def generate_triplets(self, num_triplets: int) -> List[Tuple[int, int, int]]:
         """
         Generate triplets of indices for anchor, positive, and negative images.
 
@@ -157,6 +150,53 @@ class StreamDataset(Dataset):
 
         return triplets
 
+    def generate_all_triplets(self) -> List[Tuple[int, int, int]]:
+        """
+        Generate all possible triplets of indices for anchor, positive, and negative images.
+
+        :return: A list of all possible triplets, where each triplet contains the indices of anchor, positive, and
+        negative images.
+        """
+
+        triplets = []
+
+        for anchor_class in self.labels_set_anchor:
+            for anchor_index in self.label_to_indices_anchor[anchor_class]:
+                for positive_index in self.label_to_indices_pos_neg[anchor_class]:
+                    for negative_class in (self.labels_set_anchor - {anchor_class}):
+                        for negative_index in self.label_to_indices_pos_neg[negative_class]:
+                            triplets.append((anchor_index, positive_index, negative_index))
+
+        return triplets
+
+    @staticmethod
+    def convert_tensor_to_image(transformed_image):
+        transformed_image_np = transformed_image.numpy()
+        transformed_image_np = (transformed_image_np * 255.).astype(np.uint8)
+        return transformed_image_np.T
+
+    def plot_images(self, a, p, n, index):
+        import matplotlib.pyplot as plt
+        a = self.convert_tensor_to_image(a)
+        p = self.convert_tensor_to_image(p)
+        n = self.convert_tensor_to_image(n)
+
+        plt.subplot(1, 3, 1)
+        plt.imshow(a, cmap='gray')  # Use 'cmap' parameter based on your image data
+        plt.title('a')
+
+        plt.subplot(1, 3, 2)
+        plt.imshow(p, cmap='gray')
+        plt.title('p')
+
+        plt.subplot(1, 3, 3)
+        plt.imshow(n, cmap='gray')
+        plt.title('n')
+
+        # Adjust layout for better spacing
+        plt.tight_layout()
+        plt.savefig(f'C:/Users/ricsi/Desktop/imgs/triplet_{index}.png')
+
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- __ G E T I T E M __ ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -182,6 +222,7 @@ class StreamDataset(Dataset):
             anchor_img = self.transform(anchor_img)
             positive_img = self.transform(positive_img)
             negative_img = self.transform(negative_img)
+            # self.plot_images(anchor_img, positive_img, negative_img, anchor_index)
 
         return anchor_img, positive_img, negative_img, negative_img_path, positive_img_path
 
