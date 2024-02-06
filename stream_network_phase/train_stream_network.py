@@ -167,20 +167,25 @@ class TrainModel:
     # -------------------------------------- R E C O R D   H A R D   S A M P L E S -------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def record_hard_samples(hard_samples: torch.Tensor, img_path: tuple, hard_images: list) -> list:
+    def record_hard_samples(hard_samples: torch.Tensor, anc_img_path, pos_img_path, neg_img_path, hard_images: list) \
+            -> list:
         """
         Records filenames of the hardest negative samples.
 
         :param hard_samples: A tensor containing the hardest negative samples.
-        :param img_path: A tuple of image file paths.
+        :param anc_img_path: A string of image file paths.
+        :param pos_img_path: A string of image file paths.
+        :param neg_img_path: A string of image file paths.
         :param hard_images: A list to store the filenames of the hardest negative samples.
         :return: The updated list of hardest negative sample filenames.
         """
 
         if hard_samples is not None:
-            for filename, sample in zip(img_path, hard_samples):
+            for anc_filename, pos_filename, neg_filename, sample in zip(
+                    anc_img_path, pos_img_path, neg_img_path, hard_samples
+            ):
                 if sample is not None:
-                    hard_images.append(filename)
+                    hard_images.append((anc_img_path, pos_img_path, neg_img_path))
 
         return hard_images
 
@@ -210,7 +215,7 @@ class TrainModel:
 
         for epoch in tqdm(range(self.cfg.epochs), desc=colorama.Fore.GREEN + "Epochs"):
             # Train loop
-            for idx, (anchor, positive, negative, negative_img_path, positive_img_path) in \
+            for idx, (anchor, positive, negative, anchor_img_path, positive_img_path, negative_img_path) in \
                     tqdm(enumerate(self.train_data_loader), total=len(self.train_data_loader),
                          desc=colorama.Fore.CYAN + "Train"):
                 # Upload data to the GPU
@@ -233,8 +238,12 @@ class TrainModel:
                     loss = self.criterion(anchor_emb, positive_emb, negative_emb)
                 elif self.cfg.type_of_loss_func == "hmtl":
                     loss, hard_neg, hard_pos = self.criterion(anchor_emb, positive_emb, negative_emb)
-                    hard_neg_images = self.record_hard_samples(hard_neg, negative_img_path, hard_neg_images)
-                    hard_pos_images = self.record_hard_samples(hard_pos, positive_img_path, hard_pos_images)
+                    hard_neg_images = self.record_hard_samples(
+                        hard_neg, anchor_img_path, positive_img_path, negative_img_path, hard_neg_images
+                    )
+                    hard_pos_images = self.record_hard_samples(
+                        hard_pos, anchor_img_path, positive_img_path, negative_img_path, hard_pos_images
+                    )
                 else:
                     raise ValueError(f"Wrong type of loss function {self.cfg.type_of_loss_func}")
 
@@ -247,7 +256,7 @@ class TrainModel:
 
             # Validation loop
             with torch.no_grad():
-                for idx, (anchor, positive, negative, negative_img_path, positive_img_path) \
+                for idx, (anchor, positive, negative, anchor_img_path, positive_img_path, negative_img_path) \
                         in tqdm(enumerate(self.valid_data_loader), total=len(self.valid_data_loader),
                                 desc=colorama.Fore.MAGENTA + "Validation"):
                     # Upload data to GPU
@@ -286,8 +295,9 @@ class TrainModel:
 
             # Loop over the hard negative tensors
             if self.cfg.type_of_loss_func == "hmtl":
-                self.get_hardest_samples(epoch, hard_neg_images, self.hardest_negative_samples_path, "negative")
-                self.get_hardest_samples(epoch, hard_pos_images, self.hardest_positive_samples_path, "positive")
+                if epoch == self.cfg.epochs - 1:
+                    self.get_hardest_samples(epoch, hard_neg_images, self.hardest_negative_samples_path, "negative")
+                    self.get_hardest_samples(epoch, hard_pos_images, self.hardest_positive_samples_path, "positive")
                 hard_neg_images.clear()
                 hard_pos_images.clear()
 

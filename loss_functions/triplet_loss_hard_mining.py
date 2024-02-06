@@ -41,15 +41,16 @@ class TripletLossWithHardMining(torch.nn.Module):
         samples
         """
 
-        dist_pos = functional.pairwise_distance(x1=anchor, x2=positive, p=2)
-        dist_neg = functional.pairwise_distance(x1=anchor, x2=negative, p=2)
+        # Compute the Euclidean distances between the embeddings
+        dist_pos = functional.pairwise_distance(anchor, positive, 2)
+        dist_neg = functional.pairwise_distance(anchor, negative, 2)
 
         # Select the hardest negative sample for each anchor
         hard_neg = []
         for i in range(dist_pos.size(0)):
             # Get the indices of the negative samples that violate the margin
             dist_diff = dist_pos[i] - dist_neg[i] + self.margin
-            candidate_idxs = torch.where(dist_diff > 0)[0]
+            candidate_idxs = torch.where(dist_diff > self.margin)[0]
             if len(candidate_idxs) == 0:
                 # If there are no negative samples that violate the margin, skip
                 hard_neg.append(None)
@@ -71,7 +72,7 @@ class TripletLossWithHardMining(torch.nn.Module):
         for i in range(dist_pos.size(0)):
             # Get the indices of the positive samples that violate the margin
             dist_diff = dist_neg[i] - dist_pos[i] + self.margin
-            candidate_idxs = torch.where(dist_diff > 0)[0]
+            candidate_idxs = torch.where(dist_diff > self.margin)[0]
             if len(candidate_idxs) == 0:
                 # If there are no positive samples that violate the margin, skip
                 hard_pos.append(None)
@@ -83,6 +84,7 @@ class TripletLossWithHardMining(torch.nn.Module):
                     hard_pos_idx = torch.argmin(dist_pos[i, candidate_idxs])
                 hard_pos.append(positive[candidate_idxs[hard_pos_idx]].unsqueeze(0))
 
+        # Combine the hardest negative and hardest positive samples into a single tensor
         hard_pos = [x for x in hard_pos if x is not None and x.shape[0] != 0]
         if hard_pos:
             hard_pos = torch.cat(hard_pos, dim=0)

@@ -453,22 +453,6 @@ def stream_network_config(cfg) -> Dict:
                     "cure":
                         DATA_PATH.get_data_path("reference_vectors_efficient_net_cure")
                 },
-                'hardest_contour_directory': {
-                    "cure":
-                        IMAGES_PATH.get_data_path("contour_hardest_efficient_net_cure")
-                },
-                'hardest_lbp_directory': {
-                    "cure":
-                        IMAGES_PATH.get_data_path("lbp_hardest_efficient_net_cure")
-                },
-                'hardest_rgb_directory': {
-                    "cure":
-                        IMAGES_PATH.get_data_path("rgb_hardest_efficient_net_cure")
-                },
-                'hardest_texture_directory': {
-                    "cure":
-                        IMAGES_PATH.get_data_path("texture_hardest_efficient_net_cure")
-                },
                 'hard_negative': {
                     "contour": {
                         "cure":

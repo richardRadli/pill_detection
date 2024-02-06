@@ -20,7 +20,7 @@ from skimage.feature import local_binary_pattern
 from tqdm import tqdm
 from typing import Tuple
 
-from config.config import ConfigStreamNetwork
+from config.config import ConfigStreamImages
 from config.config_selector import dataset_images_path_selector
 from utils.utils import file_reader, measure_execution_time, setup_logger
 
@@ -32,7 +32,7 @@ class CreateStreamImages:
     def __init__(self):
         setup_logger()
 
-        self.cfg = ConfigStreamNetwork().parse()
+        self.cfg = ConfigStreamImages().parse()
 
         # Output paths
         self.contour_images_path = (
@@ -87,8 +87,6 @@ class CreateStreamImages:
             square_x = int(center_x - side_length / 2)
             square_y = int(center_y - side_length / 2)
             obj = in_img[square_y:square_y + side_length, square_x:square_x + side_length]
-            mask = seg_map[square_y:square_y + side_length, square_x:square_x + side_length]
-            mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)[1]
 
             if obj.size != 0:
                 cv2.imwrite(output_path, obj)

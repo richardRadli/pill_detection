@@ -125,17 +125,6 @@ class Images(_Const):
         "test_texture_stream_ref_cure":
             "images/cure/test/ref/texture",
 
-        # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
-        # EfficientNet b0
-        "contour_hardest_efficient_net_cure":
-            "images/cure/hardest_samples/efficient_net/contour_hardest",
-        "lbp_hardest_efficient_net_cure":
-            "images/cure/hardest_samples/efficient_net/lbp_hardest",
-        "rgb_hardest_efficient_net_cure":
-            "images/cure/hardest_samples/efficient_net/rgb_hardest",
-        "texture_hardest_efficient_net_cure":
-            "images/cure/hardest_samples/efficient_net/texture_hardest",
-
         # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
         "plotting_efficient_net_cure":
             "images/cure/plotting/stream_net/plotting_efficient_net",

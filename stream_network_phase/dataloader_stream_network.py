@@ -7,6 +7,7 @@ Date: Apr 12, 2023
 Description: The program creates the different images (contour, lbp, rgb, texture) for the substreams.
 """
 
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 
@@ -57,11 +58,14 @@ class StreamDataset(Dataset):
                 transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
             ])
         elif self.type_of_stream in ["Contour", "Texture", "LBP"]:
+            zoom_factor = np.random.uniform(0.8, 1.2)
             self.transform = transforms.Compose([
                 transforms.Resize(image_size),
                 transforms.CenterCrop(image_size),
                 transforms.RandomApply([transforms.GaussianBlur(kernel_size=5)], p=0.5),
                 transforms.RandomRotation(degrees=np.random.randint(6, 354)),
+                transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+                transforms.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(zoom_factor, zoom_factor)),
                 transforms.ColorJitter(brightness=0.5, contrast=0.0, saturation=0.0, hue=0.0),
                 transforms.ColorJitter(brightness=0.0, contrast=0.5, saturation=0.0, hue=0.0),
                 transforms.Grayscale(),
@@ -150,6 +154,9 @@ class StreamDataset(Dataset):
 
         return triplets
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------- G E N E R A T E   A L L   T R I P L E T S ------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def generate_all_triplets(self) -> List[Tuple[int, int, int]]:
         """
         Generate all possible triplets of indices for anchor, positive, and negative images.
@@ -169,20 +176,35 @@ class StreamDataset(Dataset):
 
         return triplets
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------- C O N V E R T   T E N S O R   T O   I M A G E  ---------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
     def convert_tensor_to_image(transformed_image):
         transformed_image_np = transformed_image.numpy()
         transformed_image_np = (transformed_image_np * 255.).astype(np.uint8)
         return transformed_image_np.T
 
-    def plot_images(self, a, p, n, index):
-        import matplotlib.pyplot as plt
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------- P L O T   I M A G E S  ---------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def plot_images(self, a, p, n, index, path):
+        """
+
+        :param a:
+        :param p:
+        :param n:
+        :param index:
+        :param path:
+        :return:
+        """
+
         a = self.convert_tensor_to_image(a)
         p = self.convert_tensor_to_image(p)
         n = self.convert_tensor_to_image(n)
 
         plt.subplot(1, 3, 1)
-        plt.imshow(a, cmap='gray')  # Use 'cmap' parameter based on your image data
+        plt.imshow(a, cmap='gray')
         plt.title('a')
 
         plt.subplot(1, 3, 2)
@@ -195,12 +217,12 @@ class StreamDataset(Dataset):
 
         # Adjust layout for better spacing
         plt.tight_layout()
-        plt.savefig(f'C:/Users/ricsi/Desktop/imgs/triplet_{index}.png')
+        plt.savefig(os.path.join(path, f'triplet_{index}.png'))
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- __ G E T I T E M __ ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def __getitem__(self, index: int) -> Tuple[Image.Image, Image.Image, Image.Image, str, str]:
+    def __getitem__(self, index: int) -> Tuple[Image.Image, Image.Image, Image.Image, str, str, str]:
         """
         Retrieve a triplet of images (anchor, positive, negative) and their paths for a given index.
 
@@ -222,9 +244,8 @@ class StreamDataset(Dataset):
             anchor_img = self.transform(anchor_img)
             positive_img = self.transform(positive_img)
             negative_img = self.transform(negative_img)
-            # self.plot_images(anchor_img, positive_img, negative_img, anchor_index)
 
-        return anchor_img, positive_img, negative_img, negative_img_path, positive_img_path
+        return anchor_img, positive_img, negative_img, anchor_img_path, positive_img_path, negative_img_path
 
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- __ L E N __ --------------------------------------------------
