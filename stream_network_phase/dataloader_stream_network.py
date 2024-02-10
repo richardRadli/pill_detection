@@ -7,6 +7,7 @@ Date: Apr 12, 2023
 Description: The program creates the different images (contour, lbp, rgb, texture) for the substreams.
 """
 
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -17,14 +18,15 @@ from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 
 from config.config import ConfigStreamNetwork
+from utils.utils import create_timestamp, find_latest_file_in_directory, mine_hard_triplets
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # +++++++++++++++++++++++++++++++++++++++++++++ S T R E A M   D A T A S E T ++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class StreamDataset(Dataset):
+class InitialStreamNetDataLoader(Dataset):
     def __init__(self, dataset_dirs_anchor: List[str], dataset_dirs_pos_neg, type_of_stream: str, image_size: int,
-                 num_triplets: int = -1) -> None:
+                 num_triplets: int, file_path: str) -> None:
         """
         Initialize the StreamDataset class.
 
@@ -32,11 +34,13 @@ class StreamDataset(Dataset):
         :param dataset_dirs_pos_neg: A list of directory paths containing the positive and negative dataset
         :param type_of_stream: The type of stream (RGB, Contour, Texture, LBP).
         :param image_size: The size of the images.
-        :param num_triplets: The number of triplets to generate (-1 means all possible triplets).
+        :param num_triplets: The number of triplets to generate.
+        :param file_path: The
         """
-
+        self.timestamp = create_timestamp()
         self.cfg = ConfigStreamNetwork().parse()
 
+        self.file_path = file_path
         self.dataset_dirs_anchor = dataset_dirs_anchor
         self.dataset_dirs_pos_neg = dataset_dirs_pos_neg
         self.type_of_stream = type_of_stream
@@ -79,6 +83,18 @@ class StreamDataset(Dataset):
         )
         self.dataset_pos_neg, _, self.label_to_indices_pos_neg = self.load_dataset(self.dataset_dirs_pos_neg)
         self.triplets = self.generate_triplets(num_triplets)
+        self.save_txt(self.file_path)
+
+    def save_txt(self, dictionary_name):
+        """
+
+        :return:
+        """
+
+        file_name = self.timestamp + "_initial_triplets.txt"
+        file_path = os.path.join(dictionary_name, file_name)
+        with open(file_path, "w") as file:
+            json.dump(self.triplets, file)
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   D A T A S E T ---------------------------------------------
@@ -119,60 +135,28 @@ class StreamDataset(Dataset):
 
         return dataset, labels_set, label_to_indices
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # --------------------------------------- G E N E R A T E   T R I P L E T S ----------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def generate_triplets(self, num_triplets: int) -> List[Tuple[int, int, int]]:
-        """
-        Generate triplets of indices for anchor, positive, and negative images.
+    def add_to_triplets(self, anchor_class, triplets):
+        anchor_index = np.random.choice(self.label_to_indices_anchor[anchor_class])
+        anchor_path = [self.dataset_anchor[anchor_index][0]]
 
-        :param num_triplets: The number of triplets to generate.
-        :return: A list of triplets, where each triplet contains the indices of anchor, positive, and negative images.
-        """
+        positive_index = np.random.choice(self.label_to_indices_pos_neg[anchor_class])
+        positive_path = [self.dataset_pos_neg[positive_index][0]]
 
+        negative_class = np.random.choice(list(self.labels_set_anchor - {anchor_class}))
+        negative_index = np.random.choice(self.label_to_indices_pos_neg[negative_class])
+        negative_path = [self.dataset_pos_neg[negative_index][0]]
+
+        triplets.append([anchor_path, positive_path, negative_path])
+
+    def generate_triplets(self, num_triplets: int) -> List[List[List[str]]]:
         triplets = []
 
         for anchor_class in self.labels_set_anchor:
-            anchor_index = np.random.choice(self.label_to_indices_anchor[anchor_class])
-            positive_index = np.random.choice(self.label_to_indices_pos_neg[anchor_class])
-
-            negative_class = np.random.choice(list(self.labels_set_anchor - {anchor_class}))
-            negative_index = np.random.choice(self.label_to_indices_pos_neg[negative_class])
-
-            triplets.append((anchor_index, positive_index, negative_index))
+            self.add_to_triplets(anchor_class, triplets)
 
         for _ in range(num_triplets - len(self.labels_set_anchor)):
             anchor_class = np.random.choice(list(self.labels_set_anchor))
-            anchor_index = np.random.choice(self.label_to_indices_anchor[anchor_class])
-
-            positive_index = np.random.choice(self.label_to_indices_pos_neg[anchor_class])
-
-            negative_class = np.random.choice(list(self.labels_set_anchor - {anchor_class}))
-            negative_index = np.random.choice(self.label_to_indices_pos_neg[negative_class])
-
-            triplets.append((anchor_index, positive_index, negative_index))
-
-        return triplets
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ----------------------------------- G E N E R A T E   A L L   T R I P L E T S ------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def generate_all_triplets(self) -> List[Tuple[int, int, int]]:
-        """
-        Generate all possible triplets of indices for anchor, positive, and negative images.
-
-        :return: A list of all possible triplets, where each triplet contains the indices of anchor, positive, and
-        negative images.
-        """
-
-        triplets = []
-
-        for anchor_class in self.labels_set_anchor:
-            for anchor_index in self.label_to_indices_anchor[anchor_class]:
-                for positive_index in self.label_to_indices_pos_neg[anchor_class]:
-                    for negative_class in (self.labels_set_anchor - {anchor_class}):
-                        for negative_index in self.label_to_indices_pos_neg[negative_class]:
-                            triplets.append((anchor_index, positive_index, negative_index))
+            self.add_to_triplets(anchor_class, triplets)
 
         return triplets
 
@@ -224,28 +208,28 @@ class StreamDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     def __getitem__(self, index: int) -> Tuple[Image.Image, Image.Image, Image.Image, str, str, str]:
         """
-        Retrieve a triplet of images (anchor, positive, negative) and their paths for a given index.
+        Retrieve a triplet of images (anchor, positive, negative) and their paths.
 
-        :param index: The index of the anchor image.
-        :return: A tuple of three images (anchor, positive, negative) and their paths.
+        :param index: The index of the triplet.
+        :return: A tuple of three images and their paths.
         """
 
-        anchor_index, positive_index, negative_index = self.triplets[index]
+        latest_triplet = find_latest_file_in_directory(self.file_path, "txt")
+        triplets = mine_hard_triplets(latest_triplet)
+        samples = triplets[index]
 
-        anchor_img_path, _ = self.dataset_anchor[anchor_index]
-        positive_img_path, _ = self.dataset_pos_neg[positive_index]
-        negative_img_path, _ = self.dataset_pos_neg[negative_index]
+        if isinstance(samples, list) and all(isinstance(item, list) for item in samples):
+            samples = [path for sublist in samples for path in sublist]
 
-        anchor_img = Image.open(anchor_img_path)
-        positive_img = Image.open(positive_img_path)
-        negative_img = Image.open(negative_img_path)
+        anchor_image = self.transform(Image.open(samples[0]))
+        positive_image = self.transform(Image.open(samples[1]))
+        negative_image = self.transform(Image.open(samples[2]))
 
-        if self.transform:
-            anchor_img = self.transform(anchor_img)
-            positive_img = self.transform(positive_img)
-            negative_img = self.transform(negative_img)
+        anchor_img_path = samples[0]
+        positive_img_path = samples[1]
+        negative_img_path = samples[2]
 
-        return anchor_img, positive_img, negative_img, anchor_img_path, positive_img_path, negative_img_path
+        return anchor_image, positive_image, negative_image, anchor_img_path, positive_img_path, negative_img_path
 
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- __ L E N __ --------------------------------------------------

@@ -87,6 +87,8 @@ class CreateStreamImages:
             square_x = int(center_x - side_length / 2)
             square_y = int(center_y - side_length / 2)
             obj = in_img[square_y:square_y + side_length, square_x:square_x + side_length]
+            mask = seg_map[square_y:square_y + side_length, square_x:square_x + side_length]
+            mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)[1]
 
             if obj.size != 0:
                 cv2.imwrite(output_path, obj)

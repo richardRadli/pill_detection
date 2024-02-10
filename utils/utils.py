@@ -330,3 +330,34 @@ def find_latest_file_in_directory(path: str, extension: str) -> str:
     files = glob(os.path.join(path, "*.%s" % extension))
     latest_file = max(files, key=os.path.getctime)
     return latest_file
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------ P R O C E S S   T X T -----------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def process_txt(txt_file: str) -> list:
+    """
+    Reads a .txt file and extracts a set of paths from its contents.
+
+    :param txt_file: The path to the .txt file.
+    :return: A set of paths extracted from the .txt file.
+    """
+
+    paths = []
+
+    with open(txt_file, 'r') as f:
+        data = eval(f.read())
+
+    for key in data:
+        paths.append(key)
+
+    return paths
+
+
+def mine_hard_triplets(latest_txt):
+    hardest_samples = process_txt(latest_txt)
+    triplets = []
+    for i, samples in enumerate(hardest_samples):
+        for a, p, n in zip(samples[0], samples[1], samples[2]):
+            triplets.append((a, p, n))
+    return list(set(triplets))

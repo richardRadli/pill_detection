@@ -131,18 +131,11 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_efficient_net_contour_ogyei"),
                     }
             },
-            "hardest_negative_samples": {
+            "hardest_samples": {
                 "EfficientNet":
                     {
                         "cure":
-                            DATA_PATH.get_data_path("negative_efficient_net_contour_cure")
-                    }
-            },
-            "hardest_positive_samples": {
-                "EfficientNet":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("positive_efficient_net_contour_cure")
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_contour_cure")
                     }
             },
             "learning_rate": {
@@ -215,18 +208,11 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_efficient_net_lbp_ogyei"),
                     }
             },
-            "hardest_negative_samples": {
+            "hardest_samples": {
                 "EfficientNet":
                     {
                         "cure":
-                            DATA_PATH.get_data_path("negative_efficient_net_lbp_cure")
-                    }
-            },
-            "hardest_positive_samples": {
-                "EfficientNet":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("positive_efficient_net_lbp_cure")
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_lbp_cure")
                     }
             },
             "learning_rate": {
@@ -298,18 +284,11 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_efficient_net_rgb_ogyei"),
                     }
             },
-            "hardest_negative_samples": {
+            "hardest_samples": {
                 "EfficientNet":
                     {
                         "cure":
-                            DATA_PATH.get_data_path("negative_efficient_net_rgb_cure")
-                    }
-            },
-            "hardest_positive_samples": {
-                "EfficientNet":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("positive_efficient_net_rgb_cure")
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_rgb_cure")
                     }
             },
             "learning_rate": {
@@ -381,18 +360,11 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_efficient_net_texture_ogyei"),
                     }
             },
-            "hardest_negative_samples": {
+            "hardest_samples": {
                 "EfficientNet":
                     {
                         "cure":
-                            DATA_PATH.get_data_path("negative_efficient_net_texture_cure")
-                    }
-            },
-            "hardest_positive_samples": {
-                "EfficientNet":
-                    {
-                        "cure":
-                            DATA_PATH.get_data_path("positive_efficient_net_texture_cure")
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_texture_cure")
                     }
             },
             "learning_rate": {
@@ -453,40 +425,22 @@ def stream_network_config(cfg) -> Dict:
                     "cure":
                         DATA_PATH.get_data_path("reference_vectors_efficient_net_cure")
                 },
-                'hard_negative': {
-                    "contour": {
+                'hard_sample': {
+                    "Contour": {
                         "cure":
-                            DATA_PATH.get_data_path("negative_efficient_net_contour_cure")
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_contour_cure")
                     },
-                    "lbp": {
+                    "LBP": {
                         "cure":
-                            DATA_PATH.get_data_path("negative_efficient_net_lbp_cure")
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_lbp_cure")
                     },
-                    "rgb": {
+                    "RGB": {
                         "cure":
-                            DATA_PATH.get_data_path("negative_efficient_net_rgb_cure")
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_rgb_cure")
                     },
-                    "texture": {
+                    "Texture": {
                         "cure":
-                            DATA_PATH.get_data_path("negative_efficient_net_texture_cure")
-                    },
-                },
-                'hard_positive': {
-                    "contour": {
-                        "cure":
-                            DATA_PATH.get_data_path("positive_efficient_net_contour_cure")
-                    },
-                    "lbp": {
-                        "cure":
-                            DATA_PATH.get_data_path("positive_efficient_net_lbp_cure"),
-                    },
-                    "rgb": {
-                        "cure":
-                            DATA_PATH.get_data_path("positive_efficient_net_rgb_cure"),
-                    },
-                    "texture": {
-                        "cure":
-                            DATA_PATH.get_data_path("positive_efficient_net_texture_cure"),
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_texture_cure")
                     }
                 }
             }

@@ -12,41 +12,16 @@ import os.path
 
 from config.config import ConfigStreamNetwork
 from config.config_selector import stream_network_config, sub_stream_network_configs
-from utils.utils import find_latest_file_in_latest_directory, setup_logger
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------------ P R O C E S S   T X T -----------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def process_txt(txt_file: str) -> list:
-    """
-    Reads a .txt file and extracts a set of paths from its contents.
-
-    :param txt_file: The path to the .txt file.
-    :return: A set of paths extracted from the .txt file.
-    """
-
-    paths = []
-
-    with open(txt_file, 'r') as f:
-        data = eval(f.read())
-
-    for key in data:
-        paths.append(key)
-
-    return paths
-
-
-def mine_hard_triplets(latest_txt):
-    hardest_samples = process_txt(latest_txt)
-    triplets = []
-    for i, samples in enumerate(hardest_samples):
-        for a, p, n in zip(samples[0], samples[1], samples[2]):
-            triplets.append((a, p, n))
-    return list(set(triplets))
+from utils.utils import find_latest_file_in_latest_directory, setup_logger, mine_hard_triplets
 
 
 def preprocess_path(paths):
+    """
+
+    :param paths:
+    :return:
+    """
+
     preprocessed_paths = []
     for path in paths:
         parts = path.replace('\\', '/').split('/')
@@ -62,6 +37,12 @@ def preprocess_path(paths):
 
 
 def find_common_triplets(*lists):
+    """
+
+    :param lists:
+    :return:
+    """
+
     preprocessed_lists = [[preprocess_path(path) for path in triplet] for triplet in lists]
     common_triplets = (set(preprocessed_lists[0]) | set(preprocessed_lists[1]) |
                        set(preprocessed_lists[2]) | set(preprocessed_lists[3]))
@@ -82,42 +63,42 @@ def get_hardest_samples():
     cfg = ConfigStreamNetwork().parse()
     hard_sample_paths = stream_network_config(cfg)
 
-    latest_neg_contour_txt = (
+    latest_hard_samples_contour = (
         find_latest_file_in_latest_directory(
-            path=hard_sample_paths.get("hard_negative").get("contour").get(cfg.dataset_type),
+            path=hard_sample_paths.get("hard_sample").get("contour").get(cfg.dataset_type),
             type_of_loss=cfg.type_of_loss_func
         )
     )
 
-    latest_neg_lbp_txt = (
+    latest_hard_samples_lbp = (
         find_latest_file_in_latest_directory(
-            path=hard_sample_paths.get("hard_negative").get("lbp").get(cfg.dataset_type),
+            path=hard_sample_paths.get("hard_sample").get("lbp").get(cfg.dataset_type),
             type_of_loss=cfg.type_of_loss_func
         )
     )
 
-    latest_neg_rgb_txt = (
+    latest_hard_samples_rgb = (
         find_latest_file_in_latest_directory(
-            path=hard_sample_paths.get("hard_negative").get("rgb").get(cfg.dataset_type),
+            path=hard_sample_paths.get("hard_sample").get("rgb").get(cfg.dataset_type),
             type_of_loss=cfg.type_of_loss_func
         )
     )
 
-    latest_neg_texture_txt = (
+    latest_hard_samples_texture = (
         find_latest_file_in_latest_directory(
-            path=hard_sample_paths.get("hard_negative").get("texture").get(cfg.dataset_type),
+            path=hard_sample_paths.get("hard_sample").get("texture").get(cfg.dataset_type),
             type_of_loss=cfg.type_of_loss_func
         )
     )
 
     sub_stream_cfg = sub_stream_network_configs(cfg)
-    hardest_neg_contour_triplets = mine_hard_triplets(latest_neg_contour_txt)
-    hardest_neg_lpb_triplets = mine_hard_triplets(latest_neg_lbp_txt)
-    hardest_neg_rgb_triplets = mine_hard_triplets(latest_neg_rgb_txt)
-    hardest_neg_texture_triplets = mine_hard_triplets(latest_neg_texture_txt)
+    hardest_contour_triplets = mine_hard_triplets(latest_hard_samples_contour)
+    hardest_lpb_triplets = mine_hard_triplets(latest_hard_samples_lbp)
+    hardest_rgb_triplets = mine_hard_triplets(latest_hard_samples_rgb)
+    hardest_texture_triplets = mine_hard_triplets(latest_hard_samples_texture)
 
-    common_triplets = find_common_triplets(hardest_neg_contour_triplets, hardest_neg_lpb_triplets,
-                                           hardest_neg_rgb_triplets, hardest_neg_texture_triplets)
+    common_triplets = find_common_triplets(hardest_contour_triplets, hardest_lpb_triplets,
+                                           hardest_rgb_triplets, hardest_texture_triplets)
 
     stream_contour_anchor = sub_stream_cfg.get("Contour").get("train").get(cfg.dataset_type).get("anchor")
     stream_contour_pos_neg = sub_stream_cfg.get("Contour").get("train").get(cfg.dataset_type).get("pos_neg")

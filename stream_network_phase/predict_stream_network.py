@@ -41,7 +41,7 @@ class PredictStreamNetwork:
         # Load config
         self.cfg = ConfigStreamNetwork().parse()
 
-        # Set up tqmd colours
+        # Set up tqdm colours
         colorama.init()
 
         # Create time stamp
@@ -62,26 +62,44 @@ class PredictStreamNetwork:
         self.sub_network_config = sub_stream_network_configs(self.cfg)
 
         # Load networks
-        self.network_con, self.network_lbp, self.network_rgb, self.network_tex = self.load_networks()
-        self.network_con.eval()
-        self.network_lbp.eval()
+        self.network_rgb= self.load_networks()
+        # self.network_con.eval()
+        # self.network_lbp.eval()
         self.network_rgb.eval()
-        self.network_tex.eval()
+        # self.network_tex.eval()
 
         # Preprocess images
         self.preprocess_rgb = \
-            transforms.Compose([transforms.Resize((
-                self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
-                self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))),
-                transforms.ToTensor(),
-                transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
+            transforms.Compose(
+                [
+                    transforms.Resize((
+                        self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
+                        self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))
+                    ),
+                    transforms.CenterCrop((
+                    self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
+                    self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))
+                    ),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+                ]
+            )
 
         self.preprocess_con_tex = \
-            transforms.Compose([transforms.Resize((
-                self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
-                self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))),
-                transforms.Grayscale(),
-                transforms.ToTensor()])
+            transforms.Compose(
+                [
+                    transforms.Resize((
+                        self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
+                        self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))
+                    ),
+                    transforms.CenterCrop((
+                    self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
+                    self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))
+                    ),
+                    transforms.Grayscale(),
+                    transforms.ToTensor(),
+                ]
+            )
 
         # Select device
         self.device = use_gpu_if_available()
@@ -101,34 +119,35 @@ class PredictStreamNetwork:
         rgb_config = self.sub_network_config.get("RGB")
         tex_config = self.sub_network_config.get("Texture")
 
-        latest_con_pt_file = find_latest_file_in_latest_directory(
-            path=con_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
-            type_of_loss=self.cfg.type_of_loss_func
-        )
-        latest_lbp_pt_file = find_latest_file_in_latest_directory(
-            path=lbp_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
-            type_of_loss=self.cfg.type_of_loss_func
-        )
+        # latest_con_pt_file = find_latest_file_in_latest_directory(
+        #     path=con_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+        #     type_of_loss=self.cfg.type_of_loss_func
+        # )
+        # latest_lbp_pt_file = find_latest_file_in_latest_directory(
+        #     path=lbp_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+        #     type_of_loss=self.cfg.type_of_loss_func
+        # )
         latest_rgb_pt_file = find_latest_file_in_latest_directory(
             path=rgb_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
             type_of_loss=self.cfg.type_of_loss_func
         )
-        latest_tex_pt_file = find_latest_file_in_latest_directory(
-            path=tex_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
-            type_of_loss=self.cfg.type_of_loss_func
-        )
+        # latest_tex_pt_file = find_latest_file_in_latest_directory(
+        #     path=tex_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+        #     type_of_loss=self.cfg.type_of_loss_func
+        # )
 
-        network_con = NetworkFactory.create_network(self.cfg.type_of_net, con_config)
-        network_lbp = NetworkFactory.create_network(self.cfg.type_of_net, lbp_config)
+        # network_con = NetworkFactory.create_network(self.cfg.type_of_net, con_config)
+        # network_lbp = NetworkFactory.create_network(self.cfg.type_of_net, lbp_config)
         network_rgb = NetworkFactory.create_network(self.cfg.type_of_net, rgb_config)
-        network_tex = NetworkFactory.create_network(self.cfg.type_of_net, tex_config)
+        # network_tex = NetworkFactory.create_network(self.cfg.type_of_net, tex_config)
 
-        network_con.load_state_dict(torch.load(latest_con_pt_file))
-        network_lbp.load_state_dict(torch.load(latest_lbp_pt_file))
-        network_rgb.load_state_dict(torch.load(latest_rgb_pt_file))
-        network_tex.load_state_dict(torch.load(latest_tex_pt_file))
+        # network_con.load_state_dict(torch.load(latest_con_pt_file))
+        # network_lbp.load_state_dict(torch.load(latest_lbp_pt_file))
+        # network_rgb.load_state_dict(torch.load(latest_rgb_pt_file))
+        # network_tex.load_state_dict(torch.load(latest_tex_pt_file))
 
-        return network_con, network_lbp, network_rgb, network_tex
+        # return network_con, network_lbp, network_rgb, network_tex
+        return network_rgb
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
@@ -152,50 +171,49 @@ class PredictStreamNetwork:
         images_path = []
 
         # Move the model to the GPU
-        self.network_con = self.network_con.to(self.device)
-        self.network_lbp = self.network_lbp.to(self.device)
+        # self.network_con = self.network_con.to(self.device)
+        # self.network_lbp = self.network_lbp.to(self.device)
         self.network_rgb = self.network_rgb.to(self.device)
-        self.network_tex = self.network_tex.to(self.device)
+        # self.network_tex = self.network_tex.to(self.device)
 
         for image_name in tqdm(medicine_classes, desc=color + "\nProcess %s images" % operation):
             # Collecting images
-            image_paths_con = os.listdir(os.path.join(contour_dir, image_name))
+            # image_paths_con = os.listdir(os.path.join(contour_dir, image_name))
             image_paths_rgb = os.listdir(os.path.join(rgb_dir, image_name))
-            image_paths_tex = os.listdir(os.path.join(texture_dir, image_name))
-            image_paths_lbp = os.listdir(os.path.join(lbp_dir, image_name))
+            # image_paths_tex = os.listdir(os.path.join(texture_dir, image_name))
+            # image_paths_lbp = os.listdir(os.path.join(lbp_dir, image_name))
 
-            for idx, (con, rgb, tex, lbp) in enumerate(zip(
-                    image_paths_con, image_paths_rgb, image_paths_tex, image_paths_lbp)):
+            for idx, rgb in enumerate(image_paths_rgb):
                 # Open images and convert them to tensors
-                con_image = Image.open(os.path.join(contour_dir, image_name, con))
-                con_image = self.preprocess_con_tex(con_image)
-
-                lbp_image = Image.open(os.path.join(lbp_dir, image_name, lbp))
-                lbp_image = self.preprocess_con_tex(lbp_image)
+                # con_image = Image.open(os.path.join(contour_dir, image_name, con))
+                # con_image = self.preprocess_con_tex(con_image)
+                #
+                # lbp_image = Image.open(os.path.join(lbp_dir, image_name, lbp))
+                # lbp_image = self.preprocess_con_tex(lbp_image)
 
                 rgb_image = Image.open(os.path.join(rgb_dir, image_name, rgb))
                 images_path.append(os.path.join(rgb_dir, image_name, rgb))
                 rgb_image = self.preprocess_rgb(rgb_image)
 
-                tex_image = Image.open(os.path.join(texture_dir, image_name, tex))
-                tex_image = self.preprocess_con_tex(tex_image)
+                # tex_image = Image.open(os.path.join(texture_dir, image_name, tex))
+                # tex_image = self.preprocess_con_tex(tex_image)
 
                 # Make prediction
                 with torch.no_grad():
                     # Move input to GPU
-                    con_image = con_image.unsqueeze(0).to(self.device)
-                    lbp_image = lbp_image.unsqueeze(0).to(self.device)
+                    # con_image = con_image.unsqueeze(0).to(self.device)
+                    # lbp_image = lbp_image.unsqueeze(0).to(self.device)
                     rgb_image = rgb_image.unsqueeze(0).to(self.device)
-                    tex_image = tex_image.unsqueeze(0).to(self.device)
+                    # tex_image = tex_image.unsqueeze(0).to(self.device)
 
                     # Perform computation on GPU and move result back to CPU
-                    vector1 = self.network_con(con_image).squeeze().cpu()
-                    vector2 = self.network_lbp(lbp_image).squeeze().cpu()
+                    # vector1 = self.network_con(con_image).squeeze().cpu()
+                    # vector2 = self.network_lbp(lbp_image).squeeze().cpu()
                     vector3 = self.network_rgb(rgb_image).squeeze().cpu()
-                    vector4 = self.network_tex(tex_image).squeeze().cpu()
+                    # vector4 = self.network_tex(tex_image).squeeze().cpu()
 
-                concatenated = torch.cat((vector1, vector2, vector3, vector4), dim=0)
-                vectors.append(concatenated)
+                # concatenated = torch.cat((vector1, vector2, vector3, vector4), dim=0)
+                vectors.append(vector3)
                 labels.append(image_name)
 
             if operation == "reference":

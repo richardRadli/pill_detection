@@ -25,7 +25,6 @@ from config.config_selector import nlp_configs
 from config.config_selector import sub_stream_network_configs, fusion_network_config
 from fusion_network_models.fusion_network_selector import NetworkFactory
 from dataloader_fusion_network import FusionDataset
-from loss_functions.triplet_loss import TripletMarginLoss
 from loss_functions.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
 from utils.utils import (create_timestamp, find_latest_file_in_directory, print_network_config, use_gpu_if_available,
                          setup_logger)
@@ -117,14 +116,14 @@ class TrainFusionNet:
                 DynamicMarginTripletLoss(euc_dist_mtx=df, upper_norm_limit=self.cfg_fusion_net.upper_norm_limit)
             )
         elif self.cfg_fusion_net.type_of_loss_func == "tl":
-            self.criterion = TripletMarginLoss(margin=self.cfg_fusion_net.margin)
+            self.criterion = torch.nn.TripletMarginLoss(margin=self.cfg_fusion_net.margin)
         else:
             raise ValueError(f"Wrong type of loss function: {self.cfg_fusion_net.type_of_loss_func}")
 
         # Specify optimizer
-        self.optimizer = torch.optim.SGD(params=list(self.model.fc1.parameters()),
-                                         lr=self.cfg_fusion_net.learning_rate,
-                                         weight_decay=self.cfg_fusion_net.weight_decay)
+        self.optimizer = torch.optim.Adam(params=list(self.model.fc1.parameters()),
+                                          lr=self.cfg_fusion_net.learning_rate,
+                                          weight_decay=self.cfg_fusion_net.weight_decay)
 
         # LR scheduler
         self.scheduler = StepLR(optimizer=self.optimizer,
