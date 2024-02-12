@@ -74,19 +74,18 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--type_of_loss_func", type=str, default="hmtl", help="tl | hmtl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
-        self.parser.add_argument("--num_triplets", type=int, default=1000, help="Number of triplets to be generated")
-        self.parser.add_argument("--margin", type=float, default=0.5)
+        self.parser.add_argument("--margin", type=float, default=0.2)
 
-        self.parser.add_argument("--epochs", type=int, default=7)
+        self.parser.add_argument("--epochs", type=int, default=30)
         self.parser.add_argument("--batch_size", type=int, default=64)
 
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
 
-        self.parser.add_argument("--learning_rate_en_rgb", type=float, default=3e-4)
         self.parser.add_argument("--learning_rate_en_con", type=float, default=3e-4)
         self.parser.add_argument("--learning_rate_en_lbp", type=float, default=3e-4)
+        self.parser.add_argument("--learning_rate_en_rgb", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_tex", type=float, default=3e-4)
-        self.parser.add_argument("--weight_decay", type=float, default=0.1)
+        self.parser.add_argument("--weight_decay", type=float, default=1e-5)
         self.parser.add_argument('--step_size', type=int, default=3,
                                  help="Number of epochs after which to decay the learning rate")
         self.parser.add_argument('--gamma', type=float, default=1/3, help="Factor by which to decay the learning rate")

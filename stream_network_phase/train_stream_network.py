@@ -8,12 +8,12 @@ Description: This code implements the training for the stream network phase.
 """
 
 import colorama
-import json
 import logging
 import numpy as np
 import os
 import torch
 
+from pytorch_metric_learning import losses, miners, distances, reducers
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader, random_split
@@ -23,8 +23,7 @@ from torchsummary import summary
 from config.config import ConfigStreamNetwork
 from config.config_selector import sub_stream_network_configs
 from stream_network_models.stream_network_selector import NetworkFactory
-from dataloader_stream_network import InitialStreamNetDataLoader
-from loss_functions.triplet_loss_hard_mining import TripletLossWithHardMining
+from dataloader_stream_network import DataLoaderStreamNet
 from utils.utils import (create_timestamp, measure_execution_time, print_network_config,
                          use_gpu_if_available, setup_logger)
 
@@ -70,11 +69,16 @@ class TrainModel:
             self.model, (network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size"))
         )
 
-        # Specify loss function
-        self.criterion = TripletLossWithHardMining(margin=self.cfg.margin)
+        distance = distances.LpDistance()
+        reducer = reducers.ThresholdReducer(low=0)
+
+        self.miner = miners.TripletMarginMiner(margin=self.cfg.margin, distance=distance, type_of_triplets="hard")
+        self.loss_func = losses.TripletMarginLoss(margin=self.cfg.margin, distance=distance, reducer=reducer,
+                                                  triplets_per_anchor="all")
 
         # Specify optimizer
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=network_cfg.get("learning_rate"),
+        self.optimizer = torch.optim.Adam(self.model.parameters(),
+                                          lr=network_cfg.get("learning_rate"),
                                           weight_decay=self.cfg.weight_decay)
 
         # LR scheduler
@@ -93,10 +97,6 @@ class TrainModel:
         self.best_valid_loss = float('inf')
         self.best_model_path = None
 
-        # Hard samples paths
-        if self.cfg.type_of_loss_func == "hmtl":
-            self.hardest_samples_path = self.create_save_dirs(network_cfg.get('hardest_samples'))
-
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------ C R E A T E   D A T A S E T -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -108,15 +108,10 @@ class TrainModel:
         """
 
         # Load dataset
-
         dataset = \
-            InitialStreamNetDataLoader(
+            DataLoaderStreamNet(
                 dataset_dirs_anchor=[network_cfg.get("train").get(self.cfg.dataset_type).get("anchor")],
-                dataset_dirs_pos_neg=[network_cfg.get("train").get(self.cfg.dataset_type).get("pos_neg")],
-                type_of_stream=self.cfg.type_of_stream,
-                image_size=network_cfg.get("image_size"),
-                num_triplets=self.cfg.num_triplets,
-                file_path=self.hardest_samples_path
+                dataset_dirs_pos_neg=[network_cfg.get("train").get(self.cfg.dataset_type).get("pos_neg")]
             )
 
         # Calculate the number of samples for each set
@@ -146,94 +141,44 @@ class TrainModel:
         return directory_to_create
 
     # ------------------------------------------------------------------------------------------------------------------
-    # ----------------------------------------- G E T   H A R D  S A M P L E S -----------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def save_hardest_samples(self, dataset, epoch: int, hard_samples: list, dictionary_name: str) -> None:
-        """
-        Saves the hardest images to a file in JSON format.
-        :param dataset:
-        :param epoch: The epoch number.
-        :param hard_samples: A list of tensors of the hardest images.
-        :param dictionary_name: The directory where the output file will be saved.
-        :return: None
-        """
-
-        file_name = self.timestamp + "_epoch_" + str(epoch) + ".txt"
-        file_path = os.path.join(dictionary_name, file_name)
-
-        hardest_samples = []
-        for i, hard_tensor in enumerate(hard_samples):
-            hardest_samples.append(hard_tensor)
-
-        if self.cfg.num_triplets != len(hardest_samples):
-            missing_num_triplets = self.cfg.num_triplets - len(hardest_samples)
-            random_triplets = dataset.generate_triplets(missing_num_triplets)
-
-        #TODO: merge random and hardest samples
-        with open(file_path, "w") as fp:
-            json.dump(hardest_samples, fp)
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # -------------------------------------- R E C O R D   H A R D   S A M P L E S -------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def record_hard_samples(hard_samples: torch.Tensor, anc_img_path, pos_img_path, neg_img_path, hard_images: list) \
-            -> list:
-        """
-        Records filenames of the hardest samples.
-
-        :param hard_samples: A tensor containing the hardest samples.
-        :param anc_img_path: A string of image file paths.
-        :param pos_img_path: A string of image file paths.
-        :param neg_img_path: A string of image file paths.
-        :param hard_images: A list to store the filenames of the hardest samples.
-        :return: The updated list of hardest sample filenames.
-        """
-
-        if hard_samples is not None:
-            for anc_filename, pos_filename, neg_filename, sample in zip(
-                    anc_img_path, pos_img_path, neg_img_path, hard_samples
-            ):
-                if sample is not None:
-                    hard_images.append((anc_img_path, pos_img_path, neg_img_path))
-
-        return hard_images
-
-    # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- T R A I N   L O O P ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def train_loop(self, train_data_loader, train_losses, hard_samples):
-        for idx, (anchor, positive, negative, anchor_img_path, positive_img_path, negative_img_path) in \
-                tqdm(enumerate(train_data_loader), total=len(train_data_loader),
-                     desc=colorama.Fore.CYAN + "Train"):
-            # Upload data to the GPU
-            anchor = anchor.to(self.device)
-            positive = positive.to(self.device)
-            negative = negative.to(self.device)
-
+    def train_loop(self, train_data_loader, train_losses):
+        for idx, (anchor, anchor_label, pos_neg_image, pos_neg_label) in \
+                tqdm(enumerate(train_data_loader), total=len(train_data_loader), desc=colorama.Fore.CYAN + "Train"):
             # Set the gradients to zero
             self.optimizer.zero_grad()
 
+            # Upload data to the GPU
+            anchor = anchor.to(self.device)
+            pos_neg_image = pos_neg_image.to(self.device)
+
             # Forward pass
-            anchor_emb = self.model(anchor)
-            positive_emb = self.model(positive)
-            negative_emb = self.model(negative)
+            embedding = self.model(anchor)
+            ref_embedding = self.model(pos_neg_image)
+
+            anchor_label = tuple(int(item) for item in anchor_label)
+            anchor_label = torch.tensor(anchor_label)
+
+            pos_neg_label = tuple(int(item) for item in pos_neg_label)
+            pos_neg_label = torch.tensor(pos_neg_label)
+
+            # hard_pairs = self.miner(embedding, anchor_label, ref_embedding, pos_neg_label)
 
             # Compute triplet loss
-            loss, hard_sample = self.criterion(anchor_emb, positive_emb, negative_emb)
-
-            hard_samples = self.record_hard_samples(
-                hard_sample, anchor_img_path, positive_img_path, negative_img_path, hard_samples
-            )
+            train_loss = self.loss_func(embeddings=embedding,
+                                        labels=anchor_label,
+                                        ref_emb=ref_embedding,
+                                        ref_labels=pos_neg_label)
 
             # Backward pass, optimize and scheduler
-            loss.backward()
+            train_loss.backward()
             self.optimizer.step()
 
             # Accumulate loss
-            train_losses.append(loss.item())
+            train_losses.append(train_loss.item())
 
-        return train_losses, hard_samples
+        return train_losses
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- V A L I D   L O O P ----------------------------------------------
@@ -247,21 +192,28 @@ class TrainModel:
         """
 
         with torch.no_grad():
-            for idx, (anchor, positive, negative, anchor_img_path, positive_img_path, negative_img_path) \
+            for idx, (anchor, anchor_label, pos_neg_image, pos_neg_label) \
                     in tqdm(enumerate(valid_data_loader), total=len(valid_data_loader),
                             desc=colorama.Fore.MAGENTA + "Validation"):
                 # Upload data to GPU
                 anchor = anchor.to(self.device)
-                positive = positive.to(self.device)
-                negative = negative.to(self.device)
+                pos_neg_image = pos_neg_image.to(self.device)
 
                 # Forward pass
                 anchor_emb = self.model(anchor)
-                positive_emb = self.model(positive)
-                negative_emb = self.model(negative)
+                ref_emb = self.model(pos_neg_image)
+
+                anchor_label = tuple(int(item) for item in anchor_label)
+                anchor_label = torch.tensor(anchor_label)
+
+                pos_neg_label = tuple(int(item) for item in pos_neg_label)
+                pos_neg_label = torch.tensor(pos_neg_label)
 
                 # Compute triplet loss
-                val_loss, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
+                val_loss = self.loss_func(embeddings=anchor_emb,
+                                          labels=anchor_label,
+                                          ref_emb=ref_emb,
+                                          ref_labels=pos_neg_label)
 
                 # Accumulate loss
                 valid_losses.append(val_loss.item())
@@ -306,8 +258,6 @@ class TrainModel:
         train_losses = []
         # to track the validation loss as the model trains
         valid_losses = []
-        # to mine the hard negative samples
-        hard_images = []
 
         network_config = sub_stream_network_configs(self.cfg)
         network_cfg = network_config.get(self.cfg.type_of_stream)
@@ -315,7 +265,7 @@ class TrainModel:
         dataset, train_data_loader, valid_data_loader = self.create_dataset(network_cfg)
         for epoch in tqdm(range(self.cfg.epochs), desc=colorama.Fore.GREEN + "Epochs"):
             # Train loop
-            train_losses, hard_images = self.train_loop(train_data_loader, train_losses, hard_images)
+            train_losses = self.train_loop(train_data_loader, train_losses)
 
             # Validation loop
             valid_losses = self.valid_loop(valid_data_loader, valid_losses)
@@ -328,10 +278,6 @@ class TrainModel:
             # Log loss for epoch
             logging.info(f'train_loss: {train_loss:.5f} valid_loss: {valid_loss:.5f}')
 
-            # Loop over the hard negative tensors
-            self.save_hardest_samples(dataset, epoch, hard_images, self.hardest_samples_path)
-            hard_images.clear()
-
             # Clear lists to track next epoch
             train_losses.clear()
             valid_losses.clear()
@@ -339,7 +285,7 @@ class TrainModel:
             # Save model
             self.save_model_weights(epoch, valid_loss)
 
-            self.scheduler.step()
+            # self.scheduler.step()
 
         # Close and flush SummaryWriter
         self.writer.close()

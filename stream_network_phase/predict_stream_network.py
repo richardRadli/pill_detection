@@ -143,7 +143,7 @@ class PredictStreamNetwork:
 
         # network_con.load_state_dict(torch.load(latest_con_pt_file))
         # network_lbp.load_state_dict(torch.load(latest_lbp_pt_file))
-        # network_rgb.load_state_dict(torch.load(latest_rgb_pt_file))
+        network_rgb.load_state_dict(torch.load(latest_rgb_pt_file))
         # network_tex.load_state_dict(torch.load(latest_tex_pt_file))
 
         # return network_con, network_lbp, network_rgb, network_tex
