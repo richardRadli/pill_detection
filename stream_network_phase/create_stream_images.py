@@ -317,19 +317,34 @@ class CreateStreamImages:
 
                 if match:
                     value = match.group(1)
+
             elif self.cfg.dataset_type == 'cure':
                 value = os.path.basename(file_rgb).split("_")[0]
+
             elif self.cfg.dataset_type == 'nih':
-                pattern = re.compile(r'\b(\d{11})_(\d)_\d+\.jpg\b|\b(\d{11})_\d+\.jpg\b')
-                filename = os.path.basename(file_rgb)
-                match = pattern.search(filename)
-                if match:
-                    if match.group(2):
-                        value = match.group(1) + "_" + match.group(2)
-                    else:
-                        value = match.group(3)
+                if self.cfg.operation == "customer":
+                    pattern = re.compile(r'\b(\d{11})_(\d)_\d+\.jpg\b|\b(\d{11})_\d+\.jpg\b')
+                    filename = os.path.basename(file_rgb)
+                    match = pattern.search(filename)
+                    if match:
+                        if match.group(2):
+                            value = match.group(1) + "_" + match.group(2)
+                        else:
+                            value = match.group(3)
+                elif self.cfg.operation == "reference":
+                    pattern = re.compile(r'\b(\d{11})_(\d|[A-Z]{2})_([\w]+)\.jpg\b')
+                    filename = os.path.basename(file_rgb)
+                    match = pattern.search(filename)
+                    if match:
+                        if match.group(1):
+                            if match.group(2).isdigit():
+                                value = match.group(1) + "_" + match.group(2)
+                            else:
+                                value = match.group(1)
+                else:
+                    raise ValueError("Wrong operation has given!")
             else:
-                raise ValueError("wrong dataset type has given!")
+                raise ValueError("Wrong dataset type has given!")
 
             out_path_rgb = os.path.join(rgb_path, value)
             out_path_contour = os.path.join(contour_path, value)
