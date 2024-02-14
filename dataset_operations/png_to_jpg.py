@@ -9,6 +9,7 @@ def convert_and_save(src_directory, dst_directory, jpg_file):
     jpg_path = os.path.join(dst_directory, os.path.splitext(jpg_file)[0] + '.jpg')
 
     with Image.open(png_path) as img:
+        img = img.convert('RGB')
         img.save(jpg_path)
 
 
@@ -26,7 +27,7 @@ def convert_png_to_jpg(src_directory, dst_directory, num_threads=4):
 
 
 if __name__ == "__main__":
-    input_directory = "D:/storage/pill_detection/datasets/cure/Reference/mask_images"
-    output_directory = "C:/Users/ricsi/Desktop/jpg"
+    input_directory = "D:/storage/pill_detection/datasets/nih/Reference/stream_images/rgb"
+    output_directory = "D:/storage/pill_detection/datasets/nih/Reference/stream_images/rgb/jpg"
     convert_png_to_jpg(input_directory, output_directory, 6)
     print("Conversion completed.")

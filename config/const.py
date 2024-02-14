@@ -199,33 +199,54 @@ class Images(_Const):
             "images/ogyei/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++ N I H +++++++++++++++++++++++++++++++++++++++++++++++++++
-        # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
-        "train_contour_stream_nih":
-            "images/nih/stream_images/contour",
-        "train_lbp_stream_nih":
-            "images/nih/stream_images/lbp",
-        "train_rgb_stream_nih":
-            "images/nih/stream_images/rgb",
-        "train_texture_stream_nih":
-            "images/nih/stream_images/texture",
+        "stream_images_nih_anchor":
+            "images/nih/stream_images/anchor",
+        "stream_images_nih_pos_neg":
+            "images/nih/stream_images/pos_neg",
+
+        # --------------------------------------- R E F   T R A I N   A N C H O R --------------------------------------
+        "train_contour_stream_nih_anchor":
+            "images/nih/stream_images/anchor/contour",
+        "train_lbp_stream_nih_anchor":
+            "images/nih/stream_images/anchor/lbp",
+        "train_rgb_stream_nih_anchor":
+            "images/nih/stream_images/anchor/rgb",
+        "train_texture_stream_nih_anchor":
+            "images/nih/stream_images/anchor/texture",
+
+        # -------------------------------------------- R E F   A N C H O R ---------------------------------------------
+        "contour_stream_nih_pos_neg":
+            "images/nih/stream_images/pos_neg/contour",
+        "lbp_stream_nih_pos_neg":
+            "images/nih/stream_images/pos_neg/lbp",
+        "rgb_stream_nih_pos_neg":
+            "images/nih/stream_images/pos_neg/rgb",
+        "texture_stream_nih_pos_neg":
+            "images/nih/stream_images/pos_neg/texture",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
-        "test_contour_stream_ref_nih":
-            "images/nih/test/ref/contour",
+        "test_query_nih":
+            "images/nih/test/query",
         "test_contour_stream_query_nih":
             "images/nih/test/query/contour",
-        "test_lbp_stream_ref_nih":
-            "images/nih/test/ref/lbp",
         "test_lbp_stream_query_nih":
             "images/nih/test/query/lbp",
-        "test_rgb_stream_ref_nih":
-            "images/nih/test/ref/rgb",
         "test_rgb_stream_query_nih":
             "images/nih/test/query/rgb",
-        "test_texture_stream_ref_nih":
-            "images/nih/test/ref/texture",
         "test_texture_stream_query_nih":
             "images/nih/test/query/texture",
+
+        # ---------------------------------------------------- R E F ---------------------------------------------------
+        "test_ref_nih":
+            "images/nih/test/ref",
+        "test_contour_stream_ref_nih":
+            "images/nih/test/ref/contour",
+        "test_lbp_stream_ref_nih":
+            "images/nih/test/ref/lbp",
+        "test_rgb_stream_ref_nih":
+            "images/nih/test/ref/rgb",
+        "test_texture_stream_ref_nih":
+            "images/nih/test/ref/texture",
 
         # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
         "plotting_efficient_net_nih":
@@ -634,22 +655,44 @@ class Datasets(_Const):
             "nih/Customer/xlsx",
         "nih_customer_txt":
             "nih/Customer/txt",
+        "nih_customer_yolo_labels":
+            "nih/Customer/yolo_labels",
 
         # REFERENCE
         "nih_reference_images":
-            "cure/Reference/images",
-        "nih_reference_masks":
-            "nih/Reference/masks",
-        "nih_reference_labels":
-            "nih/Reference/labels",
+            "cure/Reference/images/challenge",
         "nih_reference_csv":
             "nih/Reference/csv",
         "nih_reference_xlsx":
             "nih/Reference/xlsx",
         "nih_reference_txt":
             "nih/Reference/txt",
+        "nih_reference_yolo_labels":
+            "nih/Customer/yolo_labels",
 
-        # OTHER
+        # STREAM - Customer
+        "stream_images_nih_customer":
+            "nih/Customer/stream_images",
+        "stream_images_nih_customer_contour":
+            "nih/Customer/stream_images/contour",
+        "stream_images_nih_customer_lbp":
+            "nih/Customer/stream_images/lbp",
+        "stream_images_nih_customer_rgb":
+            "nih/Customer/stream_images/rgb",
+        "stream_images_nih_customer_texture":
+            "nih/Customer/stream_images/texture",
+
+        # STREAM - Reference
+        "stream_images_nih_reference":
+            "nih/Reference/stream_images",
+        "stream_images_nih_reference_contour":
+            "nih/Reference/stream_images/contour",
+        "stream_images_nih_reference_lbp":
+            "nih/Reference/stream_images/lbp",
+        "stream_images_nih_reference_rgb":
+            "nih/Reference/stream_images/rgb",
+        "stream_images_nih_reference_texture":
+            "nih/Reference/stream_images/texture",
     }
 
     # ------------------------------------------------------------------------------------------------------------------

@@ -13,7 +13,7 @@ import numpy as np
 import os
 import torch
 
-from pytorch_metric_learning import losses, miners, distances, reducers
+from pytorch_metric_learning import losses, miners, distances, regularizers
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader, random_split
@@ -66,15 +66,17 @@ class TrainModel:
 
         # Print model configuration
         summary(
-            self.model, (network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size"))
+            model=self.model,
+            input_size=(network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size"))
         )
 
         distance = distances.LpDistance()
-        reducer = reducers.ThresholdReducer(low=0)
 
-        self.miner = miners.TripletMarginMiner(margin=self.cfg.margin, distance=distance, type_of_triplets="hard")
-        self.loss_func = losses.TripletMarginLoss(margin=self.cfg.margin, distance=distance, reducer=reducer,
-                                                  triplets_per_anchor="all")
+        self.miner = miners.BatchHardMiner()
+        self.loss_func = losses.TripletMarginLoss(margin=self.cfg.margin,
+                                                  distance=distance,
+                                                  triplets_per_anchor="all",
+                                                  embedding_regularizer=regularizers.LpRegularizer())
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(),
@@ -163,13 +165,14 @@ class TrainModel:
             pos_neg_label = tuple(int(item) for item in pos_neg_label)
             pos_neg_label = torch.tensor(pos_neg_label)
 
-            # hard_pairs = self.miner(embedding, anchor_label, ref_embedding, pos_neg_label)
+            hard_pairs = self.miner(embedding, anchor_label, ref_embedding, pos_neg_label)
 
             # Compute triplet loss
             train_loss = self.loss_func(embeddings=embedding,
                                         labels=anchor_label,
-                                        ref_emb=ref_embedding,
-                                        ref_labels=pos_neg_label)
+                                        ref_emb=embedding,
+                                        ref_labels=anchor_label
+                                        )
 
             # Backward pass, optimize and scheduler
             train_loss.backward()
@@ -212,8 +215,9 @@ class TrainModel:
                 # Compute triplet loss
                 val_loss = self.loss_func(embeddings=anchor_emb,
                                           labels=anchor_label,
-                                          ref_emb=ref_emb,
-                                          ref_labels=pos_neg_label)
+                                          ref_emb=anchor_emb,
+                                          ref_labels=anchor_label
+                                          )
 
                 # Accumulate loss
                 valid_losses.append(val_loss.item())
@@ -285,7 +289,7 @@ class TrainModel:
             # Save model
             self.save_model_weights(epoch, valid_loss)
 
-            # self.scheduler.step()
+            self.scheduler.step()
 
         # Close and flush SummaryWriter
         self.writer.close()

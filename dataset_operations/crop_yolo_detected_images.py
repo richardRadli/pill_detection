@@ -13,8 +13,6 @@ import os
 from glob import glob
 from tqdm import tqdm
 
-from config.const import DATASET_PATH
-
 
 def display_annotations(image_path: str, annotation_path: str, out_path: str):
     """
@@ -26,7 +24,7 @@ def display_annotations(image_path: str, annotation_path: str, out_path: str):
     :return: None
     """
 
-    images = sorted(glob(image_path + "/*.png"))
+    images = sorted(glob(image_path + "/*.jpg"))
 
     for img in tqdm(images, total=len(images)):
         # Get the corresponding annotation file
@@ -93,7 +91,7 @@ def display_annotations(image_path: str, annotation_path: str, out_path: str):
 
 
 if __name__ == "__main__":
-    img_path = DATASET_PATH.get_data_path("cure_customer")
-    ann_path = "C:/Users/ricsi/Documents/yolov7/runs/detect/yolov7_cure_100k_binary_labels_cure_customer2/labels"
-    out_path = "C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/Customer_bbox"
+    img_path = "D:/storage/pill_detection/datasets/nih/Customer/images"
+    ann_path = "D:/storage/pill_detection/datasets/nih/Customer/yolo_labels"
+    out_path = "D:/storage/pill_detection/datasets/nih/Customer/stream_images/rgb"
     display_annotations(img_path, ann_path, out_path)

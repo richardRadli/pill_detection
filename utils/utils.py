@@ -232,7 +232,7 @@ def plot_confusion_matrix(gt, pred, out_path):
     sorted_labels = [label for label, _ in sorted(label_to_int.items(), key=lambda x: x[1])]
 
     # Create a heatmap
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(12, 8))
     sns.set(font_scale=1.2)  # Adjust the font size for better readability
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=sorted_labels, yticklabels=sorted_labels)
 

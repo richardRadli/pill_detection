@@ -86,8 +86,12 @@ def sub_stream_network_configs(cfg) -> Dict:
                         "pos_neg":
                             IMAGES_PATH.get_data_path("contour_stream_cure_pos_neg")
                     },
-                    "nih":
-                        IMAGES_PATH.get_data_path("train_contour_stream_nih"),
+                    "nih": {
+                        "anchor":
+                            IMAGES_PATH.get_data_path("train_contour_stream_nih_anchor"),
+                        "pos_neg":
+                            IMAGES_PATH.get_data_path("contour_stream_nih_pos_neg")
+                    },
                     "ogyei":
                         IMAGES_PATH.get_data_path("train_contour_stream_ogyei"),
                 },
@@ -163,8 +167,12 @@ def sub_stream_network_configs(cfg) -> Dict:
                         "pos_neg":
                             IMAGES_PATH.get_data_path("lbp_stream_cure_pos_neg")
                     },
-                    "nih":
-                        IMAGES_PATH.get_data_path("train_lbp_stream_nih"),
+                    "nih": {
+                        "anchor":
+                            IMAGES_PATH.get_data_path("train_lbp_stream_nih_anchor"),
+                        "pos_neg":
+                            IMAGES_PATH.get_data_path("lbp_stream_nih_pos_neg")
+                    },
                     "ogyei":
                         IMAGES_PATH.get_data_path("train_lbp_stream_ogyei"),
                 },
@@ -239,8 +247,12 @@ def sub_stream_network_configs(cfg) -> Dict:
                         "pos_neg":
                             IMAGES_PATH.get_data_path("rgb_stream_cure_pos_neg")
                     },
-                    "nih":
-                        IMAGES_PATH.get_data_path("train_rgb_stream_nih"),
+                    "nih": {
+                        "anchor":
+                            IMAGES_PATH.get_data_path("train_rgb_stream_nih_anchor"),
+                        "pos_neg":
+                            IMAGES_PATH.get_data_path("rgb_stream_nih_pos_neg")
+                    },
                     "ogyei":
                         IMAGES_PATH.get_data_path("train_rgb_stream_ogyei"),
                 },
@@ -315,8 +327,12 @@ def sub_stream_network_configs(cfg) -> Dict:
                         "pos_neg":
                             IMAGES_PATH.get_data_path("texture_stream_cure_pos_neg")
                     },
-                    "nih":
-                        IMAGES_PATH.get_data_path("train_texture_stream_nih"),
+                    "nih": {
+                        "anchor":
+                            IMAGES_PATH.get_data_path("train_texture_stream_nih_anchor"),
+                        "pos_neg":
+                            IMAGES_PATH.get_data_path("texture_stream_nih_pos_neg")
+                    },
                     "ogyei":
                         IMAGES_PATH.get_data_path("train_texture_stream_ogyei"),
                 },
@@ -423,7 +439,9 @@ def stream_network_config(cfg) -> Dict:
                 },
                 'ref_vectors_folder': {
                     "cure":
-                        DATA_PATH.get_data_path("reference_vectors_efficient_net_cure")
+                        DATA_PATH.get_data_path("reference_vectors_efficient_net_cure"),
+                    "nih":
+                        DATA_PATH.get_data_path("reference_vectors_efficient_net_nih")
                 },
                 'hard_sample': {
                     "Contour": {
@@ -784,24 +802,49 @@ def dataset_images_path_selector(dataset_name):
                     DATASET_PATH.get_data_path("nih_reference_txt")
             },
 
-            # "train": {
-            #     "images": DATASET_PATH.get_data_path(""),
-            #     "masks": DATASET_PATH.get_data_path(""),
-            #
-            # },
-            # "valid": {
-            #     "images": DATASET_PATH.get_data_path(""),
-            #     "masks": DATASET_PATH.get_data_path(""),
-            #
-            # },
-            # "test": {
-            #     "images": DATASET_PATH.get_data_path(""),
-            #     "masks": IMAGES_PATH.get_data_path(""),
-            # },
+            "src_stream_images": {
+                "reference": {
+                    "stream_images":
+                        DATASET_PATH.get_data_path("stream_images_nih_reference"),
+                    "stream_images_contour":
+                        DATASET_PATH.get_data_path("stream_images_nih_reference_contour"),
+                    "stream_images_lbp":
+                        DATASET_PATH.get_data_path("stream_images_nih_reference_lbp"),
+                    "stream_images_rgb":
+                        DATASET_PATH.get_data_path("stream_images_nih_reference_rgb"),
+                    "stream_images_texture":
+                        DATASET_PATH.get_data_path("stream_images_nih_reference_texture"),
+                },
+                "customer": {
+                    "stream_images":
+                        DATASET_PATH.get_data_path("stream_images_nih_customer"),
+                    "stream_images_contour":
+                        DATASET_PATH.get_data_path("stream_images_nih_customer_contour"),
+                    "stream_images_lbp":
+                        DATASET_PATH.get_data_path("stream_images_nih_customer_lbp"),
+                    "stream_images_rgb":
+                        DATASET_PATH.get_data_path("stream_images_nih_customer_rgb"),
+                    "stream_images_texture":
+                        DATASET_PATH.get_data_path("stream_images_nih_customer_texture"),
+                }
+            },
+
+            "dst_stream_images": {
+                'stream_images_anchor':
+                    IMAGES_PATH.get_data_path("stream_images_nih_anchor"),
+                "stream_images_pos_neg":
+                    IMAGES_PATH.get_data_path("stream_images_nih_pos_neg"),
+                'ref':
+                    IMAGES_PATH.get_data_path("test_ref_nih"),
+                'query':
+                    IMAGES_PATH.get_data_path("test_query_nih")
+            },
+
             "other": {
                 "ref": DATASET_PATH.get_data_path("nih_ref_images"),
                 "query": DATASET_PATH.get_data_path("nih_query_images"),
-                "xlsx": DATASET_PATH.get_data_path("nih_xlsx")
+                "xlsx": DATASET_PATH.get_data_path("nih_xlsx"),
+                'k_fold': DATA_PATH.get_data_path("nih_k_fold")
             }
         },
 

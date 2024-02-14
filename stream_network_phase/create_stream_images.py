@@ -87,8 +87,6 @@ class CreateStreamImages:
             square_x = int(center_x - side_length / 2)
             square_y = int(center_y - side_length / 2)
             obj = in_img[square_y:square_y + side_length, square_x:square_x + side_length]
-            mask = seg_map[square_y:square_y + side_length, square_x:square_x + side_length]
-            mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)[1]
 
             if obj.size != 0:
                 cv2.imwrite(output_path, obj)
@@ -321,6 +319,15 @@ class CreateStreamImages:
                     value = match.group(1)
             elif self.cfg.dataset_type == 'cure':
                 value = os.path.basename(file_rgb).split("_")[0]
+            elif self.cfg.dataset_type == 'nih':
+                pattern = re.compile(r'\b(\d{11})_(\d)_\d+\.jpg\b|\b(\d{11})_\d+\.jpg\b')
+                filename = os.path.basename(file_rgb)
+                match = pattern.search(filename)
+                if match:
+                    if match.group(2):
+                        value = match.group(1) + "_" + match.group(2)
+                    else:
+                        value = match.group(3)
             else:
                 raise ValueError("wrong dataset type has given!")
 
@@ -353,10 +360,10 @@ class CreateStreamImages:
         :return: None
         """
 
-        self.save_rgb_images()
-        self.save_contour_images()
-        self.save_texture_images()
-        self.save_lbp_images()
+        # self.save_rgb_images()
+        # self.save_contour_images()
+        # self.save_texture_images()
+        # self.save_lbp_images()
 
         self.create_label_dirs(
             rgb_path=self.rgb_images_path,
