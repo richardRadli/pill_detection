@@ -122,7 +122,7 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("weights_efficient_net_contour_nih"),
                         "ogyei":
                             DATA_PATH.get_data_path("weights_efficient_net_contour_ogyei"),
-                    }
+                    },
             },
             "logs_dir": {
                 "EfficientNet":
@@ -133,7 +133,7 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_efficient_net_contour_nih"),
                         "ogyei":
                             DATA_PATH.get_data_path("logs_efficient_net_contour_ogyei"),
-                    }
+                    },
             },
             "hardest_samples": {
                 "EfficientNet":
@@ -203,7 +203,7 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("weights_efficient_net_lbp_nih"),
                         "ogyei":
                             DATA_PATH.get_data_path("weights_efficient_net_lbp_ogyei"),
-                    }
+                    },
             },
             "logs_dir": {
                 "EfficientNet":
@@ -225,11 +225,11 @@ def sub_stream_network_configs(cfg) -> Dict:
             },
             "learning_rate": {
                 "EfficientNet":
-                    cfg.learning_rate_en_lbp
+                    cfg.learning_rate_en_lbp,
             }.get(cfg.type_of_net, cfg.learning_rate_en_lbp),
             "image_size": {
                 "EfficientNet":
-                    cfg.img_size_en
+                    cfg.img_size_en,
             }.get(cfg.type_of_net, cfg.img_size_en),
             "grayscale": True
         },
@@ -283,7 +283,7 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("weights_efficient_net_rgb_nih"),
                         "ogyei":
                             DATA_PATH.get_data_path("weights_efficient_net_rgb_ogyei"),
-                    }
+                    },
             },
             "logs_dir": {
                 "EfficientNet":
@@ -294,7 +294,7 @@ def sub_stream_network_configs(cfg) -> Dict:
                             DATA_PATH.get_data_path("logs_efficient_net_rgb_nih"),
                         "ogyei":
                             DATA_PATH.get_data_path("logs_efficient_net_rgb_ogyei"),
-                    }
+                    },
             },
             "hardest_samples": {
                 "EfficientNet":

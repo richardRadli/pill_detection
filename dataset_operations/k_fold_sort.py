@@ -4,7 +4,7 @@ import shutil
 import random
 
 from config.config import ConfigStreamNetwork
-from config.config_selector import sub_stream_network_configs, dataset_images_path_selector
+from config.config_selector import dataset_images_path_selector
 from utils.utils import create_timestamp, find_latest_file_in_directory
 
 
@@ -25,15 +25,9 @@ class KFoldSort:
 
         if not load:
             timestamp = create_timestamp()
-            data_list = (
-                os.listdir(
-                    sub_stream_network_configs(
-                        self.stream_cfg).get(
-                        self.stream_cfg.type_of_stream).get(
-                        "train").get(
-                        self.stream_cfg.dataset_type
-                    )
-                )
+            data_list = os.listdir(
+                dataset_images_path_selector(
+                    self.stream_cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb")
             )
 
             k_folds = {f"fold{i + 1}": [] for i in range(num_folds)}
@@ -150,10 +144,10 @@ class KFoldSort:
             sorted_folds = self.folds(load=True)
         else:
             sorted_folds = self.folds(load=False, num_folds=5)
-        self.move_images_to_folds(sorted_folds, "fold1", operation="reference", data_role="train")
-        self.move_images_to_folds(sorted_folds, "fold1", operation="reference", data_role="test")
-        self.move_images_to_folds(sorted_folds, "fold1", operation="customer", data_role="train")
-        self.move_images_to_folds(sorted_folds, "fold1", operation="customer", data_role="test")
+        self.move_images_to_folds(sorted_folds, "fold2", operation="reference", data_role="train")
+        self.move_images_to_folds(sorted_folds, "fold2", operation="reference", data_role="test")
+        self.move_images_to_folds(sorted_folds, "fold2", operation="customer", data_role="train")
+        self.move_images_to_folds(sorted_folds, "fold2", operation="customer", data_role="test")
         # erase_files()
 
 

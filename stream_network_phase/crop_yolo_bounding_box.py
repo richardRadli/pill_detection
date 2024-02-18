@@ -7,7 +7,7 @@ from utils.utils import file_reader
 
 
 def save_annotations(image_path, annotation_path, out_path):
-    images = file_reader(image_path, "png")
+    images = file_reader(image_path, "jpg")
 
     for img in tqdm(images, total=len(images)):
         # Get the corresponding annotation file
@@ -60,7 +60,7 @@ def save_annotations(image_path, annotation_path, out_path):
 
             # Crop the image using NumPy array indexing
             cropped_image_array = image[upper:lower, left:right]
-            cv2.imwrite(os.path.join(out_path, img_name + ".png"), cropped_image_array)
+            cv2.imwrite(os.path.join(out_path, img_name + ".jpg"), cropped_image_array)
         else:
             print(f"No annotation file found for image: {os.path.basename(img)}")
 

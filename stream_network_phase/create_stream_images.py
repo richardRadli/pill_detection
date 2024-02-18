@@ -375,10 +375,10 @@ class CreateStreamImages:
         :return: None
         """
 
-        # self.save_rgb_images()
-        # self.save_contour_images()
-        # self.save_texture_images()
-        # self.save_lbp_images()
+        self.save_rgb_images()
+        self.save_contour_images()
+        self.save_texture_images()
+        self.save_lbp_images()
 
         self.create_label_dirs(
             rgb_path=self.rgb_images_path,

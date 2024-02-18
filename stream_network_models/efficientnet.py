@@ -1,5 +1,5 @@
 """
-File: efficient_net_b0.py
+File: efficientnet.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: May 06, 2023
@@ -48,9 +48,6 @@ class EfficientNet(nn.Module):
         :return: EfficientNet model with custom linear layer.
         """
 
-        model = models.efficientnet_b0(weights='DEFAULT')
-        for params in model.parameters():
-            params.requires_grad = False
-
+        model = models.efficientnet_v2_s(weights="DEFAULT")
         model.classifier[1] = nn.Linear(in_features=1280, out_features=self.num_out_feature)
         return model

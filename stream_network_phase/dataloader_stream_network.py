@@ -23,8 +23,8 @@ class DataLoaderStreamNet(Dataset):
         self.dataset_dirs_anchor = dataset_dirs_anchor
         self.dataset_dirs_pos_neg = dataset_dirs_pos_neg
 
-        self.anchor_images, self.anchor_labels = self.load_dataset(self.dataset_dirs_anchor)
-        self.pos_neg_images, self.pos_neg_labels = self.load_dataset(self.dataset_dirs_pos_neg)
+        self.query_images, self.query_labels = self.load_dataset(self.dataset_dirs_anchor)
+        self.reference_images, self.reference_labels = self.load_dataset(self.dataset_dirs_pos_neg)
 
         self.transform = self.get_transform()
 
@@ -65,22 +65,22 @@ class DataLoaderStreamNet(Dataset):
             raise ValueError("Wrong kind of network")
 
     def __getitem__(self, index: int):
-        anchor_image_path = self.anchor_images[index]
-        anchor_image = self.transform(Image.open(anchor_image_path))
-        anchor_label = self.anchor_labels[index]
+        query_image_path = self.query_images[index]
+        query_image = self.transform(Image.open(query_image_path))
+        query_label = self.query_labels[index]
 
-        pos_neg_label = anchor_label
-        pos_neg_indices = np.where(np.array(self.pos_neg_labels) == pos_neg_label)[0]
+        reference_label = query_label
+        reference_indices = np.where(np.array(self.reference_labels) == reference_label)[0]
 
-        if len(pos_neg_indices) == 0:
-            pos_neg_image_path = self.pos_neg_images[-1]
+        if len(reference_indices) == 0:
+            reference_image_path = self.reference_images[-1]
         else:
-            pos_neg_index = np.random.choice(pos_neg_indices)
-            pos_neg_image_path = self.pos_neg_images[pos_neg_index]
+            reference_index = np.random.choice(reference_indices)
+            reference_image_path = self.reference_images[reference_index]
 
-        pos_neg_image = self.transform(Image.open(pos_neg_image_path))
+        reference_image = self.transform(Image.open(reference_image_path))
 
-        return anchor_image, anchor_label, pos_neg_image, pos_neg_label
+        return query_image, query_label, reference_image, reference_label
 
     def __len__(self) -> int:
-        return len(self.anchor_images)
+        return len(self.query_images)

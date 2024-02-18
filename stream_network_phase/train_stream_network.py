@@ -13,12 +13,12 @@ import numpy as np
 import os
 import torch
 
-from pytorch_metric_learning import losses, miners, distances, regularizers
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
+from pytorch_metric_learning import losses, miners
 
 from config.config import ConfigStreamNetwork
 from config.config_selector import sub_stream_network_configs
@@ -70,14 +70,10 @@ class TrainModel:
             input_size=(network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size"))
         )
 
-        distance = distances.LpDistance()
-
-        self.miner = miners.BatchHardMiner()
-        self.loss_func = losses.TripletMarginLoss(margin=self.cfg.margin,
-                                                  distance=distance,
-                                                  triplets_per_anchor="all",
-                                                  embedding_regularizer=regularizers.LpRegularizer())
-
+        self.criterion = losses.TripletMarginLoss(margin=self.cfg.margin)
+        self.mining_func = miners.TripletMarginMiner(
+            margin=self.cfg.margin, type_of_triplets="semihard"
+        )
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(),
                                           lr=network_cfg.get("learning_rate"),
@@ -122,8 +118,8 @@ class TrainModel:
         train_dataset, valid_dataset = random_split(dataset, [train_size, val_size])
         logging.info(f"Number of images in the train set: {len(train_dataset)}")
         logging.info(f"Number of images in the validation set: {len(valid_dataset)}")
-        train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
-        valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
+        train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=False)
+        valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=False)
 
         return dataset, train_data_loader, valid_data_loader
 
@@ -142,39 +138,44 @@ class TrainModel:
         os.makedirs(directory_to_create, exist_ok=True)
         return directory_to_create
 
+    def convert_labels(self, labels):
+        labels = tuple(int(item) for item in labels)
+        labels = torch.tensor(labels)
+        return labels.to(self.device)
+
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- T R A I N   L O O P ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def train_loop(self, train_data_loader, train_losses):
-        for idx, (anchor, anchor_label, pos_neg_image, pos_neg_label) in \
+        for idx, (consumer_images, consumer_labels, reference_images, reference_labels) in \
                 tqdm(enumerate(train_data_loader), total=len(train_data_loader), desc=colorama.Fore.CYAN + "Train"):
             # Set the gradients to zero
             self.optimizer.zero_grad()
 
             # Upload data to the GPU
-            anchor = anchor.to(self.device)
-            pos_neg_image = pos_neg_image.to(self.device)
+            consumer_images = consumer_images.to(self.device)
+            reference_images = reference_images.to(self.device)
+
+            consumer_labels = self.convert_labels(consumer_labels)
+            reference_labels = self.convert_labels(reference_labels)
 
             # Forward pass
-            embedding = self.model(anchor)
-            ref_embedding = self.model(pos_neg_image)
+            consumer_embeddings = self.model(consumer_images)
+            reference_embeddings = self.model(reference_images)
 
-            anchor_label = tuple(int(item) for item in anchor_label)
-            anchor_label = torch.tensor(anchor_label)
+            indices_tuple = self.mining_func(embeddings=consumer_embeddings,
+                                             labels=consumer_labels,
+                                             ref_emb=reference_embeddings,
+                                             ref_labels=reference_labels)
 
-            pos_neg_label = tuple(int(item) for item in pos_neg_label)
-            pos_neg_label = torch.tensor(pos_neg_label)
+            # Compute loss
+            train_loss = self.criterion(embeddings=consumer_embeddings,
+                                        labels=consumer_labels,
+                                        # indices_tuple=indices_tuple,
+                                        ref_emb=reference_embeddings,
+                                        ref_labels=reference_labels)
 
-            hard_pairs = self.miner(embedding, anchor_label, ref_embedding, pos_neg_label)
-
-            # Compute triplet loss
-            train_loss = self.loss_func(embeddings=embedding,
-                                        labels=anchor_label,
-                                        ref_emb=embedding,
-                                        ref_labels=anchor_label
-                                        )
-
-            # Backward pass, optimize and scheduler
+            # Backward pass, optimize
             train_loss.backward()
             self.optimizer.step()
 
@@ -195,29 +196,25 @@ class TrainModel:
         """
 
         with torch.no_grad():
-            for idx, (anchor, anchor_label, pos_neg_image, pos_neg_label) \
+            for idx, (consumer_images, consumer_labels, reference_images, reference_labels) \
                     in tqdm(enumerate(valid_data_loader), total=len(valid_data_loader),
                             desc=colorama.Fore.MAGENTA + "Validation"):
                 # Upload data to GPU
-                anchor = anchor.to(self.device)
-                pos_neg_image = pos_neg_image.to(self.device)
+                consumer_images = consumer_images.to(self.device)
+                reference_images = reference_images.to(self.device)
 
                 # Forward pass
-                anchor_emb = self.model(anchor)
-                ref_emb = self.model(pos_neg_image)
+                consumer_embeddings = self.model(consumer_images)
+                reference_embeddings = self.model(reference_images)
 
-                anchor_label = tuple(int(item) for item in anchor_label)
-                anchor_label = torch.tensor(anchor_label)
-
-                pos_neg_label = tuple(int(item) for item in pos_neg_label)
-                pos_neg_label = torch.tensor(pos_neg_label)
+                consumer_labels = self.convert_labels(consumer_labels)
+                reference_labels = self.convert_labels(reference_labels)
 
                 # Compute triplet loss
-                val_loss = self.loss_func(embeddings=anchor_emb,
-                                          labels=anchor_label,
-                                          ref_emb=anchor_emb,
-                                          ref_labels=anchor_label
-                                          )
+                val_loss = self.criterion(embeddings=consumer_embeddings,
+                                          labels=consumer_labels,
+                                          ref_emb=reference_embeddings,
+                                          ref_labels=reference_labels)
 
                 # Accumulate loss
                 valid_losses.append(val_loss.item())

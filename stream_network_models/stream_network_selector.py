@@ -11,7 +11,7 @@ import torch
 
 from abc import ABC, abstractmethod
 
-from stream_network_models.efficient_net_b0 import EfficientNet
+from stream_network_models.efficientnet import EfficientNet
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
