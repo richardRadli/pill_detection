@@ -72,8 +72,9 @@ class TrainModel:
 
         self.criterion = losses.TripletMarginLoss(margin=self.cfg.margin)
         self.mining_func = miners.TripletMarginMiner(
-            margin=self.cfg.margin, type_of_triplets="semihard"
+            margin=self.cfg.margin, type_of_triplets=self.cfg.mining_type
         )
+
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(),
                                           lr=network_cfg.get("learning_rate"),
@@ -90,6 +91,9 @@ class TrainModel:
 
         # Create save directory for model weights
         self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))
+
+        # Create save directory for hard samples
+        self.hard_samples_path = self.create_save_dirs(network_cfg.get('hardest_samples'))
 
         # Variables to save only the best weights and model
         self.best_valid_loss = float('inf')
@@ -138,7 +142,16 @@ class TrainModel:
         os.makedirs(directory_to_create, exist_ok=True)
         return directory_to_create
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------ C O N V E R T   L A B E L S -------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def convert_labels(self, labels):
+        """
+
+        :param labels:
+        :return:
+        """
+
         labels = tuple(int(item) for item in labels)
         labels = torch.tensor(labels)
         return labels.to(self.device)
@@ -146,8 +159,8 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- T R A I N   L O O P ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def train_loop(self, train_data_loader, train_losses):
-        for idx, (consumer_images, consumer_labels, reference_images, reference_labels) in \
+    def train_loop(self, train_data_loader, train_losses, hard_samples):
+        for idx, (consumer_images, consumer_labels, cp, reference_images, reference_labels, rp) in \
                 tqdm(enumerate(train_data_loader), total=len(train_data_loader), desc=colorama.Fore.CYAN + "Train"):
             # Set the gradients to zero
             self.optimizer.zero_grad()
@@ -163,15 +176,24 @@ class TrainModel:
             consumer_embeddings = self.model(consumer_images)
             reference_embeddings = self.model(reference_images)
 
+            # Get hard samples
             indices_tuple = self.mining_func(embeddings=consumer_embeddings,
                                              labels=consumer_labels,
                                              ref_emb=reference_embeddings,
                                              ref_labels=reference_labels)
 
+            anchor_indices, positive_indices, negative_indices = indices_tuple
+
+            anchor_filenames = [cp[i] for i in anchor_indices]
+            positive_filenames = [rp[i] for i in positive_indices]
+            negative_filenames = [rp[i] for i in negative_indices]
+
+            hard_sample = [anchor_filenames, positive_filenames, negative_filenames]
+            hard_samples.append(hard_sample)
+
             # Compute loss
             train_loss = self.criterion(embeddings=consumer_embeddings,
                                         labels=consumer_labels,
-                                        # indices_tuple=indices_tuple,
                                         ref_emb=reference_embeddings,
                                         ref_labels=reference_labels)
 
@@ -182,7 +204,7 @@ class TrainModel:
             # Accumulate loss
             train_losses.append(train_loss.item())
 
-        return train_losses
+        return train_losses, hard_samples
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- V A L I D   L O O P ----------------------------------------------
@@ -196,7 +218,7 @@ class TrainModel:
         """
 
         with torch.no_grad():
-            for idx, (consumer_images, consumer_labels, reference_images, reference_labels) \
+            for idx, (consumer_images, consumer_labels, _, reference_images, reference_labels, _) \
                     in tqdm(enumerate(valid_data_loader), total=len(valid_data_loader),
                             desc=colorama.Fore.MAGENTA + "Validation"):
                 # Upload data to GPU
@@ -220,6 +242,14 @@ class TrainModel:
                 valid_losses.append(val_loss.item())
 
         return valid_losses
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------- S A V E   H A R D   S A M P L E S ---------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def save_hard_samples(self, hard_samples, epoch):
+        file_name = os.path.join(self.hard_samples_path, self.timestamp + "_epoch_" + str(epoch) + ".txt")
+        with open(file_name, 'w') as file:
+            file.write(str(hard_samples))
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- S A V E   M O D E L ----------------------------------------------
@@ -259,6 +289,8 @@ class TrainModel:
         train_losses = []
         # to track the validation loss as the model trains
         valid_losses = []
+        # to track hard samples
+        hard_samples = []
 
         network_config = sub_stream_network_configs(self.cfg)
         network_cfg = network_config.get(self.cfg.type_of_stream)
@@ -266,7 +298,10 @@ class TrainModel:
         dataset, train_data_loader, valid_data_loader = self.create_dataset(network_cfg)
         for epoch in tqdm(range(self.cfg.epochs), desc=colorama.Fore.GREEN + "Epochs"):
             # Train loop
-            train_losses = self.train_loop(train_data_loader, train_losses)
+            train_losses, hard_samples = self.train_loop(train_data_loader, train_losses, hard_samples)
+
+            # Define the file path
+            self.save_hard_samples(hard_samples, epoch)
 
             # Validation loop
             valid_losses = self.valid_loop(valid_data_loader, valid_losses)
@@ -282,6 +317,7 @@ class TrainModel:
             # Clear lists to track next epoch
             train_losses.clear()
             valid_losses.clear()
+            hard_samples.clear()
 
             # Save model
             self.save_model_weights(epoch, valid_loss)

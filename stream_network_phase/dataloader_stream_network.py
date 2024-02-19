@@ -80,7 +80,7 @@ class DataLoaderStreamNet(Dataset):
 
         reference_image = self.transform(Image.open(reference_image_path))
 
-        return query_image, query_label, reference_image, reference_label
+        return query_image, query_label, query_image_path, reference_image, reference_label, reference_image_path
 
     def __len__(self) -> int:
         return len(self.query_images)

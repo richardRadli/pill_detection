@@ -72,7 +72,8 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--type_of_stream", type=str, default="RGB",
                                  choices=["Contour | LBP | RGB | Texture"])
 
-        self.parser.add_argument("--type_of_loss_func", type=str, default="hmtl", help="tl | hmtl | dmtl")
+        self.parser.add_argument("--type_of_loss_func", type=str, default="hmtl", help="hmtl | dmtl")
+        self.parser.add_argument("--mining_type", type=str, default="semihard", choices=["semihard", "hard", "easy"])
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
         self.parser.add_argument("--margin", type=float, default=0.5)
 
