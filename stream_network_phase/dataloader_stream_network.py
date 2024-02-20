@@ -20,11 +20,8 @@ class DataLoaderStreamNet(Dataset):
 
         self.cfg = ConfigStreamNetwork().parse()
 
-        self.dataset_dirs_anchor = dataset_dirs_anchor
-        self.dataset_dirs_pos_neg = dataset_dirs_pos_neg
-
-        self.query_images, self.query_labels = self.load_dataset(self.dataset_dirs_anchor)
-        self.reference_images, self.reference_labels = self.load_dataset(self.dataset_dirs_pos_neg)
+        self.query_images, self.query_labels = self.load_dataset(dataset_dirs_anchor)
+        self.reference_images, self.reference_labels = self.load_dataset(dataset_dirs_pos_neg)
 
         self.transform = self.get_transform()
 

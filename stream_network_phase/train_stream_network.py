@@ -122,8 +122,8 @@ class TrainModel:
         train_dataset, valid_dataset = random_split(dataset, [train_size, val_size])
         logging.info(f"Number of images in the train set: {len(train_dataset)}")
         logging.info(f"Number of images in the validation set: {len(valid_dataset)}")
-        train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=False)
-        valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=False)
+        train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
+        valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
 
         return dataset, train_data_loader, valid_data_loader
 

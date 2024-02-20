@@ -77,7 +77,7 @@ def sub_stream_network_configs(cfg) -> Dict:
             "channels":
                 [1, 32, 48, 64, 128, 192, 256],
             "embedded_dim":
-                1024,
+                128,
             "train":
                 {
                     "cure": {
@@ -158,7 +158,7 @@ def sub_stream_network_configs(cfg) -> Dict:
             "channels":
                 [1, 32, 48, 64, 128, 192, 256],
             "embedded_dim":
-                1024,
+                128,
             "train":
                 {
                     "cure": {
@@ -238,7 +238,7 @@ def sub_stream_network_configs(cfg) -> Dict:
             "channels":
                 [3, 64, 96, 128, 256, 384, 512],
             "embedded_dim":
-                1024,
+                256,
             "train":
                 {
                     "cure": {
@@ -318,7 +318,7 @@ def sub_stream_network_configs(cfg) -> Dict:
             "channels":
                 [1, 32, 48, 64, 128, 192, 256],
             "embedded_dim":
-                1024,
+                128,
             "train":
                 {
                     "cure": {

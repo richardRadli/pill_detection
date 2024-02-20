@@ -14,7 +14,6 @@ import os
 import pandas as pd
 import torch
 
-from sklearn.neighbors import NearestNeighbors
 from torchvision import transforms
 from tqdm import tqdm
 from typing import List, Tuple
@@ -62,11 +61,11 @@ class PredictStreamNetwork:
         self.sub_network_config = sub_stream_network_configs(self.cfg)
 
         # Load networks
-        self.network_rgb = self.load_networks()
-        # self.network_con.eval()
-        # self.network_lbp.eval()
+        self.network_con, self.network_lbp, self.network_rgb, self.network_tex = self.load_networks()
+        self.network_con.eval()
+        self.network_lbp.eval()
         self.network_rgb.eval()
-        # self.network_tex.eval()
+        self.network_tex.eval()
 
         # Preprocess images
         self.preprocess_rgb = \
@@ -119,34 +118,34 @@ class PredictStreamNetwork:
         rgb_config = self.sub_network_config.get("RGB")
         tex_config = self.sub_network_config.get("Texture")
 
-        # latest_con_pt_file = find_latest_file_in_latest_directory(
-        #     path=con_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
-        #     type_of_loss=self.cfg.type_of_loss_func
-        # )
-        # latest_lbp_pt_file = find_latest_file_in_latest_directory(
-        #     path=lbp_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
-        #     type_of_loss=self.cfg.type_of_loss_func
-        # )
+        latest_con_pt_file = find_latest_file_in_latest_directory(
+            path=con_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+            type_of_loss=self.cfg.type_of_loss_func
+        )
+        latest_lbp_pt_file = find_latest_file_in_latest_directory(
+            path=lbp_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+            type_of_loss=self.cfg.type_of_loss_func
+        )
         latest_rgb_pt_file = find_latest_file_in_latest_directory(
             path=rgb_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
             type_of_loss=self.cfg.type_of_loss_func
         )
-        # latest_tex_pt_file = find_latest_file_in_latest_directory(
-        #     path=tex_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
-        #     type_of_loss=self.cfg.type_of_loss_func
-        # )
+        latest_tex_pt_file = find_latest_file_in_latest_directory(
+            path=tex_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+            type_of_loss=self.cfg.type_of_loss_func
+        )
 
-        # network_con = NetworkFactory.create_network(self.cfg.type_of_net, con_config)
-        # network_lbp = NetworkFactory.create_network(self.cfg.type_of_net, lbp_config)
+        network_con = NetworkFactory.create_network(self.cfg.type_of_net, con_config)
+        network_lbp = NetworkFactory.create_network(self.cfg.type_of_net, lbp_config)
         network_rgb = NetworkFactory.create_network(self.cfg.type_of_net, rgb_config)
-        # network_tex = NetworkFactory.create_network(self.cfg.type_of_net, tex_config)
+        network_tex = NetworkFactory.create_network(self.cfg.type_of_net, tex_config)
 
-        # network_con.load_state_dict(torch.load(latest_con_pt_file))
-        # network_lbp.load_state_dict(torch.load(latest_lbp_pt_file))
+        network_con.load_state_dict(torch.load(latest_con_pt_file))
+        network_lbp.load_state_dict(torch.load(latest_lbp_pt_file))
         network_rgb.load_state_dict(torch.load(latest_rgb_pt_file))
-        # network_tex.load_state_dict(torch.load(latest_tex_pt_file))
+        network_tex.load_state_dict(torch.load(latest_tex_pt_file))
 
-        return network_rgb
+        return network_con, network_lbp, network_rgb, network_tex
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
@@ -170,50 +169,51 @@ class PredictStreamNetwork:
         images_path = []
 
         # Move the model to the GPU
-        # self.network_con = self.network_con.to(self.device)
-        # self.network_lbp = self.network_lbp.to(self.device)
+        self.network_con = self.network_con.to(self.device)
+        self.network_lbp = self.network_lbp.to(self.device)
         self.network_rgb = self.network_rgb.to(self.device)
-        # self.network_tex = self.network_tex.to(self.device)
+        self.network_tex = self.network_tex.to(self.device)
 
         for image_name in tqdm(medicine_classes, desc=color + "\nProcess %s images" % operation):
             # Collecting images
-            # image_paths_con = os.listdir(os.path.join(contour_dir, image_name))
+            image_paths_con = os.listdir(os.path.join(contour_dir, image_name))
+            image_paths_lbp = os.listdir(os.path.join(lbp_dir, image_name))
             image_paths_rgb = os.listdir(os.path.join(rgb_dir, image_name))
-            # image_paths_tex = os.listdir(os.path.join(texture_dir, image_name))
-            # image_paths_lbp = os.listdir(os.path.join(lbp_dir, image_name))
+            image_paths_tex = os.listdir(os.path.join(texture_dir, image_name))
 
-            for idx, (rgb) in (
-                    enumerate(image_paths_rgb)):
+            for idx, (con, lbp, rgb, tex) in enumerate(zip(
+                    image_paths_con, image_paths_lbp, image_paths_rgb, image_paths_tex)
+            ):
                 # Open images and convert them to tensors
-                # con_image = Image.open(os.path.join(contour_dir, image_name, con))
-                # con_image = self.preprocess_con_tex(con_image)
-                #
-                # lbp_image = Image.open(os.path.join(lbp_dir, image_name, lbp))
-                # lbp_image = self.preprocess_con_tex(lbp_image)
+                con_image = Image.open(os.path.join(contour_dir, image_name, con))
+                con_image = self.preprocess_con_tex(con_image)
+
+                lbp_image = Image.open(os.path.join(lbp_dir, image_name, lbp))
+                lbp_image = self.preprocess_con_tex(lbp_image)
 
                 rgb_image = Image.open(os.path.join(rgb_dir, image_name, rgb))
                 images_path.append(os.path.join(rgb_dir, image_name, rgb))
                 rgb_image = self.preprocess_rgb(rgb_image)
 
-                # tex_image = Image.open(os.path.join(texture_dir, image_name, tex))
-                # tex_image = self.preprocess_con_tex(tex_image)
+                tex_image = Image.open(os.path.join(texture_dir, image_name, tex))
+                tex_image = self.preprocess_con_tex(tex_image)
 
                 # Make prediction
                 with torch.no_grad():
                     # Move input to GPU
-                    # con_image = con_image.unsqueeze(0).to(self.device)
-                    # lbp_image = lbp_image.unsqueeze(0).to(self.device)
+                    con_image = con_image.unsqueeze(0).to(self.device)
+                    lbp_image = lbp_image.unsqueeze(0).to(self.device)
                     rgb_image = rgb_image.unsqueeze(0).to(self.device)
-                    # tex_image = tex_image.unsqueeze(0).to(self.device)
+                    tex_image = tex_image.unsqueeze(0).to(self.device)
 
                     # Perform computation on GPU and move result back to CPU
-                    # vector1 = self.network_con(con_image).squeeze().cpu()
-                    # vector2 = self.network_lbp(lbp_image).squeeze().cpu()
+                    vector1 = self.network_con(con_image).squeeze().cpu()
+                    vector2 = self.network_lbp(lbp_image).squeeze().cpu()
                     vector3 = self.network_rgb(rgb_image).squeeze().cpu()
-                    # vector4 = self.network_tex(tex_image).squeeze().cpu()
+                    vector4 = self.network_tex(tex_image).squeeze().cpu()
 
-                # concatenated = torch.cat((vector1, vector2, vector3, vector4), dim=0)
-                vectors.append(vector3)
+                concatenated = torch.cat((vector1, vector2, vector3, vector4), dim=0)
+                vectors.append(concatenated)
                 labels.append(image_name)
 
             if operation == "reference":
@@ -305,86 +305,6 @@ class PredictStreamNetwork:
             self.top5_indices.append(index)
 
         return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
-
-    def compare_query_ref_vectors_knn(self, q_labels: List[str], r_labels: List[str], reference_vectors: list,
-                                      query_vectors: list, n_neighbors: int = 5) \
-            -> Tuple[List[str], List[str], List[int]]:
-        """
-        This method measures the k-Nearest Neighbors between two sets of labels (q_labels and r_labels) and their
-        corresponding embedded vectors (query_vectors and reference_vectors) using k-Nearest Neighbors algorithm.
-        It returns the original query labels, predicted medicine labels, and the indices of the most similar medicines
-        in the reference set.
-
-        :param q_labels: a list of ground truth medicine names
-        :param r_labels: a list of reference medicine names
-        :param reference_vectors: a list of embedded vectors for the reference set
-        :param query_vectors: a list of embedded vectors for the query set
-        :param n_neighbors: the number of neighbors to consider in the k-NN algorithm
-        :return: the original query labels, predicted medicine labels, and indices of the most similar medicines in the
-        reference set
-        """
-
-        logging.info("Comparing query and reference vectors using kNN")
-
-        predicted_medicine_knn = []
-        corresp_sim_knn = []
-        most_similar_indices_knn = []
-
-        # convert PyTorch Tensor to numpy array
-        reference_vectors_array = np.array([vec.numpy() for vec in reference_vectors]) \
-            if isinstance(reference_vectors[0], torch.Tensor) else np.array(reference_vectors)
-        query_vectors_array = np.array([vec.numpy() for vec in query_vectors]) \
-            if isinstance(query_vectors[0], torch.Tensor) else np.array(query_vectors)
-
-        # Initialise our KNN model. n_neighbors is manually set to 5. You can change this as needed
-        knn_model = NearestNeighbors(n_neighbors=n_neighbors, algorithm='ball_tree')
-        knn_model.fit(reference_vectors_array)
-
-        for idx_query, query_vector in tqdm(enumerate(query_vectors_array),
-                                            total=len(query_vectors_array),
-                                            desc="Comparing process"):
-
-            # Fetch distance and indices of the nearest neighbours in the reference set
-            scores_knn, indices_knn = knn_model.kneighbors([query_vector])
-
-            # Convert the distances to a list for further processing
-            similarity_scores_knn_dist = scores_knn.tolist()[0]
-            corresp_sim_knn.append(similarity_scores_knn_dist)
-
-            # Store the first index (which is the closest in KNN's n_neighbors) and the associated label
-            predicted = indices_knn[0][0]
-            predicted_medicine_knn.append(r_labels[predicted])
-
-            # Calculate most similar indices for k-NN
-            most_similar_indices_knn.append(predicted)
-
-            # Calculate top-1 accuracy
-            if r_labels[predicted] == q_labels[idx_query]:
-                self.num_correct_top1 += 1
-
-            # Calculate top-5 accuracy. Take note that in KNN, the closest 5 neighbors are returned sorted in increasing
-            # distance order
-            top5_predicted_medicines = [r_labels[i] for i in indices_knn[0]]
-            if q_labels[idx_query] in top5_predicted_medicines:
-                self.num_correct_top5 += 1
-
-            # Find index position of the ground truth medicine
-            index = top5_predicted_medicines.index(q_labels[idx_query]) \
-                if q_labels[idx_query] in top5_predicted_medicines else -1
-            self.top5_indices.append(index)
-
-        self.accuracy_top1 = self.num_correct_top1 / len(query_vectors)
-        self.accuracy_top5 = self.num_correct_top5 / len(query_vectors)
-
-        # Calculate confidence
-        # Flatten the list of lists to get a single list of all similarity scores
-        flat_similarity_scores = [max(sublist) for sublist in corresp_sim_knn]
-
-        # Calculate confidence
-        confidence_percentages = [1 - (score / max(flat_similarity_scores)) for score in flat_similarity_scores]
-        self.confidence_percentages = [cp * 100 for cp in confidence_percentages]
-
-        return q_labels, predicted_medicine_knn, most_similar_indices_knn
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- D I S P L A Y   R E S U L T S ------------------------------------------
