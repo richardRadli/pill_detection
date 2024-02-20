@@ -98,6 +98,7 @@ class EfficientNetMultiHeadAttention(nn.Module):
                      network_cfg_texture.get("embedded_dim"))
 
         self.fc1 = nn.Linear(input_dim, input_dim)
+        self.fc2 = nn.Linear(input_dim, input_dim)
         self.relu = nn.ReLU()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -127,6 +128,7 @@ class EfficientNetMultiHeadAttention(nn.Module):
 
         x = torch.cat((x1, x2, x3, x4), dim=1)
         x = self.fc1(x)
+        x = self.fc2(x)
         x = self.relu(x)
 
         return x
@@ -155,7 +157,7 @@ class EfficientNetMultiHeadAttention(nn.Module):
 
         multi_head_module = self.multi_head_modules.get(sub_stream)
         if multi_head_module is None:
-            raise ValueError("Invalid sub_stream value. I")
+            raise ValueError("Invalid sub_stream value")
 
         attention_output, _ = multi_head_module(queries, keys, values)
         attention_output = attention_output.permute(1, 0, 2)
