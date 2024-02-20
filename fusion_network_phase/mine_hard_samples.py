@@ -36,7 +36,7 @@ def preprocess_path(paths):
     return tuple(preprocessed_paths)
 
 
-def find_common_triplets(*lists):
+def find_union_triplets(*lists):
     """
 
     :param lists:
@@ -44,9 +44,9 @@ def find_common_triplets(*lists):
     """
 
     preprocessed_lists = [[preprocess_path(path) for path in triplet] for triplet in lists]
-    common_triplets = (set(preprocessed_lists[0]) | set(preprocessed_lists[1]) |
-                       set(preprocessed_lists[2]) | set(preprocessed_lists[3]))
-    return common_triplets
+    union_triplets = (set(preprocessed_lists[0]) | set(preprocessed_lists[1]) |
+                      set(preprocessed_lists[2]) | set(preprocessed_lists[3]))
+    return union_triplets
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -65,28 +65,28 @@ def get_hardest_samples():
 
     latest_hard_samples_contour = (
         find_latest_file_in_latest_directory(
-            path=hard_sample_paths.get("hard_sample").get("contour").get(cfg.dataset_type),
+            path=hard_sample_paths.get("hard_sample").get("Contour").get(cfg.dataset_type),
             type_of_loss=cfg.type_of_loss_func
         )
     )
 
     latest_hard_samples_lbp = (
         find_latest_file_in_latest_directory(
-            path=hard_sample_paths.get("hard_sample").get("lbp").get(cfg.dataset_type),
+            path=hard_sample_paths.get("hard_sample").get("LBP").get(cfg.dataset_type),
             type_of_loss=cfg.type_of_loss_func
         )
     )
 
     latest_hard_samples_rgb = (
         find_latest_file_in_latest_directory(
-            path=hard_sample_paths.get("hard_sample").get("rgb").get(cfg.dataset_type),
+            path=hard_sample_paths.get("hard_sample").get("RGB").get(cfg.dataset_type),
             type_of_loss=cfg.type_of_loss_func
         )
     )
 
     latest_hard_samples_texture = (
         find_latest_file_in_latest_directory(
-            path=hard_sample_paths.get("hard_sample").get("texture").get(cfg.dataset_type),
+            path=hard_sample_paths.get("hard_sample").get("Texture").get(cfg.dataset_type),
             type_of_loss=cfg.type_of_loss_func
         )
     )
@@ -97,8 +97,8 @@ def get_hardest_samples():
     hardest_rgb_triplets = mine_hard_triplets(latest_hard_samples_rgb)
     hardest_texture_triplets = mine_hard_triplets(latest_hard_samples_texture)
 
-    common_triplets = find_common_triplets(hardest_contour_triplets, hardest_lpb_triplets,
-                                           hardest_rgb_triplets, hardest_texture_triplets)
+    common_triplets = find_union_triplets(hardest_contour_triplets, hardest_lpb_triplets,
+                                          hardest_rgb_triplets, hardest_texture_triplets)
 
     stream_contour_anchor = sub_stream_cfg.get("Contour").get("train").get(cfg.dataset_type).get("anchor")
     stream_contour_pos_neg = sub_stream_cfg.get("Contour").get("train").get(cfg.dataset_type).get("pos_neg")

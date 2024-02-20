@@ -26,7 +26,6 @@ def main(operation: str = "test"):
     directory_path = train_annotations if operation == "train" else (
         valid_annotations if operation == "valid" else test_annotations
     )
-
     class_id_mapping = {}
 
     for filename in sorted_alphanumeric(os.listdir(directory_path)):
