@@ -113,7 +113,7 @@ class ConfigFusionNetwork:
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
-        self.parser.add_argument("--epochs", type=int, default=20)
+        self.parser.add_argument("--epochs", type=int, default=15)
         self.parser.add_argument("--batch_size", type=int, default=64)
         self.parser.add_argument("--learning_rate", type=float, default=1e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-3)
