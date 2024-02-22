@@ -69,7 +69,7 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--dataset_type", type=str, default="cure", choices=["cure | ogyei | nih"])
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNet", choices=["EfficientNet"])
-        self.parser.add_argument("--type_of_stream", type=str, default="Texture",
+        self.parser.add_argument("--type_of_stream", type=str, default="LBP",
                                  choices=["Contour | LBP | RGB | Texture"])
 
         self.parser.add_argument("--type_of_loss_func", type=str, default="hmtl", help="hmtl | dmtl")
@@ -111,10 +111,10 @@ class ConfigFusionNetwork:
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetMultiHeadAttention")
         self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
-        self.parser.add_argument("--margin", type=float, default=0.5)
+        self.parser.add_argument("--margin", type=float, default=0.7)
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
-        self.parser.add_argument("--epochs", type=int, default=15)
-        self.parser.add_argument("--batch_size", type=int, default=64)
+        self.parser.add_argument("--epochs", type=int, default=7)
+        self.parser.add_argument("--batch_size", type=int, default=32)
         self.parser.add_argument("--learning_rate", type=float, default=1e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-3)
         self.parser.add_argument('--step_size', type=int, default=2,

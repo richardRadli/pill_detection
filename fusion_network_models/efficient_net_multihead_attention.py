@@ -29,6 +29,7 @@ class EfficientNetMultiHeadAttention(nn.Module):
         :param network_cfg_rgb: Configuration for the RGB network.
         :param network_cfg_texture: Configuration for the texture network.
         """
+
         super(EfficientNetMultiHeadAttention, self).__init__()
 
         stream_net_cfg = ConfigStreamNetwork().parse()
@@ -109,9 +110,9 @@ class EfficientNetMultiHeadAttention(nn.Module):
         This is the forward function of the FusionNet.
 
         :param x1: input tensor for contour stream, with shape [batch_size, 1, height, width]
-        :param x2: input tensor for RGB stream, with shape [batch_size, 3, height, width]
-        :param x3: input tensor for texture stream, with shape [batch_size, 1, height, width]
-        :param x4: input tensor for LBP stream, with shape [batch_size, 1, height, width]
+        :param x2: input tensor for LBP stream, with shape [batch_size, 1, height, width]
+        :param x3: input tensor for RGB stream, with shape [batch_size, 3, height, width]
+        :param x4: input tensor for texture stream, with shape [batch_size, 1, height, width]
 
         :return: output tensor with shape [batch_size, 640] after passing through fully connected layers.
         """
@@ -157,7 +158,7 @@ class EfficientNetMultiHeadAttention(nn.Module):
 
         multi_head_module = self.multi_head_modules.get(sub_stream)
         if multi_head_module is None:
-            raise ValueError("Invalid sub_stream value")
+            raise ValueError("Invalid sub_stream value. I")
 
         attention_output, _ = multi_head_module(queries, keys, values)
         attention_output = attention_output.permute(1, 0, 2)
