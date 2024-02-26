@@ -41,16 +41,16 @@ def split_dataset(dataset_path, test_ratio=0.20, random_seed=42):
     return train_set, val_set, test_set, len(image_filenames)
 
 
-def copy_files(split_set, dataset_images_path, dataset_bbox_path, dataset_segmentation_path, dst_dataset_images_path,
-               dst_dataset_bbox_path, dst_segmentation_path):
+def copy_files(split_set, dataset_images_path, dataset_segmentation_path, dataset_mask_path, dst_dataset_images_path,
+               dst_segmentation_path, dst_mask_path):
     for file in tqdm(split_set):
         src_img = os.path.join(dataset_images_path, file)
         file_txt = file.replace(".jpg", ".txt")
-        src_bbox = os.path.join(dataset_bbox_path, file_txt)
         src_seg = os.path.join(dataset_segmentation_path, file_txt)
+        src_mask = os.path.join(dataset_mask_path, file)
         shutil.copy(str(src_img), dst_dataset_images_path)
-        shutil.copy(str(src_bbox), dst_dataset_bbox_path)
         shutil.copy(str(src_seg), dst_segmentation_path)
+        shutil.copy(str(src_mask), dst_mask_path)
 
 
 def set_len(set_name):
@@ -63,41 +63,41 @@ def main():
     dataset_images_path = (
         dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer").get("customer_images")
     )
-    dataset_bbox_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer").get("customer_pixel_bbox_labels")
-    )
     dataset_segmentation_path = (
         dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer").get("customer_segmentation_labels")
+    )
+    dataset_mask_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer").get("customer_mask_images")
     )
 
     dst_train_dataset_images_path = (
         dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train").get("images")
     )
-    dst_train_dataset_bbox_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train").get("bbox_pixel_labels")
-    )
     dst_train_segmentation_path = (
         dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train").get("segmentation_labels")
+    )
+    dst_train_mask_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train").get("mask_images")
     )
 
     dst_valid_dataset_images_path = (
         dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid").get("images")
     )
-    dst_valid_dataset_bbox_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid").get("bbox_pixel_labels")
-    )
     dst_valid_segmentation_path = (
         dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid").get("segmentation_labels")
+    )
+    dst_valid_mask_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid").get("mask_images")
     )
 
     dst_test_dataset_images_path = (
         dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test").get("images")
     )
-    dst_test_dataset_bbox_path = (
-        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test").get("bbox_pixel_labels")
-    )
     dst_test_segmentation_path = (
         dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test").get("segmentation_labels")
+    )
+    dst_test_mask_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test").get("mask_images")
     )
 
     train_set, val_set, test_set, number_of_images = split_dataset(dataset_path=dataset_images_path)
@@ -119,31 +119,31 @@ def main():
     copy_files(
         split_set=train_set,
         dataset_images_path=dataset_images_path,
-        dataset_bbox_path=dataset_bbox_path,
         dataset_segmentation_path=dataset_segmentation_path,
+        dataset_mask_path=dataset_mask_path,
         dst_dataset_images_path=dst_train_dataset_images_path,
-        dst_dataset_bbox_path=dst_train_dataset_bbox_path,
-        dst_segmentation_path=dst_train_segmentation_path
+        dst_segmentation_path=dst_train_segmentation_path,
+        dst_mask_path=dst_train_mask_path
     )
 
     copy_files(
         split_set=val_set,
         dataset_images_path=dataset_images_path,
-        dataset_bbox_path=dataset_bbox_path,
         dataset_segmentation_path=dataset_segmentation_path,
+        dataset_mask_path=dataset_mask_path,
         dst_dataset_images_path=dst_valid_dataset_images_path,
-        dst_dataset_bbox_path=dst_valid_dataset_bbox_path,
-        dst_segmentation_path=dst_valid_segmentation_path
+        dst_segmentation_path=dst_valid_segmentation_path,
+        dst_mask_path=dst_valid_mask_path
     )
 
     copy_files(
         split_set=test_set,
         dataset_images_path=dataset_images_path,
-        dataset_bbox_path=dataset_bbox_path,
         dataset_segmentation_path=dataset_segmentation_path,
+        dataset_mask_path=dataset_mask_path,
         dst_dataset_images_path=dst_test_dataset_images_path,
-        dst_dataset_bbox_path=dst_test_dataset_bbox_path,
-        dst_segmentation_path=dst_test_segmentation_path
+        dst_segmentation_path=dst_test_segmentation_path,
+        dst_mask_path=dst_test_mask_path
     )
 
 
