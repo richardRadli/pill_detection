@@ -3,15 +3,19 @@ import os
 import shutil
 import random
 
+from tqdm import tqdm
+
 from config.config import ConfigStreamNetwork
 from config.config_selector import dataset_images_path_selector
 from utils.utils import create_timestamp, find_latest_file_in_directory
 
 
 class KFoldSort:
-    def __init__(self, load_folds):
+    def __init__(self, load_folds, fold_name, erase):
         self.stream_cfg = ConfigStreamNetwork().parse()
         self.load_folds = load_folds
+        self.fold_name = fold_name
+        self.erase = erase
 
     def folds(self, load: bool = False, num_folds: int = None) -> dict:
         """
@@ -19,7 +23,7 @@ class KFoldSort:
 
         :param load: If True, load k-folds from a previously generated file. If False, generate new k-folds.
         :param num_folds: Number of folds.
-        :return: A dictionary where keys are fold names (fold1, fold2, ..., fold_{num_fodls}) and values are lists of
+        :return: A dictionary where keys are fold names (fold1, fold2, ..., fold_{num_folds}) and values are lists of
         class names.
         """
 
@@ -113,44 +117,54 @@ class KFoldSort:
         src_subdirectories = ['contour', 'lbp', 'rgb', 'texture']
         dst_subdirectories = ['contour', 'lbp', 'rgb', 'texture']
 
-        for source_dir, dst_dir in zip(src_subdirectories, dst_subdirectories):
+        for source_dir, dst_dir in tqdm(zip(src_subdirectories, dst_subdirectories),
+                                        total=len(src_subdirectories),
+                                        desc="Stream directories"):
             source_dir = os.path.join(source_root, source_dir)
             dst_dir = os.path.join(destination_root, dst_dir)
 
-            for folder in classes_data_role:
+            for folder in tqdm(classes_data_role,
+                               total=len(classes_data_role),
+                               desc="Pill folders"):
                 source_path = os.path.join(str(source_dir), folder)
                 dst_path = os.path.join(str(dst_dir), folder.lower())
 
                 if os.path.exists(source_path):
                     os.makedirs(dst_path, exist_ok=True)
 
-                    for item in os.listdir(source_path):
+                    for item in (os.listdir(source_path)):
                         source_item = os.path.join(source_path, item)
                         dst_item = os.path.join(dst_path, item)
                         shutil.copy(source_item, dst_item)
-                    print(f"Copied {folder} from {source_path} to {dst_path}")
                 else:
-                    print(f"Folder {folder} not found in {source_path}")
+                    logging.error(f"Folder {folder} not found in {source_path}")
 
     def erase_files(self):
         """
         Remove directories corresponding to the test set.
         :return: None
         """
-        pass
+        root = (
+            dataset_images_path_selector(self.stream_cfg.dataset_type).get("dst_stream_images")
+        )
+
+        for _, value in root.items():
+            logging.info("Removing {}".format(value))
+            shutil.rmtree(value)
 
     def main(self):
+        if self.erase:
+            self.erase_files()
         if self.load_folds:
             sorted_folds = self.folds(load=True)
         else:
             sorted_folds = self.folds(load=False, num_folds=5)
-        self.move_images_to_folds(sorted_folds, "fold2", operation="reference", data_role="train")
-        self.move_images_to_folds(sorted_folds, "fold2", operation="reference", data_role="test")
-        self.move_images_to_folds(sorted_folds, "fold2", operation="customer", data_role="train")
-        self.move_images_to_folds(sorted_folds, "fold2", operation="customer", data_role="test")
-        # erase_files()
+        self.move_images_to_folds(sorted_folds, self.fold_name, operation="reference", data_role="train")
+        self.move_images_to_folds(sorted_folds, self.fold_name, operation="reference", data_role="test")
+        self.move_images_to_folds(sorted_folds, self.fold_name, operation="customer", data_role="train")
+        self.move_images_to_folds(sorted_folds, self.fold_name, operation="customer", data_role="test")
 
 
 if __name__ == "__main__":
-    k_fold_sort = KFoldSort(load_folds=True)
+    k_fold_sort = KFoldSort(load_folds=True, fold_name="fold3", erase=True)
     k_fold_sort.main()
