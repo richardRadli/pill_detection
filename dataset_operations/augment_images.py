@@ -1,11 +1,12 @@
 import colorama
 import concurrent.futures
+import gc
 import random
 
 from tqdm import tqdm
 
-from augmentation_utils import (change_brightness, gaussian_smooth, rotate_image, shift_image, zoom_in_object,
-                                change_white_balance, change_background_dtd)
+from augmentation_utils import (change_brightness, gaussian_smooth, rotate_image_segmentation, shift_image_segmentation,
+                                zoom_in_object_segmentation, change_white_balance, change_background_dtd)
 from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
 from utils.utils import file_reader
@@ -22,7 +23,7 @@ class AugmentCUREDataset:
             dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("images")
         )
         self.training_annotations = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("yolo_labels")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("segmentation_labels")
         )
         self.train_masks = (
             dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("mask_images")
@@ -42,7 +43,7 @@ class AugmentCUREDataset:
             dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("images")
         )
         self.valid_annotations = (
-            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("yolo_labels")
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("segmentation_labels")
         )
         self.valid_masks = (
             dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("mask_images")
@@ -117,36 +118,36 @@ class AugmentCUREDataset:
                           exposure_factor=random.uniform(
                               self.cfg_aug.brightness_low_thr, self.cfg_aug.brightness_high_thr
                           ))
-        rotate_image(image_path=image_path,
-                     annotation_path=anno_path,
-                     mask_path=mask_path,
-                     aug_img_path=aug_image_path,
-                     aug_annotation_path=aug_anno_path,
-                     aug_mask_path=aug_mask_path,
-                     angle=self.cfg_aug.rotate_1)
-        rotate_image(image_path=image_path,
-                     annotation_path=anno_path,
-                     mask_path=mask_path,
-                     aug_img_path=aug_image_path,
-                     aug_annotation_path=aug_anno_path,
-                     aug_mask_path=aug_mask_path,
-                     angle=self.cfg_aug.rotate_2)
-        shift_image(image_path=image_path,
-                    annotation_path=anno_path,
-                    mask_path=mask_path,
-                    aug_img_path=aug_image_path,
-                    aug_annotation_path=aug_anno_path,
-                    aug_mask_path=aug_mask_path,
-                    shift_x=self.cfg_aug.shift_x,
-                    shift_y=self.cfg_aug.shift_y
-                    )
-        zoom_in_object(image_path=image_path,
-                       annotation_path=anno_path,
-                       mask_path=mask_path,
-                       aug_img_path=aug_image_path,
-                       aug_annotation_path=aug_anno_path,
-                       aug_mask_path=aug_mask_path,
-                       crop_size=self.cfg_aug.zoom)
+        rotate_image_segmentation(image_path=image_path,
+                                  annotation_path=anno_path,
+                                  mask_path=mask_path,
+                                  aug_img_path=aug_image_path,
+                                  aug_annotation_path=aug_anno_path,
+                                  aug_mask_path=aug_mask_path,
+                                  angle=self.cfg_aug.rotate_1)
+        rotate_image_segmentation(image_path=image_path,
+                                  annotation_path=anno_path,
+                                  mask_path=mask_path,
+                                  aug_img_path=aug_image_path,
+                                  aug_annotation_path=aug_anno_path,
+                                  aug_mask_path=aug_mask_path,
+                                  angle=self.cfg_aug.rotate_2)
+        shift_image_segmentation(image_path=image_path,
+                                 annotation_path=anno_path,
+                                 mask_path=mask_path,
+                                 aug_img_path=aug_image_path,
+                                 aug_annotation_path=aug_anno_path,
+                                 aug_mask_path=aug_mask_path,
+                                 shift_x=self.cfg_aug.shift_x,
+                                 shift_y=self.cfg_aug.shift_y
+                                 )
+        zoom_in_object_segmentation(image_path=image_path,
+                                    annotation_path=anno_path,
+                                    mask_path=mask_path,
+                                    aug_img_path=aug_image_path,
+                                    aug_annotation_path=aug_anno_path,
+                                    aug_mask_path=aug_mask_path,
+                                    crop_size=self.cfg_aug.zoom)
 
     def change_bg(self, image_path, anno_path, mask_path, aug_img_path, aug_anno_path):
         """
@@ -192,6 +193,7 @@ class AugmentCUREDataset:
             for image_path, annotation_path, mask_path in zip(image_files, annotation_files, mask_files):
                 future = executor.submit(self.change_bg, image_path, annotation_path, mask_path, aug_image, aug_anno)
                 futures.append(future)
+                gc.collect()
 
             for _ in tqdm(concurrent.futures.as_completed(futures),
                           total=len(futures),

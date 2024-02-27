@@ -47,7 +47,7 @@ def rename_file(src_path: str, dst_path: str, op: str) -> str:
 
     while os.path.isfile(final_file_name):
         counter += 1
-        final_file_name = os.path.join(directory, f"{new_filename}_{counter}{extension}")
+        final_file_name = os.path.join(dst_path, f"{new_filename}_{counter}{extension}")
 
     return final_file_name
 
