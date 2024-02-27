@@ -81,7 +81,7 @@ class Images(_Const):
         "stream_images_cure_pos_neg":
             "images/cure/stream_images/pos_neg",
 
-        # --------------------------------------- R E F   T R A I N   A N C H O R --------------------------------------
+        # ------------------------------------------------- A N C H O R ------------------------------------------------
         "train_contour_stream_cure_anchor":
             "images/cure/stream_images/anchor/contour",
         "train_lbp_stream_cure_anchor":
@@ -91,7 +91,7 @@ class Images(_Const):
         "train_texture_stream_cure_anchor":
             "images/cure/stream_images/anchor/texture",
 
-        # -------------------------------------------- R E F   A N C H O R ---------------------------------------------
+        # ----------------------------------------------- P O S   N E G ------------------------------------------------
         "contour_stream_cure_pos_neg":
             "images/cure/stream_images/pos_neg/contour",
         "lbp_stream_cure_pos_neg":
@@ -143,20 +143,30 @@ class Images(_Const):
 
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I ++++++++++++++++++++++++++++++++++++++++++++++++
-        "stream_images_ogyei":
-            "images/ogyei/stream_images",
-        "stream_images_ogyei_test":
-            "images/ogyei/test",
+        "stream_images_ogyei_anchor":
+            "images/ogyei/stream_images/anchor",
+        "stream_images_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg",
 
-        # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
-        "train_contour_stream_ogyei":
-            "images/ogyei/stream_images/contour",
-        "train_lbp_stream_ogyei":
-            "images/ogyei/stream_images/lbp",
-        "train_rgb_stream_ogyei":
-            "images/ogyei/stream_images/rgb",
-        "train_texture_stream_ogyei":
-            "images/ogyei/stream_images/texture",
+        # ------------------------------------------------- A N C H O R ------------------------------------------------
+        "train_contour_stream_ogyei_anchor":
+            "images/ogyei/stream_images/anchor/contour",
+        "train_lbp_stream_ogyei_anchor":
+            "images/ogyei/stream_images/anchor/lbp",
+        "train_rgb_stream_ogyei_anchor":
+            "images/ogyei/stream_images/anchor/rgb",
+        "train_texture_stream_ogyei_anchor":
+            "images/ogyei/stream_images/anchor/texture",
+
+        # ----------------------------------------------- P O S   N E G ------------------------------------------------
+        "contour_stream_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg/contour",
+        "lbp_stream_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg/lbp",
+        "rgb_stream_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg/rgb",
+        "texture_stream_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg/texture",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
         "test_query_ogyei":
@@ -395,6 +405,16 @@ class Data(_Const):
         "logs_fusion_network_efficient_net_multi_head_attention_ogyei":
             "data/ogyei/logs/fusion_net/efficient_net_multi_head_attention",
 
+        # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
+        "hardest_samples_efficient_net_contour_ogyei":
+            "data/ogyei/hardest_samples/efficient_net/contour",
+        "hardest_samples_efficient_net_lbp_ogyei":
+            "data/ogyei/hardest_samples/efficient_net/lbp",
+        "hardest_samples_efficient_net_rgb_ogyei":
+            "data/ogyei/hardest_samples/efficient_net/rgb",
+        "hardest_samples_efficient_net_texture_ogyei":
+            "data/ogyei/hardest_samples/efficient_net/texture",
+
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
         "predictions_efficient_net_ogyei":
@@ -447,6 +467,16 @@ class Data(_Const):
         "logs_fusion_network_efficient_net_multi_head_attention_nih":
             "data/nih/logs/fusion_net/efficient_net_multi_head_attention",
 
+        # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
+        "hardest_samples_efficient_net_contour_nih":
+            "data/nih/hardest_samples/efficient_net/contour",
+        "hardest_samples_efficient_net_lbp_nih":
+            "data/nih/hardest_samples/efficient_net/lbp",
+        "hardest_samples_efficient_net_rgb_nih":
+            "data/nih/hardest_samples/efficient_net/rgb",
+        "hardest_samples_efficient_net_texture_nih":
+            "data/nih/hardest_samples/efficient_net/texture",
+
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
         "predictions_efficient_net_nih":
@@ -497,6 +527,8 @@ class Datasets(_Const):
             "cure/Reference/images",
         "cure_reference_mask_images":
             "cure/Reference/mask_images",
+        "cure_reference_segmentation_labels":
+            "cure/Reference/segmentation_labels",
         "cure_reference_yolo_labels":
             "cure/Reference/yolo_labels",
 
@@ -583,67 +615,67 @@ class Datasets(_Const):
             "dtd_images",
 
         # ------------------------------------------------- O G Y E I --------------------------------------------------
-        # Unsplitted
-        "ogyei_v2_unsplitted_images":
-            "ogyei_v2/unsplitted/images",
-        "ogyei_v2_unsplitted_labels":
-            "ogyei_v2/unsplitted/labels",
-        "ogyei_v2_unsplitted_gt_masks":
-            "ogyei_v2/unsplitted/gt_masks",
+        # CUSTOMER
+        "ogyei_customer_images":
+            "ogyei/Customer/images",
+        "ogyei_customer_segmentation_labels":
+            "ogyei/Customer/segmentation_labels",
+        "ogyei_customer_mask_images":
+            "ogyei/Customer/mask_images",
 
-        # Train images, labels and masks
-        "ogyei_v2_splitted_train_images":
-            "ogyei_v2/splitted/train/images",
-        "ogyei_v2_splitted_train_labels":
-            "ogyei_v2/splitted/train/labels",
-        "ogyei_v2_splitted_gt_train_masks":
-            "ogyei_v2/splitted/train/gt_train_masks",
-        "ogyei_v2_splitted_train_bbox_pixel_labels":
-            "ogyei_v2/splitted/train/bbox_labels",
-        "ogyei_v2_splitted_train_yolo_labels":
-            "ogyei_v2/splitted/train/yolo_labels",
-        "ogyei_v2_splitted_train_aug_images":
-            "ogyei_v2/splitted_aug/train_dir/images",
-        "ogyei_v2_splitted_train_aug_yolo_labels":
-            "ogyei_v2/splitted_aug/train_dir/yolo_labels",
-        "ogyei_v2_splitted_train_aug_mask_images":
-            "ogyei_v2/splitted_aug/train_dir/mask_images",
+        # REFERENCE
+        "ogyei_reference_images":
+            "ogyei/Reference/images",
+        "ogyei_reference_segmentation_labels":
+            "ogyei/Reference/segmentation_labels",
+        "ogyei_reference_mask_images":
+            "ogyei/Reference/mask_images",
 
-        # Validation images, labels and masks
-        "ogyei_v2_splitted_valid_images":
-            "ogyei_v2/splitted/valid/images",
-        "ogyei_v2_splitted_valid_labels":
-            "ogyei_v2/splitted/valid/labels",
-        "ogyei_v2_splitted_gt_valid_masks":
-            "ogyei_v2/splitted/valid/gt_valid_masks",
-        "ogyei_v2_splitted_valid_bbox_pixel_labels":
-            "ogyei_v2/splitted/valid/bbox_labels",
-        "ogyei_v2_splitted_valid_yolo_labels":
-            "ogyei_v2/splitted/valid/yolo_labels",
-        "ogyei_v2_splitted_valid_aug_images":
-            "ogyei_v2/splitted_aug/valid_dir/images",
-        "ogyei_v2_splitted_valid_aug_yolo_labels":
-            "ogyei_v2/splitted_aug/valid_dir/yolo_labels",
-        "ogyei_v2_splitted_valid_aug_mask_images":
-            "ogyei_v2/splitted_aug/valid_dir/mask_images",
+        # CUSTOMER SPLITTED
+        "ogyei_train_images":
+            "ogyei/Customer_splitted/train_dir/images",
+        "ogyei_train_mask_images":
+            "ogyei/Customer_splitted/train_dir/mask_images",
+        "ogyei_train_segmentation_labels":
+            "ogyei/Customer_splitted/train_dir/segmentation_labels",
 
-        # Test images, labels and masks
-        "ogyei_v2_splitted_test_images":
-            "ogyei_v2/splitted/test/images",
-        "ogyei_v2_splitted_test_labels":
-            "ogyei_v2/splitted/test/labels",
-        "ogyei_v2_splitted_gt_test_masks":
-            "ogyei_v2/splitted/test/gt_test_masks",
-        "ogyei_v2_splitted_test_bbox_pixel_labels":
-            "ogyei_v2/splitted/test/bbox_labels",
-        "ogyei_v2_splitted_test_yolo_labels":
-            "ogyei_v2/splitted/test/yolo_labels",
-        "ogyei_v2_splitted_test_aug_images":
-            "ogyei_v2/splitted_aug/test_dir/images",
-        "ogyei_v2_splitted_test_aug_yolo_labels":
-            "ogyei_v2/splitted_aug/test_dir/yolo_labels",
-        "ogyei_v2_splitted_test_aug_mask_images":
-            "ogyei_v2/splitted_aug/test_dir/mask_images",
+        "ogyei_valid_images":
+            "ogyei/Customer_splitted/valid_dir/images",
+        "ogyei_valid_mask_images":
+            "ogyei/Customer_splitted/valid_dir/mask_images",
+        "ogyei_valid_segmentation_labels":
+            "ogyei/Customer_splitted/valid_dir/segmentation_labels",
+
+        "ogyei_test_images":
+            "ogyei/Customer_splitted/test_dir/images",
+        "ogyei_test_mask_images":
+            "ogyei/Customer_splitted/test_dir/mask_images",
+        "ogyei_test_segmentation_labels":
+            "ogyei/Customer_splitted/test_dir/segmentation_labels",
+
+        # STREAM - Customer
+        "stream_images_ogyei_customer":
+            "ogyei/Customer/stream_images",
+        "stream_images_ogyei_customer_contour":
+            "ogyei/Customer/stream_images/contour",
+        "stream_images_ogyei_customer_lbp":
+            "ogyei/Customer/stream_images/lbp",
+        "stream_images_ogyei_customer_rgb":
+            "ogyei/Customer/stream_images/rgb",
+        "stream_images_ogyei_customer_texture":
+            "ogyei/Customer/stream_images/texture",
+
+        # STREAM - Reference
+        "stream_images_ogyei_reference":
+            "ogyei/Reference/stream_images",
+        "stream_images_ogyei_reference_contour":
+            "ogyei/Reference/stream_images/contour",
+        "stream_images_ogyei_reference_lbp":
+            "ogyei/Reference/stream_images/lbp",
+        "stream_images_ogyei_reference_rgb":
+            "ogyei/Reference/stream_images/rgb",
+        "stream_images_ogyei_reference_texture":
+            "ogyei/Reference/stream_images/texture",
 
         # --------------------------------------------------- N I H ----------------------------------------------------
         # CUSTOMER
@@ -657,10 +689,14 @@ class Datasets(_Const):
             "nih/Customer/txt",
         "nih_customer_yolo_labels":
             "nih/Customer/yolo_labels",
+        "nih_customer_segmentation_labels":
+            "nih/Customer/segmentation_labels",
+        "nih_customer_mask_images":
+            "nih/Customer/mask_images",
 
         # REFERENCE
         "nih_reference_images":
-            "cure/Reference/images/challenge",
+            "nih/Reference/images",
         "nih_reference_csv":
             "nih/Reference/csv",
         "nih_reference_xlsx":
@@ -668,7 +704,45 @@ class Datasets(_Const):
         "nih_reference_txt":
             "nih/Reference/txt",
         "nih_reference_yolo_labels":
-            "nih/Customer/yolo_labels",
+            "nih/Reference/yolo_labels",
+        "nih_reference_segmentation_labels":
+            "nih/Reference/segmentation_labels",
+        "nih_reference_mask_images":
+            "nih/Reference/mask_images",
+
+        # CUSTOMER SPLITTED
+        "nih_train_bbox_pixel_labels":
+            "nih/Customer_splitted/train_dir/bbox_labels",
+        "nih_train_images":
+            "nih/Customer_splitted/train_dir/images",
+        "nih_train_mask_images":
+            "nih/Customer_splitted/train_dir/mask_images",
+        "nih_train_segmentation_labels":
+            "nih/Customer_splitted/train_dir/segmentation_labels",
+        "nih_train_yolo_labels":
+            "nih/Customer_splitted/train_dir/yolo_labels",
+
+        "nih_valid_bbox_pixel_labels":
+            "nih/Customer_splitted/valid_dir/bbox_labels",
+        "nih_valid_images":
+            "nih/Customer_splitted/valid_dir/images",
+        "nih_valid_mask_images":
+            "nih/Customer_splitted/valid_dir/mask_images",
+        "nih_valid_segmentation_labels":
+            "nih/Customer_splitted/valid_dir/segmentation_labels",
+        "nih_valid_yolo_labels":
+            "nih/Customer_splitted/valid_dir/yolo_labels",
+
+        "nih_test_bbox_pixel_labels":
+            "nih/Customer_splitted/test_dir/bbox_labels",
+        "nih_test_images":
+            "nih/Customer_splitted/test_dir/images",
+        "nih_test_mask_images":
+            "nih/Customer_splitted/test_dir/mask_images",
+        "nih_test_segmentation_labels":
+            "nih/Customer_splitted/test_dir/segmentation_labels",
+        "nih_test_yolo_labels":
+            "nih/Customer_splitted/test_dir/yolo_labels",
 
         # STREAM - Customer
         "stream_images_nih_customer":

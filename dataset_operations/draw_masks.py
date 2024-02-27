@@ -37,23 +37,17 @@ def path_selector(operation: str):
     :raises ValueError: If the operation string is not "train", "valid", "test" or "whole".
     """
 
-    if operation.lower() == "train":
+    if operation.lower() == "customer":
         path_to_images = {
-            "images": dataset_images_path_selector(cfg.dataset_name).get("train").get("images"),
-            "labels": dataset_images_path_selector(cfg.dataset_name).get("train").get("segmentation_labels"),
-            "masks": dataset_images_path_selector(cfg.dataset_name).get("train").get("mask_images")
+            "images": dataset_images_path_selector(cfg.dataset_name).get(operation).get("customer_images"),
+            "labels": dataset_images_path_selector(cfg.dataset_name).get(operation).get("customer_segmentation_labels"),
+            "masks": dataset_images_path_selector(cfg.dataset_name).get(operation).get("customer_mask_images")
         }
-    elif operation.lower() == "valid":
+    elif operation.lower() == "reference":
         path_to_images = {
-            "images": dataset_images_path_selector(cfg.dataset_name).get("valid").get("images"),
-            "labels": dataset_images_path_selector(cfg.dataset_name).get("valid").get("segmentation_labels"),
-            "masks": dataset_images_path_selector(cfg.dataset_name).get("valid").get("mask_images")
-        }
-    elif operation.lower() == "test":
-        path_to_images = {
-            "images": dataset_images_path_selector(cfg.dataset_name).get("test").get("images"),
-            "labels": dataset_images_path_selector(cfg.dataset_name).get("test").get("segmentation_labels"),
-            "masks": dataset_images_path_selector(cfg.dataset_name).get("test").get("mask_images")
+            "images": dataset_images_path_selector(cfg.dataset_name).get(operation).get("reference_images"),
+            "labels": dataset_images_path_selector(cfg.dataset_name).get(operation).get("reference_segmentation_labels"),
+            "masks": dataset_images_path_selector(cfg.dataset_name).get(operation).get("reference_mask_images")
         }
     else:
         raise ValueError("Wrong operation!")
@@ -122,11 +116,15 @@ def process_data(img_files: str, txt_files: str):
         logging.error(f"{txt_files} is not a valid text file.")
         return None, None
 
-    coords = [int(coord * img_width if i % 2 == 0 else coord * img_height) for i, coord in enumerate(yolo_coords)]
+    coords = []
+    for i, coord in enumerate(yolo_coords):
+        if i % 2 == 0:
+            coords.append(int(coord * img_width))
+        else:
+            coords.append(int(coord * img_height))
 
     mask = Image.new('1', (img_width, img_height), 0)
-    xy = list(zip(coords[::2], coords[1::2]))
-    ImageDraw.Draw(mask).polygon(xy=xy, outline=1, fill=1)
+    ImageDraw.Draw(mask).polygon(xy=coords, outline=1, fill=1)
     mask = np.array(mask)
 
     return img, mask
@@ -165,7 +163,7 @@ def main(operation: str = "train") -> None:
 
     img_files, txt_files = load_files(images_dir=path_to_files.get("images"), labels_dir=path_to_files.get("labels"))
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()//2) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=cfg.max_workers) as executor:
         futures = []
         for img_file, txt_file in zip(img_files, txt_files):
             futures.append(executor.submit(process_data, img_file, txt_file))
@@ -184,7 +182,7 @@ def main(operation: str = "train") -> None:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
-        operations = ["train", "valid", "test"]
+        operations = ["customer"]
         for op in operations:
             main(operation=op)
     except KeyboardInterrupt as kie:

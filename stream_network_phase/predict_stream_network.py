@@ -207,12 +207,12 @@ class PredictStreamNetwork:
                     tex_image = tex_image.unsqueeze(0).to(self.device)
 
                     # Perform computation on GPU and move result back to CPU
-                    vector1 = self.network_con(con_image).squeeze().cpu()
-                    vector2 = self.network_lbp(lbp_image).squeeze().cpu()
-                    vector3 = self.network_rgb(rgb_image).squeeze().cpu()
-                    vector4 = self.network_tex(tex_image).squeeze().cpu()
+                    contour_vector = self.network_con(con_image).squeeze().cpu()
+                    lbp_vector = self.network_lbp(lbp_image).squeeze().cpu()
+                    rgb_vector = self.network_rgb(rgb_image).squeeze().cpu()
+                    texture_vector = self.network_tex(tex_image).squeeze().cpu()
 
-                concatenated = torch.cat((vector1, vector2, vector3, vector4), dim=0)
+                concatenated = torch.cat((contour_vector, lbp_vector, rgb_vector, texture_vector), dim=0)
                 vectors.append(concatenated)
                 labels.append(image_name)
 

@@ -84,9 +84,14 @@ class CreateStreamImages:
             center_x = max_x + max_w / 2
             center_y = max_y + max_h / 2
             side_length = max(max_w, max_h)
-            square_x = int(center_x - side_length / 2)
-            square_y = int(center_y - side_length / 2)
-            obj = in_img[square_y:square_y + side_length, square_x:square_x + side_length]
+
+            # Calculate square coordinates ensuring it fits within image boundaries
+            square_x = max(0, int(center_x - side_length / 2))
+            square_y = max(0, int(center_y - side_length / 2))
+            square_x_end = min(in_img.shape[1], square_x + side_length)
+            square_y_end = min(in_img.shape[0], square_y + side_length)
+
+            obj = in_img[square_y:square_y_end, square_x:square_x_end]
 
             if obj.size != 0:
                 cv2.imwrite(output_path, obj)
@@ -123,7 +128,7 @@ class CreateStreamImages:
         if self.cfg.dataset_type == 'ogyei':
             color_images_dir = path_to_images.get(self.cfg.dataset_operation).get("images")
             mask_images_dir = path_to_images.get(self.cfg.dataset_operation).get("masks")
-        elif self.cfg.dataset_type == 'cure':
+        elif self.cfg.dataset_type == 'cure' or self.cfg.dataset_type == 'nih':
             images = (
                 "customer_images" if self.cfg.operation == "customer"
                 else ("reference_images" if self.cfg.operation == "reference"
