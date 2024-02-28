@@ -13,7 +13,7 @@ import torchvision.models as models
 
 
 class EfficientNet(nn.Module):
-    def __init__(self, num_out_feature: int = 128, grayscale=True):
+    def __init__(self, num_out_feature: int, grayscale: bool):
         """
         EfficientNet model with custom linear layer.
 

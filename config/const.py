@@ -511,16 +511,12 @@ class Datasets(_Const):
     dirs_dataset = {
         # -------------------------------------------------- C U R E ---------------------------------------------------
         # CUSTOMER
-        "cure_customer_pixel_bbox_labels":
-            "cure/Customer/pixel_bbox_labels",
         "cure_customer_images":
             "cure/Customer/images",
         "cure_customer_mask_images":
             "cure/Customer/mask_images",
         "cure_customer_segmentation_labels":
             "cure/Customer/segmentation_labels",
-        "cure_customer_yolo_labels":
-            "cure/Customer/yolo_labels",
 
         # REFERENCE
         "cure_reference_images":
@@ -533,38 +529,26 @@ class Datasets(_Const):
             "cure/Reference/yolo_labels",
 
         # CUSTOMER SPLITTED
-        "cure_train_bbox_pixel_labels":
-            "cure/Customer_splitted/train_dir/bbox_labels",
         "cure_train_images":
             "cure/Customer_splitted/train_dir/images",
         "cure_train_mask_images":
             "cure/Customer_splitted/train_dir/mask_images",
         "cure_train_segmentation_labels":
             "cure/Customer_splitted/train_dir/segmentation_labels",
-        "cure_train_yolo_labels":
-            "cure/Customer_splitted/train_dir/yolo_labels",
 
-        "cure_valid_bbox_pixel_labels":
-            "cure/Customer_splitted/valid_dir/bbox_labels",
         "cure_valid_images":
             "cure/Customer_splitted/valid_dir/images",
         "cure_valid_mask_images":
             "cure/Customer_splitted/valid_dir/mask_images",
         "cure_valid_segmentation_labels":
             "cure/Customer_splitted/valid_dir/segmentation_labels",
-        "cure_valid_yolo_labels":
-            "cure/Customer_splitted/valid_dir/yolo_labels",
 
-        "cure_test_bbox_pixel_labels":
-            "cure/Customer_splitted/test_dir/bbox_labels",
         "cure_test_images":
             "cure/Customer_splitted/test_dir/images",
         "cure_test_mask_images":
             "cure/Customer_splitted/test_dir/mask_images",
         "cure_test_segmentation_labels":
             "cure/Customer_splitted/test_dir/segmentation_labels",
-        "cure_test_yolo_labels":
-            "cure/Customer_splitted/test_dir/yolo_labels",
 
         # CUSTOMER SPLITTED AUGMENTED
         "cure_train_aug_images":
@@ -711,38 +695,26 @@ class Datasets(_Const):
             "nih/Reference/mask_images",
 
         # CUSTOMER SPLITTED
-        "nih_train_bbox_pixel_labels":
-            "nih/Customer_splitted/train_dir/bbox_labels",
         "nih_train_images":
             "nih/Customer_splitted/train_dir/images",
         "nih_train_mask_images":
             "nih/Customer_splitted/train_dir/mask_images",
         "nih_train_segmentation_labels":
             "nih/Customer_splitted/train_dir/segmentation_labels",
-        "nih_train_yolo_labels":
-            "nih/Customer_splitted/train_dir/yolo_labels",
 
-        "nih_valid_bbox_pixel_labels":
-            "nih/Customer_splitted/valid_dir/bbox_labels",
         "nih_valid_images":
             "nih/Customer_splitted/valid_dir/images",
         "nih_valid_mask_images":
             "nih/Customer_splitted/valid_dir/mask_images",
         "nih_valid_segmentation_labels":
             "nih/Customer_splitted/valid_dir/segmentation_labels",
-        "nih_valid_yolo_labels":
-            "nih/Customer_splitted/valid_dir/yolo_labels",
 
-        "nih_test_bbox_pixel_labels":
-            "nih/Customer_splitted/test_dir/bbox_labels",
         "nih_test_images":
             "nih/Customer_splitted/test_dir/images",
         "nih_test_mask_images":
             "nih/Customer_splitted/test_dir/mask_images",
         "nih_test_segmentation_labels":
             "nih/Customer_splitted/test_dir/segmentation_labels",
-        "nih_test_yolo_labels":
-            "nih/Customer_splitted/test_dir/yolo_labels",
 
         # STREAM - Customer
         "stream_images_nih_customer":

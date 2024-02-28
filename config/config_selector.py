@@ -634,8 +634,6 @@ def dataset_images_path_selector(dataset_name):
                     DATASET_PATH.get_data_path("cure_customer_images"),
                 "customer_segmentation_labels":
                     DATASET_PATH.get_data_path("cure_customer_segmentation_labels"),
-                "customer_pixel_bbox_labels":
-                    DATASET_PATH.get_data_path("cure_customer_pixel_bbox_labels"),
                 "customer_mask_images":
                     DATASET_PATH.get_data_path("cure_customer_mask_images")
             },
@@ -650,16 +648,12 @@ def dataset_images_path_selector(dataset_name):
             },
 
             "train": {
-                "bbox_pixel_labels":
-                    DATASET_PATH.get_data_path("cure_train_bbox_pixel_labels"),
                 "images":
                     DATASET_PATH.get_data_path("cure_train_images"),
                 "mask_images":
                     DATASET_PATH.get_data_path("cure_train_mask_images"),
                 "segmentation_labels":
                     DATASET_PATH.get_data_path("cure_train_segmentation_labels"),
-                "yolo_labels":
-                    DATASET_PATH.get_data_path("cure_train_yolo_labels"),
                 "aug_images":
                     DATASET_PATH.get_data_path("cure_train_aug_images"),
                 "aug_yolo_labels":
@@ -669,16 +663,12 @@ def dataset_images_path_selector(dataset_name):
             },
 
             "valid": {
-                "bbox_pixel_labels":
-                    DATASET_PATH.get_data_path("cure_valid_bbox_pixel_labels"),
                 "images":
                     DATASET_PATH.get_data_path("cure_valid_images"),
                 "mask_images":
                     DATASET_PATH.get_data_path("cure_valid_mask_images"),
                 "segmentation_labels":
                     DATASET_PATH.get_data_path("cure_valid_segmentation_labels"),
-                "yolo_labels":
-                    DATASET_PATH.get_data_path("cure_valid_yolo_labels"),
                 "aug_images":
                     DATASET_PATH.get_data_path("cure_valid_aug_images"),
                 "aug_yolo_labels":
@@ -688,16 +678,12 @@ def dataset_images_path_selector(dataset_name):
             },
 
             "test": {
-                "bbox_pixel_labels":
-                    DATASET_PATH.get_data_path("cure_test_bbox_pixel_labels"),
                 "images":
                     DATASET_PATH.get_data_path("cure_test_images"),
                 "mask_images":
                     DATASET_PATH.get_data_path("cure_test_mask_images"),
                 "segmentation_labels":
                     DATASET_PATH.get_data_path("cure_test_segmentation_labels"),
-                "yolo_labels":
-                    DATASET_PATH.get_data_path("cure_test_yolo_labels"),
                 "aug_images":
                     DATASET_PATH.get_data_path("cure_test_aug_images"),
                 "aug_yolo_labels":
@@ -876,16 +862,12 @@ def dataset_images_path_selector(dataset_name):
             },
 
             "train": {
-                "bbox_pixel_labels":
-                    DATASET_PATH.get_data_path("nih_train_bbox_pixel_labels"),
                 "images":
                     DATASET_PATH.get_data_path("nih_train_images"),
                 "mask_images":
                     DATASET_PATH.get_data_path("nih_train_mask_images"),
                 "segmentation_labels":
                     DATASET_PATH.get_data_path("nih_train_segmentation_labels"),
-                "yolo_labels":
-                    DATASET_PATH.get_data_path("nih_train_yolo_labels"),
                 "aug_images":
                     DATASET_PATH.get_data_path("nih_train_aug_images"),
                 "aug_yolo_labels":
@@ -895,16 +877,12 @@ def dataset_images_path_selector(dataset_name):
             },
 
             "valid": {
-                "bbox_pixel_labels":
-                    DATASET_PATH.get_data_path("nih_valid_bbox_pixel_labels"),
                 "images":
                     DATASET_PATH.get_data_path("nih_valid_images"),
                 "mask_images":
                     DATASET_PATH.get_data_path("nih_valid_mask_images"),
                 "segmentation_labels":
                     DATASET_PATH.get_data_path("nih_valid_segmentation_labels"),
-                "yolo_labels":
-                    DATASET_PATH.get_data_path("nih_valid_yolo_labels"),
                 "aug_images":
                     DATASET_PATH.get_data_path("nih_valid_aug_images"),
                 "aug_yolo_labels":
@@ -914,16 +892,12 @@ def dataset_images_path_selector(dataset_name):
             },
 
             "test": {
-                "bbox_pixel_labels":
-                    DATASET_PATH.get_data_path("nih_test_bbox_pixel_labels"),
                 "images":
                     DATASET_PATH.get_data_path("nih_test_images"),
                 "mask_images":
                     DATASET_PATH.get_data_path("nih_test_mask_images"),
                 "segmentation_labels":
                     DATASET_PATH.get_data_path("nih_test_segmentation_labels"),
-                "yolo_labels":
-                    DATASET_PATH.get_data_path("nih_test_yolo_labels"),
                 "aug_images":
                     DATASET_PATH.get_data_path("nih_test_aug_images"),
                 "aug_yolo_labels":

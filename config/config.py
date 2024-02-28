@@ -84,9 +84,9 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--learning_rate_en_con", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_lbp", type=float, default=1e-4)
-        self.parser.add_argument("--learning_rate_en_rgb", type=float, default=1e-4)
+        self.parser.add_argument("--learning_rate_en_rgb", type=float, default=1e-5)
         self.parser.add_argument("--learning_rate_en_tex", type=float, default=1e-4)
-        self.parser.add_argument("--weight_decay", type=float, default=1e-5)
+        self.parser.add_argument("--weight_decay", type=float, default=0.1)
         self.parser.add_argument('--step_size', type=int, default=5,
                                  help="Number of epochs after which to decay the learning rate")
         self.parser.add_argument('--gamma', type=float, default=1/3, help="Factor by which to decay the learning rate")
