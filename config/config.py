@@ -46,13 +46,14 @@ class ConfigStreamImages:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--dataset_type", type=str, default="nih", choices=["cure | ogyei | nih"])
+        self.parser.add_argument("--dataset_type", type=str, default="ogyei", choices=["cure | ogyei | nih"])
         self.parser.add_argument("--operation", type=str, default="customer", choices=["reference", "customer"])
         self.parser.add_argument("--threshold_area", type=int, default=100)
         self.parser.add_argument("--kernel_median_contour", type=int, default=7)
         self.parser.add_argument("--canny_low_thr", type=int, default=10)
-        self.parser.add_argument("--canny_high_thr", type=int, default=20)
-        self.parser.add_argument("--kernel_gaussian_texture", type=int, default=15)
+        self.parser.add_argument("--canny_high_thr", type=int, default=30)
+        self.parser.add_argument("--kernel_gaussian_texture", type=int, default=7)
+        self.parser.add_argument("--max_worker", type=int, default=os.cpu_count()//2)
 
     def parse(self):
         self.opt = self.parser.parse_args()
@@ -67,9 +68,9 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--dataset_type", type=str, default="nih", choices=["cure | ogyei | nih"])
+        self.parser.add_argument("--dataset_type", type=str, default="ogyei", choices=["cure | ogyei | nih"])
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNet", choices=["EfficientNet"])
-        self.parser.add_argument("--type_of_stream", type=str, default="RGB",
+        self.parser.add_argument("--type_of_stream", type=str, default="Texture",
                                  choices=["Contour | LBP | RGB | Texture"])
 
         self.parser.add_argument("--type_of_loss_func", type=str, default="hmtl", help="hmtl | dmtl")
@@ -84,7 +85,7 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--learning_rate_en_con", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_lbp", type=float, default=1e-4)
-        self.parser.add_argument("--learning_rate_en_rgb", type=float, default=1e-5)
+        self.parser.add_argument("--learning_rate_en_rgb", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_tex", type=float, default=1e-4)
         self.parser.add_argument("--weight_decay", type=float, default=0.1)
         self.parser.add_argument('--step_size', type=int, default=5,
@@ -107,7 +108,7 @@ class ConfigFusionNetwork:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument("--dataset_type", type=str, default="nih", choices=["cure", "nih", "ogyei"])
+        self.parser.add_argument("--dataset_type", type=str, default="ogyei", choices=["cure", "nih", "ogyei"])
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetMultiHeadAttention")
         self.parser.add_argument("--type_of_loss_func", type=str, default="tl", help="tl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)

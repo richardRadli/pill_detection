@@ -2,6 +2,7 @@ import os
 import numpy as np
 
 from PIL import Image
+from sklearn.preprocessing import LabelEncoder
 from typing import List
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
@@ -20,6 +21,7 @@ class DataLoaderStreamNet(Dataset):
 
         self.cfg = ConfigStreamNetwork().parse()
 
+        # Load datasets
         self.query_images, self.query_labels = self.load_dataset(dataset_dirs_anchor)
         self.reference_images, self.reference_labels = self.load_dataset(dataset_dirs_pos_neg)
 
@@ -41,7 +43,10 @@ class DataLoaderStreamNet(Dataset):
                     dataset.append(image_path)
                     labels.append(label)
 
-        return dataset, labels
+        # Initialize label encoder
+        label_encoder = LabelEncoder()
+        encoded_labels = label_encoder.fit_transform(labels)
+        return dataset, encoded_labels
 
     def get_transform(self):
         if self.cfg.type_of_stream == "RGB":
@@ -61,11 +66,16 @@ class DataLoaderStreamNet(Dataset):
         else:
             raise ValueError("Wrong kind of network")
 
+    def __len__(self):
+        return len(self.query_images)
+
     def __getitem__(self, index: int):
+        # Query (consumer) images
         query_image_path = self.query_images[index]
         query_image = self.transform(Image.open(query_image_path))
         query_label = self.query_labels[index]
 
+        # Reference images
         reference_label = query_label
         reference_indices = np.where(np.array(self.reference_labels) == reference_label)[0]
 
@@ -78,6 +88,3 @@ class DataLoaderStreamNet(Dataset):
         reference_image = self.transform(Image.open(reference_image_path))
 
         return query_image, query_label, query_image_path, reference_image, reference_label, reference_image_path
-
-    def __len__(self) -> int:
-        return len(self.query_images)

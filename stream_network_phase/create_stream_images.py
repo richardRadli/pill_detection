@@ -123,36 +123,28 @@ class CreateStreamImages:
         :return: None
         """
 
-        path_to_images = dataset_images_path_selector(self.cfg.dataset_type)
+        images = (
+            "customer_images" if self.cfg.operation == "customer"
+            else ("reference_images" if self.cfg.operation == "reference"
+                  else None)
+        )
 
-        if self.cfg.dataset_type == 'ogyei':
-            color_images_dir = path_to_images.get(self.cfg.dataset_operation).get("images")
-            mask_images_dir = path_to_images.get(self.cfg.dataset_operation).get("masks")
-        elif self.cfg.dataset_type == 'cure' or self.cfg.dataset_type == 'nih':
-            images = (
-                "customer_images" if self.cfg.operation == "customer"
-                else ("reference_images" if self.cfg.operation == "reference"
-                      else None)
-            )
+        if images is None:
+            raise ValueError("Invalid value for self.cfg.operation")
 
-            if images is None:
-                raise ValueError("Invalid value for self.cfg.operation")
+        masks = (
+            "customer_mask_images" if self.cfg.operation == "customer"
+            else ("reference_mask_images" if self.cfg.operation == "reference"
+                  else None)
+        )
 
-            masks = (
-                "customer_mask_images" if self.cfg.operation == "customer"
-                else ("reference_mask_images" if self.cfg.operation == "reference"
-                      else None)
-            )
-
-            color_images_dir = dataset_images_path_selector(self.cfg.dataset_type).get(self.cfg.operation).get(images)
-            mask_images_dir = dataset_images_path_selector(self.cfg.dataset_type).get(self.cfg.operation).get(masks)
-        else:
-            raise ValueError("Invalid dataset")
+        color_images_dir = dataset_images_path_selector(self.cfg.dataset_type).get(self.cfg.operation).get(images)
+        mask_images_dir = dataset_images_path_selector(self.cfg.dataset_type).get(self.cfg.operation).get(masks)
 
         color_images = file_reader(color_images_dir, "jpg")
         mask_images = file_reader(mask_images_dir, "jpg")
 
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=self.cfg.max_worker) as executor:
             list(tqdm(executor.map(self.process_image, zip(color_images, mask_images)), total=len(color_images),
                       desc="RGB images"))
 
@@ -199,7 +191,7 @@ class CreateStreamImages:
             args_list.append((bbox_images, output_file, self.cfg.kernel_median_contour, self.cfg.canny_low_thr,
                               self.cfg.canny_high_thr))
 
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=self.cfg.max_worker) as executor:
             futures = [executor.submit(self.create_contour_images, args) for args in args_list]
             wait(futures)
 
@@ -221,9 +213,9 @@ class CreateStreamImages:
 
         cropped_image, output_path, kernel_size = args
         blured_image = cv2.GaussianBlur(cropped_image, kernel_size, 0)
+        blured_image = cv2.GaussianBlur(blured_image, (15, 15), 0)
         sub_img = cv2.subtract(cropped_image, blured_image)
-        sub_img = np.clip(sub_img, 0, 255).astype(np.uint8)
-        cv2.imwrite(output_path, sub_img)
+        cv2.imwrite(output_path, sub_img*15)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- S A V E   T E X T U R E   I M G S ---------------------------------------
@@ -245,7 +237,7 @@ class CreateStreamImages:
             args_list.append((bbox_images, output_file,
                               (self.cfg.kernel_gaussian_texture, self.cfg.kernel_gaussian_texture)))
 
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=self.cfg.max_worker) as executor:
             futures = [executor.submit(self.create_texture_images, args) for args in args_list]
             wait(futures)
 
@@ -277,7 +269,7 @@ class CreateStreamImages:
 
         rgb_images = file_reader(self.rgb_images_path, "jpg")
 
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=self.cfg.max_worker) as executor:
             futures = []
             for img_path in tqdm(rgb_images, desc="LBP images"):
                 output_name = "lbp_" + os.path.basename(img_path)

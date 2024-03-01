@@ -2,6 +2,7 @@ import os
 
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
+from tqdm import tqdm
 
 
 def convert_and_save(src_directory, dst_directory, jpg_file):
@@ -22,12 +23,12 @@ def convert_png_to_jpg(src_directory, dst_directory, num_threads=4):
         futures = \
         {executor.submit(convert_and_save, src_directory, dst_directory, jpg_file): jpg_file for jpg_file in png_files}
 
-        for future in futures:
+        for future in tqdm(futures):
             future.result()
 
 
 if __name__ == "__main__":
-    input_directory = "D:/storage/pill_detection/datasets/nih/Reference/stream_images/rgb"
-    output_directory = "D:/storage/pill_detection/datasets/nih/Reference/stream_images/rgb/jpg"
+    input_directory = "D:/storage/pill_detection/datasets/ogyei/Reference/mask_images"
+    output_directory = "D:/storage/pill_detection/datasets/ogyei/Reference/mask_images"
     convert_png_to_jpg(input_directory, output_directory, 6)
     print("Conversion completed.")

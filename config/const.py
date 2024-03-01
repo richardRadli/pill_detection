@@ -310,7 +310,7 @@ class Data(_Const):
 
         "cure_k_fold":
             "data/cure/k_fold",
-        "ogye_v2_k_fold":
+        "ogyei_k_fold":
             "data/ogyei/k_fold",
         "nih_k_fold":
             "data/nih/k_fold",
@@ -509,6 +509,10 @@ class Data(_Const):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Datasets(_Const):
     dirs_dataset = {
+        # --------------------------------------------------- D T D ----------------------------------------------------
+        "dtd_images":
+            "dtd_images",
+
         # -------------------------------------------------- C U R E ---------------------------------------------------
         # CUSTOMER
         "cure_customer_images":
@@ -593,10 +597,6 @@ class Datasets(_Const):
             "cure/Reference/stream_images/rgb",
         "stream_images_cure_reference_texture":
             "cure/Reference/stream_images/texture",
-
-        # --------------------------------------------------- D T D ----------------------------------------------------
-        "dtd_images":
-            "dtd_images",
 
         # ------------------------------------------------- O G Y E I --------------------------------------------------
         # CUSTOMER

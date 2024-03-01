@@ -9,6 +9,7 @@ This program collects the hard samples (images) that were mined during the strea
 """
 
 import os.path
+import re
 
 from config.config import ConfigStreamNetwork
 from config.config_selector import stream_network_config, sub_stream_network_configs
@@ -110,24 +111,51 @@ def get_hardest_samples():
     stream_texture_pos_neg = sub_stream_cfg.get("Texture").get("train").get(cfg.dataset_type).get("pos_neg")
 
     hardest_triplets = []
-    for i in common_triplets:
-        class_id_a_p = i[0].split("_")[0]
-        class_id_n = i[2].split("_")[0]
-        contour_anchor = (os.path.join(stream_contour_anchor, class_id_a_p, f"contour_{i[0]}"))
-        contour_positive = (os.path.join(stream_contour_pos_neg, class_id_a_p, f"contour_{i[1]}"))
-        contour_negative = (os.path.join(stream_contour_pos_neg, class_id_n, f"contour_{i[2]}"))
+    class_id_a_p = None
+    class_id_n = None
 
-        lbp_anchor = (os.path.join(stream_lbp_anchor, class_id_a_p, f"lbp_{i[0]}"))
-        lbp_positive = (os.path.join(stream_lbp_pos_neg, class_id_a_p, f"lbp_{i[1]}"))
-        lbp_negative = (os.path.join(stream_lbp_pos_neg, class_id_n, f"lbp_{i[2]}"))
+    for file_name in common_triplets:
+        if cfg.dataset_type == "cure":
+            class_id_a_p = file_name[0].split("_")[0]
+            class_id_n = file_name[2].split("_")[0]
+        elif cfg.dataset_type == 'ogyei':
+            for idx, file in enumerate(file_name):
+                if "_s_" in file:
+                    match = re.search(r'^(.*?)_s_\d{3}\.jpg$', file)
+                elif "_u_" in file:
+                    match = re.search(r'^(.*?)_u_\d{3}\.jpg$', file)
+                else:
+                    raise ValueError(f"Unrecognized file: {file}")
 
-        rgb_anchor = (os.path.join(stream_rgb_anchor, class_id_a_p, i[0]))
-        rgb_positive = (os.path.join(stream_rgb_pos_neg, class_id_a_p, i[1]))
-        rgb_negative = (os.path.join(stream_rgb_pos_neg, class_id_n, i[2]))
+                if match:
+                    value = match.group(1)
+                    if idx == 0:
+                        class_id_a_p = value
+                    elif idx == 1:
+                        pass
+                    else:
+                        class_id_n = value
+                else:
+                    raise ValueError(f"No match for file: {file}")
 
-        texture_anchor = (os.path.join(stream_texture_anchor, class_id_a_p, f"texture_{i[0]}"))
-        texture_positive = (os.path.join(stream_texture_pos_neg, class_id_a_p, f"texture_{i[1]}"))
-        texture_negative = (os.path.join(stream_texture_pos_neg, class_id_n, f"texture_{i[2]}"))
+        else:
+            raise ValueError(f"Unknown dataset type: {cfg.dataset_type}")
+
+        contour_anchor = (os.path.join(stream_contour_anchor, class_id_a_p, f"contour_{file_name[0]}"))
+        contour_positive = (os.path.join(stream_contour_pos_neg, class_id_a_p, f"contour_{file_name[1]}"))
+        contour_negative = (os.path.join(stream_contour_pos_neg, class_id_n, f"contour_{file_name[2]}"))
+
+        lbp_anchor = (os.path.join(stream_lbp_anchor, class_id_a_p, f"lbp_{file_name[0]}"))
+        lbp_positive = (os.path.join(stream_lbp_pos_neg, class_id_a_p, f"lbp_{file_name[1]}"))
+        lbp_negative = (os.path.join(stream_lbp_pos_neg, class_id_n, f"lbp_{file_name[2]}"))
+
+        rgb_anchor = (os.path.join(stream_rgb_anchor, class_id_a_p, file_name[0]))
+        rgb_positive = (os.path.join(stream_rgb_pos_neg, class_id_a_p, file_name[1]))
+        rgb_negative = (os.path.join(stream_rgb_pos_neg, class_id_n, file_name[2]))
+
+        texture_anchor = (os.path.join(stream_texture_anchor, class_id_a_p, f"texture_{file_name[0]}"))
+        texture_positive = (os.path.join(stream_texture_pos_neg, class_id_a_p, f"texture_{file_name[1]}"))
+        texture_negative = (os.path.join(stream_texture_pos_neg, class_id_n, f"texture_{file_name[2]}"))
 
         hardest_triplets.append((contour_anchor, contour_positive, contour_negative,
                                  lbp_anchor, lbp_positive, lbp_negative,

@@ -85,6 +85,15 @@ class PredictFusionNetwork:
         # Select device
         self.device = use_gpu_if_available()
 
+        self.plot_dir = os.path.join(
+            self.fusion_network_config.get('plotting_folder').get(self.cfg_stream_net.dataset_type),
+            f"{self.timestamp}"
+        )
+        self.plot_confusion_matrix_dir = os.path.join(
+            self.fusion_network_config.get("confusion_matrix").get(self.cfg_stream_net.dataset_type),
+            f"{self.timestamp}"
+        )
+
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -278,7 +287,8 @@ class PredictFusionNetwork:
         df_stat = [
             ["Correctly predicted (Top-1):", f'{self.num_correct_top1}'],
             ["Correctly predicted (Top-5):", f'{self.num_correct_top5}'],
-            ["Miss predicted:", f'{len(query_vectors) - self.num_correct_top1}'],
+            ["Miss predicted top 1:", f'{len(query_vectors) - self.num_correct_top1}'],
+            ["Miss predicted top 5:", f'{len(query_vectors) - self.num_correct_top5}'],
             ['Accuracy (Top-1):', f'{self.accuracy_top1:.4%}'],
             ['Accuracy (Top-5):', f'{self.accuracy_top5:.4%}']
         ]
@@ -317,10 +327,14 @@ class PredictFusionNetwork:
             operation="query")
 
         ref_vectors, r_labels, r_images_path = self.get_vectors(
-            contour_dir=self.subnetwork_config.get("Contour").get("ref").get(self.cfg_stream_net.dataset_type),
-            lbp_dir=self.subnetwork_config.get("LBP").get("ref").get(self.cfg_stream_net.dataset_type),
-            rgb_dir=self.subnetwork_config.get("RGB").get("ref").get(self.cfg_stream_net.dataset_type),
-            texture_dir=self.subnetwork_config.get("Texture").get("ref").get(self.cfg_stream_net.dataset_type),
+            contour_dir="D:/storage/pill_detection/datasets/ogyei/Reference/stream_images/contour",
+            #self.subnetwork_config.get("Contour").get("ref").get(self.cfg_stream_net.dataset_type),
+            lbp_dir="D:/storage/pill_detection/datasets/ogyei/Reference/stream_images/lbp",
+            #self.subnetwork_config.get("LBP").get("ref").get(self.cfg_stream_net.dataset_type),
+            rgb_dir="D:/storage/pill_detection/datasets/ogyei/Reference/stream_images/rgb",
+            #self.subnetwork_config.get("RGB").get("ref").get(self.cfg_stream_net.dataset_type),
+            texture_dir="D:/storage/pill_detection/datasets/ogyei/Reference/stream_images/texture",
+            #self.subnetwork_config.get("Texture").get("ref").get(self.cfg_stream_net.dataset_type),
             operation="reference")
 
         gt, pred_ed, indices = (
@@ -328,20 +342,20 @@ class PredictFusionNetwork:
 
         self.display_results(gt, pred_ed, query_vectors)
 
-        # plot_ref_query_images(
-        #     indices=indices,
-        #     q_images_path=q_images_path,
-        #     r_images_path=r_images_path,
-        #     gt=gt,
-        #     pred_ed=pred_ed,
-        #     output_folder=self.fusion_network_config.get("plotting_folder").get(self.cfg_stream_net.dataset_type)
-        # )
-        #
-        # plot_confusion_matrix(
-        #     gt=gt,
-        #     pred=pred_ed,
-        #     out_path=self.fusion_network_config.get("confusion_matrix").get(self.cfg_stream_net.dataset_type)
-        # )
+        plot_ref_query_images(
+            indices=indices,
+            q_images_path=q_images_path,
+            r_images_path=r_images_path,
+            gt=gt,
+            pred_ed=pred_ed,
+            output_folder=self.plot_dir
+        )
+
+        plot_confusion_matrix(
+            gt=gt,
+            pred=pred_ed,
+            out_path=self.plot_confusion_matrix_dir
+        )
 
 
 # ----------------------------------------------------------------------------------------------------------------------
