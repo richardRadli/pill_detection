@@ -1,212 +1,151 @@
-"""
-File: split_ogyei_dataset.py
-Author: Richárd Rádli
-E-mail: radli.richard@mik.uni-pannon.hu
-Date: Apr 12, 2023
-"""
-
-import logging
-import matplotlib.pyplot as plt
 import os
-import random
-import pandas as pd
 import shutil
 
+from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from typing import Dict, List, Tuple
 
-from config.const import DATASET_PATH
-from utils.utils import setup_logger
-
-
-# ------------------------------------------------------------------------------------------------------------------- #
-# ---------------------------------------------- G E T   C L A S S E S ---------------------------------------------- #
-# ------------------------------------------------------------------------------------------------------------------- #
-def get_classes(images_path) -> \
-        Tuple[Dict[str, int], Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]]]:
-    """
-    Get the classes present in the dataset and initialize dictionaries for class counts, train images,
-    validation images, and test images.
-
-    :param: Path to the train image files.
-    :return: A tuple containing dictionaries for class counts, train images, validation images, and test images.
-    """
-
-    classes = set()
-
-    for filename in os.listdir(images_path):
-        if filename.endswith('.png'):
-            class_name = filename.split('_')[2:-1]
-            classes.add('_'.join(class_name))
-
-    classes = sorted(classes)
-
-    class_counts = {class_name: 0 for class_name in classes}
-    train_images = {class_name: [] for class_name in classes}
-    validation_images = {class_name: [] for class_name in classes}
-    test_images = {class_name: [] for class_name in classes}
-    return class_counts, train_images, validation_images, test_images
+from config.config import ConfigAugmentation
+from config.config_selector import dataset_images_path_selector
 
 
-# -------------------------------------------------------------------------------------------------------------------- #
-# ---------------------------------------- S P L I T   D A T A S E T ------------------------------------------------- #
-# -------------------------------------------------------------------------------------------------------------------- #
-def split_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str]],
-                  validation_images: Dict[str, List[str]], test_images: Dict[str, List[str]], images_path,
-                  valid_split_ratio: float = 0.15, test_split_ratio: float = 0.15, segregated_split: bool = False) -> \
-        Tuple[Dict[str, int], Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]]]:
-    """
-    Split the dataset into train, validation, and test sets based on the class counts.
-
-    :param class_counts: A dictionary containing the counts of each class.
-    :param train_images: A dictionary containing the train images for each class.
-    :param validation_images: A dictionary containing the validation images for each class.
-    :param test_images: A dictionary containing the test images for each class.
-    :param images_path: Path to the train images.
-    :param valid_split_ratio:
-    :param test_split_ratio:
-    :param segregated_split:
-
-    :return: A tuple containing dictionaries for class counts, train images, validation images, and test images.
-    """
-    if segregated_split:
-        list_of_keys = list(class_counts.keys())
-        test_classes = random.sample(list_of_keys, 12)
-    else:
-        test_classes = []
-
-    for filename in os.listdir(images_path):
-        if filename.endswith('.png'):
-            class_name = '_'.join(filename.split('_')[2:-1])
-            class_counts[class_name] += 1
-            if not segregated_split:
-                if len(validation_images[class_name]) < round(class_counts[class_name] * valid_split_ratio):
-                    validation_images[class_name].append(filename)
-                elif len(test_images[class_name]) < round(class_counts[class_name] * test_split_ratio):
-                    test_images[class_name].append(filename)
-                else:
-                    train_images[class_name].append(filename)
-            else:
-                if class_name in test_classes:
-                    test_images[class_name].append(filename)
-                elif len(validation_images[class_name]) < round(class_counts[class_name] * valid_split_ratio):
-                    validation_images[class_name].append(filename)
-                else:
-                    train_images[class_name].append(filename)
-    return class_counts, train_images, validation_images, test_images
+def filter_filenames_by_class(filenames, class_id):
+    return [filename for filename in filenames if int(filename.split("_")[0]) == class_id]
 
 
-# ------------------------------------------------------------------------------------------------------------------- #
-# ------------------------------------------ S T A T   O F   D A T A S E T ------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------------- #
-def statistics_of_dataset(class_counts: Dict[str, int], train_images: Dict[str, List[str]],
-                          validation_images: Dict[str, List[str]], test_images: Dict[str, List[str]]) -> None:
-    """
-    Calculate and display the statistics of the dataset including image counts per class.
+def split_dataset(dataset_path, test_ratio=0.20, random_seed=42):
+    image_filenames = [filename for filename in os.listdir(dataset_path) if filename.endswith(".jpg")]
+    class_ids = set([int(filename.split("_")[0]) for filename in image_filenames])
 
-    :param class_counts: A dictionary containing the counts of each class.
-    :param train_images: A dictionary containing the train images for each class.
-    :param validation_images: A dictionary containing the validation images for each class.
-    :param test_images: A dictionary containing the test images for each class.
-    :return: None
-    """
+    # Select 20% of the classes for the test set
+    train_classes, test_classes = train_test_split(list(class_ids),
+                                                   test_size=test_ratio,
+                                                   random_state=random_seed)
+    test_set = [filename for filename in image_filenames if int(filename.split("_")[0]) in test_classes]
 
-    logging.info('Image counts per class:')
-    results = []
-    for class_name, count in class_counts.items():
-        train_count = len(train_images[class_name])
-        validation_count = len(validation_images[class_name])
-        test_count = len(test_images[class_name])
-        results.append((class_name, count, train_count, validation_count, test_count))
+    # Calculate the remaining classes after selecting the test set
+    remaining_classes = class_ids - set(test_classes)
+    train_set, val_set = [], []
 
-    df = pd.DataFrame(results, columns=['Class', 'Total', 'Train', 'Validation', 'Test'])
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', None)
-    pd.set_option('display.max_colwidth', None)
-    print(df)
+    # Split the remaining classes into train and valid sets
+    for class_id in remaining_classes:
+        class_images = [filename for filename in image_filenames if int(filename.split("_")[0]) == class_id]
+        train_image, valid_image = train_test_split(class_images,
+                                                    test_size=0.2,
+                                                    random_state=random_seed)
+        train_set.append(train_image)
+        val_set.append(valid_image)
 
-    plt.figure(figsize=(10, 6))
-    plt.bar(df['Class'], df['Train'], label='Train')
-    plt.bar(df['Class'], df['Validation'], bottom=df['Train'], label='Validation')
-    plt.bar(df['Class'], df['Test'], bottom=df['Train'] + df['Validation'], label='Test')
-    plt.xlabel('Class')
-    plt.ylabel('Number of images')
-    plt.title('Image counts per class')
-    plt.legend()
-    plt.tick_params(axis='x', labelrotation=90)
-    plt.show()
+    train_set = [item for sublist in train_set for item in sublist]
+    val_set = [item for sublist in val_set for item in sublist]
+
+    return train_set, val_set, test_set, len(image_filenames)
 
 
-# ------------------------------------------------------------------------------------------------------------------- #
-# ----------------------------------------------- M O V E   F I L E S ----------------------------------------------- #
-# ------------------------------------------------------------------------------------------------------------------- #
-def move_files(set_images: Dict[str, List[str]], images_path: str, set_images_path: str, labels_path: str,
-               set_labels_path: str, op: str) -> None:
-    """
-    Move files from the source directory to the destination directory.
-
-    :param set_images: Dictionary containing image filenames for each class.
-    :param images_path: Path to the source image directory.
-    :param set_images_path: Path to the destination image directory.
-    :param labels_path: Path to the source label directory.
-    :param set_labels_path: Path to the destination label directory.
-    :param op: Operation description for progress display.
-    :return: None
-    """
-
-    for class_name in tqdm(set_images, desc="Moving %s files" % op):
-        for name in set_images[class_name]:
-            shutil.copy(os.path.join(images_path, name), os.path.join(set_images_path, name))
-            shutil.copy(os.path.join(labels_path, name.replace(".png", ".txt")),
-                        os.path.join(set_labels_path, name.replace(".png", ".txt")))
+def copy_files(split_set, dataset_images_path, dataset_mask_path, dataset_segmentation_path, dst_dataset_images_path,
+               dst_dataset_mask_path, dst_segmentation_path):
+    for file in tqdm(split_set):
+        src_img = os.path.join(dataset_images_path, file)
+        src_mask = os.path.join(dataset_mask_path, file)
+        file_txt = file.replace(".jpg", ".txt")
+        src_seg = os.path.join(dataset_segmentation_path, file_txt)
+        shutil.copy(str(src_img), dst_dataset_images_path)
+        shutil.copy(str(src_mask), dst_dataset_mask_path)
+        shutil.copy(str(src_seg), dst_segmentation_path)
 
 
-# ------------------------------------------------------------------------------------------------------------------- #
-# ----------------------------------------------------- M A I N ----------------------------------------------------- #
-# ------------------------------------------------------------------------------------------------------------------- #
-def main(replace_files: bool = False) -> None:
-    """
-    Main function to execute the data processing pipeline.
-
-    :param replace_files: If True, move files to the validation and test directories.
-    :return: None
-    """
-
-    setup_logger()
-
-    images_path = DATASET_PATH.get_data_path("ogyei_v2_single_unsplitted_images")
-    labels_path = DATASET_PATH.get_data_path("ogyei_v2_single_unsplitted_labels")
-
-    train_images_path = DATASET_PATH.get_data_path("ogyei_v2_single_splitted_train_images")
-    train_labels_path = DATASET_PATH.get_data_path("ogyei_v2_single_splitted_train_labels")
-    val_images_path = DATASET_PATH.get_data_path("ogyei_v2_single_splitted_valid_images")
-    val_labels_path = DATASET_PATH.get_data_path("ogyei_v2_single_splitted_valid_labels")
-    test_images_path = DATASET_PATH.get_data_path("ogyei_v2_single_splitted_test_images")
-    test_labels_path = DATASET_PATH.get_data_path("ogyei_v2_single_splitted_test_labels")
-
-    class_counts, train_images, validation_images, test_images = get_classes(images_path)
-    class_counts, train_images, validation_images, test_images = split_dataset(class_counts=class_counts,
-                                                                               train_images=train_images,
-                                                                               validation_images=validation_images,
-                                                                               test_images=test_images,
-                                                                               images_path=images_path,
-                                                                               segregated_split=False
-                                                                               )
-
-    statistics_of_dataset(class_counts, train_images, validation_images, test_images)
-
-    if replace_files:
-        move_files(set_images=train_images, images_path=images_path, set_images_path=train_images_path,
-                   labels_path=labels_path, set_labels_path=train_labels_path, op="train")
-        move_files(set_images=validation_images, images_path=images_path, set_images_path=val_images_path,
-                   labels_path=labels_path, set_labels_path=val_labels_path, op="validation")
-        move_files(set_images=test_images, images_path=images_path, set_images_path=test_images_path,
-                   labels_path=labels_path, set_labels_path=test_labels_path, op="test")
+def set_len(set_name):
+    return len(set([int(filename.split('_')[0]) for filename in set_name]))
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# ----------------------------------------------------- __M A I N__ ----------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
+def main():
+    cfg = ConfigAugmentation().parse()
+
+    dataset_images_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer").get("customer_images")
+    )
+    dataset_mask_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer").get("customer_mask_images")
+    )
+    dataset_segmentation_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("customer").get("customer_segmentation_labels")
+    )
+
+    dst_train_dataset_images_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train").get("images")
+    )
+    dst_train_dataset_mask_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train").get("mask_images")
+    )
+    dst_train_segmentation_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("train").get("segmentation_labels")
+    )
+
+    dst_valid_dataset_images_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid").get("images")
+    )
+    dst_valid_dataset_mask_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid").get("mask_images")
+    )
+    dst_valid_segmentation_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("valid").get("segmentation_labels")
+    )
+
+    dst_test_dataset_images_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test").get("images")
+    )
+    dst_test_dataset_mask_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test").get("mask_images")
+    )
+    dst_test_segmentation_path = (
+        dataset_images_path_selector(dataset_name=cfg.dataset_name).get("test").get("segmentation_labels")
+    )
+
+    train_set, val_set, test_set, number_of_images = split_dataset(dataset_path=dataset_images_path)
+
+    # Print the number of classes and instances in each set
+    print(f"Number of classes in training set: {set_len(train_set)}")
+    print(f"Number of classes in validation set: {set_len(val_set)}")
+    print(f"Number of classes in testing set: {set_len(test_set)}")
+
+    # Print the number of instances in each set
+    print(f"Number of instances in training set: {len(train_set)}")
+    print(f"Number of instances in validation set: {len(val_set)}")
+    print(f"Number of instances in testing set: {len(test_set)}")
+
+    print(f"Split ratio, train: {(len(train_set) / number_of_images) * 100:.4f}%, "
+          f"valid: {(len(val_set) / number_of_images) * 100:.4f}%, "
+          f"test: {(len(test_set) / number_of_images) * 100:.4f}%")
+
+    copy_files(
+        split_set=train_set,
+        dataset_images_path=dataset_images_path,
+        dataset_mask_path=dataset_mask_path,
+        dataset_segmentation_path=dataset_segmentation_path,
+        dst_dataset_images_path=dst_train_dataset_images_path,
+        dst_dataset_mask_path=dst_train_dataset_mask_path,
+        dst_segmentation_path=dst_train_segmentation_path
+    )
+
+    copy_files(
+        split_set=val_set,
+        dataset_images_path=dataset_images_path,
+        dataset_mask_path=dataset_mask_path,
+        dataset_segmentation_path=dataset_segmentation_path,
+        dst_dataset_images_path=dst_valid_dataset_images_path,
+        dst_dataset_mask_path=dst_valid_dataset_mask_path,
+        dst_segmentation_path=dst_valid_segmentation_path
+    )
+
+    copy_files(
+        split_set=test_set,
+        dataset_images_path=dataset_images_path,
+        dataset_mask_path=dataset_mask_path,
+        dataset_segmentation_path=dataset_segmentation_path,
+        dst_dataset_images_path=dst_test_dataset_images_path,
+        dst_dataset_mask_path=dst_test_dataset_mask_path,
+        dst_segmentation_path=dst_test_segmentation_path
+    )
+
+
 if __name__ == "__main__":
-    main(replace_files=True)
+    main()

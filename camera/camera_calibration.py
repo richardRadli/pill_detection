@@ -26,14 +26,14 @@ np.set_printoptions(precision=6, suppress=True)
 # ++++++++++++++++++++++++++++++++++++++++ C A M E R A   C A L I B R A T I O N ++++++++++++++++++++++++++++++++++++++ #
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 class CameraCalibration:
-    def __init__(self, undist_needed):
+    def __init__(self, undistortion_needed):
         """
         CameraCalibration class
         ---------------------------
 
         Parameters
         -----------
-        undist_needed: :class:`bool`
+        undistortion_needed: :class:`bool`
             undistortion either needed or not
         """
 
@@ -42,8 +42,8 @@ class CameraCalibration:
 
         self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, self.cam_cfg.square_size, 0.001)
         self.matrix = np.empty([3, 3])
-        self.undst_matrix = np.empty([3, 3])
-        self.dist_coeff = np.empty([1, 5])
+        self.undistorted_matrix = np.empty([3, 3])
+        self.dist_coefficients = np.empty([1, 5])
         self.roi = None
         self.rot_vecs = None
         self.trs_vecs = None
@@ -52,20 +52,20 @@ class CameraCalibration:
         self.chs_col = self.cam_cfg.chs_col
         self.chs_row = self.cam_cfg.chs_row
         self.img_size = None
-        self.orig_imgs = []
+        self.original_images = []
 
         self.timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
         source_images = find_latest_subdir(camera_config().get("calibration_images"))
 
         self.orig_img_list = sorted(glob(f'{source_images}/*.jpg') + glob(f'{source_images}/*.png'))
-        self.undist_path = os.path.join(camera_config().get("undistorted_images"), self.timestamp)
-        os.makedirs(self.undist_path, exist_ok=True)
+        self.undistorted_images_path = os.path.join(camera_config().get("undistorted_images"), self.timestamp)
+        os.makedirs(self.undistorted_images_path, exist_ok=True)
 
         self.save_data_path = os.path.join(camera_config().get("camera_matrix"), self.timestamp)
         os.makedirs(self.save_data_path, exist_ok=True)
 
-        self.undist_needed = undist_needed
+        self.undistortion_needed = undistortion_needed
 
     # ---------------------------------------------------------------------------------------------------------------- #
     # -------------------------------------------- F I N D   C O R N E R S ------------------------------------------- #
@@ -122,7 +122,7 @@ class CameraCalibration:
                     if corners is not None:
                         accepted += 1
                         self.img_pts.append(corners)
-                    self.orig_imgs.append(img_data)
+                    self.original_images.append(img_data)
             except Exception as e:
                 logging.error(str(e))
 
@@ -136,7 +136,7 @@ class CameraCalibration:
         self.obj_pts = [objp] * len(self.img_pts)
 
         logging.info('------C A L I B R A T I O N   S T A R T E D-----')
-        rms, self.matrix, self.dist_coeff, self.rot_vecs, self.trs_vecs = (
+        rms, self.matrix, self.dist_coefficients, self.rot_vecs, self.trs_vecs = (
             cv2.calibrateCamera(objectPoints=self.obj_pts,
                                 imagePoints=self.img_pts,
                                 imageSize=self.img_size,
@@ -146,14 +146,15 @@ class CameraCalibration:
 
         logging.info(f'Root mean square error\n{rms}')
         logging.info(f'Camera matrix\n{self.matrix}')
-        logging.info(f'Distortion coefficients\n{self.dist_coeff}')
+        logging.info(f'Distortion coefficients\n{self.dist_coefficients}')
         logging.info('-----C A L I B R A T I O N   F I N I S H E D-----')
 
     # ---------------------------------------------------------------------------------------------------------------- #
     # --------------------------------------- U N D I S T O R T   A N D   S A V E ------------------------------------ #
     # ---------------------------------------------------------------------------------------------------------------- #
     @staticmethod
-    def undistort_and_save(name: str, image, matrix, dist_coeff, undst_matrix, roi, undst_path: str) -> None:
+    def undistort_and_save(name: str, image, matrix, distortion_coefficients, undistorted_matrix, roi,
+                           undistorted_images_path: str) -> None:
         """Undistorts the image using the required parameters before saving.
 
         Parameters
@@ -164,20 +165,20 @@ class CameraCalibration:
             The image data
         matrix:
             The camera matrix
-        dist_coeff:
+        distortion_coefficients:
             The distortion coefficient
-        undst_matrix:
+        undistorted_matrix:
             The undistorted camera matrix
         roi:
             The region of interest
-        undst_path: :class:`str`
+        undistorted_images_path: :class:`str`
             The path to use when saving the undistorted image
         """
 
-        image = cv2.undistort(image, matrix, dist_coeff, None, undst_matrix)
+        image = cv2.undistort(image, matrix, distortion_coefficients, None, undistorted_matrix)
         x, y, w, h = roi
         image = image[y:y + h, x:x + w]
-        path = os.path.join(undst_path, os.path.basename(name))
+        path = os.path.join(undistorted_images_path, os.path.basename(name))
         cv2.imwrite(path, image, [int(cv2.IMWRITE_PNG_COMPRESSION), 3])
 
     # ---------------------------------------------------------------------------------------------------------------- #
@@ -192,18 +193,18 @@ class CameraCalibration:
 
         logging.info('----- O B T A I N I N G   N E W   C A M E R A   M A T R I X-----')
 
-        name, img = self.orig_imgs[0]
+        name, img = self.original_images[0]
         h, w = img.shape[:2]
-        self.undst_matrix, self.roi = cv2.getOptimalNewCameraMatrix(self.matrix, self.dist_coeff, (w, h), 1, (w, h))
+        self.undistorted_matrix, self.roi = cv2.getOptimalNewCameraMatrix(self.matrix, self.dist_coefficients, (w, h), 1, (w, h))
 
         logging.info('New camera matrix')
-        logging.info(str(self.undst_matrix))
-        self.undistort_and_save(name, img, self.matrix, self.dist_coeff, self.undst_matrix, self.roi, self.undist_path)
+        logging.info(str(self.undistorted_matrix))
+        self.undistort_and_save(name, img, self.matrix, self.dist_coefficients, self.undistorted_matrix, self.roi, self.undistorted_images_path)
 
         mean_error = 0
         for i in range(len(self.obj_pts)):
             img_points2, _ = cv2.projectPoints(self.obj_pts[i], self.rot_vecs[i], self.trs_vecs[i], self.matrix,
-                                               self.dist_coeff)
+                                               self.dist_coefficients)
             error = cv2.norm(self.img_pts[i], img_points2, cv2.NORM_L2) / len(img_points2)
             mean_error += error
         total_err = mean_error / len(self.obj_pts)
@@ -212,8 +213,8 @@ class CameraCalibration:
         assert total_err < self.cam_cfg.error_threshold, 'Camera calibration error too high!'
         path = os.path.join(self.save_data_path, "undistorted_cam_mtx.npy")
         np.save(path, {'matrix': self.matrix,
-                       'dist_coeff': self.dist_coeff,
-                       'undst_matrix': self.undst_matrix,
+                       'distortion_coefficients': self.dist_coefficients,
+                       'undistorted_matrix': self.undistorted_matrix,
                        'roi': self.roi})
 
     # ---------------------------------------------------------------------------------------------------------------- #
@@ -228,9 +229,9 @@ class CameraCalibration:
 
         with ThreadPoolExecutor() as executor:
             futures = []
-            for name, img in self.orig_imgs[1:]:
-                futures.append(executor.submit(self.undistort_and_save, name, img, self.matrix, self.dist_coeff,
-                                               self.undst_matrix, self.roi, self.undist_path))
+            for name, img in self.original_images[1:]:
+                futures.append(executor.submit(self.undistort_and_save, name, img, self.matrix, self.dist_coefficients,
+                                               self.undistorted_matrix, self.roi, self.undistorted_images_path))
 
         logging.info(f'Undistortion time: {perf_counter() - start} s')
 
@@ -240,7 +241,7 @@ class CameraCalibration:
     def main(self):
         self.calibration()
         self.generate_new_camera_matrix()
-        if self.undist_needed:
+        if self.undistortion_needed:
             self.undistort_images()
 
 
@@ -249,7 +250,7 @@ class CameraCalibration:
 # ------------------------------------------------------------------------------------------------------------------- #
 if __name__ == '__main__':
     try:
-        cal = CameraCalibration(undist_needed=True)
+        cal = CameraCalibration(undistortion_needed=True)
         cal.main()
     except KeyboardInterrupt as kie:
         logging.error(f"{kie}")

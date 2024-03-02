@@ -26,15 +26,15 @@ class _Const(object):
     root_mapping = {
         "ricsi": {
             "PROJECT_ROOT":
-                "C:/Users/ricsi/Documents/project/storage/IVM",
+                "D:/storage/pill_detection",
             "DATASET_ROOT":
-                "C:/Users/ricsi/Documents/project/storage/IVM/datasets"
+                "D:/storage/pill_detection/datasets"
         },
         "keplab": {
             "PROJECT_ROOT":
-                "/home/keplab/Documents/users/radli_richard/storage/IVM",
+                "/home/keplab/Documents/users/radli_richard/storage/pill_detection",
             "DATASET_ROOT":
-                "/home/keplab/Documents/users/radli_richard/datasets/IVM"
+                "/home/keplab/Documents/users/radli_richard/datasets/pill_detection"
         }
     }
 
@@ -75,31 +75,31 @@ class _Const(object):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Images(_Const):
     dirs_images = {
-        # --------------------------------------------------- O G Y E I ------------------------------------------------
-        "stream_images_ogyei":
-            "images/ogyei/stream_images",
-        "stream_images_ogyei_test":
-            "images/ogyei/test",
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I ++++++++++++++++++++++++++++++++++++++++++++++++
+        "stream_images_ogyei_anchor":
+            "images/ogyei/stream_images/anchor",
+        "stream_images_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg",
 
-        # ---------------------------------------------- R E F   T R A I N ---------------------------------------------
-        "train_contour_stream_ogyei":
-            "images/ogyei/stream_images/contour/train",
-        "train_lbp_stream_ogyei":
-            "images/ogyei/stream_images/lbp/train",
-        "train_rgb_stream_ogyei":
-            "images/ogyei/stream_images/rgb/train",
-        "train_texture_stream_ogyei":
-            "images/ogyei/stream_images/texture/train",
+        # ------------------------------------------------- A N C H O R ------------------------------------------------
+        "train_contour_stream_ogyei_anchor":
+            "images/ogyei/stream_images/anchor/contour",
+        "train_lbp_stream_ogyei_anchor":
+            "images/ogyei/stream_images/anchor/lbp",
+        "train_rgb_stream_ogyei_anchor":
+            "images/ogyei/stream_images/anchor/rgb",
+        "train_texture_stream_ogyei_anchor":
+            "images/ogyei/stream_images/anchor/texture",
 
-        # ---------------------------------------------- R E F   V A L I D ---------------------------------------------
-        "valid_contour_stream_ogyei":
-            "images/ogyei/stream_images/contour/valid",
-        "valid_lbp_stream_ogyei":
-            "images/ogyei/stream_images/lbp/valid",
-        "valid_rgb_stream_ogyei":
-            "images/ogyei/stream_images/rgb/valid",
-        "valid_texture_stream_ogyei":
-            "images/ogyei/stream_images/texture/valid",
+        # ----------------------------------------------- P O S   N E G ------------------------------------------------
+        "contour_stream_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg/contour",
+        "lbp_stream_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg/lbp",
+        "rgb_stream_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg/rgb",
+        "texture_stream_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg/texture",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
         "test_query_ogyei":
@@ -126,26 +126,16 @@ class Images(_Const):
             "images/ogyei/test/ref/texture",
 
         # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
-        "plotting_efficient_net_v2_ogyei":
-            "images/ogyei/plotting/stream_net/plotting_efficient_net_v2",
+        "plotting_efficient_net_ogyei":
+            "images/ogyei/plotting/stream_net/plotting_efficient_net",
 
         # ------------------------------------ P L O T T I N G   F U S I O N   N E T -----------------------------------
-        "plotting_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
-            "images/ogyei/plotting/fusion_net/plotting_fusion_network_efficient_net_v2_multi_head_attention",
+        "plotting_fusion_network_efficient_net_multi_head_attention_attention_ogyei":
+            "images/ogyei/plotting/fusion_net/plotting_fusion_network_efficient_net_multi_head_attention_attention",
 
         # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
-        "conf_mtx_efficient_net_v2_ogyei":
-            "images/ogyei/conf_mtx/stream_net/conf_mtx_efficient_net_v2",
-
-        # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
-        "conf_mtx_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
-            "images/ogyei/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_v2_multi_head_attention",
-
-        # ------------------------------------- I M A G E   A U G M E N T A T I O N ------------------------------------
-        "images_aug":
-            "images/aug/images_aug",
-        "wo_background":
-            "images/aug/wo_background",
+        "conf_mtx_efficient_net_ogyei":
+            "images/ogyei/conf_mtx/stream_net/conf_mtx_efficient_net",
 
         # ------------------------------------------- C A L I B R A T I O N --------------------------------------------
         "calibration_images":
@@ -187,57 +177,108 @@ class Data(_Const):
             "data/camera/pill_names",
 
         # k-fold directory names
-        "k_folds":
-            "data/other/k_folds",
+        "ogyei_k_fold":
+            "data/ogyei/k_fold",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
-        # EfficientNet V2 - StreamNetwork
-        "weights_efficient_net_v2_contour_ogyei":
-            "data/ogyei/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_contour",
-        "weights_efficient_net_v2_lbp_ogyei":
-            "data/ogyei/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_lbp",
-        "weights_efficient_net_v2_rgb_ogyei":
-            "data/ogyei/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_rgb",
-        "weights_efficient_net_v2_texture_ogyei":
-            "data/ogyei/weights/stream_net/efficient_net_v2/weights_efficient_v2_net_texture",
+        # CNN - StreamNetwork
+        "weights_cnn_contour_ogyei":
+            "data/ogyei/weights/stream_net/cnn/weights_cnn_contour",
+        "weights_cnn_lbp_ogyei":
+            "data/ogyei/weights/stream_net/cnn/weights_cnn_lbp",
+        "weights_cnn_rgb_ogyei":
+            "data/ogyei/weights/stream_net/cnn/weights_cnn_rgb",
+        "weights_cnn_texture_ogyei":
+            "data/ogyei/weights/stream_net/cnn/weights_cnn_texture",
+
+        # EfficientNet b0 - StreamNetwork
+        "weights_efficient_net_contour_ogyei":
+            "data/ogyei/weights/stream_net/efficient_net/weights_efficient_net_contour",
+        "weights_efficient_net_lbp_ogyei":
+            "data/ogyei/weights/stream_net/efficient_net/weights_efficient_net_lbp",
+        "weights_efficient_net_rgb_ogyei":
+            "data/ogyei/weights/stream_net/efficient_net/weights_efficient_net_rgb",
+        "weights_efficient_net_texture_ogyei":
+            "data/ogyei/weights/stream_net/efficient_net/weights_efficient_net_texture",
 
         # ------------------------------------- W E I G H T S   F U S I O N   N E T ------------------------------------
-
-        "weights_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
-            "data/ogyei/weights/fusion_net/efficient_net_v2_multi_head_attention",
+        "weights_fusion_network_cnn_ogyei":
+            "data/ogyei/weights/fusion_net/cnn",
+        "weights_fusion_network_efficient_net_multi_head_attention_ogyei":
+            "data/ogyei/weights/fusion_net/efficient_net_multi_head_attention",
 
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
-        # EfficientNet V2
-        "logs_efficient_net_v2_contour_ogyei":
-            "data/ogyei/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_contour",
-        "logs_efficient_net_v2_lbp_ogyei":
-            "data/ogyei/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_lbp",
-        "logs_efficient_net_v2_rgb_ogyei":
-            "data/ogyei/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_rgb",
-        "logs_efficient_net_v2_texture_ogyei":
-            "data/ogyei/logs/stream_net/efficient_net_v2/logs_efficient_net_v2_texture",
+        # CNN
+        "logs_cnn_contour_ogyei":
+            "data/ogyei/logs/stream_net/cnn/logs_cnn_contour",
+        "logs_cnn_lbp_ogyei":
+            "data/ogyei/logs/stream_net/cnn/logs_cnn_lbp",
+        "logs_cnn_rgb_ogyei":
+            "data/ogyei/logs/stream_net/cnn/logs_cnn_rgb",
+        "logs_cnn_texture_ogyei":
+            "data/ogyei/logs/stream_net/cnn/logs_cnn_texture",
+
+        # EfficientNet b0
+        "logs_efficient_net_contour_ogyei":
+            "data/ogyei/logs/stream_net/efficient_net/logs_efficient_net_contour",
+        "logs_efficient_net_lbp_ogyei":
+            "data/ogyei/logs/stream_net/efficient_net/logs_efficient_net_lbp",
+        "logs_efficient_net_rgb_ogyei":
+            "data/ogyei/logs/stream_net/efficient_net/logs_efficient_net_rgb",
+        "logs_efficient_net_texture_ogyei":
+            "data/ogyei/logs/stream_net/efficient_net/logs_efficient_net_texture",
 
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
-        "logs_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
-            "data/ogyei/logs/fusion_net/efficient_net_v2_multi_head",
+        "logs_fusion_network_cnn_ogyei":
+            "data/ogyei/logs/fusion_net/cnn",
+        "logs_fusion_network_efficient_net_multi_head_attention_ogyei":
+            "data/ogyei/logs/fusion_net/efficient_net_multi_head_attention",
 
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
-        "predictions_efficient_net_v2_ogyei":
-            "data/ogyei/predictions/stream_net/predictions_efficient_net_v2",
+        "predictions_cnn_ogyei":
+            "data/ogyei/predictions/stream_net/predictions_cnn",
+        "predictions_efficient_net_ogyei":
+            "data/ogyei/predictions/stream_net/predictions_efficient_net",
 
         # -------------------------------- P R E D I C T I O N S    F U S I O N   N E T --------------------------------
-        "predictions_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
-            "data/ogyei/predictions/fusion_net/predictions_fusion_network_efficient_net_v2_multi_head_attention",
+        # Predictions
+        "predictions_fusion_network_cnn_ogyei":
+            "data/ogyei/predictions/fusion_net/predictions_fusion_network_cnn",
+        "predictions_fusion_network_efficient_net_multi_head_attention_ogyei":
+            "data/ogyei/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
-        "reference_vectors_efficient_net_v2_ogyei":
-            "data/ogyei/ref_vec/stream_net/reference_vectors_efficient_net_v2",
+        "reference_vectors_cnn_ogyei":
+            "data/ogyei/ref_vec/stream_net/reference_vectors_cnn",
+        "reference_vectors_efficient_net_ogyei":
+            "data/ogyei/ref_vec/stream_net/reference_vectors_efficient_net",
 
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
-        "reference_vectors_fusion_network_efficient_net_v2_multi_head_attention_ogyei":
-            "data/ogyei/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_v2_multi_head_attention",
+        "reference_vectors_fusion_network_cnn_ogyei":
+            "data/ogyei/ref_vec/fusion_net/reference_vectors_fusion_net_cnn",
+        "reference_vectors_fusion_network_efficient_net_multi_head_attention_ogyei":
+            "data/ogyei/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
+
+        # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
+        "hardest_samples_cnn_contour_ogyei":
+            "data/ogyei/hardest_samples/cnn/contour",
+        "hardest_samples_cnn_lbp_ogyei":
+            "data/ogyei/hardest_samples/cnn/lbp",
+        "hardest_samples_cnn_rgb_ogyei":
+            "data/ogyei/hardest_samples/cnn/rgb",
+        "hardest_samples_cnn_texture_ogyei":
+            "data/ogyei/hardest_samples/cnn/texture",
+
+        "hardest_samples_efficient_net_contour_ogyei":
+            "data/ogyei/hardest_samples/efficient_net/contour",
+        "hardest_samples_efficient_net_lbp_ogyei":
+            "data/ogyei/hardest_samples/efficient_net/lbp",
+        "hardest_samples_efficient_net_rgb_ogyei":
+            "data/ogyei/hardest_samples/efficient_net/rgb",
+        "hardest_samples_efficient_net_texture_ogyei":
+            "data/ogyei/hardest_samples/efficient_net/texture"
     }
 
     def __init__(self):
@@ -257,61 +298,68 @@ class Datasets(_Const):
         "dtd_images":
             "dtd_images",
 
-        # O G Y E I   V 2
-        # Single
-        # Unsplitted
-        "ogyei_v2_single_unsplitted_images":
-            "ogyei_v2/single/unsplitted/images",
-        "ogyei_v2_single_unsplitted_labels":
-            "ogyei_v2/single/unsplitted/labels",
-        "ogyei_v2_single_unsplitted_gt_masks":
-            "ogyei_v2/single/unsplitted/gt_masks",
-        "ogyei_v2_single_unsplitted_pred_masks":
-            "ogyei_v2/single/unsplitted/pred_masks",
+        # ------------------------------------------------- O G Y E I --------------------------------------------------
+        # CUSTOMER
+        "ogyei_customer_images":
+            "ogyei/Customer/images",
+        "ogyei_customer_segmentation_labels":
+            "ogyei/Customer/segmentation_labels",
+        "ogyei_customer_mask_images":
+            "ogyei/Customer/mask_images",
 
-        # Train images, labels and masks
-        "ogyei_v2_single_splitted_train_images":
-            "ogyei_v2/single/splitted/train/images",
-        "ogyei_v2_single_splitted_train_labels":
-            "ogyei_v2/single/splitted/train/labels",
-        "ogyei_v2_single_splitted_gt_train_masks":
-            "ogyei_v2/single/splitted/train/gt_train_masks",
-        "ogyei_v2_single_splitted_pred_train_masks":
-            "ogyei_v2/single/splitted/train/pred_train_masks",
+        # REFERENCE
+        "ogyei_reference_images":
+            "ogyei/Reference/images",
+        "ogyei_reference_segmentation_labels":
+            "ogyei/Reference/segmentation_labels",
+        "ogyei_reference_mask_images":
+            "ogyei/Reference/mask_images",
 
-        # Validation images, labels and masks
-        "ogyei_v2_single_splitted_valid_images":
-            "ogyei_v2/single/splitted/valid/images",
-        "ogyei_v2_single_splitted_valid_labels":
-            "ogyei_v2/single/splitted/valid/labels",
-        "ogyei_v2_single_splitted_gt_valid_masks":
-            "ogyei_v2/single/splitted/valid/gt_valid_masks",
-        "ogyei_v2_single_splitted_pred_valid_masks":
-            "ogyei_v2/single/splitted/valid/pred_valid_masks",
+        # CUSTOMER SPLITTED
+        "ogyei_train_images":
+            "ogyei/Customer_splitted/train_dir/images",
+        "ogyei_train_mask_images":
+            "ogyei/Customer_splitted/train_dir/mask_images",
+        "ogyei_train_segmentation_labels":
+            "ogyei/Customer_splitted/train_dir/segmentation_labels",
 
-        # Test images, labels and masks
-        "ogyei_v2_single_splitted_test_images":
-            "ogyei_v2/single/splitted/test/images",
-        "ogyei_v2_single_splitted_test_labels":
-            "ogyei_v2/single/splitted/test/labels",
-        "ogyei_v2_single_splitted_gt_test_masks":
-            "ogyei_v2/single/splitted/test/gt_test_masks",
-        "ogyei_v2_single_splitted_pred_test_masks":
-            "ogyei_v2/single/splitted/test/pred_test_masks",
+        "ogyei_valid_images":
+            "ogyei/Customer_splitted/valid_dir/images",
+        "ogyei_valid_mask_images":
+            "ogyei/Customer_splitted/valid_dir/mask_images",
+        "ogyei_valid_segmentation_labels":
+            "ogyei/Customer_splitted/valid_dir/segmentation_labels",
 
-        # T R A Y
-        "tray_original_images":
-            "tray/original_images",
-        "tray_diff_images":
-            "tray/diff_images",
-        "tray_plots":
-            "tray/plots",
-        "tray_images_aug":
-            "tray/tray_images_aug",
-        "tray_images_aug_w_med":
-            "tray/tray_images_aug_w_med",
-        "tray_images_aug_w_med_aug":
-            "tray/tray_images_aug_w_med_aug",
+        "ogyei_test_images":
+            "ogyei/Customer_splitted/test_dir/images",
+        "ogyei_test_mask_images":
+            "ogyei/Customer_splitted/test_dir/mask_images",
+        "ogyei_test_segmentation_labels":
+            "ogyei/Customer_splitted/test_dir/segmentation_labels",
+
+        # STREAM - Customer
+        "stream_images_ogyei_customer":
+            "ogyei/Customer/stream_images",
+        "stream_images_ogyei_customer_contour":
+            "ogyei/Customer/stream_images/contour",
+        "stream_images_ogyei_customer_lbp":
+            "ogyei/Customer/stream_images/lbp",
+        "stream_images_ogyei_customer_rgb":
+            "ogyei/Customer/stream_images/rgb",
+        "stream_images_ogyei_customer_texture":
+            "ogyei/Customer/stream_images/texture",
+
+        # STREAM - Reference
+        "stream_images_ogyei_reference":
+            "ogyei/Reference/stream_images",
+        "stream_images_ogyei_reference_contour":
+            "ogyei/Reference/stream_images/contour",
+        "stream_images_ogyei_reference_lbp":
+            "ogyei/Reference/stream_images/lbp",
+        "stream_images_ogyei_reference_rgb":
+            "ogyei/Reference/stream_images/rgb",
+        "stream_images_ogyei_reference_texture":
+            "ogyei/Reference/stream_images/texture"
     }
 
     # ------------------------------------------------------------------------------------------------------------------
