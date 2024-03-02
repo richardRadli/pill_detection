@@ -13,7 +13,7 @@ patterns, Local Binary Pattern (LBP) features are utilized. Evaluation is perfor
 that our proposed model surpasses previous models in Top-1 and Top-5 accuracy. Notably, the model also outperforms
 the YOLOv7 network in a reference-quality use-case.
 
-Branch: `multi-stream-attention`
+Branch: `idaacs2023`
 
 ## 2. Pill Metrics Learning with Multihead Attention
 
@@ -25,7 +25,7 @@ explore the integration of multihead attention layers at various points in the n
 is evaluated on two datasets, showcasing superior results compared to a state-of-the-art multi-stream pill
 recognition network.
 
-Branch: `metrics-learning-multihead-attention`
+Branch: `kdir2023`
 
 ## 3. Word and Image Embeddings in Pill Recognition
 
@@ -37,4 +37,4 @@ embeddings, injecting textual pill similarity into the visual model. This refine
 than conventional triplet loss models, resulting in enhanced visual model accuracy. Experiments and evaluations
 are conducted on a new, freely available pill dataset.
 
-Branch: `word-image-embeddings`
+Branch: `visapp2024`
