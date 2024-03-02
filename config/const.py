@@ -277,14 +277,14 @@ class Data(_Const):
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
         # CNN - StreamNetwork
-        "weights_cnn_network_contour_ogyei":
-            "data/ogyei/weights/stream_net/cnn/weights_cnn_network_contour",
-        "weights_cnn_network_lbp_ogyei":
-            "data/ogyei/weights/stream_net/cnn/weights_cnn_network_lbp",
-        "weights_cnn_network_rgb_ogyei":
-            "data/ogyei/weights/stream_net/cnn/weights_cnn_network_rgb",
-        "weights_cnn_network_texture_ogyei":
-            "data/ogyei/weights/stream_net/cnn/weights_cnn_network_texture",
+        "weights_cnn_contour_ogyei":
+            "data/ogyei/weights/stream_net/cnn/weights_cnn_contour",
+        "weights_cnn_lbp_ogyei":
+            "data/ogyei/weights/stream_net/cnn/weights_cnn_lbp",
+        "weights_cnn_rgb_ogyei":
+            "data/ogyei/weights/stream_net/cnn/weights_cnn_rgb",
+        "weights_cnn_texture_ogyei":
+            "data/ogyei/weights/stream_net/cnn/weights_cnn_texture",
 
         # EfficientNet b0 - StreamNetwork
         "weights_efficient_net_contour_ogyei":
@@ -331,8 +331,8 @@ class Data(_Const):
 
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
-        "predictions_cnn_network_ogyei":
-            "data/ogyei/predictions/stream_net/predictions_cnn_network",
+        "predictions_cnn_ogyei":
+            "data/ogyei/predictions/stream_net/predictions_cnn",
         "predictions_efficient_net_ogyei":
             "data/ogyei/predictions/stream_net/predictions_efficient_net",
 
@@ -344,8 +344,8 @@ class Data(_Const):
             "data/ogyei/predictions/fusion_net/predictions_fusion_network_efficient_net_self_attention_net",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
-        "reference_vectors_cnn_network_ogyei":
-            "data/ogyei/ref_vec/stream_net/reference_vectors_cnn_network",
+        "reference_vectors_cnn_ogyei":
+            "data/ogyei/ref_vec/stream_net/reference_vectors_cnn",
         "reference_vectors_efficient_net_ogyei":
             "data/ogyei/ref_vec/stream_net/reference_vectors_efficient_net",
 
@@ -380,14 +380,14 @@ class Data(_Const):
         
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
         # CNN - StreamNetwork
-        "weights_cnn_network_contour_cure":
-            "data/cure/weights/stream_net/cnn/weights_cnn_network_contour",
-        "weights_cnn_network_lbp_cure":
-            "data/cure/weights/stream_net/cnn/weights_cnn_network_lbp",
-        "weights_cnn_network_rgb_cure":
-            "data/cure/weights/stream_net/cnn/weights_cnn_network_rgb",
-        "weights_cnn_network_texture_cure":
-            "data/cure/weights/stream_net/cnn/weights_cnn_network_texture",
+        "weights_cnn_contour_cure":
+            "data/cure/weights/stream_net/cnn/weights_cnn_contour",
+        "weights_cnn_lbp_cure":
+            "data/cure/weights/stream_net/cnn/weights_cnn_lbp",
+        "weights_cnn_rgb_cure":
+            "data/cure/weights/stream_net/cnn/weights_cnn_rgb",
+        "weights_cnn_texture_cure":
+            "data/cure/weights/stream_net/cnn/weights_cnn_texture",
 
         # EfficientNet b0 - StreamNetwork
         "weights_efficient_net_contour_cure":
@@ -434,8 +434,8 @@ class Data(_Const):
 
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
-        "predictions_cnn_network_cure":
-            "data/cure/predictions/stream_net/predictions_cnn_network",
+        "predictions_cnn_cure":
+            "data/cure/predictions/stream_net/predictions_cnn",
         "predictions_efficient_net_cure":
             "data/cure/predictions/stream_net/predictions_efficient_net",
 
@@ -447,8 +447,8 @@ class Data(_Const):
             "data/cure/predictions/fusion_net/predictions_fusion_network_efficient_net_self_attention_net",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
-        "reference_vectors_cnn_network_cure":
-            "data/cure/ref_vec/stream_net/reference_vectors_cnn_network",
+        "reference_vectors_cnn_cure":
+            "data/cure/ref_vec/stream_net/reference_vectors_cnn",
         "reference_vectors_efficient_net_cure":
             "data/cure/ref_vec/stream_net/reference_vectors_efficient_net",
 

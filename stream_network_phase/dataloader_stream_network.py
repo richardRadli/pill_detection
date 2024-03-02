@@ -8,6 +8,7 @@ from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 
 from config.config import ConfigStreamNetwork
+from config.config_selector import sub_stream_network_configs
 
 
 class DataLoaderStreamNet(Dataset):
@@ -20,6 +21,9 @@ class DataLoaderStreamNet(Dataset):
         """
 
         self.cfg = ConfigStreamNetwork().parse()
+        network_config = sub_stream_network_configs(self.cfg)
+        network_cfg = network_config.get(self.cfg.type_of_stream)
+        self.image_size = network_cfg.get("image_size")
 
         # Load datasets
         self.query_images, self.query_labels = self.load_dataset(dataset_dirs_anchor)
@@ -51,15 +55,15 @@ class DataLoaderStreamNet(Dataset):
     def get_transform(self):
         if self.cfg.type_of_stream == "RGB":
             return transforms.Compose([
-                transforms.Resize(self.cfg.img_size_en),
-                transforms.CenterCrop(self.cfg.img_size_en),
+                transforms.Resize(self.image_size),
+                transforms.CenterCrop(self.image_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
             ])
         elif self.cfg.type_of_stream in ["Contour", "Texture", "LBP"]:
             return transforms.Compose([
-                transforms.Resize(self.cfg.img_size_en),
-                transforms.CenterCrop(self.cfg.img_size_en),
+                transforms.Resize(self.image_size),
+                transforms.CenterCrop(self.image_size),
                 transforms.Grayscale(),
                 transforms.ToTensor(),
             ])

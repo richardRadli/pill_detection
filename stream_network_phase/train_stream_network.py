@@ -76,8 +76,13 @@ class TrainModel:
         )
 
         # Specify optimizer
-        self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                          lr=network_cfg.get("learning_rate"))
+        if self.cfg.type_of_net == "CNN":
+            self.optimizer = torch.optim.Adam(self.model.parameters(),
+                                              lr=network_cfg.get("learning_rate"),
+                                              weight_decay=self.cfg.weight_decay)
+        else:
+            self.optimizer = torch.optim.Adam(self.model.parameters(),
+                                              lr=network_cfg.get("learning_rate"))
 
         # LR scheduler
         self.scheduler = StepLR(optimizer=self.optimizer,

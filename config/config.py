@@ -151,7 +151,7 @@ class ConfigStreamNetwork:
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument("--dataset_type", type=str, default="ogyei", choices=["cure | ogyei"])
-        self.parser.add_argument("--type_of_net", type=str, default="EfficientNet", choices=["CNN | EfficientNet"])
+        self.parser.add_argument("--type_of_net", type=str, default="CNN", choices=["CNN | EfficientNet"])
         self.parser.add_argument("--type_of_stream", type=str, default="Texture",
                                  choices=["Contour | LBP | RGB | Texture"])
 
@@ -165,6 +165,11 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
 
+        self.parser.add_argument("--learning_rate_cnn_con", type=float, default=3e-4)
+        self.parser.add_argument("--learning_rate_cnn_lbp", type=float, default=3e-4)
+        self.parser.add_argument("--learning_rate_cnn_rgb", type=float, default=3e-4)
+        self.parser.add_argument("--learning_rate_cnn_tex", type=float, default=3e-4)
+
         self.parser.add_argument("--learning_rate_en_con", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_lbp", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_rgb", type=float, default=1e-4)
@@ -174,6 +179,7 @@ class ConfigStreamNetwork:
                                  help="Number of epochs after which to decay the learning rate")
         self.parser.add_argument('--gamma', type=float, default=1/3, help="Factor by which to decay the learning rate")
 
+        self.parser.add_argument("--img_size_cnn", type=int, default=128)
         self.parser.add_argument("--img_size_en", type=int, default=224)
 
         self.parser.add_argument("--load_ref_vector", type=bool, default=False)
