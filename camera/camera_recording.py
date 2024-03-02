@@ -10,7 +10,7 @@ from tkinter import OptionMenu
 from typing import Dict
 
 from config.config import CameraAndCalibrationConfig
-from config.network_configs import camera_config
+from config.config_selector import camera_config
 from utils.utils import find_latest_file_in_directory
 
 
@@ -105,7 +105,7 @@ class ImageRecording:
         self.image_save_path = os.path.join(camera_config().get("pill_images"), self.pill_name)
         os.makedirs(self.image_save_path, exist_ok=True)
 
-        self.coefficient = self.cam_cfg.size_coeff
+        self.coefficient = self.cam_cfg.size_coefficients
         self.lamp_mode = lamp_mode
         self.CAM_ID = self.cam_cfg.cam_id
         self.width = self.cam_cfg.width

@@ -20,7 +20,7 @@ from typing import List, Tuple
 from PIL import Image
 
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
-from config.network_configs import sub_stream_network_configs, fusion_network_config
+from config.config_selector import sub_stream_network_configs, fusion_network_config
 from fusion_network_models.fusion_network_selector import NetworkFactory
 from utils.utils import (use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory,
                          plot_confusion_matrix, plot_ref_query_images, setup_logger)
@@ -69,7 +69,6 @@ class PredictFusionNetwork:
         self.network_cfg_texture = self.subnetwork_config.get("Texture")
 
         self.network = self.load_networks()
-        self.network.eval()
 
         # Set up transforms
         self.preprocess_rgb = transforms.Compose([transforms.Resize((self.network_cfg_rgb.get("image_size"),
@@ -85,6 +84,15 @@ class PredictFusionNetwork:
 
         # Select device
         self.device = use_gpu_if_available()
+
+        self.plot_dir = os.path.join(
+            self.fusion_network_config.get('plotting_folder').get(self.cfg_stream_net.dataset_type),
+            f"{self.timestamp}"
+        )
+        self.plot_confusion_matrix_dir = os.path.join(
+            self.fusion_network_config.get("confusion_matrix").get(self.cfg_stream_net.dataset_type),
+            f"{self.timestamp}"
+        )
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
@@ -107,6 +115,11 @@ class PredictFusionNetwork:
                                                        network_cfg_rgb=self.network_cfg_rgb,
                                                        network_cfg_texture=self.network_cfg_texture)
         network_fusion.load_state_dict(torch.load(latest_con_pt_file))
+        network_fusion.contour_network.eval()
+        network_fusion.lbp_network.eval()
+        network_fusion.rgb_network.eval()
+        network_fusion.texture_network.eval()
+        network_fusion.eval()
 
         return network_fusion
 
@@ -133,6 +146,7 @@ class PredictFusionNetwork:
         color = colorama.Fore.BLUE if operation == "query" else colorama.Fore.RED
 
         self.network = self.network.to(device=self.device)
+
         for med_class in tqdm(medicine_classes, desc=color + "Processing classes of the %s images" % operation):
             image_paths_con = os.listdir(os.path.join(contour_dir, med_class))
             image_paths_lbp = os.listdir(os.path.join(lbp_dir, med_class))
@@ -273,7 +287,8 @@ class PredictFusionNetwork:
         df_stat = [
             ["Correctly predicted (Top-1):", f'{self.num_correct_top1}'],
             ["Correctly predicted (Top-5):", f'{self.num_correct_top5}'],
-            ["Miss predicted:", f'{len(query_vectors) - self.num_correct_top1}'],
+            ["Miss predicted top 1:", f'{len(query_vectors) - self.num_correct_top1}'],
+            ["Miss predicted top 5:", f'{len(query_vectors) - self.num_correct_top5}'],
             ['Accuracy (Top-1):', f'{self.accuracy_top1:.4%}'],
             ['Accuracy (Top-5):', f'{self.accuracy_top5:.4%}']
         ]
@@ -312,13 +327,12 @@ class PredictFusionNetwork:
             operation="query")
 
         ref_vectors, r_labels, r_images_path = self.get_vectors(
-            contour_dir=self.subnetwork_config.get("Contour").get("test").get(self.cfg_stream_net.dataset_type),
-            lbp_dir=self.subnetwork_config.get("LBP").get("test").get(self.cfg_stream_net.dataset_type),
-            rgb_dir=self.subnetwork_config.get("RGB").get("test").get(self.cfg_stream_net.dataset_type),
-            texture_dir=self.subnetwork_config.get("Texture").get("test").get(self.cfg_stream_net.dataset_type),
+            contour_dir=self.subnetwork_config.get("Contour").get("ref").get(self.cfg_stream_net.dataset_type),
+            lbp_dir=self.subnetwork_config.get("LBP").get("ref").get(self.cfg_stream_net.dataset_type),
+            rgb_dir=self.subnetwork_config.get("RGB").get("ref").get(self.cfg_stream_net.dataset_type),
+            texture_dir=self.subnetwork_config.get("Texture").get("ref").get(self.cfg_stream_net.dataset_type),
             operation="reference")
 
-        # Compare query and reference vectors
         gt, pred_ed, indices = (
             self.compare_query_ref_vectors_euc_dist(q_labels, r_labels, ref_vectors, query_vectors))
 
@@ -330,13 +344,13 @@ class PredictFusionNetwork:
             r_images_path=r_images_path,
             gt=gt,
             pred_ed=pred_ed,
-            output_folder=self.fusion_network_config.get("plotting_folder").get(self.cfg_stream_net.dataset_type)
+            output_folder=self.plot_dir
         )
 
         plot_confusion_matrix(
             gt=gt,
             pred=pred_ed,
-            out_path=self.fusion_network_config.get("confusion_matrix").get(self.cfg_stream_net.dataset_type)
+            out_path=self.plot_confusion_matrix_dir
         )
 
 

@@ -105,6 +105,7 @@ class EfficientNetSelfAttention(nn.Module):
         self.value_rgb = nn.Linear(rgb_dimension, rgb_dimension)
 
         self.fc1 = nn.Linear(self.input_dim, self.input_dim)
+        self.fc2 = nn.Linear(self.input_dim, self.input_dim)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
@@ -133,6 +134,7 @@ class EfficientNetSelfAttention(nn.Module):
 
         x = torch.cat((x1, x2, x3, x4), dim=1)
         x = self.fc1(x)
+        x = self.fc2(x)
 
         return x
 

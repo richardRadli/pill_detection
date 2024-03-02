@@ -49,8 +49,5 @@ class EfficientNet(nn.Module):
         """
 
         model = models.efficientnet_b0(weights='DEFAULT')
-        for params in model.parameters():
-            params.requires_grad = False
-
         model.classifier[1] = nn.Linear(in_features=1280, out_features=self.num_out_feature)
         return model

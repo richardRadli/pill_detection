@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 
 from config.config import CameraAndCalibrationConfig
-from config.network_configs import camera_config
+from config.config_selector import camera_config
 from utils.utils import setup_logger
 
 
@@ -16,7 +16,7 @@ class CalibrationImageCapture:
         self.timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         self.cap = None
         self.capture_count = 0
-        self.size_coeff = self.cam_cfg.size_coeff
+        self.size_coefficients = self.cam_cfg.size_coefficients
         self.root_dir = camera_config().get("calibration_images")
 
         self.setup_camera()
@@ -48,8 +48,8 @@ class CalibrationImageCapture:
 
         while True:
             _, frame = self.cap.read()
-            resized_frame = cv2.resize(frame, dsize=(frame.shape[1] // self.size_coeff,
-                                                     frame.shape[0] // self.size_coeff))
+            resized_frame = cv2.resize(frame, dsize=(frame.shape[1] // self.size_coefficients,
+                                                     frame.shape[0] // self.size_coefficients))
 
             cv2.imshow('Calibration Image', resized_frame)
             key = cv2.waitKey(1)

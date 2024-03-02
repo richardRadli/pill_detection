@@ -20,9 +20,9 @@ from typing import List, Tuple
 from PIL import Image
 
 from config.config import ConfigStreamNetwork
-from config.network_configs import sub_stream_network_configs, stream_network_config
+from config.config_selector import sub_stream_network_configs, stream_network_config
 from stream_network_models.stream_network_selector import NetworkFactory
-from utils.utils import create_timestamp, find_latest_file_in_latest_directory, \
+from utils.utils import create_timestamp, find_latest_file_in_latest_directory, plot_confusion_matrix, \
     plot_ref_query_images, use_gpu_if_available, setup_logger
 
 
@@ -40,7 +40,7 @@ class PredictStreamNetwork:
         # Load config
         self.cfg = ConfigStreamNetwork().parse()
 
-        # Set up tqmd colours
+        # Set up tqdm colours
         colorama.init()
 
         # Create time stamp
@@ -69,18 +69,36 @@ class PredictStreamNetwork:
 
         # Preprocess images
         self.preprocess_rgb = \
-            transforms.Compose([transforms.Resize((
-                self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
-                self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))),
-                transforms.ToTensor(),
-                transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
+            transforms.Compose(
+                [
+                    transforms.Resize((
+                        self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
+                        self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))
+                    ),
+                    transforms.CenterCrop((
+                    self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
+                    self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))
+                    ),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+                ]
+            )
 
         self.preprocess_con_tex = \
-            transforms.Compose([transforms.Resize((
-                self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
-                self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))),
-                transforms.Grayscale(),
-                transforms.ToTensor()])
+            transforms.Compose(
+                [
+                    transforms.Resize((
+                        self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
+                        self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))
+                    ),
+                    transforms.CenterCrop((
+                    self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
+                    self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))
+                    ),
+                    transforms.Grayscale(),
+                    transforms.ToTensor(),
+                ]
+            )
 
         # Select device
         self.device = use_gpu_if_available()
@@ -159,12 +177,13 @@ class PredictStreamNetwork:
         for image_name in tqdm(medicine_classes, desc=color + "\nProcess %s images" % operation):
             # Collecting images
             image_paths_con = os.listdir(os.path.join(contour_dir, image_name))
+            image_paths_lbp = os.listdir(os.path.join(lbp_dir, image_name))
             image_paths_rgb = os.listdir(os.path.join(rgb_dir, image_name))
             image_paths_tex = os.listdir(os.path.join(texture_dir, image_name))
-            image_paths_lbp = os.listdir(os.path.join(lbp_dir, image_name))
 
-            for idx, (con, rgb, tex, lbp) in enumerate(zip(
-                    image_paths_con, image_paths_rgb, image_paths_tex, image_paths_lbp)):
+            for idx, (con, lbp, rgb, tex) in enumerate(zip(
+                    image_paths_con, image_paths_lbp, image_paths_rgb, image_paths_tex)
+            ):
                 # Open images and convert them to tensors
                 con_image = Image.open(os.path.join(contour_dir, image_name, con))
                 con_image = self.preprocess_con_tex(con_image)
@@ -188,12 +207,12 @@ class PredictStreamNetwork:
                     tex_image = tex_image.unsqueeze(0).to(self.device)
 
                     # Perform computation on GPU and move result back to CPU
-                    vector1 = self.network_con(con_image).squeeze().cpu()
-                    vector2 = self.network_lbp(lbp_image).squeeze().cpu()
-                    vector3 = self.network_rgb(rgb_image).squeeze().cpu()
-                    vector4 = self.network_tex(tex_image).squeeze().cpu()
+                    contour_vector = self.network_con(con_image).squeeze().cpu()
+                    lbp_vector = self.network_lbp(lbp_image).squeeze().cpu()
+                    rgb_vector = self.network_rgb(rgb_image).squeeze().cpu()
+                    texture_vector = self.network_tex(tex_image).squeeze().cpu()
 
-                concatenated = torch.cat((vector1, vector2, vector3, vector4), dim=0)
+                concatenated = torch.cat((contour_vector, lbp_vector, rgb_vector, texture_vector), dim=0)
                 vectors.append(concatenated)
                 labels.append(image_name)
 
@@ -241,7 +260,8 @@ class PredictStreamNetwork:
         reference_vectors_tensor = torch.stack([torch.as_tensor(vec).to(self.device) for vec in reference_vectors])
         query_vectors_tensor = torch.stack([torch.as_tensor(vec).to(self.device) for vec in query_vectors])
 
-        for idx_query, query_vector in tqdm(enumerate(query_vectors_tensor), total=len(query_vectors_tensor),
+        for idx_query, query_vector in tqdm(enumerate(query_vectors_tensor),
+                                            total=len(query_vectors_tensor),
                                             desc="Comparing process"):
             scores_euclidean_distance = torch.norm(query_vector - reference_vectors_tensor, dim=1)
 
@@ -308,7 +328,8 @@ class PredictStreamNetwork:
         df_stat = [
             ["Correctly predicted (Top-1):", f'{self.num_correct_top1}'],
             ["Correctly predicted (Top-5):", f'{self.num_correct_top5}'],
-            ["Miss predicted:", f'{len(query_vectors) - self.num_correct_top1}'],
+            ["Miss predicted top 1:", f'{len(query_vectors) - self.num_correct_top1}'],
+            ["Miss predicted top 5:", f'{len(query_vectors) - self.num_correct_top5}'],
             ['Accuracy (Top-1):', f'{self.accuracy_top1:.4%}'],
             ['Accuracy (Top-5):', f'{self.accuracy_top5:.4%}']
         ]
@@ -366,21 +387,25 @@ class PredictStreamNetwork:
         else:
             ref_vecs, r_labels, r_images_path = \
                 self.get_vectors(
-                    contour_dir=self.sub_network_config.get("Contour").get("test").get(self.cfg.dataset_type),
-                    lbp_dir=self.sub_network_config.get("LBP").get("test").get(self.cfg.dataset_type),
-                    rgb_dir=self.sub_network_config.get("RGB").get("test").get(self.cfg.dataset_type),
-                    texture_dir=self.sub_network_config.get("Texture").get("test").get(self.cfg.dataset_type),
+                    contour_dir=self.sub_network_config.get("Contour").get("ref").get(self.cfg.dataset_type),
+                    lbp_dir=self.sub_network_config.get("LBP").get("ref").get(self.cfg.dataset_type),
+                    rgb_dir=self.sub_network_config.get("RGB").get("ref").get(self.cfg.dataset_type),
+                    texture_dir=self.sub_network_config.get("Texture").get("ref").get(self.cfg.dataset_type),
                     operation="reference")
 
-        # Compare query and reference vectors
         gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
-
         self.display_results(gt, pred_ed, query_vecs)
 
         # Plot query and reference medicines
         plot_dir = os.path.join(self.main_network_config.get('plotting_folder').get(self.cfg.dataset_type),
                                 f"{self.timestamp}_{self.cfg.type_of_loss_func}")
         plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, plot_dir)
+
+        plot_confusion_matrix(
+            gt=gt,
+            pred=pred_ed,
+            out_path=self.main_network_config.get("confusion_matrix").get(self.cfg.dataset_type)
+        )
 
 
 # ----------------------------------------------------------------------------------------------------------------------

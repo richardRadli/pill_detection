@@ -17,7 +17,7 @@ import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 
-from config.network_configs import camera_config
+from config.config_selector import camera_config
 from utils.utils import find_latest_file_in_latest_directory
 
 
@@ -34,8 +34,8 @@ class UnDistortTestImages:
         data = np.load(cam_mtx_np_file, allow_pickle=True)
 
         self.matrix = data.item()['matrix']
-        self.dist_coeff = data.item()['dist_coeff']
-        self.undst_matrix = data.item()['undst_matrix']
+        self.dist_coefficients = data.item()['distortion_coefficients']
+        self.undistorted_matrix = data.item()['undistorted_matrix']
         self.roi = data.item()['roi']
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ class UnDistortTestImages:
 
         src_img = cv2.imread(img_path)
 
-        undistorted_image = cv2.undistort(src_img, self.matrix, self.dist_coeff, None, self.undst_matrix)
+        undistorted_image = cv2.undistort(src_img, self.matrix, self.dist_coefficients, None, self.undistorted_matrix)
         x, y, w, h = self.roi
         undistorted_image = undistorted_image[y:y + h, x:x + w]
 
