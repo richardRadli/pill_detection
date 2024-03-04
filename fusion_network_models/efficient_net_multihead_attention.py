@@ -4,13 +4,14 @@ Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Jul 19, 2023
 
-Description: The program implements the EfficientNet small multi-head attention with Fusion Net.
+Description: The program implements the fusion of EfficientNet V2 s substreams with multi-head attention into a
+Fusion Net.
 """
 
 import torch
 import torch.nn as nn
 
-from config.config import ConfigStreamNetwork
+from config.config import ConfigStreamNetwork, ConfigFusionNetwork
 from stream_network_models.stream_network_selector import NetworkFactory
 from utils.utils import find_latest_file_in_latest_directory
 
@@ -32,6 +33,7 @@ class EfficientNetMultiHeadAttention(nn.Module):
         super(EfficientNetMultiHeadAttention, self).__init__()
 
         stream_net_cfg = ConfigStreamNetwork().parse()
+        fusion_net_cfg = ConfigFusionNetwork().parse()
 
         latest_con_pt_file = find_latest_file_in_latest_directory(
             path=(
@@ -80,10 +82,22 @@ class EfficientNetMultiHeadAttention(nn.Module):
         self.rgb_network.load_state_dict(torch.load(latest_rgb_pt_file))
         self.texture_network.load_state_dict(torch.load(latest_tex_pt_file))
 
-        self.multi_head_con = nn.MultiheadAttention(embed_dim=network_cfg_contour.get("embedded_dim"), num_heads=4)
-        self.multi_head_lbp = nn.MultiheadAttention(embed_dim=network_cfg_lbp.get("embedded_dim"), num_heads=4)
-        self.multi_head_rgb = nn.MultiheadAttention(embed_dim=network_cfg_rgb.get("embedded_dim"), num_heads=4)
-        self.multi_head_tex = nn.MultiheadAttention(embed_dim=network_cfg_texture.get("embedded_dim"), num_heads=4)
+        self.multi_head_con = nn.MultiheadAttention(
+            embed_dim=network_cfg_contour.get("embedded_dim"),
+            num_heads=fusion_net_cfg.num_heads
+        )
+        self.multi_head_lbp = nn.MultiheadAttention(
+            embed_dim=network_cfg_lbp.get("embedded_dim"),
+            num_heads=fusion_net_cfg.num_heads
+        )
+        self.multi_head_rgb = nn.MultiheadAttention(
+            embed_dim=network_cfg_rgb.get("embedded_dim"),
+            num_heads=fusion_net_cfg.num_heads
+        )
+        self.multi_head_tex = nn.MultiheadAttention(
+            embed_dim=network_cfg_texture.get("embedded_dim"),
+            num_heads=fusion_net_cfg.num_heads
+        )
 
         self.multi_head_modules = {
             "contour": self.multi_head_con,
@@ -104,29 +118,34 @@ class EfficientNetMultiHeadAttention(nn.Module):
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def forward(self, x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor):
+    def forward(self,
+                contour_embedding: torch.Tensor,
+                lbp_embedding: torch.Tensor,
+                rgb_embedding: torch.Tensor,
+                texture_embedding: torch.Tensor):
         """
-        This is the forward function of the FusionNet.
+        This is the forward function of the EfficientNetMultiHeadAttention.
 
-        :param x1: input tensor for contour stream, with shape [batch_size, 1, height, width]
-        :param x2: input tensor for RGB stream, with shape [batch_size, 3, height, width]
-        :param x3: input tensor for texture stream, with shape [batch_size, 1, height, width]
-        :param x4: input tensor for LBP stream, with shape [batch_size, 1, height, width]
+        :param contour_embedding: input tensor for contour stream, with shape [batch_size, 1, height, width]
+        :param lbp_embedding: input tensor for LBP stream, with shape [batch_size, 1, height, width]
+        :param rgb_embedding: input tensor for RGB stream, with shape [batch_size, 3, height, width]
+        :param texture_embedding: input tensor for texture stream, with shape [batch_size, 1, height, width]
 
-        :return: output tensor with shape [batch_size, 640] after passing through fully connected layers.
+        :return: Output tensor with shape [batch_size, sum(contour_embedding, lbp_embedding, rgb_embedding,
+        texture_embedding)] after passing through two fully connected layers.
         """
 
-        x1 = self.contour_network(x1)
-        x2 = self.lbp_network(x2)
-        x3 = self.rgb_network(x3)
-        x4 = self.texture_network(x4)
+        contour_embedding = self.contour_network(contour_embedding)
+        lbp_embedding = self.lbp_network(lbp_embedding)
+        rgb_embedding = self.rgb_network(rgb_embedding)
+        texture_embedding = self.texture_network(texture_embedding)
 
-        x1 = self.multi_head_attention(x1, sub_stream="contour")
-        x2 = self.multi_head_attention(x2, sub_stream="lbp")
-        x3 = self.multi_head_attention(x3, sub_stream="rgb")
-        x4 = self.multi_head_attention(x4, sub_stream="texture")
+        contour_embedding = self.multi_head_attention(contour_embedding, sub_stream="contour")
+        lbp_embedding = self.multi_head_attention(lbp_embedding, sub_stream="lbp")
+        rgb_embedding = self.multi_head_attention(rgb_embedding, sub_stream="rgb")
+        texture_embedding = self.multi_head_attention(texture_embedding, sub_stream="texture")
 
-        x = torch.cat((x1, x2, x3, x4), dim=1)
+        x = torch.cat((contour_embedding, lbp_embedding, rgb_embedding, texture_embedding), dim=1)
         x = self.fc1(x)
         x = self.fc2(x)
         x = self.relu(x)
@@ -136,12 +155,14 @@ class EfficientNetMultiHeadAttention(nn.Module):
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------- M U L T I H E A D A T T E N T I O N ---------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def multi_head_attention(self, x: torch.Tensor, sub_stream: str):
+    def multi_head_attention(self,
+                             x: torch.Tensor,
+                             sub_stream: str):
         """
         This function implements the multi-head attention
 
         :param x: Input tensor
-        :param sub_stream: type of sub stream
+        :param sub_stream: Type of sub stream
         :return:
         """
 

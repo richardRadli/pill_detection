@@ -16,17 +16,16 @@ import torch
 from pytorch_metric_learning import losses, miners
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config.config import ConfigStreamNetwork
-from config.config_selector import  sub_stream_network_configs
+from config.config_selector import nlp_configs, sub_stream_network_configs
 from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network import DataLoaderStreamNet
 from loss_functions.dynamic_margin_triplet_loss_stream import DynamicMarginTripletLoss
 from utils.utils import (create_timestamp, measure_execution_time, print_network_config, use_gpu_if_available,
-                         setup_logger, get_embedded_text_matrix)
+                         setup_logger, get_embedded_text_matrix, create_dataset)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -61,6 +60,17 @@ class TrainModel:
         network_config = sub_stream_network_configs(self.cfg)
         network_cfg = network_config.get(self.cfg.type_of_stream)
 
+        # Setup dataset
+        dataset = \
+            DataLoaderStreamNet(
+                dataset_dirs_anchor=[network_cfg.get("train").get(self.cfg.dataset_type).get("anchor")],
+                dataset_dirs_pos_neg=[network_cfg.get("train").get(self.cfg.dataset_type).get("pos_neg")]
+            )
+
+        self.dataset = create_dataset(dataset=dataset,
+                                      train_valid_ratio=self.cfg.train_valid_ratio,
+                                      batch_size=self.cfg.batch_size)
+
         # Load model and upload it to the GPU
         self.model = NetworkFactory.create_network(self.cfg.type_of_net, network_cfg)
         self.model.to(self.device)
@@ -73,7 +83,8 @@ class TrainModel:
 
         # Specify loss function
         if self.cfg.type_of_loss_func == "dmtl":
-            df = get_embedded_text_matrix()
+            path_to_excel_file = nlp_configs().get("vector_distances")
+            df = get_embedded_text_matrix(path_to_excel_file)
             self.criterion = DynamicMarginTripletLoss(margin=self.cfg.margin,
                                                       triplets_per_anchor="all",
                                                       euc_dist_mtx=df,
@@ -92,7 +103,7 @@ class TrainModel:
         self.optimizer = torch.optim.Adam(self.model.parameters(),
                                           lr=network_cfg.get("learning_rate"))
 
-        # LR scheduler
+        # Learning Rate scheduler
         self.scheduler = StepLR(optimizer=self.optimizer,
                                 step_size=self.cfg.step_size,
                                 gamma=self.cfg.gamma)
@@ -110,34 +121,6 @@ class TrainModel:
         # Variables to save only the best weights and model
         self.best_valid_loss = float('inf')
         self.best_model_path = None
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------ C R E A T E   D A T A S E T -------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def create_dataset(self, network_cfg):
-        """
-
-        :param network_cfg:
-        :return:
-        """
-
-        # Load dataset
-        dataset = \
-            DataLoaderStreamNet(
-                dataset_dirs_anchor=[network_cfg.get("train").get(self.cfg.dataset_type).get("anchor")],
-                dataset_dirs_pos_neg=[network_cfg.get("train").get(self.cfg.dataset_type).get("pos_neg")]
-            )
-
-        # Calculate the number of samples for each set
-        train_size = int(len(dataset) * self.cfg.train_valid_ratio)
-        val_size = len(dataset) - train_size
-        train_dataset, valid_dataset = random_split(dataset, [train_size, val_size])
-        logging.info(f"Number of images in the train set: {len(train_dataset)}")
-        logging.info(f"Number of images in the validation set: {len(valid_dataset)}")
-        train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
-        valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
-
-        return dataset, train_data_loader, valid_data_loader
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- C R E A T E   S A V E   D I R S -----------------------------------------
@@ -304,10 +287,7 @@ class TrainModel:
         # to track hard samples
         hard_samples = []
 
-        network_config = sub_stream_network_configs(self.cfg)
-        network_cfg = network_config.get(self.cfg.type_of_stream)
-
-        dataset, train_data_loader, valid_data_loader = self.create_dataset(network_cfg)
+        train_data_loader, valid_data_loader = self.dataset
         for epoch in tqdm(range(self.cfg.epochs), desc=colorama.Fore.GREEN + "Epochs"):
             # Train loop
             train_losses, hard_samples = self.train_loop(train_data_loader, train_losses, hard_samples)

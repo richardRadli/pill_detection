@@ -8,25 +8,54 @@ from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
 
 
-def filter_filenames_by_class(filenames, class_id):
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------- F I L T E R   F I L E N A M E S   B Y   C L A S S E S --------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def filter_filenames_by_class(filenames: list[str], class_id: int) -> list[str]:
+    """
+    Filter filenames based on class_id.
+
+    Args:
+        filenames (list[str]): List of filenames.
+        class_id (int): Class ID.
+
+    Returns:
+        list[str]: Filtered list of filenames.
+    """
+
     return [filename for filename in filenames if int(filename.split("_")[0]) == class_id]
 
 
-def split_dataset(dataset_path, test_ratio=0.20, random_seed=42):
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------- S P L I T   D A T A S E T ---------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def split_dataset(dataset_path: str, test_ratio: float = 0.20, random_seed: int = 42) ->\
+        tuple[list[str], list[str], list[str], int]:
+    """
+    Split dataset into train, validation, and test sets.
+
+    Args:
+        dataset_path (str): Path to the dataset.
+        test_ratio (float): Ratio of the dataset to be used for testing.
+        random_seed (int): Random seed for reproducibility.
+
+    Returns:
+        tuple[list[str], list[str], list[str], int]: Train set, validation set, test set, total number of images.
+    """
+
     image_filenames = [filename for filename in os.listdir(dataset_path) if filename.endswith(".jpg")]
     class_ids = set([int(filename.split("_")[0]) for filename in image_filenames])
 
-    # Select 20% of the classes for the test set
+    # Select test classes
     train_classes, test_classes = train_test_split(list(class_ids),
                                                    test_size=test_ratio,
                                                    random_state=random_seed)
     test_set = [filename for filename in image_filenames if int(filename.split("_")[0]) in test_classes]
 
-    # Calculate the remaining classes after selecting the test set
+    # Select train and validation classes
     remaining_classes = class_ids - set(test_classes)
     train_set, val_set = [], []
 
-    # Split the remaining classes into train and valid sets
     for class_id in remaining_classes:
         class_images = [filename for filename in image_filenames if int(filename.split("_")[0]) == class_id]
         train_image, valid_image = train_test_split(class_images,
@@ -41,8 +70,27 @@ def split_dataset(dataset_path, test_ratio=0.20, random_seed=42):
     return train_set, val_set, test_set, len(image_filenames)
 
 
-def copy_files(split_set, dataset_images_path, dataset_mask_path, dataset_segmentation_path, dst_dataset_images_path,
-               dst_dataset_mask_path, dst_segmentation_path):
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------- C O P Y   F I L E S ------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def copy_files(split_set: list[str], dataset_images_path: str, dataset_mask_path: str, dataset_segmentation_path: str,
+               dst_dataset_images_path: str, dst_dataset_mask_path: str, dst_segmentation_path: str) -> None:
+    """
+    Copy files from source to destination directories.
+
+    Args:
+        split_set (list[str]): List of files to copy.
+        dataset_images_path (str): Path to dataset images.
+        dataset_mask_path (str): Path to dataset masks.
+        dataset_segmentation_path (str): Path to dataset segmentations.
+        dst_dataset_images_path (str): Destination path for images.
+        dst_dataset_mask_path (str): Destination path for masks.
+        dst_segmentation_path (str): Destination path for segmentations.
+
+    Returns:
+        None
+    """
+
     for file in tqdm(split_set):
         src_img = os.path.join(dataset_images_path, file)
         src_mask = os.path.join(dataset_mask_path, file)
@@ -53,11 +101,34 @@ def copy_files(split_set, dataset_images_path, dataset_mask_path, dataset_segmen
         shutil.copy(str(src_seg), dst_segmentation_path)
 
 
-def set_len(set_name):
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------- S E T   L E N ---------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def set_len(set_name: list[str]) -> int:
+    """
+    Get the length of the set.
+
+    Args:
+        set_name (list[str]): Set of filenames.
+
+    Returns:
+        int: Length of the set.
+    """
+
     return len(set([int(filename.split('_')[0]) for filename in set_name]))
 
 
-def main():
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------- M A I N ------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def main() -> None:
+    """
+    Executes the functions above.
+
+    Returns:
+        None
+    """
+
     cfg = ConfigAugmentation().parse()
 
     dataset_images_path = (

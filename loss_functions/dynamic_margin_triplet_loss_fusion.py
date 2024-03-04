@@ -1,3 +1,12 @@
+"""
+File: dynamic_margin_triplet_loss_fusion.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: March 4, 2024
+
+Description: This code implements the dynamic margin triplet loss in the fusion phase.
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as functional

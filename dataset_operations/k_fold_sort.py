@@ -17,14 +17,20 @@ class KFoldSort:
         self.fold_name = fold_name
         self.erase = erase
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------------- F O L D S ---------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def folds(self, load: bool = False, num_folds: int = None) -> dict:
         """
         Generate or load k-folds of class names.
 
-        :param load: If True, load k-folds from a previously generated file. If False, generate new k-folds.
-        :param num_folds: Number of folds.
-        :return: A dictionary where keys are fold names (fold1, fold2, ..., fold_{num_folds}) and values are lists of
-        class names.
+        Args:
+            load (bool): If True, load k-folds from a previously generated file. If False, generate new k-folds.
+            num_folds (int): Number of folds.
+
+        Returns:
+            dict: A dictionary where keys are fold names (fold1, fold2, ..., fold_{num_folds}) and values are lists of
+                  class names.
         """
 
         if not load:
@@ -66,15 +72,22 @@ class KFoldSort:
 
         return k_folds
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------- M O V E   I M A G E S   T O   F O L D S ------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def move_images_to_folds(self, sorted_folds, fold_id: str = "fold1", operation: str = "reference",
                              data_role: str = "train") -> None:
         """
+        Moves images to respective folds based on the sorted fold dictionary.
 
-        :param sorted_folds:
-        :param fold_id:
-        :param operation:
-        :param data_role:
-        :return:
+        Args:
+            sorted_folds (dict): A dictionary containing sorted fold information.
+            fold_id (str): The ID of the fold to move images for.
+            operation (str): The operation type (e.g., "reference" or "customer").
+            data_role (str): The role of the data (e.g., "train" or "test").
+
+        Returns:
+            None
         """
 
         all_folds = sorted_folds.keys()
@@ -139,11 +152,17 @@ class KFoldSort:
                 else:
                     logging.error(f"Folder {folder} not found in {source_path}")
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------- E R A S E   F I L E S ---------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def erase_files(self):
         """
         Remove directories corresponding to the test set.
-        :return: None
+
+        Returns:
+            None
         """
+
         root = (
             dataset_images_path_selector(self.stream_cfg.dataset_type).get("dst_stream_images")
         )
@@ -152,7 +171,17 @@ class KFoldSort:
             logging.info("Removing {}".format(value))
             shutil.rmtree(value)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------- M A I N ----------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def main(self):
+        """
+        Main method for executing the workflow.
+
+        Returns:
+            None
+        """
+
         if self.erase:
             self.erase_files()
         if self.load_folds:

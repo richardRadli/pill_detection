@@ -7,7 +7,22 @@ from tqdm import tqdm
 from config.const import DATASET_PATH
 
 
-def convert_and_save(src_directory, dst_directory, jpg_file):
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------ C O N V E R T   A N D   S A V E -------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def convert_and_save(src_directory: str, dst_directory: str, jpg_file: str) -> None:
+    """
+    Convert a PNG image to JPG format and save it to the destination directory.
+
+    Args:
+        src_directory (str): The source directory containing the PNG image.
+        dst_directory (str): The destination directory to save the converted JPG image.
+        jpg_file (str): The filename of the PNG image to be converted and saved.
+
+    Returns:
+        None
+    """
+
     png_path = os.path.join(src_directory, jpg_file)
     jpg_path = os.path.join(dst_directory, os.path.splitext(jpg_file)[0] + '.jpg')
 
@@ -16,7 +31,22 @@ def convert_and_save(src_directory, dst_directory, jpg_file):
         img.save(jpg_path)
 
 
-def convert_png_to_jpg(src_directory, dst_directory, num_threads=4):
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------- C O N V E R T   P N G   T O   J P G -----------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def convert_png_to_jpg(src_directory: str, dst_directory: str, num_threads: int = 4) -> None:
+    """
+    Convert PNG images to JPG format concurrently using multiple threads.
+
+    Args:
+        src_directory (str): The source directory containing PNG images.
+        dst_directory (str): The destination directory to save the converted JPG images.
+        num_threads (int): The number of threads to use for concurrent conversion.
+
+    Returns:
+        None
+    """
+
     os.makedirs(dst_directory, exist_ok=True)
 
     png_files = [file for file in os.listdir(src_directory) if file.lower().endswith('.png')]

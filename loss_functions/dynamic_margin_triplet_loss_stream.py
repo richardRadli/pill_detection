@@ -16,6 +16,8 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         swap: Use the positive-negative distance instead of anchor-negative distance,
               if it violates the margin more.
         smooth_loss: Use the log-exp version of the triplet loss
+        euc_dist_mtx:
+        upper_norm_limit:
     """
 
     def __init__(
@@ -33,7 +35,22 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         self.euc_dist_mtx = euc_dist_mtx
         self.upper_norm_limit = upper_norm_limit
 
-    def compute_loss(self, embeddings, labels, indices_tuple, ref_emb, ref_labels):
+    def compute_loss(self, embeddings: torch.Tensor, labels: list, indices_tuple: tuple,
+                     ref_emb: torch.Tensor, ref_labels: list) -> dict:
+        """
+        Compute the triplet loss.
+
+        Args:
+            embeddings (torch.Tensor): Embeddings of the current batch.
+            labels (list): Labels of the current batch.
+            indices_tuple (tuple): Tuple containing anchor, positive, and negative indices.
+            ref_emb (torch.Tensor): Reference embeddings.
+            ref_labels (list): Reference labels.
+
+        Returns:
+            dict: Dictionary containing the computed loss and related information.
+        """
+
         c_f.labels_or_indices_tuple_required(labels, indices_tuple)
 
         indices_tuple = lmu.convert_to_triplets(
@@ -64,14 +81,20 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
             }
         }
 
-    def normalize_row(self, anchor_file_idx: List, negative_file_idx: List, labels) -> torch.Tensor:
+    def normalize_row(self, anchor_file_idx: List[int], negative_file_idx: List[int], labels: List[int]) \
+            -> torch.Tensor:
         """
         Normalize rows of the Euclidean distance matrix.
 
-        :param anchor_file_idx: The list of anchor file indices.
-        :param negative_file_idx: The list of negative file indices.
-        :return: The normalized rows.
+        Args:
+            anchor_file_idx (List[int]): List of anchor file indices.
+            negative_file_idx (List[int]): List of negative file indices.
+            labels (List[int]): List of labels.
+
+        Returns:
+            torch.Tensor: Normalized rows.
         """
+
         # Convert tensor labels to integers
         labels = [int(label) for label in labels]
 
@@ -92,5 +115,12 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
                 (rows - min_vals[:, np.newaxis]) / (max_vals - min_vals)[:, np.newaxis])
         return torch.tensor(normalized_rows[:, negative_file_idx_cpu])
 
-    def get_default_reducer(self):
+    def get_default_reducer(self) -> AvgNonZeroReducer:
+        """
+        Get the default reducer.
+
+        Returns:
+            AvgNonZeroReducer: The default reducer.
+        """
+
         return AvgNonZeroReducer()

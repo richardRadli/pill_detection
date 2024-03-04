@@ -4,7 +4,7 @@ Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Apr 12, 2023
 
-Description: This program implements the training for fusion networks.
+Description: This program implements the training for fusion network.
 """
 
 import colorama
@@ -15,7 +15,6 @@ import torch
 
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
@@ -25,7 +24,7 @@ from dataloader_fusion_network import FusionDataset
 from loss_functions.dynamic_margin_triplet_loss_fusion import DynamicMarginTripletLoss
 from fusion_network_models.fusion_network_selector import NetworkFactory
 from utils.utils import (create_timestamp, print_network_config, use_gpu_if_available, setup_logger,
-                         get_embedded_text_matrix)
+                         get_embedded_text_matrix, create_dataset)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -64,14 +63,17 @@ class TrainFusionNet:
         self.device = use_gpu_if_available()
 
         # Load datasets using FusionDataset
-        self.train_data_loader, self.valid_data_loader = self.create_dataset()
+        dataset = FusionDataset()
+        self.dataset = create_dataset(dataset=dataset,
+                                      train_valid_ratio=self.cfg_fusion_net.train_valid_ratio,
+                                      batch_size=self.cfg_fusion_net.batch_size)
 
         # Set up model
         self.model = self.setup_model(network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture)
 
         # Specify loss function
-        path_to_excel_file = nlp_configs().get("vector_distances")
         if self.cfg_fusion_net.type_of_loss_func == "dmtl":
+            path_to_excel_file = nlp_configs().get("vector_distances")
             df = get_embedded_text_matrix(path_to_excel_file)
             self.criterion = DynamicMarginTripletLoss(
                 euc_dist_mtx=df,
@@ -171,34 +173,13 @@ class TrainFusionNet:
         return directory_to_create
 
     # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------- C R E A T E   D A T A S E T ------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def create_dataset(self):
-        """
-        :return:
-        """
-
-        # Load dataset
-        dataset = FusionDataset()
-
-        # Calculate the number of samples for each set
-        train_size = int(len(dataset) * self.cfg_fusion_net.train_valid_ratio)
-        val_size = len(dataset) - train_size
-        train_dataset, valid_dataset = random_split(dataset, [train_size, val_size])
-        logging.info(f"Number of images in the train set: {len(train_dataset)}")
-        logging.info(f"Number of images in the validation set: {len(valid_dataset)}")
-        train_data_loader = DataLoader(train_dataset, batch_size=self.cfg_fusion_net.batch_size, shuffle=True)
-        valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg_fusion_net.batch_size, shuffle=True)
-
-        return train_data_loader, valid_data_loader
-
-    # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- T R A I N   L O O P ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def train_loop(self, train_losses):
+    def train_loop(self, train_losses, train_data_loader):
         """
 
         :param train_losses:
+        :param train_data_loader:
         :return:
         """
 
@@ -207,8 +188,8 @@ class TrainFusionNet:
              rgb_anchor, rgb_positive, rgb_negative,
              texture_anchor, texture_positive, texture_negative,
              anchor_img_path, negative_img_path) \
-                in tqdm(self.train_data_loader,
-                        total=len(self.train_data_loader),
+                in tqdm(train_data_loader,
+                        total=len(train_data_loader),
                         desc=colorama.Fore.LIGHTCYAN_EX + "Training"):
 
             # Set the gradients to zero
@@ -259,7 +240,7 @@ class TrainFusionNet:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- V A L I D   L O O P ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def valid_loop(self, valid_losses):
+    def valid_loop(self, valid_losses, valid_data_loader):
         """
 
         :param valid_losses:
@@ -273,8 +254,8 @@ class TrainFusionNet:
                  rgb_anchor, rgb_positive, rgb_negative,
                  texture_anchor, texture_positive, texture_negative,
                  anchor_img_path, negative_img_path) in tqdm(
-                self.valid_data_loader,
-                total=len(self.valid_data_loader),
+                valid_data_loader,
+                total=len(valid_data_loader),
                 desc=colorama.Fore.LIGHTWHITE_EX + "Validation"
             ):
                 # Upload data to the GPU
@@ -352,10 +333,12 @@ class TrainFusionNet:
         # To track the validation loss as the model trains
         valid_losses = []
 
+        train_dataset, valid_dataset = self.dataset
+
         for epoch in tqdm(range(self.cfg_fusion_net.epochs), desc=colorama.Fore.LIGHTGREEN_EX + "Epochs"):
             # Train loop
-            train_losses = self.train_loop(train_losses)
-            valid_losses = self.valid_loop(valid_losses)
+            train_losses = self.train_loop(train_losses, train_dataset)
+            valid_losses = self.valid_loop(valid_losses, valid_dataset)
 
             train_loss = np.average(train_losses)
             valid_loss = np.average(valid_losses)

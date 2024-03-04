@@ -403,7 +403,7 @@ class PredictStreamNetwork:
 
         plot_confusion_matrix(
             gt=gt,
-            pred=pred_ed,
+            predictions=pred_ed,
             out_path=self.main_network_config.get("confusion_matrix").get(self.cfg.dataset_type)
         )
 

@@ -343,13 +343,13 @@ class PredictFusionNetwork:
             q_images_path=q_images_path,
             r_images_path=r_images_path,
             gt=gt,
-            pred_ed=pred_ed,
+            predicted_labels=pred_ed,
             output_folder=self.plot_dir
         )
 
         plot_confusion_matrix(
             gt=gt,
-            pred=pred_ed,
+            predictions=pred_ed,
             out_path=self.plot_confusion_matrix_dir
         )
 
