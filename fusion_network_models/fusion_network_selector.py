@@ -9,9 +9,9 @@ This program defines a set of wrapper classes and a factory class for creating d
 models. The BaseNetwork class is an abstract base class that defines the interface for a network model.
 
 It has an abstract __init__ method and a forward method that needs to be implemented by subclasses.
-The CNNFusionNetWrapper, EfficientNetSelfAttentionWrapper, and EfficientNetV2MultiHeadAttentionWrapper classes are
+The CNNFusionNetWrapper, EfficientNetSelfAttentionWrapper, and EfficientNetMultiHeadAttentionWrapper classes are
 concrete implementations of the BaseNetwork interface. They wrap specific fusion network models (CNNFusionNet,
-EfficientNetSelfAttention, and EfficientNetV2MultiHeadAttention, respectively) and provide a forward method that calls
+EfficientNetSelfAttention, and EfficientNetMultiHeadAttention, respectively) and provide a forward method that calls
 the corresponding model's forward method.
 
 The NetworkFactory class is responsible for creating the appropriate fusion network model based on the given fusion
@@ -25,7 +25,7 @@ import torch
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from fusion_network_models.efficient_net_v2_s_multihead_attention import EfficientNetV2MultiHeadAttention
+from fusion_network_models.efficient_net_multihead_attention import EfficientNetMultiHeadAttention
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -43,10 +43,10 @@ class BaseNetwork(ABC):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # +++++++++++++++++ E F F I C I E N T N E T   M U L T I   H E A D   A T T E N T I O N   W R A P P E R ++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class EfficientNetV2MultiHeadAttentionWrapper(BaseNetwork):
+class EfficientNetMultiHeadAttentionWrapper(BaseNetwork):
     def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture):
         self.model = (
-            EfficientNetV2MultiHeadAttention(type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb,
+            EfficientNetMultiHeadAttention(type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb,
                                              network_cfg_texture))
 
     def forward(self, x):
@@ -74,11 +74,11 @@ class NetworkFactory:
         :return: The created fusion network model.
         """
 
-        if fusion_network_type == "EfficientNetV2MultiHeadAttention":
-            model = EfficientNetV2MultiHeadAttentionWrapper(type_of_net, network_cfg_contour, network_cfg_lbp,
+        if fusion_network_type == "EfficientNetMultiHeadAttention":
+            model = EfficientNetMultiHeadAttentionWrapper(type_of_net, network_cfg_contour, network_cfg_lbp,
                                                             network_cfg_rgb, network_cfg_texture).model
         else:
-            raise ValueError("Wrong type was given!")
+            raise ValueError(f"Wrong network type was given: {fusion_network_type}")
 
         if device is None:
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

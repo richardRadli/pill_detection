@@ -11,7 +11,6 @@ import colorama
 import logging
 import numpy as np
 import os
-import pandas as pd
 import torch
 
 from pytorch_metric_learning import losses, miners
@@ -22,12 +21,12 @@ from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 from config.config import ConfigStreamNetwork
-from config.config_selector import nlp_configs, sub_stream_network_configs
+from config.config_selector import  sub_stream_network_configs
 from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network import DataLoaderStreamNet
-from loss_functions.triplet_loss_dynamic_margin import DynamicMarginTripletLoss
+from loss_functions.dynamic_margin_triplet_loss_stream import DynamicMarginTripletLoss
 from utils.utils import (create_timestamp, measure_execution_time, print_network_config, use_gpu_if_available,
-                         setup_logger, find_latest_file_in_directory)
+                         setup_logger, get_embedded_text_matrix)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -74,10 +73,7 @@ class TrainModel:
 
         # Specify loss function
         if self.cfg.type_of_loss_func == "dmtl":
-            excel_file_path = find_latest_file_in_directory(nlp_configs().get("vector_distances"), "xlsx")
-            if not os.path.exists(excel_file_path):
-                raise ValueError(f"Excel file at path {excel_file_path} doesn't exist")
-            df = pd.read_excel(excel_file_path, sheet_name=0, index_col=0)
+            df = get_embedded_text_matrix()
             self.criterion = DynamicMarginTripletLoss(margin=self.cfg.margin,
                                                       triplets_per_anchor="all",
                                                       euc_dist_mtx=df,

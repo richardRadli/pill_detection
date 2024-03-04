@@ -162,6 +162,18 @@ def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) ->
     return latest_file
 
 
+def get_embedded_text_matrix(path_to_excel_file):
+    """
+
+    :return:
+    """
+
+    excel_file_path = find_latest_file_in_directory(path_to_excel_file, "xlsx")
+    if not os.path.exists(excel_file_path):
+        raise ValueError(f"Excel file at path {excel_file_path} doesn't exist")
+    return pd.read_excel(excel_file_path, sheet_name=0, index_col=0)
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------- P L O T   R E F   Q U E R Y   I M G S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -348,3 +360,37 @@ def find_latest_subdir(directory):
     latest_subdir = max(subdirs, key=lambda d: os.path.getmtime(os.path.join(directory, d)))
 
     return os.path.join(directory, latest_subdir)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------ P R O C E S S   T X T -----------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def process_txt(txt_file: str) -> list:
+    """
+    Reads a .txt file and extracts a set of paths from its contents.
+
+    :param txt_file: The path to the .txt file.
+    :return: A set of paths extracted from the .txt file.
+    """
+
+    paths = []
+
+    with open(txt_file, 'r') as f:
+        data = eval(f.read())
+
+    for key in data:
+        paths.append(key)
+
+    return paths
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------- M I N E   H A R D   T R I P L E T S  ----------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def mine_hard_triplets(latest_txt):
+    hardest_samples = process_txt(latest_txt)
+    triplets = []
+    for i, samples in enumerate(hardest_samples):
+        for a, p, n in zip(samples[0], samples[1], samples[2]):
+            triplets.append((a, p, n))
+    return list(set(triplets))

@@ -1,10 +1,10 @@
 """
-File: efficient_net_v2_s_multihead_attention.py
+File: efficient_net_multihead_attention.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Jul 19, 2023
 
-Description: The program implements the EfficientNetV2 small multi-head attention with Fusion Net.
+Description: The program implements the EfficientNet small multi-head attention with Fusion Net.
 """
 
 import torch
@@ -18,10 +18,10 @@ from utils.utils import find_latest_file_in_latest_directory
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++ E F F I C I E N T N E T V 2 M U L T I H E A D A T T E N T I O N +++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class EfficientNetV2MultiHeadAttention(nn.Module):
+class EfficientNetMultiHeadAttention(nn.Module):
     def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture) -> None:
         """
-        This is the initialization function of the EfficientNetV2MultiHeadAttention class.
+        This is the initialization function of the EfficientNetMultiHeadAttention class.
 
         :param type_of_net: Type of network to create.
         :param network_cfg_contour: Configuration for the contour network.
@@ -29,7 +29,7 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
         :param network_cfg_rgb: Configuration for the RGB network.
         :param network_cfg_texture: Configuration for the texture network.
         """
-        super(EfficientNetV2MultiHeadAttention, self).__init__()
+        super(EfficientNetMultiHeadAttention, self).__init__()
 
         stream_net_cfg = ConfigStreamNetwork().parse()
 
@@ -37,7 +37,7 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
             path=(
                 network_cfg_contour
                 .get("model_weights_dir")
-                .get("EfficientNetV2")
+                .get("EfficientNet")
                 .get(stream_net_cfg.dataset_type)
             ),
             type_of_loss=stream_net_cfg.type_of_loss_func
@@ -46,7 +46,7 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
             path=(
                 network_cfg_lbp
                 .get("model_weights_dir")
-                .get("EfficientNetV2")
+                .get("EfficientNet")
                 .get(stream_net_cfg.dataset_type)
             ),
             type_of_loss=stream_net_cfg.type_of_loss_func
@@ -55,7 +55,7 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
             path=(
                 network_cfg_rgb
                 .get("model_weights_dir")
-                .get("EfficientNetV2")
+                .get("EfficientNet")
                 .get(stream_net_cfg.dataset_type)
             ),
             type_of_loss=stream_net_cfg.type_of_loss_func
@@ -64,7 +64,7 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
             path=(
                 network_cfg_texture
                 .get("model_weights_dir")
-                .get("EfficientNetV2")
+                .get("EfficientNet")
                 .get(stream_net_cfg.dataset_type)
             ),
             type_of_loss=stream_net_cfg.type_of_loss_func
@@ -98,6 +98,7 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
                      network_cfg_texture.get("embedded_dim"))
 
         self.fc1 = nn.Linear(input_dim, input_dim)
+        self.fc2 = nn.Linear(input_dim, input_dim)
         self.relu = nn.ReLU()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -127,6 +128,7 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
 
         x = torch.cat((x1, x2, x3, x4), dim=1)
         x = self.fc1(x)
+        x = self.fc2(x)
         x = self.relu(x)
 
         return x
