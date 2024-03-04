@@ -1,85 +1,96 @@
+import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as functional
 
+from pytorch_metric_learning.reducers import AvgNonZeroReducer
+from pytorch_metric_learning.utils import common_functions as c_f
+from pytorch_metric_learning.utils import loss_and_miner_utils as lmu
+from pytorch_metric_learning.losses.base_metric_loss_function import BaseMetricLossFunction
 from typing import List
 
 
-class DynamicMarginTripletLoss(nn.Module):
-    def __init__(self, euc_dist_mtx, upper_norm_limit: int = 2, margin: float = 0.5):
-        """
+class DynamicMarginTripletLoss(BaseMetricLossFunction):
+    """
+    Args:
+        margin: The desired difference between the anchor-positive distance and the
+                anchor-negative distance.
+        swap: Use the positive-negative distance instead of anchor-negative distance,
+              if it violates the margin more.
+        smooth_loss: Use the log-exp version of the triplet loss
+    """
 
-        :param euc_dist_mtx:
-        :param upper_norm_limit:
-        :param margin:
-        """
-
-        super(DynamicMarginTripletLoss, self).__init__()
-
+    def __init__(
+        self,
+        margin=0.05,
+        triplets_per_anchor="all",
+        euc_dist_mtx=None,
+        upper_norm_limit=None,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.margin = margin
+        self.triplets_per_anchor = triplets_per_anchor
+        self.add_to_recordable_attributes(list_of_names=["margin"], is_stat=False)
         self.euc_dist_mtx = euc_dist_mtx
         self.upper_norm_limit = upper_norm_limit
-        self.margin = margin
 
-    def forward(self, anchor_tensor: torch.Tensor, positive_tensor: torch.Tensor, negative_tensor: torch.Tensor,
-                anchor_file_names: List[str], negative_file_names: List[str]) -> torch.Tensor:
+    def compute_loss(self, embeddings, labels, indices_tuple, ref_emb, ref_labels):
+        c_f.labels_or_indices_tuple_required(labels, indices_tuple)
+
+        indices_tuple = lmu.convert_to_triplets(
+            indices_tuple, labels, ref_labels, t_per_anchor=self.triplets_per_anchor
+        )
+
+        anchor_idx, positive_idx, negative_idx = indices_tuple
+        if len(anchor_idx) == 0:
+            return self.zero_losses()
+
+        mat = self.distance(embeddings, ref_emb)
+        ap_dists = mat[anchor_idx, positive_idx]
+        an_dists = mat[anchor_idx, negative_idx]
+
+        normalized_margins = self.normalize_row(anchor_idx, negative_idx, labels)
+        normalized_margins = normalized_margins.to("cuda")
+        normalized_margins = normalized_margins * self.margin
+        pos_neg_dists = self.distance.margin(ap_dists, an_dists)
+
+        loss = normalized_margins + pos_neg_dists
+        losses = torch.nn.functional.relu(loss)
+
+        return {
+            "loss": {
+                "losses": losses,
+                "indices": indices_tuple,
+                "reduction_type": "triplet",
+            }
+        }
+
+    def normalize_row(self, anchor_file_idx: List, negative_file_idx: List, labels) -> torch.Tensor:
         """
-        Perform forward pass of the DynamicMarginTripletLoss module.
+        Normalize rows of the Euclidean distance matrix.
 
-        :param anchor_tensor: The tensor containing anchor samples.
-        :param positive_tensor: The tensor containing positive samples.
-        :param negative_tensor: The tensor containing negative samples.
-        :param anchor_file_names: The list of anchor file names.
-        :param negative_file_names: The list of negative file names.
-        :return: A tuple containing the triplet loss, hardest negative samples, and hardest positive samples.
+        :param anchor_file_idx: The list of anchor file indices.
+        :param negative_file_idx: The list of negative file indices.
+        :return: The normalized rows.
         """
+        # Convert tensor labels to integers
+        labels = [int(label) for label in labels]
 
-        anchor_file_names = self.process_file_names(anchor_file_names)
-        negative_file_names = self.process_file_names(negative_file_names)
+        # Create a dictionary to map labels to indices in the normalize_row function
+        label_to_index = {label: idx for idx, label in enumerate(labels)}
 
-        batch_size = anchor_tensor.size(0)
-        losses = []
+        # Handle the case where labels may not start from 0 or may not be continuous
+        max_label = max(label_to_index.keys())
+        for label in range(max_label + 1):
+            label_to_index.setdefault(label, len(label_to_index))
 
-        for i in range(batch_size):
-            normalized_similarity = self.normalize_row(anchor_file_names, negative_file_names, i)
-            margin = normalized_similarity * self.margin
-            dist_pos = functional.pairwise_distance(anchor_tensor[i:i + 1], positive_tensor[i:i + 1], 2)
-            dist_neg = functional.pairwise_distance(anchor_tensor[i:i + 1], negative_tensor[i:i + 1], 2)
-            loss = functional.relu(margin + dist_pos - dist_neg)
-            losses.append(loss)
+        anchor_file_idx_cpu = [label_to_index[int(idx)] for idx in anchor_file_idx]
+        negative_file_idx_cpu = [label_to_index[int(idx)] for idx in negative_file_idx]
+        rows = self.euc_dist_mtx.iloc[anchor_file_idx_cpu].to_numpy()
+        min_vals = rows.min(axis=1)
+        max_vals = rows.max(axis=1)
+        normalized_rows = 1 + (self.upper_norm_limit - 1) * (
+                (rows - min_vals[:, np.newaxis]) / (max_vals - min_vals)[:, np.newaxis])
+        return torch.tensor(normalized_rows[:, negative_file_idx_cpu])
 
-        triplet_loss = torch.mean(torch.stack(losses))
-
-        return triplet_loss
-
-    def normalize_row(self, anchor_file_names: List, negative_file_names: List, idx: int) -> torch.Tensor:
-        """
-        Normalize a row of the Euclidean distance matrix.
-
-        :param anchor_file_names: The list of anchor file names.
-        :param negative_file_names: The list of negative file names.
-        :param idx: The index of the row to normalize.
-        :return: The normalized row.
-        """
-
-        row = self.euc_dist_mtx.loc[anchor_file_names[idx]]
-        min_val = row.min()
-        max_val = row.max()
-        normalized_row = 1 + (self.upper_norm_limit - 1) * ((row - min_val) / (max_val - min_val))
-        return normalized_row[negative_file_names[idx]]
-
-    @staticmethod
-    def process_file_names(lines: list) -> list:
-        """
-        Process the file names and extract the texture names.
-
-        :param lines: A list of file paths.
-
-        :return: A list of texture names extracted from the file paths.
-        """
-
-        texture_names = []
-        for line in lines:
-            texture_name = line.split("\\")[2]
-            texture_names.append(texture_name)
-
-        return texture_names
+    def get_default_reducer(self):
+        return AvgNonZeroReducer()

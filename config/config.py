@@ -43,7 +43,7 @@ class ConfigAugmentation:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--dataset_name", type=str, default="nih", choices=["cure", "nih", "ogyei"])
+        self.parser.add_argument("--dataset_name", type=str, default="ogyei", choices=["cure", "nih", "ogyei"])
         self.parser.add_argument('--wb_low_thr', type=float, default=0.7)
         self.parser.add_argument('--wb_high_thr', type=float, default=1.2)
         self.parser.add_argument('--kernel_size', type=int, default=7)
@@ -94,10 +94,10 @@ class ConfigStreamNetwork:
 
         self.parser.add_argument("--dataset_type", type=str, default="ogyei", choices=["cure | ogyei | nih"])
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNet", choices=["EfficientNet"])
-        self.parser.add_argument("--type_of_stream", type=str, default="Texture",
+        self.parser.add_argument("--type_of_stream", type=str, default="Contour",
                                  choices=["Contour | LBP | RGB | Texture"])
 
-        self.parser.add_argument("--type_of_loss_func", type=str, default="hmtl", help="hmtl | dmtl")
+        self.parser.add_argument("--type_of_loss_func", type=str, default="dmtl", help="hmtl | dmtl")
         self.parser.add_argument("--mining_type", type=str, default="semihard", choices=["semihard", "hard", "easy"])
         self.parser.add_argument("--upper_norm_limit", type=float, default=4.0)
         self.parser.add_argument("--margin", type=float, default=0.5)

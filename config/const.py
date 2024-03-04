@@ -182,17 +182,7 @@ class Data(_Const):
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
-        # CNN - StreamNetwork
-        "weights_cnn_contour_ogyei":
-            "data/ogyei/weights/stream_net/cnn/weights_cnn_contour",
-        "weights_cnn_lbp_ogyei":
-            "data/ogyei/weights/stream_net/cnn/weights_cnn_lbp",
-        "weights_cnn_rgb_ogyei":
-            "data/ogyei/weights/stream_net/cnn/weights_cnn_rgb",
-        "weights_cnn_texture_ogyei":
-            "data/ogyei/weights/stream_net/cnn/weights_cnn_texture",
-
-        # EfficientNet b0 - StreamNetwork
+        # EfficientNet - StreamNetwork
         "weights_efficient_net_contour_ogyei":
             "data/ogyei/weights/stream_net/efficient_net/weights_efficient_net_contour",
         "weights_efficient_net_lbp_ogyei":
@@ -203,23 +193,11 @@ class Data(_Const):
             "data/ogyei/weights/stream_net/efficient_net/weights_efficient_net_texture",
 
         # ------------------------------------- W E I G H T S   F U S I O N   N E T ------------------------------------
-        "weights_fusion_network_cnn_ogyei":
-            "data/ogyei/weights/fusion_net/cnn",
         "weights_fusion_network_efficient_net_multi_head_attention_ogyei":
             "data/ogyei/weights/fusion_net/efficient_net_multi_head_attention",
 
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
-        # CNN
-        "logs_cnn_contour_ogyei":
-            "data/ogyei/logs/stream_net/cnn/logs_cnn_contour",
-        "logs_cnn_lbp_ogyei":
-            "data/ogyei/logs/stream_net/cnn/logs_cnn_lbp",
-        "logs_cnn_rgb_ogyei":
-            "data/ogyei/logs/stream_net/cnn/logs_cnn_rgb",
-        "logs_cnn_texture_ogyei":
-            "data/ogyei/logs/stream_net/cnn/logs_cnn_texture",
-
-        # EfficientNet b0
+        # EfficientNet
         "logs_efficient_net_contour_ogyei":
             "data/ogyei/logs/stream_net/efficient_net/logs_efficient_net_contour",
         "logs_efficient_net_lbp_ogyei":
@@ -230,47 +208,28 @@ class Data(_Const):
             "data/ogyei/logs/stream_net/efficient_net/logs_efficient_net_texture",
 
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
-        "logs_fusion_network_cnn_ogyei":
-            "data/ogyei/logs/fusion_net/cnn",
         "logs_fusion_network_efficient_net_multi_head_attention_ogyei":
             "data/ogyei/logs/fusion_net/efficient_net_multi_head_attention",
 
-        # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
+        # -------------------------------- P R E D I C T I O N S   S T R E A M   N E T --------------------------------
         # Predictions
-        "predictions_cnn_ogyei":
-            "data/ogyei/predictions/stream_net/predictions_cnn",
         "predictions_efficient_net_ogyei":
             "data/ogyei/predictions/stream_net/predictions_efficient_net",
 
         # -------------------------------- P R E D I C T I O N S    F U S I O N   N E T --------------------------------
         # Predictions
-        "predictions_fusion_network_cnn_ogyei":
-            "data/ogyei/predictions/fusion_net/predictions_fusion_network_cnn",
         "predictions_fusion_network_efficient_net_multi_head_attention_ogyei":
             "data/ogyei/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
-        "reference_vectors_cnn_ogyei":
-            "data/ogyei/ref_vec/stream_net/reference_vectors_cnn",
         "reference_vectors_efficient_net_ogyei":
             "data/ogyei/ref_vec/stream_net/reference_vectors_efficient_net",
 
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
-        "reference_vectors_fusion_network_cnn_ogyei":
-            "data/ogyei/ref_vec/fusion_net/reference_vectors_fusion_net_cnn",
         "reference_vectors_fusion_network_efficient_net_multi_head_attention_ogyei":
             "data/ogyei/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
-        "hardest_samples_cnn_contour_ogyei":
-            "data/ogyei/hardest_samples/cnn/contour",
-        "hardest_samples_cnn_lbp_ogyei":
-            "data/ogyei/hardest_samples/cnn/lbp",
-        "hardest_samples_cnn_rgb_ogyei":
-            "data/ogyei/hardest_samples/cnn/rgb",
-        "hardest_samples_cnn_texture_ogyei":
-            "data/ogyei/hardest_samples/cnn/texture",
-
         "hardest_samples_efficient_net_contour_ogyei":
             "data/ogyei/hardest_samples/efficient_net/contour",
         "hardest_samples_efficient_net_lbp_ogyei":
