@@ -1,3 +1,12 @@
+"""
+File: dynamic_margin_triplet_loss_stream.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: March 04, 2024
+
+Description: The program creates the dynamic margin-triplet loss for the stream phase.
+"""
+
 import numpy as np
 import torch
 
@@ -128,7 +137,6 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
 
         # Select normalized values for anchor-negative pairs
         normalized_values = normalized_rows[np.arange(len(anchor_file_idx_cpu)), negative_file_idx_cpu]
-        print(rows[np.arange(len(anchor_file_idx_cpu)), negative_file_idx_cpu])
         return torch.tensor(normalized_values)
 
     def get_default_reducer(self) -> AvgNonZeroReducer:

@@ -17,6 +17,7 @@ from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
+from typing import Any, List
 
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.config_selector import sub_stream_network_configs, fusion_network_config, nlp_configs
@@ -24,7 +25,7 @@ from dataloader_fusion_network import FusionDataset
 from loss_functions.dynamic_margin_triplet_loss_fusion import DynamicMarginTripletLoss
 from fusion_network_models.fusion_network_selector import NetworkFactory
 from utils.utils import (create_timestamp, print_network_config, use_gpu_if_available, setup_logger,
-                         get_embedded_text_matrix, create_dataset)
+                         get_embedded_text_matrix, create_dataset, measure_execution_time)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -111,14 +112,19 @@ class TrainFusionNet:
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------- S E T U P   M O D E L ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def setup_model(self, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture):
+    def setup_model(self, network_cfg_contour: dict, network_cfg_lbp: dict, network_cfg_rgb: dict,
+                    network_cfg_texture: dict) -> Any:
         """
+        Initialize and set up the fusion network model.
 
-        :param network_cfg_contour:
-        :param network_cfg_lbp:
-        :param network_cfg_rgb:
-        :param network_cfg_texture:
-        :return:
+        Args:
+            network_cfg_contour: Configuration for the contour stream network.
+            network_cfg_lbp: Configuration for the LBP stream network.
+            network_cfg_rgb: Configuration for the RGB stream network.
+            network_cfg_texture: Configuration for the texture stream network.
+
+        Returns:
+            The initialized fusion network model.
         """
 
         # Initialize the fusion network
@@ -159,12 +165,16 @@ class TrainFusionNet:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- C R E A T E   S A V E   D I R S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def create_save_dirs(self, main_network_config, directory_type):
+    def create_save_dirs(self, main_network_config: dict, directory_type: str) -> str:
         """
+        Create and return directory path for saving files.
 
-        :param main_network_config:
-        :param directory_type:
-        :return:
+        Args:
+            main_network_config (dict): Main network configuration.
+            directory_type (str): Type of directory to create.
+
+        Returns:
+            str: Directory path created.
         """
 
         directory_path = main_network_config.get(directory_type).get(self.cfg_stream_net.dataset_type)
@@ -175,12 +185,16 @@ class TrainFusionNet:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- T R A I N   L O O P ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def train_loop(self, train_losses, train_data_loader):
+    def train_loop(self, train_losses: List[float], train_data_loader) -> List[float]:
         """
+        Train loop for the model.
 
-        :param train_losses:
-        :param train_data_loader:
-        :return:
+        Args:
+            train_losses (List[float]): List to track training losses.
+            train_data_loader (DataLoader): DataLoader for training data.
+
+        Returns:
+            List[float]: Updated training losses.
         """
 
         for (contour_anchor, contour_positive, contour_negative,
@@ -242,9 +256,14 @@ class TrainFusionNet:
     # ------------------------------------------------------------------------------------------------------------------
     def valid_loop(self, valid_losses, valid_data_loader):
         """
+        Validation loop for the model.
 
-        :param valid_losses:
-        :return:
+        Args:
+            valid_losses (List[float]): List to track validation losses.
+            valid_data_loader (DataLoader): DataLoader for validation data.
+
+        Returns:
+            List[float]: Updated validation losses.
         """
 
         # Validation loop
@@ -299,12 +318,15 @@ class TrainFusionNet:
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------- S A V E   M O D E L   W E I G H T S --------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def save_model_weights(self, epoch, valid_loss):
+    def save_model_weights(self, epoch: int, valid_loss: float) -> None:
         """
+        Saves the model and weights if the validation loss is improved.
 
-        :param epoch:
-        :param valid_loss:
-        :return:
+        Parameters:
+            epoch (int): Current epoch number.
+            valid_loss (float): Validation loss.
+        Returns:
+            None
         """
 
         if valid_loss < self.best_valid_loss:
@@ -321,11 +343,14 @@ class TrainFusionNet:
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------ T R A I N I N G--------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def training(self):
+    @measure_execution_time
+    def training(self) -> None:
         """
+       Train the neural network.
 
-        :return:
-        """
+       Returns:
+           None
+       """
 
         # To track the training loss as the model trains
         train_losses = []

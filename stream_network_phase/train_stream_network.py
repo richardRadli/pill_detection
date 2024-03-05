@@ -18,6 +18,7 @@ from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
+from typing import List, Tuple
 
 from config.config import ConfigStreamNetwork
 from config.config_selector import nlp_configs, sub_stream_network_configs
@@ -75,7 +76,7 @@ class TrainModel:
         self.model = NetworkFactory.create_network(self.cfg.type_of_net, network_cfg)
         self.model.to(self.device)
 
-        # Print nework configuration
+        # Print network configuration
         summary(
             self.model,
             (1 if network_cfg.get('grayscale') else 3, network_cfg.get("image_size"), network_cfg.get("image_size"))
@@ -128,10 +129,11 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- C R E A T E   S A V E   D I R S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def create_save_dirs(self, network_cfg):
+    def create_save_dirs(self, network_cfg) -> str:
         """
+        Creates and returns a directory path based on the provided network configuration.
 
-        :param network_cfg:
+        :param network_cfg: A dictionary containing network configuration information.
         :return:
         """
 
@@ -143,11 +145,12 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------ C O N V E R T   L A B E L S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def convert_labels(self, labels):
+    def convert_labels(self, labels: List[str]) -> torch.Tensor:
         """
+        Convert labels to a tensor.
 
-        :param labels:
-        :return:
+        :param labels: A list of labels.
+        :return: A tensor containing the converted labels.
         """
 
         labels = tuple(int(item) for item in labels)
@@ -157,7 +160,21 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- T R A I N   L O O P ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def train_loop(self, train_data_loader, train_losses, hard_samples):
+    def train_loop(self, train_data_loader, train_losses: List[float], hard_samples: List[list]) \
+            -> Tuple[List[float], List[List[str]]]:
+        """
+        Training loop for the model.
+
+        Args:
+            train_data_loader: Data loader for training data.
+            train_losses (list): List to store training losses.
+            hard_samples (list): List to store hard samples.
+
+        Returns:
+            train_losses (list): Updated list of training losses.
+            hard_samples (list): Updated list of hard samples.
+        """
+
         for _, (consumer_images, consumer_labels, cp, reference_images, reference_labels, rp) in \
                 tqdm(enumerate(train_data_loader), total=len(train_data_loader), desc=colorama.Fore.CYAN + "Train"):
             # Set the gradients to zero
@@ -207,12 +224,16 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- V A L I D   L O O P ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def valid_loop(self, valid_data_loader, valid_losses):
+    def valid_loop(self, valid_data_loader, valid_losses: List[float]) -> List[float]:
         """
+        Validation loop for the model.
 
-        :param valid_data_loader:
-        :param valid_losses:
-        :return:
+        Args:
+            valid_data_loader: Data loader for validation data.
+            valid_losses (list): List to store validation losses.
+
+        Returns:
+            valid_losses (list): Updated list of validation losses.
         """
 
         with torch.no_grad():
@@ -244,7 +265,15 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- S A V E   H A R D   S A M P L E S ---------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def save_hard_samples(self, hard_samples, epoch):
+    def save_hard_samples(self, hard_samples: List[List[str]], epoch: int) -> None:
+        """
+        Save hard samples to a file.
+
+        Args:
+            hard_samples (list): List of hard samples.
+            epoch (int): Current epoch number.
+        """
+
         file_name = os.path.join(self.hard_samples_path, self.timestamp + "_epoch_" + str(epoch) + ".txt")
         with open(file_name, 'w') as file:
             file.write(str(hard_samples))
@@ -252,13 +281,15 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- S A V E   M O D E L ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def save_model_weights(self, epoch, valid_loss):
+    def save_model_weights(self, epoch: int, valid_loss: float) -> None:
         """
-        Saves the model and weights
+        Saves the model and weights if the validation loss is improved.
 
-        :param epoch:
-        :param valid_loss:
-        :return:
+        Parameters:
+            epoch (int): Current epoch number.
+            valid_loss (float): Validation loss.
+        Returns:
+            None
         """
 
         if valid_loss < self.best_valid_loss:
@@ -273,15 +304,16 @@ class TrainModel:
                             f"current valid loss is {valid_loss:.5f}")
 
     # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------------------ F I T -----------------------------------------------------
+    # ----------------------------------------------- T R A I N I N G --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @measure_execution_time
     def training(self) -> None:
         """
-        This function is responsible for the training of the network.
+       Train the neural network.
 
-        :return: None
-        """
+       Returns:
+           None
+       """
 
         # to track the training loss as the model trains
         train_losses = []

@@ -13,12 +13,16 @@ import torchvision.models as models
 
 
 class EfficientNet(nn.Module):
-    def __init__(self, num_out_feature: int, grayscale: bool):
+    def __init__(self, num_out_feature: int, grayscale: bool) -> None:
         """
         EfficientNet model with custom linear layer.
 
-        :param num_out_feature: Number of output features.
-        :param grayscale: Whether the input is grayscale or not. Defaults to True.
+        Args:
+            num_out_feature: Number of output features.
+            grayscale: Whether the input is grayscale or not. Defaults to True.
+
+        Returns:
+            None
         """
 
         super(EfficientNet, self).__init__()
@@ -32,8 +36,10 @@ class EfficientNet(nn.Module):
         """
         Forward pass of the EfficientNet model.
 
-        :param x: Input tensor.
-        :return: Output tensor.
+        Args:
+            x: Input tensor.
+        Returns:
+             Output tensor.
         """
 
         if self.grayscale:
@@ -43,11 +49,13 @@ class EfficientNet(nn.Module):
 
     def build_model(self) -> nn.Module:
         """
-        Build the EfficientNet model with a custom linear layer.
+        Build the EfficientNet V2 s model with a custom linear layer.
 
-        :return: EfficientNet model with custom linear layer.
+        Returns:
+             EfficientNet V2 s model with custom linear layer.
         """
 
         model = models.efficientnet_v2_s(weights="DEFAULT")
-        model.classifier[1] = nn.Linear(in_features=1280, out_features=self.num_out_feature)
+        model.classifier[1] = nn.Linear(in_features=model.classifier[1].in_features,
+                                        out_features=self.num_out_feature)
         return model

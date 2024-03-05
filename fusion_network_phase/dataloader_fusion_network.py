@@ -28,7 +28,11 @@ class FusionDataset(Dataset):
         """
         This is the __init__ function of the dataset loader class.
 
-        :return: None
+        Args:
+            image_size (int): Size of the image.
+
+        Returns:
+             None
         """
 
         self.cfg = ConfigStreamNetwork().parse()
@@ -58,8 +62,11 @@ class FusionDataset(Dataset):
         three different datasets (RGB, texture, contour, LBP), and applies some data augmentation (transforms) to each
         image. It then returns a tuple of twelve images.
 
-        :param index: An integer representing the index of the sample to retrieve from the dataset.
-        :return: A tuple of 12 elements, where each element corresponds to an image with a specific transformation.
+        Args:
+            index (int): An integer representing the index of the sample to retrieve from the dataset.
+
+        Returns:
+            A tuple of 12 elements, where each element corresponds to an image with a specific transformation.
         """
 
         hard_samples = self.hard_samples[index]
@@ -89,11 +96,12 @@ class FusionDataset(Dataset):
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- __ L E N __ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def __len__(self):
+    def __len__(self) -> int:
         """
         This is the __len__ method of a dataset loader class.
 
-        :return:
+        Returns:
+            int: the size of the dataset.
         """
 
         return len(self.hard_samples)

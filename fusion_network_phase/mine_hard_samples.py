@@ -11,6 +11,8 @@ This program collects the hard samples (images) that were mined during the strea
 import os.path
 import re
 
+from typing import List, Tuple
+
 from config.config import ConfigStreamNetwork
 from config.config_selector import stream_network_config, sub_stream_network_configs
 from utils.utils import find_latest_file_in_latest_directory, setup_logger, mine_hard_triplets
@@ -19,11 +21,15 @@ from utils.utils import find_latest_file_in_latest_directory, setup_logger, mine
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------- P R E P R O C E S S   P A T H -------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def preprocess_path(paths):
+def preprocess_path(paths: List[str]) -> tuple:
     """
+    Preprocesses a list of file paths.
 
-    :param paths:
-    :return:
+    Args:
+        paths (List[str]): List of file paths.
+
+    Returns:
+        tuple: Preprocessed paths.
     """
 
     preprocessed_paths = []
@@ -43,11 +49,15 @@ def preprocess_path(paths):
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------------- F I N D   T R I P L E T S ---------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def find_union_triplets(*lists):
+def find_union_triplets(*lists: [List[Tuple[str, str, str]]]) -> set:
     """
+    Finds the union of triplets from multiple lists.
 
-    :param lists:
-    :return:
+    Args:
+        *lists (List[Tuple[str, str, str]]): Variable number of lists containing triplets.
+
+    Returns:
+        set: Union of all triplets.
     """
 
     preprocessed_lists = [[preprocess_path(path) for path in triplet] for triplet in lists]
@@ -63,7 +73,8 @@ def get_hardest_samples():
     """
     The main function of the program.
 
-    :return: None
+    Returns:
+         None
     """
 
     setup_logger()

@@ -129,11 +129,10 @@ def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) ->
 
     dirs = [os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
 
-    if not dirs:
+    if len(dirs) == 0:
         raise ValueError(f"No directories found in {path}")
 
     dirs = [path for path in dirs if type_of_loss in path.lower()]
-
     dirs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
     latest_dir = dirs[0]
     files = [os.path.join(latest_dir, f) for f in os.listdir(latest_dir) if

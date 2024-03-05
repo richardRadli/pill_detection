@@ -105,7 +105,7 @@ class PredictFusionNetwork:
         """
 
         latest_con_pt_file = find_latest_file_in_latest_directory(
-            path=self.fusion_network_config.get("weights_folder").get(self.cfg_stream_net.dataset_type),
+            path=self.fusion_network_config.get("weights_folder").get(self.cfg_fusion_net.dataset_type),
             type_of_loss=self.cfg_fusion_net.type_of_loss_func
         )
         network_fusion = NetworkFactory.create_network(fusion_network_type=self.cfg_fusion_net.type_of_net,
