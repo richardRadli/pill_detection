@@ -40,8 +40,50 @@ and only the top layers were trained.
 </figure>
 
 
-## Dynamic margin triplet loss (DMTL)
-The triplet loss $`\sqrt{3x-1}+(1+x)^2`$
+## Dynamic Margin Triplet Loss (DMTL)
+The triplet loss $`L_{tri}`$ uses the anchor, positive and negative samples to learn an embedding space.
+
+- It decreases the distance between the anchor and positive samples: $`D(f(I_{a}),f(I_{p}))`$
+- It increases the distance between the anchor and negative samples: $`D(f(I_{a}),f(I_{n}))`$
+- Margin $`m`$ is the desired separation between positive and negative samples in the space.
+
+Mathematically the triplet loss can be formulated as:
+$`L_{tri}=\sum_{\forall(I_a,I_p,I_n)}[m+D(f(I_a),f(I_p))\\-D(f(I_a),f(I_n))]_+`$
+
+The goal of our proposed Dynamic Margin Triplet Loss is to:
+
+- Maintain larger margins for less similar pills,
+- Maintain smaller margins for more similar pills.
+- Changing tha value of $`m`$: $`m=\alpha \cdot d_{i}^{norm}`$
+- $`d_{i}^{norm}`$ is based on the distance between the anchor and negative word embeddings: 
+$`d^{Norm}_{i} = 1 + \frac{(u-1)\cdot(d_{min}-d_{i})}  {d_{max}-d_{min}}`$
+
+## Text embeddings
+
+- To complete the visual data, information leaflets has been collected 
+- NLP was utilized 
+    - Extracted sentences were tokenized, attention to features:
+        - pharmaceutical form, colour, shape, convexity, edge, imprint or engravings
+    - Resulting text dataset: word count between 5 and 28 words
+- hu_core_news_lg CNN-based, large, pre-trained model as language model
+- Trained on a large corpus of Hungarian Webcorpus 2.0,
+  - more than 9 billion words
+  - provides tokenization, sentence splitting, lemmatization, includes pretrained word vectors.
+- Pill-to-pill Euclidean distances based on word embeddings has been created
+  - Based on the applied pre-trained language model.
+
+<figure align="center">
+  <figcaption>Pill-to-pill Euclidean distances 
+(rows and columns are pill classes)</figcaption>
+  <img src="images/emb_mtx.png" alt="emb_mtx" width="500"/>
+</figure>
+
+<figure align="center">
+  <figcaption>First row: Algoflex Rapid and the two pills that are most and least similar to it. 
+Bottom row: Algopyrin and the two most similar drugs to it.
+</figcaption>
+  <img src="images/word_distances.png" alt="word_distances" width="500"/>
+</figure>
 
 ## Datasets
 We used our novel, custom-made one, entitled OGYEIv2 [3].
