@@ -97,11 +97,12 @@ class PredictFusionNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def load_networks(self):
+    def load_networks(self) -> torch.nn.Module:
         """
-        This function finds and loads the latest FusionNetwork.
+        Load pretrained networks using the latest .pt files.
 
-        :return: <class 'fusion_network.FusionNet'>
+        Returns:
+            network_fusion (torch.nn.Module): Fusion network.
         """
 
         latest_con_pt_file = find_latest_file_in_latest_directory(
@@ -131,12 +132,15 @@ class PredictFusionNetwork:
         """
         Get feature vectors for images.
 
-        :param contour_dir: path to the directory containing contour images
-        :param rgb_dir: path to the directory containing RGB images
-        :param texture_dir: path to the directory containing texture images
-        :param lbp_dir: path to the directory containing LBP images
-        :param operation: name of the operation being performed
-        :return: tuple containing three lists - vectors, labels, and images_path
+        Args:
+            contour_dir: path to the directory containing contour images
+            rgb_dir: path to the directory containing RGB images
+            texture_dir: path to the directory containing texture images
+            lbp_dir: path to the directory containing LBP images
+            operation: name of the operation being performed
+
+        Returns:
+             tuple containing three lists - vectors, labels, and images_path
         """
 
         medicine_classes = os.listdir(rgb_dir)
@@ -204,12 +208,15 @@ class PredictFusionNetwork:
         It returns the original query labels, predicted medicine labels, and the indices of the most similar medicines
         in the reference set.
 
-        :param q_labels: a list of ground truth medicine names
-        :param r_labels: a list of reference medicine names
-        :param reference_vectors: a numpy array of embedded vectors for the reference set
-        :param query_vectors: a numpy array of embedded vectors for the query set
-        :return: the original query labels, predicted medicine labels, and indices of the most similar medicines in the
-        reference set
+        Args:
+            q_labels: a list of ground truth medicine names
+            r_labels: a list of reference medicine names
+            reference_vectors: a numpy array of embedded vectors for the reference set
+            query_vectors: a numpy array of embedded vectors for the query set
+
+        Returns:
+            The original query labels, predicted medicine labels, and indices of the most similar medicines in the
+            reference set
         """
 
         similarity_scores_euc_dist = []
@@ -269,13 +276,17 @@ class PredictFusionNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- D I S P L A Y   R E S U L T S ------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def display_results(self, ground_truth_labels, predicted_labels, query_vectors) -> None:
+    def display_results(self, ground_truth_labels: List[str], predicted_labels: List[str], query_vectors: List) -> None:
         """
+        Display the results of the prediction.
 
-        :param ground_truth_labels:
-        :param predicted_labels:
-        :param query_vectors:
-        :return: None
+        Parameters:
+            ground_truth_labels (List[str]): Ground truth labels for the queries.
+            predicted_labels (List[str]): Predicted labels for the queries.
+            query_vectors (List): Vectors representing the queries.
+
+        Returns:
+            None
         """
 
         # Create dataframe
@@ -315,8 +326,10 @@ class PredictFusionNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     def main(self) -> None:
         """
+        Executes the pipeline for prediction.
 
-        :return: None
+        Returns:
+             None
         """
 
         query_vectors, q_labels, q_images_path = self.get_vectors(

@@ -322,9 +322,10 @@ class TrainFusionNet:
         """
         Saves the model and weights if the validation loss is improved.
 
-        Parameters:
+        Args:
             epoch (int): Current epoch number.
             valid_loss (float): Validation loss.
+
         Returns:
             None
         """
