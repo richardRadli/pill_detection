@@ -112,14 +112,14 @@ class TrainModel:
                                 gamma=self.cfg.gamma)
 
         # Tensorboard
-        # tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
-        # self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
-        #
-        # # Create save directory for model weights
-        # self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))
-        #
-        # # Create save directory for hard samples
-        # self.hard_samples_path = self.create_save_dirs(network_cfg.get('hardest_samples'))
+        tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
+        self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
+
+        # Create save directory for model weights
+        self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))
+
+        # Create save directory for hard samples
+        self.hard_samples_path = self.create_save_dirs(network_cfg.get('hardest_samples'))
 
         # Variables to save only the best weights and model
         self.best_valid_loss = float('inf')
