@@ -40,7 +40,8 @@ and only the top layers were trained.
 </figure>
 
 
-
+## Dynamic margin triplet loss (DMTL)
+The triplet loss $`\sqrt{3x-1}+(1+x)^2`$
 
 ## Datasets
 We used our novel, custom-made one, entitled OGYEIv2 [3].
@@ -48,18 +49,18 @@ It can be accessed by Kaggle:
 
 https://www.kaggle.com/datasets/richardradli/ogyeiv2
 
-The comparison of the datasets (CURE and OGYEIv2) can be seen in the table below:
+The details of the OGYEIv2 dataset can be seen in the table below:
 
-|                              | CURE                | OGYEIv2   |
-|------------------------------|---------------------|-----------|
-| Number of pill classes       | 196                 | 112       |
-| Number of images             | 8973                | 4480      |
-| Raw image resolution         | 800×800 - 2448×2448 | 3840×2160 |
-| Undistorted image resolution | -                   | 3746×2019 |
-| Instance per class           | 40-50               | 40        |
-| Segmentation labels          | no                  | fully     |
-| Backgrounds                  | 6                   | 1         | 
-| Free-text description        | no                  | yes       |
+|                              | OGYEIv2     |
+|------------------------------|-------------|
+| Number of pill classes       | 112         |
+| Number of images             | 4480        |
+| Raw image resolution         | 3840×2160   |
+| Undistorted image resolution | 3746×2019   |
+| Instance per class           | 40          |
+| Segmentation labels          | fully       |
+| Backgrounds                  | 1           | 
+| Free-text description        | yes         |
 
 ## Requirement
 Make sure you have the following dependencies installed:
