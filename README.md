@@ -179,20 +179,28 @@ set up in the config files, the next step is to apply a trained YOLOv7 network f
 Alternatively, if you can use `draw_masks.py` to create the binary mask images.
 
 To create the images for the streams, run `create_stream_images.py`. Make sure you go through all the choices of 
-the argument called **dataset_operation** in the **ConfigStreamNetwork** class in the `config.py` file (train, valid, test).
+the argument called **operation** in the **ConfigStreamImages** class in the `config.py` file (reference,
+customer).
+
+When the stream images are created, it is time to run the `k_fold_sort.py` file in order the create the folds, and copy
+the corresponding files to desired the folders.
 
 Next step is to train the stream networks, this is Phase 1. 
-There is only one type of backbone is available for this, EfficientNet V2 s [2]. 
+There is only one type of backbone is available for this, EfficientNet V2 s [2], but it is possible to substitute this
+network to any other models available in the torchvision package. 
 Make sure you train all four streams. Also, two loss functions are provided:
-triplet loss and dynamic margin triplet loss. The later needs an .xslx file, named 20xx-xx-xx_xx-xx-xx_vector_distances.xlsx
+triplet loss and dynamic margin triplet loss. 
+The later needs an .xslx file, named 20xx-xx-xx_xx-xx-xx_vector_distances.xlsx
 
 To generate this .xlsx file, first run the `pill_feature_extraction.py` script, than use the `text_nlp_analysis.py` file.
 Most importantly, the first script will look for the information leaflets, place them into the following folder:
 **".\storage\pill_detection\nlp\documents\patient_information_leaflet_doc"**
 
-After the streams are trained, the last step is to train the fusion network, it is also called Phase 2.
+After the streams are trained, the last step is to train the fusion network, it is also called Phase 2. Use `
+train_fusion_network.py` for this.
 
-To evaluate the models, use `predict_fusion_network.py`.
+To evaluate the models, use `predict_fusion_network.py`. It will compare the query embeddings to the reference embeddings,
+calculates the top-1 and top-5 accuracies, also will plot the compared images, and creates a confusion matrix plot.
 
 ## References
 [1] - Ling, S., Pastor, A., Li, J., Che, Z., Wang, J., Kim, J., & Callet, P. L. (2020). Few-shot pill recognition. 
