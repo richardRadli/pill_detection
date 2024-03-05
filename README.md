@@ -43,16 +43,12 @@ and only the top layers were trained.
 
 
 ## Datasets
-We used two datasets, namely CURE [1] and our novel, custom-made one, entitled OGYEIv2 [3]. 
-CURE is available online via this link:
-
-https://drive.google.com/drive/folders/1dcqUaTSepplc4GAUC05mr9iReWVqaThN.
-
-Ours can be accessed by Kaggle:
+We used our novel, custom-made one, entitled OGYEIv2 [3].
+It can be accessed by Kaggle:
 
 https://www.kaggle.com/datasets/richardradli/ogyeiv2
 
-The comparison of the two datasets can be seen in the table below:
+The comparison of the datasets (CURE and OGYEIv2) can be seen in the table below:
 
 |                              | CURE                | OGYEIv2   |
 |------------------------------|---------------------|-----------|
