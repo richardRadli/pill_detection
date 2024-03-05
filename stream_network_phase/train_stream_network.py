@@ -75,7 +75,7 @@ class TrainModel:
         self.model = NetworkFactory.create_network(self.cfg.type_of_net, network_cfg)
         self.model.to(self.device)
 
-        # Print model configuration
+        # Print nework configuration
         summary(
             self.model,
             (1 if network_cfg.get('grayscale') else 3, network_cfg.get("image_size"), network_cfg.get("image_size"))
@@ -85,10 +85,13 @@ class TrainModel:
         if self.cfg.type_of_loss_func == "dmtl":
             path_to_excel_file = nlp_configs().get("vector_distances")
             df = get_embedded_text_matrix(path_to_excel_file)
-            self.criterion = DynamicMarginTripletLoss(margin=self.cfg.margin,
-                                                      triplets_per_anchor="all",
-                                                      euc_dist_mtx=df,
-                                                      upper_norm_limit=self.cfg.upper_norm_limit)
+            self.criterion = (
+                DynamicMarginTripletLoss(
+                    margin=self.cfg.margin,
+                    triplets_per_anchor="all",
+                    euc_dist_mtx=df,
+                    upper_norm_limit=self.cfg.upper_norm_limit)
+            )
         elif self.cfg.type_of_loss_func == "hmtl":
             self.criterion = losses.TripletMarginLoss(margin=self.cfg.margin)
         else:
@@ -109,14 +112,14 @@ class TrainModel:
                                 gamma=self.cfg.gamma)
 
         # Tensorboard
-        tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
-        self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
-
-        # Create save directory for model weights
-        self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))
-
-        # Create save directory for hard samples
-        self.hard_samples_path = self.create_save_dirs(network_cfg.get('hardest_samples'))
+        # tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
+        # self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
+        #
+        # # Create save directory for model weights
+        # self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))
+        #
+        # # Create save directory for hard samples
+        # self.hard_samples_path = self.create_save_dirs(network_cfg.get('hardest_samples'))
 
         # Variables to save only the best weights and model
         self.best_valid_loss = float('inf')

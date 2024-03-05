@@ -15,7 +15,7 @@ from typing import List
 
 
 class DynamicMarginTripletLoss(nn.Module):
-    def __init__(self, euc_dist_mtx, upper_norm_limit: int = 2, margin: float = 0.5):
+    def __init__(self, euc_dist_mtx, upper_norm_limit: int = 3, margin: float = 0.5):
         """
 
         :param euc_dist_mtx:

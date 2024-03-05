@@ -22,10 +22,10 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
 
     def __init__(
         self,
-        margin=0.05,
+        margin=0.5,
         triplets_per_anchor="all",
         euc_dist_mtx=None,
-        upper_norm_limit=None,
+        upper_norm_limit=3.0,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -35,8 +35,13 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         self.euc_dist_mtx = euc_dist_mtx
         self.upper_norm_limit = upper_norm_limit
 
-    def compute_loss(self, embeddings: torch.Tensor, labels: list, indices_tuple: tuple,
-                     ref_emb: torch.Tensor, ref_labels: list) -> dict:
+    def compute_loss(self,
+                     embeddings: torch.Tensor,
+                     labels: list,
+                     indices_tuple: tuple,
+                     ref_emb: torch.Tensor,
+                     ref_labels: list) \
+            -> dict:
         """
         Compute the triplet loss.
 
@@ -66,8 +71,8 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         an_dists = mat[anchor_idx, negative_idx]
 
         normalized_margins = self.normalize_row(anchor_idx, negative_idx, labels)
-        normalized_margins = normalized_margins.to("cuda")
         normalized_margins = normalized_margins * self.margin
+        normalized_margins = normalized_margins.to("cuda")
         pos_neg_dists = self.distance.margin(ap_dists, an_dists)
 
         loss = normalized_margins + pos_neg_dists
@@ -81,7 +86,10 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
             }
         }
 
-    def normalize_row(self, anchor_file_idx: List[int], negative_file_idx: List[int], labels: List[int]) \
+    def normalize_row(self,
+                      anchor_file_idx: List[int],
+                      negative_file_idx: List[int],
+                      labels: List[int]) \
             -> torch.Tensor:
         """
         Normalize rows of the Euclidean distance matrix.
@@ -94,7 +102,6 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         Returns:
             torch.Tensor: Normalized rows.
         """
-
         # Convert tensor labels to integers
         labels = [int(label) for label in labels]
 
@@ -108,12 +115,21 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
 
         anchor_file_idx_cpu = [label_to_index[int(idx)] for idx in anchor_file_idx]
         negative_file_idx_cpu = [label_to_index[int(idx)] for idx in negative_file_idx]
+
+        # Select rows corresponding to anchor file indices
         rows = self.euc_dist_mtx.iloc[anchor_file_idx_cpu].to_numpy()
+
+        # Normalize rows
         min_vals = rows.min(axis=1)
         max_vals = rows.max(axis=1)
-        normalized_rows = 1 + (self.upper_norm_limit - 1) * (
-                (rows - min_vals[:, np.newaxis]) / (max_vals - min_vals)[:, np.newaxis])
-        return torch.tensor(normalized_rows[:, negative_file_idx_cpu])
+        normalized_rows = (
+                1 + (self.upper_norm_limit - 1) * ((rows - min_vals[:, np.newaxis]) / (max_vals - min_vals)[:, np.newaxis])
+        )
+
+        # Select normalized values for anchor-negative pairs
+        normalized_values = normalized_rows[np.arange(len(anchor_file_idx_cpu)), negative_file_idx_cpu]
+        print(rows[np.arange(len(anchor_file_idx_cpu)), negative_file_idx_cpu])
+        return torch.tensor(normalized_values)
 
     def get_default_reducer(self) -> AvgNonZeroReducer:
         """
