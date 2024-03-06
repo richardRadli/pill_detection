@@ -106,11 +106,13 @@ class PredictStreamNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def load_networks(self):
+    def load_networks(self) -> Tuple[torch.nn.Module, torch.nn.Module, torch.nn.Module, torch.nn.Module]:
         """
-        This function loads the pretrained networks, with the latest .pt files
+        Load pretrained networks using the latest .pt files.
 
-        :return: The contour, rgb, and texture networks.
+        Returns:
+            Tuple[torch.nn.Module, torch.nn.Module, torch.nn.Module, torch.nn.Module]:
+                Contour, LBP, RGB, and Texture networks.
         """
 
         con_config = self.sub_network_config.get("Contour")
@@ -150,14 +152,21 @@ class PredictStreamNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def get_vectors(self, contour_dir: str, lbp_dir: str, rgb_dir: str, texture_dir: str, operation: str):
+    def get_vectors(self, contour_dir: str, lbp_dir: str, rgb_dir: str, texture_dir: str, operation: str) \
+            -> Tuple[List[torch.Tensor], List[str], List[str]]:
         """
-        :param contour_dir: path to the directory containing contour images
-        :param lbp_dir: path to the directory containing LBP images
-        :param rgb_dir: path to the directory containing rgb images
-        :param texture_dir: path to the directory containing texture images
-        :param operation: name of the operation being performed
-        :return: tuple containing three lists - vectors, labels, and images_path
+        Process images and obtain feature vectors.
+
+        Parameters:
+            contour_dir (str): Path to the directory containing contour images.
+            lbp_dir (str): Path to the directory containing LBP images.
+            rgb_dir (str): Path to the directory containing RGB images.
+            texture_dir (str): Path to the directory containing texture images.
+            operation (str): Name of the operation being performed.
+
+        Returns:
+            Tuple[List[torch.Tensor], List[str], List[str]]:
+                A tuple containing three lists - vectors, labels, and images_path.
         """
 
         logging.info("Processing %s images" % operation)
@@ -241,12 +250,16 @@ class PredictStreamNetwork:
         It returns the original query labels, predicted medicine labels, indices of the most similar medicines in the
         reference set.
 
-        :param q_labels: a list of ground truth medicine names
-        :param r_labels: a list of reference medicine names
-        :param reference_vectors: a numpy array of embedded vectors for the reference set
-        :param query_vectors: a numpy array of embedded vectors for the query set
-        :return: the original query labels, predicted medicine labels, indices of the most similar medicines in the
-        reference set, and mAP
+        Parameters:
+            q_labels (List[str]): A list of ground truth medicine names.
+            r_labels (List[str]): A list of reference medicine names.
+            reference_vectors (List): A list of embedded vectors for the reference set.
+            query_vectors (List): A list of embedded vectors for the query set.
+
+        Returns:
+            Tuple[List[str], List[str], List[int]]:
+                A tuple containing the original query labels, predicted medicine labels, and indices of the most
+                similar medicines in the reference set.
         """
 
         logging.info("Comparing query and reference vectors")
@@ -313,10 +326,13 @@ class PredictStreamNetwork:
         """
         Display the results of the prediction.
 
-        :param ground_truth_labels: List, ground truth labels for the queries.
-        :param predicted_labels: List, predicted labels for the queries.
-        :param query_vectors: List, vectors representing the queries.
-        :return: None
+        Parameters:
+            ground_truth_labels (List[str]): Ground truth labels for the queries.
+            predicted_labels (List[str]): Predicted labels for the queries.
+            query_vectors (List): Vectors representing the queries.
+
+        Returns:
+            None
         """
 
         # Create dataframe
@@ -356,7 +372,9 @@ class PredictStreamNetwork:
     def main(self) -> None:
         """
         Executes the pipeline for prediction.
-        :return: None
+
+        Returns:
+             None
         """
 
         # Calculate query vectors
@@ -403,7 +421,7 @@ class PredictStreamNetwork:
 
         plot_confusion_matrix(
             gt=gt,
-            pred=pred_ed,
+            predictions=pred_ed,
             out_path=self.main_network_config.get("confusion_matrix").get(self.cfg.dataset_type)
         )
 

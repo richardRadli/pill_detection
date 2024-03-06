@@ -1,10 +1,10 @@
 """
-File: efficientnet.py
+File: efficientnet_v2s.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: May 06, 2023
 
-Description: The program implements the EfficientNet b0 with custom linear layer.
+Description: The program implements the EfficientNet V2 s with custom linear layer.
 """
 
 import torch
@@ -17,8 +17,12 @@ class EfficientNet(nn.Module):
         """
         EfficientNet model with custom linear layer.
 
-        :param num_out_feature: Number of output features.
-        :param grayscale: Whether the input is grayscale or not. Defaults to True.
+        Args:
+            num_out_feature: Number of output features.
+            grayscale: Whether the input is grayscale or not. Defaults to True.
+
+        Returns:
+            None
         """
 
         super(EfficientNet, self).__init__()
@@ -32,8 +36,11 @@ class EfficientNet(nn.Module):
         """
         Forward pass of the EfficientNet model.
 
-        :param x: Input tensor.
-        :return: Output tensor.
+        Args:
+            x: Input tensor.
+
+        Returns:
+             Output tensor.
         """
 
         if self.grayscale:
@@ -45,7 +52,8 @@ class EfficientNet(nn.Module):
         """
         Build the EfficientNet model with a custom linear layer.
 
-        :return: EfficientNet model with custom linear layer.
+        Returns:
+             EfficientNet model with custom linear layer.
         """
 
         model = models.efficientnet_v2_s(weights="DEFAULT")

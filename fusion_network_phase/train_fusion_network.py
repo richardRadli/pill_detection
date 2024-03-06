@@ -15,15 +15,17 @@ import torch
 
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
+from typing import Any, List
 
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
-from config.config_selector import sub_stream_network_configs, fusion_network_config
+from config.config_selector import sub_stream_network_configs, fusion_network_config, nlp_configs
 from dataloader_fusion_network import FusionDataset
+from loss_functions.dynamic_margin_triplet_loss_fusion import DynamicMarginTripletLoss
 from fusion_network_models.fusion_network_selector import NetworkFactory
-from utils.utils import create_timestamp, print_network_config, use_gpu_if_available, setup_logger
+from utils.utils import (create_timestamp, print_network_config, use_gpu_if_available, setup_logger,
+                         get_embedded_text_matrix, create_dataset, measure_execution_time)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -62,13 +64,30 @@ class TrainFusionNet:
         self.device = use_gpu_if_available()
 
         # Load datasets using FusionDataset
-        self.train_data_loader, self.valid_data_loader = self.create_dataset()
+        dataset = FusionDataset()
+        self.train_data_loader, self.valid_data_loader = (
+            create_dataset(dataset=dataset,
+                           train_valid_ratio=self.cfg_fusion_net.train_valid_ratio,
+                           batch_size=self.cfg_fusion_net.batch_size)
+        )
 
         # Set up model
         self.model = self.setup_model(network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture)
 
         # Specify loss function
-        self.criterion = torch.nn.TripletMarginLoss(margin=self.cfg_fusion_net.margin)
+        # Specify loss function
+        if self.cfg_fusion_net.type_of_loss_func == "dmtl":
+            path_to_excel_file = nlp_configs().get("vector_distances")
+            df = get_embedded_text_matrix(path_to_excel_file)
+            self.criterion = DynamicMarginTripletLoss(
+                euc_dist_mtx=df,
+                upper_norm_limit=self.cfg_fusion_net.upper_norm_limit,
+                margin=self.cfg_fusion_net.margin
+            )
+        elif self.cfg_fusion_net.type_of_loss_func == "hmtl":
+            self.criterion = torch.nn.TripletMarginLoss(margin=self.cfg_fusion_net.margin)
+        else:
+            raise ValueError(f"Wrong loss function: {self.cfg_fusion_net}")
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(
@@ -93,7 +112,24 @@ class TrainFusionNet:
         self.best_valid_loss = float('inf')
         self.best_model_path = None
 
-    def setup_model(self, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture):
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------- S E T U P   M O D E L ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def setup_model(self, network_cfg_contour: dict, network_cfg_lbp: dict, network_cfg_rgb: dict,
+                    network_cfg_texture: dict) -> Any:
+        """
+        Initialize and set up the fusion network model.
+
+        Args:
+            network_cfg_contour: Configuration for the contour stream network.
+            network_cfg_lbp: Configuration for the LBP stream network.
+            network_cfg_rgb: Configuration for the RGB stream network.
+            network_cfg_texture: Configuration for the texture stream network.
+
+        Returns:
+            The initialized fusion network model.
+        """
+
         # Initialize the fusion network
         model = NetworkFactory.create_network(fusion_network_type=self.cfg_fusion_net.type_of_net,
                                               type_of_net=self.cfg_stream_net.type_of_net,
@@ -132,12 +168,16 @@ class TrainFusionNet:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- C R E A T E   S A V E   D I R S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def create_save_dirs(self, main_network_config, directory_type):
+    def create_save_dirs(self, main_network_config: dict, directory_type: str) -> str:
         """
+        Create and return directory path for saving files.
 
-        :param main_network_config:
-        :param directory_type:
-        :return:
+        Args:
+            main_network_config (dict): Main network configuration.
+            directory_type (str): Type of directory to create.
+
+        Returns:
+            str: Directory path created.
         """
 
         directory_path = main_network_config.get(directory_type).get(self.cfg_stream_net.dataset_type)
@@ -145,38 +185,28 @@ class TrainFusionNet:
         os.makedirs(directory_to_create, exist_ok=True)
         return directory_to_create
 
-    def create_dataset(self):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------- T R A I N   L O O P ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def train_loop(self, train_losses: List[float]) -> List[float]:
         """
-        :return:
-        """
+        Train loop for the model.
 
-        # Load dataset
-        dataset = FusionDataset()
+        Args:
+            train_losses (List[float]): List to track training losses.
 
-        # Calculate the number of samples for each set
-        train_size = int(len(dataset) * self.cfg_fusion_net.train_valid_ratio)
-        val_size = len(dataset) - train_size
-        train_dataset, valid_dataset = random_split(dataset, [train_size, val_size])
-        logging.info(f"Number of images in the train set: {len(train_dataset)}")
-        logging.info(f"Number of images in the validation set: {len(valid_dataset)}")
-        train_data_loader = DataLoader(train_dataset, batch_size=self.cfg_fusion_net.batch_size, shuffle=True)
-        valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg_fusion_net.batch_size, shuffle=True)
-
-        return train_data_loader, valid_data_loader
-
-    def train_loop(self, train_losses):
-        """
-
-        :param train_losses:
-        :return:
+        Returns:
+            List[float]: Updated training losses.
         """
 
         for (contour_anchor, contour_positive, contour_negative,
              lbp_anchor, lbp_positive, lbp_negative,
              rgb_anchor, rgb_positive, rgb_negative,
-             texture_anchor, texture_positive, texture_negative) in tqdm(self.train_data_loader,
-                                                                         total=len(self.train_data_loader),
-                                                                         desc=colorama.Fore.LIGHTCYAN_EX + "Training"):
+             texture_anchor, texture_positive, texture_negative,
+             anchor_img_path, negative_img_path) \
+                in tqdm(self.train_data_loader,
+                        total=len(self.train_data_loader),
+                        desc=colorama.Fore.LIGHTCYAN_EX + "Training"):
             # Set the gradients to zero
             self.optimizer.zero_grad()
 
@@ -199,9 +229,18 @@ class TrainFusionNet:
             negative_embedding = self.model(contour_negative, lbp_negative, rgb_negative, texture_negative)
 
             # Compute triplet loss
-            train_loss = self.criterion(anchor=anchor_embedding,
-                                        positive=positive_embedding,
-                                        negative=negative_embedding)
+            if self.cfg_fusion_net.type_of_loss_func == "hmtl":
+                train_loss = self.criterion(anchor=anchor_embedding,
+                                            positive=positive_embedding,
+                                            negative=negative_embedding)
+            elif self.cfg_fusion_net.type_of_loss_func == "dmtl":
+                train_loss = self.criterion(anchor_tensor=anchor_embedding,
+                                            positive_tensor=positive_embedding,
+                                            negative_tensor=negative_embedding,
+                                            anchor_file_names=anchor_img_path,
+                                            negative_file_names=negative_img_path)
+            else:
+                raise ValueError(f"Wrong loss function: {self.cfg_fusion_net}")
 
             # Backward pass
             train_loss.backward()
@@ -212,11 +251,18 @@ class TrainFusionNet:
 
         return train_losses
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------- V A L I D   L O O P ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def valid_loop(self, valid_losses):
         """
+        Validation loop for the model.
 
-        :param valid_losses:
-        :return:
+        Args:
+            valid_losses (List[float]): List to track validation losses.
+
+        Returns:
+            List[float]: Updated validation losses.
         """
 
         # Validation loop
@@ -224,7 +270,8 @@ class TrainFusionNet:
             for (contour_anchor, contour_positive, contour_negative,
                  lbp_anchor, lbp_positive, lbp_negative,
                  rgb_anchor, rgb_positive, rgb_negative,
-                 texture_anchor, texture_positive, texture_negative) in tqdm(
+                 texture_anchor, texture_positive, texture_negative,
+                 anchor_img_path, negative_img_path) in tqdm(
                 self.valid_data_loader,
                 total=len(self.valid_data_loader),
                 desc=colorama.Fore.LIGHTWHITE_EX + "Validation"
@@ -249,21 +296,37 @@ class TrainFusionNet:
                 negative_embedding = self.model(contour_negative, lbp_negative, rgb_negative, texture_negative)
 
                 # Compute triplet loss
-                valid_loss = self.criterion(anchor=anchor_embedding,
-                                            positive=positive_embedding,
-                                            negative=negative_embedding)
+                if self.cfg_fusion_net.type_of_loss_func == "hmtl":
+                    valid_loss = self.criterion(anchor=anchor_embedding,
+                                                positive=positive_embedding,
+                                                negative=negative_embedding)
+                elif self.cfg_fusion_net.type_of_loss_func == "dmtl":
+                    valid_loss = self.criterion(anchor_tensor=anchor_embedding,
+                                                positive_tensor=positive_embedding,
+                                                negative_tensor=negative_embedding,
+                                                anchor_file_names=anchor_img_path,
+                                                negative_file_names=negative_img_path)
+                else:
+                    raise ValueError(f"Wrong loss function: {self.cfg_fusion_net}")
 
                 # Accumulate loss
                 valid_losses.append(valid_loss.item())
 
             return valid_losses
 
-    def save_model_weights(self, epoch, valid_loss):
+    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------- S A V E   M O D E L   W E I G H T S --------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def save_model_weights(self, epoch: int, valid_loss: float) -> None:
         """
+        Saves the model and weights if the validation loss is improved.
 
-        :param epoch:
-        :param valid_loss:
-        :return:
+        Args:
+            epoch (int): Current epoch number.
+            valid_loss (float): Validation loss.
+
+        Returns:
+            None
         """
 
         if valid_loss < self.best_valid_loss:
@@ -278,13 +341,16 @@ class TrainFusionNet:
                             f"current valid loss is {valid_loss:.5f}")
 
     # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------------------ F I T -----------------------------------------------------
+    # ------------------------------------------------ T R A I N I N G--------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def training(self):
+    @measure_execution_time
+    def training(self) -> None:
         """
+       Train the neural network.
 
-        :return:
-        """
+       Returns:
+           None
+       """
 
         # To track the training loss as the model trains
         train_losses = []

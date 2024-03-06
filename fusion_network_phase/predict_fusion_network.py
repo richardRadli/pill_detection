@@ -97,11 +97,12 @@ class PredictFusionNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def load_networks(self):
+    def load_networks(self) -> torch.nn.Module:
         """
-        This function finds and loads the latest FusionNetwork.
+        Load pretrained networks using the latest .pt files.
 
-        :return: <class 'fusion_network.FusionNet'>
+        Returns:
+            network_fusion (torch.nn.Module): Fusion network.
         """
 
         latest_con_pt_file = find_latest_file_in_latest_directory(
@@ -131,12 +132,15 @@ class PredictFusionNetwork:
         """
         Get feature vectors for images.
 
-        :param contour_dir: path to the directory containing contour images
-        :param rgb_dir: path to the directory containing RGB images
-        :param texture_dir: path to the directory containing texture images
-        :param lbp_dir: path to the directory containing LBP images
-        :param operation: name of the operation being performed
-        :return: tuple containing three lists - vectors, labels, and images_path
+        Args:
+            contour_dir: path to the directory containing contour images
+            rgb_dir: path to the directory containing RGB images
+            texture_dir: path to the directory containing texture images
+            lbp_dir: path to the directory containing LBP images
+            operation: name of the operation being performed
+
+        Returns:
+             tuple containing three lists - vectors, labels, and images_path
         """
 
         medicine_classes = os.listdir(rgb_dir)
@@ -204,12 +208,15 @@ class PredictFusionNetwork:
         It returns the original query labels, predicted medicine labels, and the indices of the most similar medicines
         in the reference set.
 
-        :param q_labels: a list of ground truth medicine names
-        :param r_labels: a list of reference medicine names
-        :param reference_vectors: a numpy array of embedded vectors for the reference set
-        :param query_vectors: a numpy array of embedded vectors for the query set
-        :return: the original query labels, predicted medicine labels, and indices of the most similar medicines in the
-        reference set
+        Args:
+            q_labels: a list of ground truth medicine names
+            r_labels: a list of reference medicine names
+            reference_vectors: a numpy array of embedded vectors for the reference set
+            query_vectors: a numpy array of embedded vectors for the query set
+
+        Returns:
+            The original query labels, predicted medicine labels, and indices of the most similar medicines in the
+            reference set
         """
 
         similarity_scores_euc_dist = []
@@ -269,13 +276,17 @@ class PredictFusionNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- D I S P L A Y   R E S U L T S ------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def display_results(self, ground_truth_labels, predicted_labels, query_vectors) -> None:
+    def display_results(self, ground_truth_labels: List[str], predicted_labels: List[str], query_vectors: List) -> None:
         """
+        Display the results of the prediction.
 
-        :param ground_truth_labels:
-        :param predicted_labels:
-        :param query_vectors:
-        :return: None
+        Parameters:
+            ground_truth_labels (List[str]): Ground truth labels for the queries.
+            predicted_labels (List[str]): Predicted labels for the queries.
+            query_vectors (List): Vectors representing the queries.
+
+        Returns:
+            None
         """
 
         # Create dataframe
@@ -315,8 +326,10 @@ class PredictFusionNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     def main(self) -> None:
         """
+        Executes the pipeline for prediction.
 
-        :return: None
+        Returns:
+             None
         """
 
         query_vectors, q_labels, q_images_path = self.get_vectors(
@@ -327,14 +340,10 @@ class PredictFusionNetwork:
             operation="query")
 
         ref_vectors, r_labels, r_images_path = self.get_vectors(
-            contour_dir="D:/storage/pill_detection/datasets/ogyei/Reference/stream_images/contour",
-            #self.subnetwork_config.get("Contour").get("ref").get(self.cfg_stream_net.dataset_type),
-            lbp_dir="D:/storage/pill_detection/datasets/ogyei/Reference/stream_images/lbp",
-            #self.subnetwork_config.get("LBP").get("ref").get(self.cfg_stream_net.dataset_type),
-            rgb_dir="D:/storage/pill_detection/datasets/ogyei/Reference/stream_images/rgb",
-            #self.subnetwork_config.get("RGB").get("ref").get(self.cfg_stream_net.dataset_type),
-            texture_dir="D:/storage/pill_detection/datasets/ogyei/Reference/stream_images/texture",
-            #self.subnetwork_config.get("Texture").get("ref").get(self.cfg_stream_net.dataset_type),
+            contour_dir=self.subnetwork_config.get("Contour").get("ref").get(self.cfg_stream_net.dataset_type),
+            lbp_dir=self.subnetwork_config.get("LBP").get("ref").get(self.cfg_stream_net.dataset_type),
+            rgb_dir=self.subnetwork_config.get("RGB").get("ref").get(self.cfg_stream_net.dataset_type),
+            texture_dir=self.subnetwork_config.get("Texture").get("ref").get(self.cfg_stream_net.dataset_type),
             operation="reference")
 
         gt, pred_ed, indices = (
@@ -347,13 +356,13 @@ class PredictFusionNetwork:
             q_images_path=q_images_path,
             r_images_path=r_images_path,
             gt=gt,
-            pred_ed=pred_ed,
+            predicted_labels=pred_ed,
             output_folder=self.plot_dir
         )
 
         plot_confusion_matrix(
             gt=gt,
-            pred=pred_ed,
+            predictions=pred_ed,
             out_path=self.plot_confusion_matrix_dir
         )
 
