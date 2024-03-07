@@ -222,7 +222,7 @@ class PredictStreamNetwork:
                     texture_vector = self.network_tex(tex_image).squeeze().cpu()
 
                 concatenated = torch.cat((contour_vector, lbp_vector, rgb_vector, texture_vector), dim=0)
-                vectors.append(concatenated)
+                vectors.append(contour_vector)
                 labels.append(image_name)
 
             if operation == "reference":

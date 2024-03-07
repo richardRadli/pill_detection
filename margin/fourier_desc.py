@@ -16,6 +16,7 @@ from tqdm import tqdm
 from scipy.spatial.distance import directed_hausdorff, pdist, squareform, cosine
 from sklearn.decomposition import PCA
 
+from config.config import ConfigStreamImages
 from config.config_selector import Fourier_configs, dataset_images_path_selector
 from utils.utils import create_timestamp, find_latest_file_in_directory, measure_execution_time
 
@@ -32,16 +33,24 @@ class FourierDescriptor:
         self.timestamp = create_timestamp()
         colorama.init()
 
+        cfg = ConfigStreamImages().parse()
+
         self.order = order
         self.copy_images = copy_images
         self.load = load
 
-        self.images_dir = dataset_images_path_selector("nih").get("other").get("images")
-        self.file_path = Fourier_configs().get("Fourier_collected_images_by_shape_nih")
-        self.plot_efd_dir = Fourier_configs().get("Fourier_plot_shape")
-        self.plot_euc_dir = Fourier_configs().get("Fourier_euclidean_distance")
-        self.json_dir = Fourier_configs().get("Fourier_saved_mean_vectors")
-        self.excel_path = os.path.join(dataset_images_path_selector("nih").get("other").get("xlsx"), "ref.xlsx")
+        self.images_dir = (
+            dataset_images_path_selector(
+                cfg.dataset_type).get("src_stream_images").get("customer").get("stream_images_rgb")
+        )
+        self.file_path = Fourier_configs().get(cfg.dataset_type).get("Fourier_collected_images_by_shape")
+        self.plot_efd_dir = Fourier_configs().get(cfg.dataset_type).get("Fourier_plot_shape")
+        self.plot_euc_dir = Fourier_configs().get(cfg.dataset_type).get("Fourier_euclidean_distance")
+        self.json_dir = Fourier_configs().get(cfg.dataset_type).get("Fourier_saved_mean_vectors")
+        self.excel_path = (
+            os.path.join(dataset_images_path_selector(cfg.dataset_type).get("other").get("pill_desc_xlsx"),
+                         "pill_desc.xlsx")
+        )
 
     def get_excel_values(self) -> None:
         """
@@ -55,30 +64,32 @@ class FourierDescriptor:
 
         shape_dict = {}
 
-        for row in sheet.iter_rows(min_row=2, values_only=True):
-            ndc11 = row[0]
-            shape = row[5]
+        for row in sheet.iter_rows(min_row=3, values_only=True):
+            pill_id = row[1]
+            shape = row[6]
 
             if shape in shape_dict:
-                shape_dict[shape].append(ndc11)
+                shape_dict[shape].append(pill_id)
             else:
-                shape_dict[shape] = [ndc11]
+                shape_dict[shape] = [pill_id]
 
         workbook.close()
 
-        for shape, ndc11_list in tqdm(shape_dict.items(), desc=colorama.Fore.GREEN + "Processing Shapes"):
+        for shape, pill_id_list in tqdm(shape_dict.items(), desc=colorama.Fore.GREEN + "Processing Shapes"):
             print(f"Shape: {shape}")
-            for ndc11 in ndc11_list:
-                src_dir = os.path.join(self.images_dir, str(ndc11))
+            for pill_id in pill_id_list:
+                src_dir = os.path.join(self.images_dir, str(pill_id))
 
                 try:
-                    files = os.listdir(src_dir)[0]
-                    src_file = os.path.join(src_dir, files)
-                    dst_dir = os.path.join(self.file_path, shape)
-                    os.makedirs(dst_dir, exist_ok=True)
-                    shutil.copy(src_file, dst_dir)
+                    files = os.listdir(src_dir)
+                    for file_name in files:
+                        src_file = os.path.join(src_dir, file_name)
+                        dst_dir = os.path.join(self.file_path, shape)
+                        os.makedirs(dst_dir, exist_ok=True)
+                        print(dst_dir)
+                        shutil.copy(src_file, dst_dir)
                 except FileNotFoundError:
-                    print(f"File not found: {src_file}")
+                    print(f"File not found in directory: {src_dir}")
 
     def plot_efd(self, filename: str, coeffs: np.ndarray, locus: tuple = (0.0, 0.0), image: np.ndarray = None,
                  contour: np.ndarray = None, n: int = 300) -> None:
@@ -263,7 +274,7 @@ class FourierDescriptor:
 
         hit = 0
 
-        if image_path.endswith('.JPG'):
+        if image_path.endswith('.jpg'):
             new_image_original = cv2.imread(image_path, 1)
             new_image = cv2.cvtColor(new_image_original, cv2.COLOR_BGR2GRAY)
             new_segmented_image = self.preprocess_image(new_image)
@@ -284,12 +295,12 @@ class FourierDescriptor:
             original_shape = []
 
             image_path = image_path.replace("\\", "/")
-            query_ndc11 = image_path.split("/")[-2]
+            query_pill_id = image_path.split("/")[-2]
 
-            for row in sheet.iter_rows(min_row=2, values_only=True):
-                ndc11 = row[0]
-                shape = row[5]
-                if query_ndc11 == ndc11:
+            for row in sheet.iter_rows(min_row=3, values_only=True):
+                pill_id = row[1]
+                shape = row[6]
+                if int(query_pill_id) == pill_id:
                     original_shape.append(shape)
 
             if original_shape[0] == closest_class:
@@ -377,11 +388,6 @@ class FourierDescriptor:
 
     @measure_execution_time
     def main(self) -> None:
-        """
-
-        :return:
-        """
-
         if self.copy_images:
             self.get_excel_values()
 
@@ -446,7 +452,7 @@ class FourierDescriptor:
 
 if __name__ == "__main__":
     try:
-        fd = FourierDescriptor(copy_images=False, load=True, order=15)
+        fd = FourierDescriptor(copy_images=False, load=False, order=15)
         fd.main()
     except KeyboardInterrupt:
         print("Ctrl+C pressed")

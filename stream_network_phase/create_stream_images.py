@@ -173,7 +173,7 @@ class CreateStreamImages:
             args (Tuple[numpy.ndarray, str, int, int, int]): A tuple containing:
                 - cropped_image (numpy.ndarray): The input image to apply edge detection on.
                 - output_path (str): The path to save the output edge map.
-                - kernel_size (int): The size of the kernel used in median blur.
+                - kernel_size (int): The size of the kernel used in Gaussian blur.
                 - canny_low_thr (int): The lower threshold for Canny edge detection.
                 - canny_high_thr (int): The higher threshold for Canny edge detection.
 

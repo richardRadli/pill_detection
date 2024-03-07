@@ -52,7 +52,7 @@ class DataLoaderStreamNet(Dataset):
             Tuple[List[str], List[int]]: A tuple containing a list of image paths and a list of encoded labels.
         """
 
-        dataset = []
+        images = []
         labels = []
 
         for dataset_path in dataset_dirs:
@@ -63,13 +63,13 @@ class DataLoaderStreamNet(Dataset):
                 label = label_name
                 for image_name in os.listdir(label_path):
                     image_path = os.path.join(label_path, image_name)
-                    dataset.append(image_path)
+                    images.append(image_path)
                     labels.append(label)
 
         # Initialize label encoder
         label_encoder = LabelEncoder()
         encoded_labels = label_encoder.fit_transform(labels)
-        return dataset, encoded_labels
+        return images, encoded_labels
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------- G E T   T R A N S F O R M --------------------------------------------

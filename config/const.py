@@ -141,6 +141,12 @@ class Images(_Const):
         "conf_mtx_fusion_network_efficient_net_multi_head_attention_cure":
             "images/cure/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
 
+        "Fourier_collected_images_by_shape_cure":
+            "images/cure/Fourier_desc/collected_images_by_shape",
+        "Fourier_euclidean_distance_cure":
+            "images/cure/Fourier_desc/euclidean_distance",
+        "Fourier_plot_shape_cure":
+            "images/cure/Fourier_desc/plot_shape",
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I ++++++++++++++++++++++++++++++++++++++++++++++++
         "stream_images_ogyei_anchor":
@@ -207,6 +213,13 @@ class Images(_Const):
         # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
         "conf_mtx_fusion_network_efficient_net_multi_head_attention_ogyei":
             "images/ogyei/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
+
+        "Fourier_collected_images_by_shape_ogyei":
+            "images/ogyei/Fourier_desc/collected_images_by_shape",
+        "Fourier_euclidean_distance_ogyei":
+            "images/ogyei/Fourier_desc/euclidean_distance",
+        "Fourier_plot_shape_ogyei":
+            "images/ogyei/Fourier_desc/plot_shape",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++ N I H +++++++++++++++++++++++++++++++++++++++++++++++++++
         "stream_images_nih_anchor":
@@ -277,11 +290,11 @@ class Images(_Const):
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O T H E R +++++++++++++++++++++++++++++++++++++++++++++++++
         # ----------------------------------------------- F O U R I E R ------------------------------------------------
         "Fourier_collected_images_by_shape_nih":
-            "images/Fourier_desc/collected_images_by_shape_nih",
-        "Fourier_euclidean_distance":
-            "images/Fourier_desc/euclidean_distance",
-        "Fourier_plot_shape":
-            "images/Fourier_desc/plot_shape",
+            "images/nih/Fourier_desc/collected_images_by_shape",
+        "Fourier_euclidean_distance_nih":
+            "images/nih/Fourier_desc/euclidean_distance",
+        "Fourier_plot_shape_nih":
+            "images/nih/Fourier_desc/plot_shape",
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -304,10 +317,14 @@ class Images(_Const):
 class Data(_Const):
     dirs_data = {
         # ------------------------------------------------- O T H E R --------------------------------------------------
-        # k-fold directory names
-        "Fourier_saved_mean_vectors":
-            "data/Fourier_desc/saved_mean_vectors",
+        "Fourier_saved_mean_vectors_cure":
+            "data/cure/Fourier_desc/saved_mean_vectors",
+        "Fourier_saved_mean_vectors_ogyei":
+            "data/ogyei/Fourier_desc/saved_mean_vectors",
+        "Fourier_saved_mean_vectors_nih":
+            "data/nih/Fourier_desc/saved_mean_vectors",
 
+        # k-fold directory names
         "cure_k_fold":
             "data/cure/k_fold",
         "ogyei_k_fold":
@@ -373,6 +390,9 @@ class Data(_Const):
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
         "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure":
             "data/cure/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
+
+        "pill_desc_xlsx":
+            "data/cure/xlsx",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
@@ -492,7 +512,7 @@ class Data(_Const):
             "data/nih/ref_vec/stream_net/reference_vectors_efficient_net",
 
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
-        "reference_vectors_fusion_net_efficient_net_multi_head_attention_nih":
+        "reference_vectors_fusion_network_efficient_net_multi_head_attention_nih":
             "data/nih/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
     }
 

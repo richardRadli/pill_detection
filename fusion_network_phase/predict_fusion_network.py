@@ -94,6 +94,14 @@ class PredictFusionNetwork:
             f"{self.timestamp}"
         )
 
+        self.ref_save_dir = (
+            os.path.join(
+                self.fusion_network_config.get('ref_vectors_folder').get(self.cfg_stream_net.dataset_type),
+                f"{self.timestamp}_{self.cfg_fusion_net.type_of_loss_func}"
+            )
+        )
+        os.makedirs(self.ref_save_dir, exist_ok=True)
+
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
@@ -185,15 +193,8 @@ class PredictFusionNetwork:
                 labels.append(med_class)
 
             if operation == "reference":
-                ref_save_dir = (
-                    os.path.join(
-                        self.fusion_network_config.get('ref_vectors_folder').get(self.cfg_stream_net.dataset_type),
-                        f"{self.timestamp}_{self.cfg_fusion_net.type_of_loss_func}"
-                    )
-                )
-                os.makedirs(ref_save_dir, exist_ok=True)
                 torch.save({'vectors': vectors, 'labels': labels, 'images_path': images_path},
-                           os.path.join(ref_save_dir, "ref_vectors.pt"))
+                           os.path.join(self.ref_save_dir, "ref_vectors.pt"))
 
         return vectors, labels, images_path
 

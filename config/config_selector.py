@@ -47,14 +47,36 @@ def nlp_configs() -> Dict:
 
 def Fourier_configs():
     Fourier_paths = {
-        "Fourier_collected_images_by_shape_nih":
-            IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_nih"),
-        "Fourier_euclidean_distance":
-            IMAGES_PATH.get_data_path("Fourier_euclidean_distance"),
-        "Fourier_plot_shape":
-            IMAGES_PATH.get_data_path("Fourier_plot_shape"),
-        "Fourier_saved_mean_vectors":
-            DATA_PATH.get_data_path("Fourier_saved_mean_vectors")
+        "cure": {
+            "Fourier_collected_images_by_shape":
+                IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_cure"),
+            "Fourier_euclidean_distance":
+                IMAGES_PATH.get_data_path("Fourier_euclidean_distance_cure"),
+            "Fourier_plot_shape":
+                IMAGES_PATH.get_data_path("Fourier_plot_shape_cure"),
+            "Fourier_saved_mean_vectors":
+                DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure")
+        },
+        "ogyei": {
+            "Fourier_collected_images_by_shape":
+                IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_ogyei"),
+            "Fourier_euclidean_distance":
+                IMAGES_PATH.get_data_path("Fourier_euclidean_distance_ogyei"),
+            "Fourier_plot_shape":
+                IMAGES_PATH.get_data_path("Fourier_plot_shape_ogyei"),
+            "Fourier_saved_mean_vectors":
+                DATA_PATH.get_data_path("Fourier_saved_mean_vectors_ogyei")
+        },
+        "nih": {
+            "Fourier_collected_images_by_shape":
+                IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_nih"),
+            "Fourier_euclidean_distance":
+                IMAGES_PATH.get_data_path("Fourier_euclidean_distance_nih"),
+            "Fourier_plot_shape":
+                IMAGES_PATH.get_data_path("Fourier_plot_shape_nih"),
+            "Fourier_saved_mean_vectors":
+                DATA_PATH.get_data_path("Fourier_saved_mean_vectors_nih")
+        }
     }
 
     return Fourier_paths
@@ -730,7 +752,9 @@ def dataset_images_path_selector(dataset_name):
 
             "other": {
                 'k_fold':
-                    DATA_PATH.get_data_path("cure_k_fold")
+                    DATA_PATH.get_data_path("cure_k_fold"),
+                "pill_desc_xlsx":
+                    DATA_PATH.get_data_path("pill_desc_xlsx")
             },
         },
         # -------------------------------------------------- O G Y E I -------------------------------------------------

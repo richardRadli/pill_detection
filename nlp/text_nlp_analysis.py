@@ -1,6 +1,7 @@
 import logging
 import matplotlib.pyplot as plt
 import numpy as np
+import openpyxl
 import os
 import pandas as pd
 import re
@@ -186,6 +187,23 @@ class TextNLPAnalysis:
 
         file_name = os.path.join(nlp_configs().get("vector_distances"), self.timestamp+"_vector_distances.xlsx")
         wb.save(file_name)
+
+    def rename_excel_rows(self):
+        excel_file_path = "D:/storage/pill_detection/nlp/csv/distances/2024-01-16_14-52-54_vector_distances.xlsx"
+
+        workbook = openpyxl.load_workbook(excel_file_path)
+        sheet = workbook.active
+
+        new_column_names = os.listdir("D:/storage/pill_detection/datasets/ogyei/Customer/stream_images/rgb")
+        new_row_names = os.listdir("D:/storage/pill_detection/datasets/ogyei/Customer/stream_images/rgb")
+
+        for i, new_name in enumerate(new_column_names):
+            sheet.cell(row=1, column=i + 2, value=new_name)
+
+        for i, new_name in enumerate(new_row_names):
+            sheet.cell(row=i + 2, column=1, value=new_name)
+
+        workbook.save('updated_excel_file.xlsx')
 
     @staticmethod
     def visualization(kmeans_model, new_values, list_of_labels):

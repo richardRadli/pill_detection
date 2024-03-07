@@ -154,7 +154,27 @@ def get_hardest_samples():
                         class_id_n = value
                 else:
                     raise ValueError(f"No match for file: {file}")
+        elif cfg.dataset_type == "nih":
+            a_p_image = file_name[0]
+            n_image = file_name[2]
+            pattern = re.compile(r'\b(\d{11})_(\d)_\d+\.jpg\b|\b(\d{11})_\d+\.jpg\b')
+            filename = os.path.basename(a_p_image)
+            match = pattern.search(filename)
+            if match:
+                if match.group(2):
+                    class_id_a_p = match.group(1) + "_" + match.group(2)
+                else:
+                    class_id_a_p = match.group(3)
 
+            pattern = re.compile(r'\b(\d{11})_(\d|[A-Z]{2})_(\w+)\.jpg\b')
+            filename = os.path.basename(n_image)
+            match = pattern.search(filename)
+            if match:
+                if match.group(1):
+                    if match.group(2).isdigit():
+                        class_id_n = match.group(1) + "_" + match.group(2)
+                    else:
+                        class_id_n = match.group(1)
         else:
             raise ValueError(f"Unknown dataset type: {cfg.dataset_type}")
 
