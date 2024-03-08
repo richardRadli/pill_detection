@@ -47,15 +47,15 @@ def nlp_configs() -> Dict:
 
 def Fourier_configs():
     Fourier_paths = {
-        "cure": {
+        "cure_two_sided": {
             "Fourier_collected_images_by_shape":
-                IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_cure"),
+                IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_cure_two_sided"),
             "Fourier_euclidean_distance":
-                IMAGES_PATH.get_data_path("Fourier_euclidean_distance_cure"),
+                IMAGES_PATH.get_data_path("Fourier_euclidean_distance_cure_two_sided"),
             "Fourier_plot_shape":
-                IMAGES_PATH.get_data_path("Fourier_plot_shape_cure"),
+                IMAGES_PATH.get_data_path("Fourier_plot_shape_cure_two_sided"),
             "Fourier_saved_mean_vectors":
-                DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure")
+                DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure_two_sided")
         },
         "ogyei": {
             "Fourier_collected_images_by_shape":
@@ -67,15 +67,15 @@ def Fourier_configs():
             "Fourier_saved_mean_vectors":
                 DATA_PATH.get_data_path("Fourier_saved_mean_vectors_ogyei")
         },
-        "nih": {
+        "cure_one_sided": {
             "Fourier_collected_images_by_shape":
-                IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_nih"),
+                IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_cure_one_sided"),
             "Fourier_euclidean_distance":
-                IMAGES_PATH.get_data_path("Fourier_euclidean_distance_nih"),
+                IMAGES_PATH.get_data_path("Fourier_euclidean_distance_cure_one_sided"),
             "Fourier_plot_shape":
-                IMAGES_PATH.get_data_path("Fourier_plot_shape_nih"),
+                IMAGES_PATH.get_data_path("Fourier_plot_shape_cure_one_sided"),
             "Fourier_saved_mean_vectors":
-                DATA_PATH.get_data_path("Fourier_saved_mean_vectors_nih")
+                DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure_one_sided")
         }
     }
 
@@ -102,17 +102,17 @@ def sub_stream_network_configs(cfg) -> Dict:
                 128,
             "train":
                 {
-                    "cure": {
+                    "cure_two_sided": {
                         "anchor":
-                            IMAGES_PATH.get_data_path("train_contour_stream_cure_anchor"),
+                            IMAGES_PATH.get_data_path("train_contour_stream_cure_two_sided_anchor"),
                         "pos_neg":
-                            IMAGES_PATH.get_data_path("contour_stream_cure_pos_neg")
+                            IMAGES_PATH.get_data_path("contour_stream_cure_two_sided_pos_neg")
                     },
-                    "nih": {
+                    "cure_one_sided": {
                         "anchor":
-                            IMAGES_PATH.get_data_path("train_contour_stream_nih_anchor"),
+                            IMAGES_PATH.get_data_path("train_contour_stream_cure_one_sided_anchor"),
                         "pos_neg":
-                            IMAGES_PATH.get_data_path("contour_stream_nih_pos_neg")
+                            IMAGES_PATH.get_data_path("contour_stream_cure_one_sided_pos_neg")
                     },
                     "ogyei": {
                         "anchor":
@@ -123,29 +123,29 @@ def sub_stream_network_configs(cfg) -> Dict:
                 },
             "ref":
                 {
-                    "cure":
-                        IMAGES_PATH.get_data_path("test_contour_stream_ref_cure"),
-                    "nih":
-                        IMAGES_PATH.get_data_path("test_contour_stream_ref_nih"),
+                    "cure_two_sided":
+                        IMAGES_PATH.get_data_path("test_contour_stream_ref_cure_two_sided"),
+                    "cure_one_sided":
+                        IMAGES_PATH.get_data_path("test_contour_stream_ref_cure_one_sided"),
                     "ogyei":
                         IMAGES_PATH.get_data_path("test_contour_stream_ref_ogyei"),
                 },
             "query":
                 {
-                    "cure":
-                        IMAGES_PATH.get_data_path("test_contour_stream_query_cure"),
-                    "nih":
-                        IMAGES_PATH.get_data_path("test_contour_stream_query_nih"),
+                    "cure_two_sided":
+                        IMAGES_PATH.get_data_path("test_contour_stream_query_cure_two_sided"),
+                    "cure_one_sided":
+                        IMAGES_PATH.get_data_path("test_contour_stream_query_cure_one_sided"),
                     "ogyei":
                         IMAGES_PATH.get_data_path("test_contour_stream_query_ogyei")
                 },
             "model_weights_dir": {
                 "EfficientNet":
                     {
-                        "cure":
-                            DATA_PATH.get_data_path("weights_efficient_net_contour_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("weights_efficient_net_contour_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("weights_efficient_net_contour_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("weights_efficient_net_contour_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("weights_efficient_net_contour_ogyei"),
                     },
@@ -153,10 +153,10 @@ def sub_stream_network_configs(cfg) -> Dict:
             "logs_dir": {
                 "EfficientNet":
                     {
-                        "cure":
-                            DATA_PATH.get_data_path("logs_efficient_net_contour_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("logs_efficient_net_contour_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("logs_efficient_net_contour_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("logs_efficient_net_contour_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("logs_efficient_net_contour_ogyei"),
                     },
@@ -164,10 +164,10 @@ def sub_stream_network_configs(cfg) -> Dict:
             "hardest_samples": {
                 "EfficientNet":
                     {
-                        "cure":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_contour_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_contour_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_contour_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_contour_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("hardest_samples_efficient_net_contour_ogyei")
                     }
@@ -191,17 +191,17 @@ def sub_stream_network_configs(cfg) -> Dict:
                 128,
             "train":
                 {
-                    "cure": {
+                    "cure_two_sided": {
                         "anchor":
-                            IMAGES_PATH.get_data_path("train_lbp_stream_cure_anchor"),
+                            IMAGES_PATH.get_data_path("train_lbp_stream_cure_two_sided_anchor"),
                         "pos_neg":
-                            IMAGES_PATH.get_data_path("lbp_stream_cure_pos_neg")
+                            IMAGES_PATH.get_data_path("lbp_stream_cure_two_sided_pos_neg")
                     },
-                    "nih": {
+                    "cure_one_sided": {
                         "anchor":
-                            IMAGES_PATH.get_data_path("train_lbp_stream_nih_anchor"),
+                            IMAGES_PATH.get_data_path("train_lbp_stream_cure_one_sided_anchor"),
                         "pos_neg":
-                            IMAGES_PATH.get_data_path("lbp_stream_nih_pos_neg")
+                            IMAGES_PATH.get_data_path("lbp_stream_cure_one_sided_pos_neg")
                     },
                     "ogyei": {
                         "anchor":
@@ -213,29 +213,29 @@ def sub_stream_network_configs(cfg) -> Dict:
                 },
             "ref":
                 {
-                    "cure":
-                        IMAGES_PATH.get_data_path("test_lbp_stream_ref_cure"),
-                    "nih":
-                        IMAGES_PATH.get_data_path("test_lbp_stream_ref_nih"),
+                    "cure_two_sided":
+                        IMAGES_PATH.get_data_path("test_lbp_stream_ref_cure_two_sided"),
+                    "cure_one_sided":
+                        IMAGES_PATH.get_data_path("test_lbp_stream_ref_cure_one_sided"),
                     "ogyei":
                         IMAGES_PATH.get_data_path("test_lbp_stream_ref_ogyei"),
                 },
             "query":
                 {
-                    "cure":
-                        IMAGES_PATH.get_data_path("test_lbp_stream_query_cure"),
-                    "nih":
-                        IMAGES_PATH.get_data_path("test_lbp_stream_query_nih"),
+                    "cure_two_sided":
+                        IMAGES_PATH.get_data_path("test_lbp_stream_query_cure_two_sided"),
+                    "cure_one_sided":
+                        IMAGES_PATH.get_data_path("test_lbp_stream_query_cure_one_sided"),
                     "ogyei":
                         IMAGES_PATH.get_data_path("test_lbp_stream_query_ogyei")
                 },
             "model_weights_dir": {
                 "EfficientNet":
                     {
-                        "cure":
-                            DATA_PATH.get_data_path("weights_efficient_net_lbp_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("weights_efficient_net_lbp_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("weights_efficient_net_lbp_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("weights_efficient_net_lbp_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("weights_efficient_net_lbp_ogyei"),
                     },
@@ -243,10 +243,10 @@ def sub_stream_network_configs(cfg) -> Dict:
             "logs_dir": {
                 "EfficientNet":
                     {
-                        "cure":
-                            DATA_PATH.get_data_path("logs_efficient_net_lbp_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("logs_efficient_net_lbp_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("logs_efficient_net_lbp_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("logs_efficient_net_lbp_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("logs_efficient_net_lbp_ogyei"),
                     }
@@ -254,10 +254,10 @@ def sub_stream_network_configs(cfg) -> Dict:
             "hardest_samples": {
                 "EfficientNet":
                     {
-                        "cure":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_lbp_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_lbp_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_lbp_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_lbp_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("hardest_samples_efficient_net_lbp_ogyei")
                     }
@@ -280,17 +280,17 @@ def sub_stream_network_configs(cfg) -> Dict:
                 256,
             "train":
                 {
-                    "cure": {
+                    "cure_two_sided": {
                         "anchor":
-                            IMAGES_PATH.get_data_path("train_rgb_stream_cure_anchor"),
+                            IMAGES_PATH.get_data_path("train_rgb_stream_cure_two_sided_anchor"),
                         "pos_neg":
-                            IMAGES_PATH.get_data_path("rgb_stream_cure_pos_neg")
+                            IMAGES_PATH.get_data_path("rgb_stream_cure_two_sided_pos_neg")
                     },
-                    "nih": {
+                    "cure_one_sided": {
                         "anchor":
-                            IMAGES_PATH.get_data_path("train_rgb_stream_nih_anchor"),
+                            IMAGES_PATH.get_data_path("train_rgb_stream_cure_one_sided_anchor"),
                         "pos_neg":
-                            IMAGES_PATH.get_data_path("rgb_stream_nih_pos_neg")
+                            IMAGES_PATH.get_data_path("rgb_stream_cure_one_sided_pos_neg")
                     },
                     "ogyei": {
                         "anchor":
@@ -301,29 +301,29 @@ def sub_stream_network_configs(cfg) -> Dict:
                 },
             "ref":
                 {
-                    "cure":
-                        IMAGES_PATH.get_data_path("test_rgb_stream_ref_cure"),
-                    "nih":
-                        IMAGES_PATH.get_data_path("test_rgb_stream_ref_nih"),
+                    "cure_two_sided":
+                        IMAGES_PATH.get_data_path("test_rgb_stream_ref_cure_two_sided"),
+                    "cure_one_sided":
+                        IMAGES_PATH.get_data_path("test_rgb_stream_ref_cure_one_sided"),
                     "ogyei":
                         IMAGES_PATH.get_data_path("test_rgb_stream_ref_ogyei"),
                 },
             "query":
                 {
-                    "cure":
-                        IMAGES_PATH.get_data_path("test_rgb_stream_query_cure"),
-                    "nih":
-                        IMAGES_PATH.get_data_path("test_rgb_stream_query_nih"),
+                    "cure_two_sided":
+                        IMAGES_PATH.get_data_path("test_rgb_stream_query_cure_two_sided"),
+                    "cure_one_sided":
+                        IMAGES_PATH.get_data_path("test_rgb_stream_query_cure_one_sided"),
                     "ogyei":
                         IMAGES_PATH.get_data_path("test_rgb_stream_query_ogyei")
                 },
             "model_weights_dir": {
                 "EfficientNet":
                     {
-                        "cure":
-                            DATA_PATH.get_data_path("weights_efficient_net_rgb_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("weights_efficient_net_rgb_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("weights_efficient_net_rgb_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("weights_efficient_net_rgb_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("weights_efficient_net_rgb_ogyei"),
                     },
@@ -331,10 +331,10 @@ def sub_stream_network_configs(cfg) -> Dict:
             "logs_dir": {
                 "EfficientNet":
                     {
-                        "cure":
-                            DATA_PATH.get_data_path("logs_efficient_net_rgb_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("logs_efficient_net_rgb_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("logs_efficient_net_rgb_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("logs_efficient_net_rgb_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("logs_efficient_net_rgb_ogyei"),
                     },
@@ -342,10 +342,10 @@ def sub_stream_network_configs(cfg) -> Dict:
             "hardest_samples": {
                 "EfficientNet":
                     {
-                        "cure":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_rgb_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_rgb_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_rgb_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_rgb_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("hardest_samples_efficient_net_rgb_ogyei")
                     }
@@ -368,17 +368,17 @@ def sub_stream_network_configs(cfg) -> Dict:
                 128,
             "train":
                 {
-                    "cure": {
+                    "cure_two_sided": {
                         "anchor":
-                            IMAGES_PATH.get_data_path("train_texture_stream_cure_anchor"),
+                            IMAGES_PATH.get_data_path("train_texture_stream_cure_two_sided_anchor"),
                         "pos_neg":
-                            IMAGES_PATH.get_data_path("texture_stream_cure_pos_neg")
+                            IMAGES_PATH.get_data_path("texture_stream_cure_two_sided_pos_neg")
                     },
-                    "nih": {
+                    "cure_one_sided": {
                         "anchor":
-                            IMAGES_PATH.get_data_path("train_texture_stream_nih_anchor"),
+                            IMAGES_PATH.get_data_path("train_texture_stream_cure_one_sided_anchor"),
                         "pos_neg":
-                            IMAGES_PATH.get_data_path("texture_stream_nih_pos_neg")
+                            IMAGES_PATH.get_data_path("texture_stream_cure_one_sided_pos_neg")
                     },
                     "ogyei": {
                         "anchor":
@@ -389,29 +389,29 @@ def sub_stream_network_configs(cfg) -> Dict:
                 },
             "ref":
                 {
-                    "cure":
-                        IMAGES_PATH.get_data_path("test_texture_stream_ref_cure"),
-                    "nih":
-                        IMAGES_PATH.get_data_path("test_texture_stream_ref_nih"),
+                    "cure_two_sided":
+                        IMAGES_PATH.get_data_path("test_texture_stream_ref_cure_two_sided"),
+                    "cure_one_sided":
+                        IMAGES_PATH.get_data_path("test_texture_stream_ref_cure_one_sided"),
                     "ogyei":
                         IMAGES_PATH.get_data_path("test_texture_stream_ref_ogyei"),
                 },
             "query":
                 {
-                    "cure":
-                        IMAGES_PATH.get_data_path("test_texture_stream_query_cure"),
-                    "nih":
-                        IMAGES_PATH.get_data_path("test_texture_stream_query_nih"),
+                    "cure_two_sided":
+                        IMAGES_PATH.get_data_path("test_texture_stream_query_cure_two_sided"),
+                    "cure_one_sided":
+                        IMAGES_PATH.get_data_path("test_texture_stream_query_cure_one_sided"),
                     "ogyei":
                         IMAGES_PATH.get_data_path("test_texture_stream_query_ogyei")
                 },
             "model_weights_dir": {
                 "EfficientNet":
                     {
-                        "cure":
-                            DATA_PATH.get_data_path("weights_efficient_net_texture_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("weights_efficient_net_texture_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("weights_efficient_net_texture_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("weights_efficient_net_texture_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("weights_efficient_net_texture_ogyei"),
                     }
@@ -419,10 +419,10 @@ def sub_stream_network_configs(cfg) -> Dict:
             "logs_dir": {
                 "EfficientNet":
                     {
-                        "cure":
-                            DATA_PATH.get_data_path("logs_efficient_net_texture_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("logs_efficient_net_texture_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("logs_efficient_net_texture_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("logs_efficient_net_texture_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("logs_efficient_net_texture_ogyei"),
                     }
@@ -430,10 +430,10 @@ def sub_stream_network_configs(cfg) -> Dict:
             "hardest_samples": {
                 "EfficientNet":
                     {
-                        "cure":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_texture_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_texture_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_texture_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_texture_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("hardest_samples_efficient_net_texture_ogyei")
                     }
@@ -469,67 +469,67 @@ def stream_network_config(cfg) -> Dict:
         'EfficientNet':
             {
                 'prediction_folder': {
-                    "cure":
-                        DATA_PATH.get_data_path("predictions_efficient_net_cure"),
-                    "nih":
-                        DATA_PATH.get_data_path("predictions_efficient_net_nih"),
+                    "cure_two_sided":
+                        DATA_PATH.get_data_path("predictions_efficient_net_cure_two_sided"),
+                    "cure_one_sided":
+                        DATA_PATH.get_data_path("predictions_efficient_net_cure_one_sided"),
                     "ogyei":
                         DATA_PATH.get_data_path("predictions_efficient_net_ogyei")
                 },
                 'plotting_folder': {
-                    "cure":
-                        IMAGES_PATH.get_data_path("plotting_efficient_net_cure"),
-                    "nih":
-                        IMAGES_PATH.get_data_path("plotting_efficient_net_nih"),
+                    "cure_two_sided":
+                        IMAGES_PATH.get_data_path("plotting_efficient_net_cure_two_sided"),
+                    "cure_one_sided":
+                        IMAGES_PATH.get_data_path("plotting_efficient_net_cure_one_sided"),
                     "ogyei":
                         IMAGES_PATH.get_data_path("plotting_efficient_net_ogyei")
                 },
                 'confusion_matrix': {
-                    "cure":
-                        IMAGES_PATH.get_data_path("conf_mtx_efficient_net_cure"),
-                    "nih":
-                        IMAGES_PATH.get_data_path("conf_mtx_efficient_net_nih"),
+                    "cure_two_sided":
+                        IMAGES_PATH.get_data_path("conf_mtx_efficient_net_cure_two_sided"),
+                    "cure_one_sided":
+                        IMAGES_PATH.get_data_path("conf_mtx_efficient_net_cure_one_sided"),
                     "ogyei":
                         IMAGES_PATH.get_data_path("conf_mtx_efficient_net_ogyei")
                 },
                 'ref_vectors_folder': {
-                    "cure":
-                        DATA_PATH.get_data_path("reference_vectors_efficient_net_cure"),
-                    "nih":
-                        DATA_PATH.get_data_path("reference_vectors_efficient_net_nih"),
+                    "cure_two_sided":
+                        DATA_PATH.get_data_path("reference_vectors_efficient_net_cure_two_sided"),
+                    "cure_one_sided":
+                        DATA_PATH.get_data_path("reference_vectors_efficient_net_cure_one_sided"),
                     "ogyei":
                         DATA_PATH.get_data_path("reference_vectors_efficient_net_ogyei")
                 },
                 'hard_sample': {
                     "Contour": {
-                        "cure":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_contour_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_contour_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_contour_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_contour_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("hardest_samples_efficient_net_contour_ogyei")
                     },
                     "LBP": {
-                        "cure":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_lbp_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_lbp_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_lbp_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_lbp_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("hardest_samples_efficient_net_lbp_ogyei")
                     },
                     "RGB": {
-                        "cure":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_rgb_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_rgb_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_rgb_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_rgb_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("hardest_samples_efficient_net_rgb_ogyei")
                     },
                     "Texture": {
-                        "cure":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_texture_cure"),
-                        "nih":
-                            DATA_PATH.get_data_path("hardest_samples_efficient_net_texture_nih"),
+                        "cure_two_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_texture_cure_two_sided"),
+                        "cure_one_sided":
+                            DATA_PATH.get_data_path("hardest_samples_efficient_net_texture_cure_one_sided"),
                         "ogyei":
                             DATA_PATH.get_data_path("hardest_samples_efficient_net_texture_ogyei")
                     }
@@ -556,31 +556,31 @@ def fusion_network_config(network_type) -> Dict:
         'EfficientNetMultiHeadAttention': {
             'logs_folder':
                 {
-                    "cure":
-                        DATA_PATH.get_data_path("logs_fusion_network_efficient_net_multi_head_attention_cure"),
-                    "nih":
-                        DATA_PATH.get_data_path("logs_fusion_network_efficient_net_multi_head_attention_nih"),
+                    "cure_two_sided":
+                        DATA_PATH.get_data_path("logs_fusion_network_efficient_net_multi_head_attention_cure_two_sided"),
+                    "cure_one_sided":
+                        DATA_PATH.get_data_path("logs_fusion_network_efficient_net_multi_head_attention_cure_one_sided"),
                     "ogyei":
                         DATA_PATH.get_data_path("logs_fusion_network_efficient_net_multi_head_attention_ogyei"),
                 },
             'weights_folder':
                 {
-                    "cure":
-                        DATA_PATH.get_data_path("weights_fusion_network_efficient_net_multi_head_attention_cure"),
-                    "nih":
-                        DATA_PATH.get_data_path("weights_fusion_network_efficient_net_multi_head_attention_nih"),
+                    "cure_two_sided":
+                        DATA_PATH.get_data_path("weights_fusion_network_efficient_net_multi_head_attention_cure_two_sided"),
+                    "cure_one_sided":
+                        DATA_PATH.get_data_path("weights_fusion_network_efficient_net_multi_head_attention_cure_one_sided"),
                     "ogyei":
                         DATA_PATH.get_data_path("weights_fusion_network_efficient_net_multi_head_attention_ogyei"),
                 },
             'prediction_folder':
                 {
-                    "cure":
+                    "cure_two_sided":
                         DATA_PATH.get_data_path(
-                            "predictions_fusion_network_efficient_net_multi_head_attention_cure"
+                            "predictions_fusion_network_efficient_net_multi_head_attention_cure_two_sided"
                         ),
-                    "nih":
+                    "cure_one_sided":
                         DATA_PATH.get_data_path(
-                            "predictions_fusion_network_efficient_net_multi_head_attention_nih"
+                            "predictions_fusion_network_efficient_net_multi_head_attention_cure_one_sided"
                         ),
                     "ogyei":
                         DATA_PATH.get_data_path(
@@ -589,13 +589,13 @@ def fusion_network_config(network_type) -> Dict:
                 },
             'plotting_folder':
                 {
-                    "cure":
+                    "cure_two_sided":
                         IMAGES_PATH.get_data_path(
-                            "plotting_fusion_network_efficient_net_multi_head_attention_cure"
+                            "plotting_fusion_network_efficient_net_multi_head_attention_cure_two_sided"
                         ),
-                    "nih":
+                    "cure_one_sided":
                         IMAGES_PATH.get_data_path(
-                            "plotting_fusion_network_efficient_net_multi_head_attention_nih"
+                            "plotting_fusion_network_efficient_net_multi_head_attention_cure_one_sided"
                         ),
                     "ogyei":
                         IMAGES_PATH.get_data_path(
@@ -604,13 +604,13 @@ def fusion_network_config(network_type) -> Dict:
                 },
             'confusion_matrix':
                 {
-                    "cure":
+                    "cure_two_sided":
                         IMAGES_PATH.get_data_path(
-                            "conf_mtx_fusion_network_efficient_net_multi_head_attention_cure"
+                            "conf_mtx_fusion_network_efficient_net_multi_head_attention_cure_two_sided"
                         ),
-                    "nih":
+                    "cure_one_sided":
                         IMAGES_PATH.get_data_path(
-                            "conf_mtx_fusion_network_efficient_net_multi_head_attention_nih"
+                            "conf_mtx_fusion_network_efficient_net_multi_head_attention_cure_one_sided"
                         ),
                     "ogyei":
                         IMAGES_PATH.get_data_path(
@@ -619,13 +619,13 @@ def fusion_network_config(network_type) -> Dict:
                 },
             'ref_vectors_folder':
                 {
-                    "cure":
+                    "cure_two_sided":
                         DATA_PATH.get_data_path(
-                            "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure"
+                            "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure_two_sided"
                         ),
-                    "nih":
+                    "cure_one_sided":
                         DATA_PATH.get_data_path(
-                            "reference_vectors_fusion_network_efficient_net_multi_head_attention_nih"
+                            "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure_one_sided"
                         ),
                     "ogyei":
                         DATA_PATH.get_data_path(
@@ -650,109 +650,109 @@ def dataset_images_path_selector(dataset_name):
 
     path_to_images = {
         # --------------------------------------------------- C U R E --------------------------------------------------
-        "cure": {
+        "cure_two_sided": {
             "customer": {
                 "customer_images":
-                    DATASET_PATH.get_data_path("cure_customer_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_customer_images"),
                 "customer_segmentation_labels":
-                    DATASET_PATH.get_data_path("cure_customer_segmentation_labels"),
+                    DATASET_PATH.get_data_path("cure_two_sided_customer_segmentation_labels"),
                 "customer_mask_images":
-                    DATASET_PATH.get_data_path("cure_customer_mask_images")
+                    DATASET_PATH.get_data_path("cure_two_sided_customer_mask_images")
             },
 
             "reference": {
                 "reference_images":
-                    DATASET_PATH.get_data_path("cure_reference_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_reference_images"),
                 "reference_mask_images":
-                    DATASET_PATH.get_data_path("cure_reference_mask_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_reference_mask_images"),
                 "reference_labels":
-                    DATASET_PATH.get_data_path("cure_reference_yolo_labels"),
+                    DATASET_PATH.get_data_path("cure_two_sided_reference_yolo_labels"),
             },
 
             "train": {
                 "images":
-                    DATASET_PATH.get_data_path("cure_train_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_train_images"),
                 "mask_images":
-                    DATASET_PATH.get_data_path("cure_train_mask_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_train_mask_images"),
                 "segmentation_labels":
-                    DATASET_PATH.get_data_path("cure_train_segmentation_labels"),
+                    DATASET_PATH.get_data_path("cure_two_sided_train_segmentation_labels"),
                 "aug_images":
-                    DATASET_PATH.get_data_path("cure_train_aug_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_train_aug_images"),
                 "aug_yolo_labels":
-                    DATASET_PATH.get_data_path("cure_train_aug_yolo_labels"),
+                    DATASET_PATH.get_data_path("cure_two_sided_train_aug_yolo_labels"),
                 "aug_mask_images":
-                    DATASET_PATH.get_data_path("cure_train_aug_mask_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_train_aug_mask_images"),
             },
 
             "valid": {
                 "images":
-                    DATASET_PATH.get_data_path("cure_valid_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_valid_images"),
                 "mask_images":
-                    DATASET_PATH.get_data_path("cure_valid_mask_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_valid_mask_images"),
                 "segmentation_labels":
-                    DATASET_PATH.get_data_path("cure_valid_segmentation_labels"),
+                    DATASET_PATH.get_data_path("cure_two_sided_valid_segmentation_labels"),
                 "aug_images":
-                    DATASET_PATH.get_data_path("cure_valid_aug_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_valid_aug_images"),
                 "aug_yolo_labels":
-                    DATASET_PATH.get_data_path("cure_valid_aug_yolo_labels"),
+                    DATASET_PATH.get_data_path("cure_two_sided_valid_aug_yolo_labels"),
                 "aug_mask_images":
-                    DATASET_PATH.get_data_path("cure_valid_aug_mask_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_valid_aug_mask_images"),
             },
 
             "test": {
                 "images":
-                    DATASET_PATH.get_data_path("cure_test_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_test_images"),
                 "mask_images":
-                    DATASET_PATH.get_data_path("cure_test_mask_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_test_mask_images"),
                 "segmentation_labels":
-                    DATASET_PATH.get_data_path("cure_test_segmentation_labels"),
+                    DATASET_PATH.get_data_path("cure_two_sided_test_segmentation_labels"),
                 "aug_images":
-                    DATASET_PATH.get_data_path("cure_test_aug_images"),
+                    DATASET_PATH.get_data_path("cure_two_sided_test_aug_images"),
                 "aug_yolo_labels":
-                    DATASET_PATH.get_data_path("cure_test_aug_yolo_labels"),
+                    DATASET_PATH.get_data_path("cure_two_sided_test_aug_yolo_labels"),
             },
 
             "src_stream_images": {
                 "reference": {
                     "stream_images":
-                        DATASET_PATH.get_data_path("stream_images_cure_reference"),
+                        DATASET_PATH.get_data_path("stream_images_cure_two_sided_reference"),
                     "stream_images_contour":
-                        DATASET_PATH.get_data_path("stream_images_cure_reference_contour"),
+                        DATASET_PATH.get_data_path("stream_images_cure_two_sided_reference_contour"),
                     "stream_images_lbp":
-                        DATASET_PATH.get_data_path("stream_images_cure_reference_lbp"),
+                        DATASET_PATH.get_data_path("stream_images_cure_two_sided_reference_lbp"),
                     "stream_images_rgb":
-                        DATASET_PATH.get_data_path("stream_images_cure_reference_rgb"),
+                        DATASET_PATH.get_data_path("stream_images_cure_two_sided_reference_rgb"),
                     "stream_images_texture":
-                        DATASET_PATH.get_data_path("stream_images_cure_reference_texture"),
+                        DATASET_PATH.get_data_path("stream_images_cure_two_sided_reference_texture"),
                 },
                 "customer": {
                     "stream_images":
-                        DATASET_PATH.get_data_path("stream_images_cure_customer"),
+                        DATASET_PATH.get_data_path("stream_images_cure_two_sided_customer"),
                     "stream_images_contour":
-                        DATASET_PATH.get_data_path("stream_images_cure_customer_contour"),
+                        DATASET_PATH.get_data_path("stream_images_cure_two_sided_customer_contour"),
                     "stream_images_lbp":
-                        DATASET_PATH.get_data_path("stream_images_cure_customer_lbp"),
+                        DATASET_PATH.get_data_path("stream_images_cure_two_sided_customer_lbp"),
                     "stream_images_rgb":
-                        DATASET_PATH.get_data_path("stream_images_cure_customer_rgb"),
+                        DATASET_PATH.get_data_path("stream_images_cure_two_sided_customer_rgb"),
                     "stream_images_texture":
-                        DATASET_PATH.get_data_path("stream_images_cure_customer_texture"),
+                        DATASET_PATH.get_data_path("stream_images_cure_two_sided_customer_texture"),
                 }
             },
 
             "dst_stream_images": {
                 'stream_images_anchor':
-                    IMAGES_PATH.get_data_path("stream_images_cure_anchor"),
+                    IMAGES_PATH.get_data_path("stream_images_cure_two_sided_anchor"),
                 "stream_images_pos_neg":
-                    IMAGES_PATH.get_data_path("stream_images_cure_pos_neg"),
+                    IMAGES_PATH.get_data_path("stream_images_cure_two_sided_pos_neg"),
                 'ref':
-                    IMAGES_PATH.get_data_path("test_ref_cure"),
+                    IMAGES_PATH.get_data_path("test_ref_cure_two_sided"),
                 'query':
-                    IMAGES_PATH.get_data_path("test_query_cure")
+                    IMAGES_PATH.get_data_path("test_query_cure_two_sided")
             },
 
             "other": {
                 'k_fold':
-                    DATA_PATH.get_data_path("cure_k_fold"),
+                    DATA_PATH.get_data_path("cure_two_sided_k_fold"),
                 "pill_desc_xlsx":
                     DATA_PATH.get_data_path("pill_desc_xlsx")
             },
@@ -850,127 +850,127 @@ def dataset_images_path_selector(dataset_name):
         },
 
         # ---------------------------------------------------- N I H ---------------------------------------------------
-        "nih": {
+        "cure_one_sided": {
             "customer": {
                 "customer_images":
-                    DATASET_PATH.get_data_path("nih_customer_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_customer_images"),
                 "customer_csv":
-                    DATASET_PATH.get_data_path("nih_customer_csv"),
+                    DATASET_PATH.get_data_path("cure_one_sided_customer_csv"),
                 "customer_xlsx":
-                    DATASET_PATH.get_data_path("nih_customer_xlsx"),
+                    DATASET_PATH.get_data_path("cure_one_sided_customer_xlsx"),
                 "customer_txt":
-                    DATASET_PATH.get_data_path("nih_customer_txt"),
+                    DATASET_PATH.get_data_path("cure_one_sided_customer_txt"),
                 "customer_mask_images":
-                    DATASET_PATH.get_data_path("nih_customer_mask_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_customer_mask_images"),
                 "customer_segmentation_labels":
-                    DATASET_PATH.get_data_path("nih_customer_segmentation_labels")
+                    DATASET_PATH.get_data_path("cure_one_sided_customer_segmentation_labels")
             },
 
             "reference": {
                 "reference_images":
-                    DATASET_PATH.get_data_path("nih_reference_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_reference_images"),
                 "reference_masks":
-                    DATASET_PATH.get_data_path("nih_reference_masks"),
+                    DATASET_PATH.get_data_path("cure_one_sided_reference_masks"),
                 "reference_labels":
-                    DATASET_PATH.get_data_path("nih_reference_labels"),
+                    DATASET_PATH.get_data_path("cure_one_sided_reference_labels"),
                 "reference_csv":
-                    DATASET_PATH.get_data_path("nih_reference_csv"),
+                    DATASET_PATH.get_data_path("cure_one_sided_reference_csv"),
                 "reference_xlsx":
-                    DATASET_PATH.get_data_path("nih_reference_xlsx"),
+                    DATASET_PATH.get_data_path("cure_one_sided_reference_xlsx"),
                 "reference_txt":
-                    DATASET_PATH.get_data_path("nih_reference_txt"),
+                    DATASET_PATH.get_data_path("cure_one_sided_reference_txt"),
                 "reference_mask_images":
-                    DATASET_PATH.get_data_path("nih_reference_mask_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_reference_mask_images"),
                 "reference_segmentation_labels":
-                    DATASET_PATH.get_data_path("nih_reference_segmentation_labels")
+                    DATASET_PATH.get_data_path("cure_one_sided_reference_segmentation_labels")
             },
 
             "train": {
                 "images":
-                    DATASET_PATH.get_data_path("nih_train_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_train_images"),
                 "mask_images":
-                    DATASET_PATH.get_data_path("nih_train_mask_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_train_mask_images"),
                 "segmentation_labels":
-                    DATASET_PATH.get_data_path("nih_train_segmentation_labels"),
+                    DATASET_PATH.get_data_path("cure_one_sided_train_segmentation_labels"),
                 "aug_images":
-                    DATASET_PATH.get_data_path("nih_train_aug_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_train_aug_images"),
                 "aug_yolo_labels":
-                    DATASET_PATH.get_data_path("nih_train_aug_yolo_labels"),
+                    DATASET_PATH.get_data_path("cure_one_sided_train_aug_yolo_labels"),
                 "aug_mask_images":
-                    DATASET_PATH.get_data_path("nih_train_aug_mask_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_train_aug_mask_images"),
             },
 
             "valid": {
                 "images":
-                    DATASET_PATH.get_data_path("nih_valid_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_valid_images"),
                 "mask_images":
-                    DATASET_PATH.get_data_path("nih_valid_mask_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_valid_mask_images"),
                 "segmentation_labels":
-                    DATASET_PATH.get_data_path("nih_valid_segmentation_labels"),
+                    DATASET_PATH.get_data_path("cure_one_sided_valid_segmentation_labels"),
                 "aug_images":
-                    DATASET_PATH.get_data_path("nih_valid_aug_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_valid_aug_images"),
                 "aug_yolo_labels":
-                    DATASET_PATH.get_data_path("nih_valid_aug_yolo_labels"),
+                    DATASET_PATH.get_data_path("cure_one_sided_valid_aug_yolo_labels"),
                 "aug_mask_images":
-                    DATASET_PATH.get_data_path("nih_valid_aug_mask_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_valid_aug_mask_images"),
             },
 
             "test": {
                 "images":
-                    DATASET_PATH.get_data_path("nih_test_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_test_images"),
                 "mask_images":
-                    DATASET_PATH.get_data_path("nih_test_mask_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_test_mask_images"),
                 "segmentation_labels":
-                    DATASET_PATH.get_data_path("nih_test_segmentation_labels"),
+                    DATASET_PATH.get_data_path("cure_one_sided_test_segmentation_labels"),
                 "aug_images":
-                    DATASET_PATH.get_data_path("nih_test_aug_images"),
+                    DATASET_PATH.get_data_path("cure_one_sided_test_aug_images"),
                 "aug_yolo_labels":
-                    DATASET_PATH.get_data_path("nih_test_aug_yolo_labels"),
+                    DATASET_PATH.get_data_path("cure_one_sided_test_aug_yolo_labels"),
             },
 
             "src_stream_images": {
                 "reference": {
                     "stream_images":
-                        DATASET_PATH.get_data_path("stream_images_nih_reference"),
+                        DATASET_PATH.get_data_path("stream_images_cure_one_sided_reference"),
                     "stream_images_contour":
-                        DATASET_PATH.get_data_path("stream_images_nih_reference_contour"),
+                        DATASET_PATH.get_data_path("stream_images_cure_one_sided_reference_contour"),
                     "stream_images_lbp":
-                        DATASET_PATH.get_data_path("stream_images_nih_reference_lbp"),
+                        DATASET_PATH.get_data_path("stream_images_cure_one_sided_reference_lbp"),
                     "stream_images_rgb":
-                        DATASET_PATH.get_data_path("stream_images_nih_reference_rgb"),
+                        DATASET_PATH.get_data_path("stream_images_cure_one_sided_reference_rgb"),
                     "stream_images_texture":
-                        DATASET_PATH.get_data_path("stream_images_nih_reference_texture"),
+                        DATASET_PATH.get_data_path("stream_images_cure_one_sided_reference_texture"),
                 },
                 "customer": {
                     "stream_images":
-                        DATASET_PATH.get_data_path("stream_images_nih_customer"),
+                        DATASET_PATH.get_data_path("stream_images_cure_one_sided_customer"),
                     "stream_images_contour":
-                        DATASET_PATH.get_data_path("stream_images_nih_customer_contour"),
+                        DATASET_PATH.get_data_path("stream_images_cure_one_sided_customer_contour"),
                     "stream_images_lbp":
-                        DATASET_PATH.get_data_path("stream_images_nih_customer_lbp"),
+                        DATASET_PATH.get_data_path("stream_images_cure_one_sided_customer_lbp"),
                     "stream_images_rgb":
-                        DATASET_PATH.get_data_path("stream_images_nih_customer_rgb"),
+                        DATASET_PATH.get_data_path("stream_images_cure_one_sided_customer_rgb"),
                     "stream_images_texture":
-                        DATASET_PATH.get_data_path("stream_images_nih_customer_texture"),
+                        DATASET_PATH.get_data_path("stream_images_cure_one_sided_customer_texture"),
                 }
             },
 
             "dst_stream_images": {
                 'stream_images_anchor':
-                    IMAGES_PATH.get_data_path("stream_images_nih_anchor"),
+                    IMAGES_PATH.get_data_path("stream_images_cure_one_sided_anchor"),
                 "stream_images_pos_neg":
-                    IMAGES_PATH.get_data_path("stream_images_nih_pos_neg"),
+                    IMAGES_PATH.get_data_path("stream_images_cure_one_sided_pos_neg"),
                 'ref':
-                    IMAGES_PATH.get_data_path("test_ref_nih"),
+                    IMAGES_PATH.get_data_path("test_ref_cure_one_sided"),
                 'query':
-                    IMAGES_PATH.get_data_path("test_query_nih")
+                    IMAGES_PATH.get_data_path("test_query_cure_one_sided")
             },
 
             "other": {
-                "ref": DATASET_PATH.get_data_path("nih_ref_images"),
-                "query": DATASET_PATH.get_data_path("nih_query_images"),
-                "xlsx": DATASET_PATH.get_data_path("nih_xlsx"),
-                'k_fold': DATA_PATH.get_data_path("nih_k_fold")
+                "ref": DATASET_PATH.get_data_path("cure_one_sided_ref_images"),
+                "query": DATASET_PATH.get_data_path("cure_one_sided_query_images"),
+                "xlsx": DATASET_PATH.get_data_path("cure_one_sided_xlsx"),
+                'k_fold': DATA_PATH.get_data_path("cure_one_sided_k_fold")
             }
         },
 

@@ -310,12 +310,13 @@ def plot_confusion_matrix(gt: List[str], predictions: List[str], out_path: str) 
         None
     """
 
-    labels = list(set(gt))
+    # Get unique labels from ground truth and predictions
+    labels = list(set(gt + predictions))
 
     # Create a mapping from labels to unique integers
     label_to_int = {label: i for i, label in enumerate(labels)}
 
-    # Convert the redundant label sequences to true ground truth and prediction lists
+    # Convert labels to integers using the mapping
     true_labels = [label_to_int[label] for label in gt]
     predicted_labels = [label_to_int[label] for label in predictions]
 
@@ -326,7 +327,7 @@ def plot_confusion_matrix(gt: List[str], predictions: List[str], out_path: str) 
     sorted_labels = [label for label, _ in sorted(label_to_int.items(), key=lambda x: x[1])]
 
     # Create a heatmap
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(20, 12))
     sns.set(font_scale=1.2)  # Adjust the font size for better readability
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=sorted_labels, yticklabels=sorted_labels)
 
@@ -339,11 +340,9 @@ def plot_confusion_matrix(gt: List[str], predictions: List[str], out_path: str) 
     plt.tight_layout()
 
     # Show the plot
-    timestamp = create_timestamp()
-    output_folder = os.path.join(out_path, timestamp)
-    os.makedirs(output_folder, exist_ok=True)
-    output_path = os.path.join(output_folder, "confusion_matrix.png")
-    plt.savefig(output_path)
+    os.makedirs(out_path, exist_ok=True)
+    output_path = os.path.join(out_path, "confusion_matrix.png")
+    plt.savefig(output_path, dpi=600)
 
 
 # ----------------------------------------------------------------------------------------------------------------------

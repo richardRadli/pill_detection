@@ -21,9 +21,12 @@ class KFoldSort:
         """
         Generate or load k-folds of class names.
 
-        :param load: If True, load k-folds from a previously generated file. If False, generate new k-folds.
-        :param num_folds: Number of folds.
-        :return: A dictionary where keys are fold names (fold1, fold2, ..., fold_{num_folds}) and values are lists of
+        Args:
+            load: If True, load k-folds from a previously generated file. If False, generate new k-folds.
+            num_folds: Number of folds.
+
+        Returns:
+             A dictionary where keys are fold names (fold1, fold2, ..., fold_{num_folds}) and values are lists of
         class names.
         """
 
@@ -70,11 +73,14 @@ class KFoldSort:
                              data_role: str = "train") -> None:
         """
 
-        :param sorted_folds:
-        :param fold_id:
-        :param operation:
-        :param data_role:
-        :return:
+        Args:
+            sorted_folds:
+            fold_id:
+            operation:
+            data_role:
+
+        Returns:
+            None
         """
 
         all_folds = sorted_folds.keys()
@@ -142,8 +148,11 @@ class KFoldSort:
     def erase_files(self):
         """
         Remove directories corresponding to the test set.
-        :return: None
+
+        Returns:
+             None
         """
+
         root = (
             dataset_images_path_selector(self.stream_cfg.dataset_type).get("dst_stream_images")
         )
@@ -152,7 +161,13 @@ class KFoldSort:
             logging.info("Removing {}".format(value))
             shutil.rmtree(value)
 
-    def main(self):
+    def main(self) -> None:
+        """
+
+        Returns:
+             None
+        """
+
         if self.erase:
             self.erase_files()
         if self.load_folds:
@@ -166,5 +181,5 @@ class KFoldSort:
 
 
 if __name__ == "__main__":
-    k_fold_sort = KFoldSort(load_folds=True, fold_name="fold1", erase=True)
+    k_fold_sort = KFoldSort(load_folds=True, fold_name="fold2", erase=True)
     k_fold_sort.main()

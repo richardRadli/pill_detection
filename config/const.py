@@ -76,77 +76,77 @@ class _Const(object):
 class Images(_Const):
     dirs_images = {
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ C U R E ++++++++++++++++++++++++++++++++++++++++++++++++++
-        "stream_images_cure_anchor":
-            "images/cure/stream_images/anchor",
-        "stream_images_cure_pos_neg":
-            "images/cure/stream_images/pos_neg",
+        "stream_images_cure_two_sided_anchor":
+            "images/cure_two_sided/stream_images/anchor",
+        "stream_images_cure_two_sided_pos_neg":
+            "images/cure_two_sided/stream_images/pos_neg",
 
         # ------------------------------------------------- A N C H O R ------------------------------------------------
-        "train_contour_stream_cure_anchor":
-            "images/cure/stream_images/anchor/contour",
-        "train_lbp_stream_cure_anchor":
-            "images/cure/stream_images/anchor/lbp",
-        "train_rgb_stream_cure_anchor":
-            "images/cure/stream_images/anchor/rgb",
-        "train_texture_stream_cure_anchor":
-            "images/cure/stream_images/anchor/texture",
+        "train_contour_stream_cure_two_sided_anchor":
+            "images/cure_two_sided/stream_images/anchor/contour",
+        "train_lbp_stream_cure_two_sided_anchor":
+            "images/cure_two_sided/stream_images/anchor/lbp",
+        "train_rgb_stream_cure_two_sided_anchor":
+            "images/cure_two_sided/stream_images/anchor/rgb",
+        "train_texture_stream_cure_two_sided_anchor":
+            "images/cure_two_sided/stream_images/anchor/texture",
 
         # ----------------------------------------------- P O S   N E G ------------------------------------------------
-        "contour_stream_cure_pos_neg":
-            "images/cure/stream_images/pos_neg/contour",
-        "lbp_stream_cure_pos_neg":
-            "images/cure/stream_images/pos_neg/lbp",
-        "rgb_stream_cure_pos_neg":
-            "images/cure/stream_images/pos_neg/rgb",
-        "texture_stream_cure_pos_neg":
-            "images/cure/stream_images/pos_neg/texture",
+        "contour_stream_cure_two_sided_pos_neg":
+            "images/cure_two_sided/stream_images/pos_neg/contour",
+        "lbp_stream_cure_two_sided_pos_neg":
+            "images/cure_two_sided/stream_images/pos_neg/lbp",
+        "rgb_stream_cure_two_sided_pos_neg":
+            "images/cure_two_sided/stream_images/pos_neg/rgb",
+        "texture_stream_cure_two_sided_pos_neg":
+            "images/cure_two_sided/stream_images/pos_neg/texture",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
-        "test_query_cure":
-            "images/cure/test/query",
-        "test_contour_stream_query_cure":
-            "images/cure/test/query/contour",
-        "test_lbp_stream_query_cure":
-            "images/cure/test/query/lbp",
-        "test_rgb_stream_query_cure":
-            "images/cure/test/query/rgb",
-        "test_texture_stream_query_cure":
-            "images/cure/test/query/texture",
+        "test_query_cure_two_sided":
+            "images/cure_two_sided/test/query",
+        "test_contour_stream_query_cure_two_sided":
+            "images/cure_two_sided/test/query/contour",
+        "test_lbp_stream_query_cure_two_sided":
+            "images/cure_two_sided/test/query/lbp",
+        "test_rgb_stream_query_cure_two_sided":
+            "images/cure_two_sided/test/query/rgb",
+        "test_texture_stream_query_cure_two_sided":
+            "images/cure_two_sided/test/query/texture",
 
         # ---------------------------------------------------- R E F ---------------------------------------------------
-        "test_ref_cure":
-            "images/cure/test/ref",
-        "test_contour_stream_ref_cure":
-            "images/cure/test/ref/contour",
-        "test_lbp_stream_ref_cure":
-            "images/cure/test/ref/lbp",
-        "test_rgb_stream_ref_cure":
-            "images/cure/test/ref/rgb",
-        "test_texture_stream_ref_cure":
-            "images/cure/test/ref/texture",
+        "test_ref_cure_two_sided":
+            "images/cure_two_sided/test/ref",
+        "test_contour_stream_ref_cure_two_sided":
+            "images/cure_two_sided/test/ref/contour",
+        "test_lbp_stream_ref_cure_two_sided":
+            "images/cure_two_sided/test/ref/lbp",
+        "test_rgb_stream_ref_cure_two_sided":
+            "images/cure_two_sided/test/ref/rgb",
+        "test_texture_stream_ref_cure_two_sided":
+            "images/cure_two_sided/test/ref/texture",
 
         # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
-        "plotting_efficient_net_cure":
-            "images/cure/plotting/stream_net/plotting_efficient_net",
+        "plotting_efficient_net_cure_two_sided":
+            "images/cure_two_sided/plotting/stream_net/plotting_efficient_net",
 
         # ------------------------------------ P L O T T I N G   F U S I O N   N E T -----------------------------------
-        "plotting_fusion_network_efficient_net_multi_head_attention_cure":
-            "images/cure/plotting/fusion_net/plotting_fusion_network_efficient_net_multi_head_attention",
+        "plotting_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
+            "images/cure_two_sided/plotting/fusion_net/plotting_fusion_network_efficient_net_multi_head_attention",
 
         # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
-        "conf_mtx_efficient_net_cure":
-            "images/cure/conf_mtx/stream_net/conf_mtx_efficient_net",
+        "conf_mtx_efficient_net_cure_two_sided":
+            "images/cure_two_sided/conf_mtx/stream_net/conf_mtx_efficient_net",
 
         # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
-        "conf_mtx_fusion_network_efficient_net_multi_head_attention_cure":
-            "images/cure/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
+        "conf_mtx_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
+            "images/cure_two_sided/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
 
-        "Fourier_collected_images_by_shape_cure":
-            "images/cure/Fourier_desc/collected_images_by_shape",
-        "Fourier_euclidean_distance_cure":
-            "images/cure/Fourier_desc/euclidean_distance",
-        "Fourier_plot_shape_cure":
-            "images/cure/Fourier_desc/plot_shape",
+        "Fourier_collected_images_by_shape_cure_two_sided":
+            "images/cure_two_sided/Fourier_desc/collected_images_by_shape",
+        "Fourier_euclidean_distance_cure_two_sided":
+            "images/cure_two_sided/Fourier_desc/euclidean_distance",
+        "Fourier_plot_shape_cure_two_sided":
+            "images/cure_two_sided/Fourier_desc/plot_shape",
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I ++++++++++++++++++++++++++++++++++++++++++++++++
         "stream_images_ogyei_anchor":
@@ -222,79 +222,79 @@ class Images(_Const):
             "images/ogyei/Fourier_desc/plot_shape",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++ N I H +++++++++++++++++++++++++++++++++++++++++++++++++++
-        "stream_images_nih_anchor":
-            "images/nih/stream_images/anchor",
-        "stream_images_nih_pos_neg":
-            "images/nih/stream_images/pos_neg",
+        "stream_images_cure_one_sided_anchor":
+            "images/cure_one_sided/stream_images/anchor",
+        "stream_images_cure_one_sided_pos_neg":
+            "images/cure_one_sided/stream_images/pos_neg",
 
         # --------------------------------------- R E F   T R A I N   A N C H O R --------------------------------------
-        "train_contour_stream_nih_anchor":
-            "images/nih/stream_images/anchor/contour",
-        "train_lbp_stream_nih_anchor":
-            "images/nih/stream_images/anchor/lbp",
-        "train_rgb_stream_nih_anchor":
-            "images/nih/stream_images/anchor/rgb",
-        "train_texture_stream_nih_anchor":
-            "images/nih/stream_images/anchor/texture",
+        "train_contour_stream_cure_one_sided_anchor":
+            "images/cure_one_sided/stream_images/anchor/contour",
+        "train_lbp_stream_cure_one_sided_anchor":
+            "images/cure_one_sided/stream_images/anchor/lbp",
+        "train_rgb_stream_cure_one_sided_anchor":
+            "images/cure_one_sided/stream_images/anchor/rgb",
+        "train_texture_stream_cure_one_sided_anchor":
+            "images/cure_one_sided/stream_images/anchor/texture",
 
         # -------------------------------------------- R E F   A N C H O R ---------------------------------------------
-        "contour_stream_nih_pos_neg":
-            "images/nih/stream_images/pos_neg/contour",
-        "lbp_stream_nih_pos_neg":
-            "images/nih/stream_images/pos_neg/lbp",
-        "rgb_stream_nih_pos_neg":
-            "images/nih/stream_images/pos_neg/rgb",
-        "texture_stream_nih_pos_neg":
-            "images/nih/stream_images/pos_neg/texture",
+        "contour_stream_cure_one_sided_pos_neg":
+            "images/cure_one_sided/stream_images/pos_neg/contour",
+        "lbp_stream_cure_one_sided_pos_neg":
+            "images/cure_one_sided/stream_images/pos_neg/lbp",
+        "rgb_stream_cure_one_sided_pos_neg":
+            "images/cure_one_sided/stream_images/pos_neg/rgb",
+        "texture_stream_cure_one_sided_pos_neg":
+            "images/cure_one_sided/stream_images/pos_neg/texture",
 
         # -------------------------------------------------- Q U E R Y -------------------------------------------------
-        "test_query_nih":
-            "images/nih/test/query",
-        "test_contour_stream_query_nih":
-            "images/nih/test/query/contour",
-        "test_lbp_stream_query_nih":
-            "images/nih/test/query/lbp",
-        "test_rgb_stream_query_nih":
-            "images/nih/test/query/rgb",
-        "test_texture_stream_query_nih":
-            "images/nih/test/query/texture",
+        "test_query_cure_one_sided":
+            "images/cure_one_sided/test/query",
+        "test_contour_stream_query_cure_one_sided":
+            "images/cure_one_sided/test/query/contour",
+        "test_lbp_stream_query_cure_one_sided":
+            "images/cure_one_sided/test/query/lbp",
+        "test_rgb_stream_query_cure_one_sided":
+            "images/cure_one_sided/test/query/rgb",
+        "test_texture_stream_query_cure_one_sided":
+            "images/cure_one_sided/test/query/texture",
 
         # ---------------------------------------------------- R E F ---------------------------------------------------
-        "test_ref_nih":
-            "images/nih/test/ref",
-        "test_contour_stream_ref_nih":
-            "images/nih/test/ref/contour",
-        "test_lbp_stream_ref_nih":
-            "images/nih/test/ref/lbp",
-        "test_rgb_stream_ref_nih":
-            "images/nih/test/ref/rgb",
-        "test_texture_stream_ref_nih":
-            "images/nih/test/ref/texture",
+        "test_ref_cure_one_sided":
+            "images/cure_one_sided/test/ref",
+        "test_contour_stream_ref_cure_one_sided":
+            "images/cure_one_sided/test/ref/contour",
+        "test_lbp_stream_ref_cure_one_sided":
+            "images/cure_one_sided/test/ref/lbp",
+        "test_rgb_stream_ref_cure_one_sided":
+            "images/cure_one_sided/test/ref/rgb",
+        "test_texture_stream_ref_cure_one_sided":
+            "images/cure_one_sided/test/ref/texture",
 
         # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
-        "plotting_efficient_net_nih":
-            "images/nih/plotting/stream_net/plotting_efficient_net",
+        "plotting_efficient_net_cure_one_sided":
+            "images/cure_one_sided/plotting/stream_net/plotting_efficient_net",
 
         # ------------------------------------ P L O T T I N G   F U S I O N   N E T -----------------------------------
-        "plotting_fusion_network_efficient_net_multi_head_attention_nih":
-            "images/nih/plotting/fusion_net/plotting_fusion_network_efficient_net_multi_head_attention",
+        "plotting_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
+            "images/cure_one_sided/plotting/fusion_net/plotting_fusion_network_efficient_net_multi_head_attention",
 
         # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
-        "conf_mtx_efficient_net_nih":
-            "images/nih/conf_mtx/stream_net/conf_mtx_efficient_net",
+        "conf_mtx_efficient_net_cure_one_sided":
+            "images/cure_one_sided/conf_mtx/stream_net/conf_mtx_efficient_net",
 
         # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
-        "conf_mtx_fusion_network_efficient_net_multi_head_attention_nih":
-            "images/nih/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
+        "conf_mtx_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
+            "images/cure_one_sided/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O T H E R +++++++++++++++++++++++++++++++++++++++++++++++++
         # ----------------------------------------------- F O U R I E R ------------------------------------------------
-        "Fourier_collected_images_by_shape_nih":
-            "images/nih/Fourier_desc/collected_images_by_shape",
-        "Fourier_euclidean_distance_nih":
-            "images/nih/Fourier_desc/euclidean_distance",
-        "Fourier_plot_shape_nih":
-            "images/nih/Fourier_desc/plot_shape",
+        "Fourier_collected_images_by_shape_cure_one_sided":
+            "images/cure_one_sided/Fourier_desc/collected_images_by_shape",
+        "Fourier_euclidean_distance_cure_one_sided":
+            "images/cure_one_sided/Fourier_desc/euclidean_distance",
+        "Fourier_plot_shape_cure_one_sided":
+            "images/cure_one_sided/Fourier_desc/plot_shape",
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -317,82 +317,82 @@ class Images(_Const):
 class Data(_Const):
     dirs_data = {
         # ------------------------------------------------- O T H E R --------------------------------------------------
-        "Fourier_saved_mean_vectors_cure":
-            "data/cure/Fourier_desc/saved_mean_vectors",
+        "Fourier_saved_mean_vectors_cure_two_sided":
+            "data/cure_two_sided/Fourier_desc/saved_mean_vectors",
         "Fourier_saved_mean_vectors_ogyei":
             "data/ogyei/Fourier_desc/saved_mean_vectors",
-        "Fourier_saved_mean_vectors_nih":
-            "data/nih/Fourier_desc/saved_mean_vectors",
+        "Fourier_saved_mean_vectors_cure_one_sided":
+            "data/cure_one_sided/Fourier_desc/saved_mean_vectors",
 
         # k-fold directory names
-        "cure_k_fold":
-            "data/cure/k_fold",
+        "cure_two_sided_k_fold":
+            "data/cure_two_sided/k_fold",
         "ogyei_k_fold":
             "data/ogyei/k_fold",
-        "nih_k_fold":
-            "data/nih/k_fold",
+        "cure_one_sided_k_fold":
+            "data/cure_one_sided/k_fold",
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ C U R E ++++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
         # EfficientNet - StreamNetwork
-        "weights_efficient_net_contour_cure":
-            "data/cure/weights/stream_net/efficient_net/weights_efficient_net_contour",
-        "weights_efficient_net_lbp_cure":
-            "data/cure/weights/stream_net/efficient_net/weights_efficient_net_lbp",
-        "weights_efficient_net_rgb_cure":
-            "data/cure/weights/stream_net/efficient_net/weights_efficient_net_rgb",
-        "weights_efficient_net_texture_cure":
-            "data/cure/weights/stream_net/efficient_net/weights_efficient_net_texture",
+        "weights_efficient_net_contour_cure_two_sided":
+            "data/cure_two_sided/weights/stream_net/efficient_net/weights_efficient_net_contour",
+        "weights_efficient_net_lbp_cure_two_sided":
+            "data/cure_two_sided/weights/stream_net/efficient_net/weights_efficient_net_lbp",
+        "weights_efficient_net_rgb_cure_two_sided":
+            "data/cure_two_sided/weights/stream_net/efficient_net/weights_efficient_net_rgb",
+        "weights_efficient_net_texture_cure_two_sided":
+            "data/cure_two_sided/weights/stream_net/efficient_net/weights_efficient_net_texture",
 
         # ------------------------------------- W E I G H T S   F U S I O N   N E T ------------------------------------
-        "weights_fusion_network_efficient_net_multi_head_attention_cure":
-            "data/cure/weights/fusion_net/efficient_net_multi_head_attention",
+        "weights_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
+            "data/cure_two_sided/weights/fusion_net/efficient_net_multi_head_attention",
 
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
         # EfficientNet 
-        "logs_efficient_net_contour_cure":
-            "data/cure/logs/stream_net/efficient_net/logs_efficient_net_contour",
-        "logs_efficient_net_lbp_cure":
-            "data/cure/logs/stream_net/efficient_net/logs_efficient_net_lbp",
-        "logs_efficient_net_rgb_cure":
-            "data/cure/logs/stream_net/efficient_net/logs_efficient_net_rgb",
-        "logs_efficient_net_texture_cure":
-            "data/cure/logs/stream_net/efficient_net/logs_efficient_net_texture",
+        "logs_efficient_net_contour_cure_two_sided":
+            "data/cure_two_sided/logs/stream_net/efficient_net/logs_efficient_net_contour",
+        "logs_efficient_net_lbp_cure_two_sided":
+            "data/cure_two_sided/logs/stream_net/efficient_net/logs_efficient_net_lbp",
+        "logs_efficient_net_rgb_cure_two_sided":
+            "data/cure_two_sided/logs/stream_net/efficient_net/logs_efficient_net_rgb",
+        "logs_efficient_net_texture_cure_two_sided":
+            "data/cure_two_sided/logs/stream_net/efficient_net/logs_efficient_net_texture",
 
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
-        "logs_fusion_network_efficient_net_multi_head_attention_cure":
-            "data/cure/logs/fusion_net/efficient_net_multi_head_attention",
+        "logs_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
+            "data/cure_two_sided/logs/fusion_net/efficient_net_multi_head_attention",
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
-        "hardest_samples_efficient_net_contour_cure":
-            "data/cure/hardest_samples/efficient_net/contour",
-        "hardest_samples_efficient_net_lbp_cure":
-            "data/cure/hardest_samples/efficient_net/lbp",
-        "hardest_samples_efficient_net_rgb_cure":
-            "data/cure/hardest_samples/efficient_net/rgb",
-        "hardest_samples_efficient_net_texture_cure":
-            "data/cure/hardest_samples/efficient_net/texture",
+        "hardest_samples_efficient_net_contour_cure_two_sided":
+            "data/cure_two_sided/hardest_samples/efficient_net/contour",
+        "hardest_samples_efficient_net_lbp_cure_two_sided":
+            "data/cure_two_sided/hardest_samples/efficient_net/lbp",
+        "hardest_samples_efficient_net_rgb_cure_two_sided":
+            "data/cure_two_sided/hardest_samples/efficient_net/rgb",
+        "hardest_samples_efficient_net_texture_cure_two_sided":
+            "data/cure_two_sided/hardest_samples/efficient_net/texture",
 
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
-        "predictions_efficient_net_cure":
-            "data/cure/predictions/stream_net/predictions_efficient_net",
+        "predictions_efficient_net_cure_two_sided":
+            "data/cure_two_sided/predictions/stream_net/predictions_efficient_net",
 
         # -------------------------------- P R E D I C T I O N S    F U S I O N   N E T --------------------------------
         # Predictions
-        "predictions_fusion_network_efficient_net_multi_head_attention_cure":
-            "data/cure/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
+        "predictions_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
+            "data/cure_two_sided/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
-        "reference_vectors_efficient_net_cure":
-            "data/cure/ref_vec/stream_net/reference_vectors_efficient_net",
+        "reference_vectors_efficient_net_cure_two_sided":
+            "data/cure_two_sided/ref_vec/stream_net/reference_vectors_efficient_net",
 
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
-        "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure":
-            "data/cure/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
+        "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
+            "data/cure_two_sided/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
 
         "pill_desc_xlsx":
-            "data/cure/xlsx",
+            "data/cure_two_sided/xlsx",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
@@ -459,61 +459,61 @@ class Data(_Const):
         
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
         # EfficientNet - StreamNetwork
-        "weights_efficient_net_contour_nih":
-            "data/nih/weights/stream_net/efficient_net/weights_efficient_net_contour",
-        "weights_efficient_net_lbp_nih":
-            "data/nih/weights/stream_net/efficient_net/weights_efficient_net_lbp",
-        "weights_efficient_net_rgb_nih":
-            "data/nih/weights/stream_net/efficient_net/weights_efficient_net_rgb",
-        "weights_efficient_net_texture_nih":
-            "data/nih/weights/stream_net/efficient_net/weights_efficient_net_texture",
+        "weights_efficient_net_contour_cure_one_sided":
+            "data/cure_one_sided/weights/stream_net/efficient_net/weights_efficient_net_contour",
+        "weights_efficient_net_lbp_cure_one_sided":
+            "data/cure_one_sided/weights/stream_net/efficient_net/weights_efficient_net_lbp",
+        "weights_efficient_net_rgb_cure_one_sided":
+            "data/cure_one_sided/weights/stream_net/efficient_net/weights_efficient_net_rgb",
+        "weights_efficient_net_texture_cure_one_sided":
+            "data/cure_one_sided/weights/stream_net/efficient_net/weights_efficient_net_texture",
         
         # ------------------------------------- W E I G H T S   F U S I O N   N E T ------------------------------------
-        "weights_fusion_network_efficient_net_multi_head_attention_nih":
-            "data/nih/weights/fusion_net/efficient_net_multi_head_attention",
+        "weights_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
+            "data/cure_one_sided/weights/fusion_net/efficient_net_multi_head_attention",
 
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
         # EfficientNet 
-        "logs_efficient_net_contour_nih":
-            "data/nih/logs/stream_net/efficient_net/logs_efficient_net_contour",
-        "logs_efficient_net_lbp_nih":
-            "data/nih/logs/stream_net/efficient_net/logs_efficient_net_lbp",
-        "logs_efficient_net_rgb_nih":
-            "data/nih/logs/stream_net/efficient_net/logs_efficient_net_rgb",
-        "logs_efficient_net_texture_nih":
-            "data/nih/logs/stream_net/efficient_net/logs_efficient_net_texture",
+        "logs_efficient_net_contour_cure_one_sided":
+            "data/cure_one_sided/logs/stream_net/efficient_net/logs_efficient_net_contour",
+        "logs_efficient_net_lbp_cure_one_sided":
+            "data/cure_one_sided/logs/stream_net/efficient_net/logs_efficient_net_lbp",
+        "logs_efficient_net_rgb_cure_one_sided":
+            "data/cure_one_sided/logs/stream_net/efficient_net/logs_efficient_net_rgb",
+        "logs_efficient_net_texture_cure_one_sided":
+            "data/cure_one_sided/logs/stream_net/efficient_net/logs_efficient_net_texture",
 
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
-        "logs_fusion_network_efficient_net_multi_head_attention_nih":
-            "data/nih/logs/fusion_net/efficient_net_multi_head_attention",
+        "logs_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
+            "data/cure_one_sided/logs/fusion_net/efficient_net_multi_head_attention",
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
-        "hardest_samples_efficient_net_contour_nih":
-            "data/nih/hardest_samples/efficient_net/contour",
-        "hardest_samples_efficient_net_lbp_nih":
-            "data/nih/hardest_samples/efficient_net/lbp",
-        "hardest_samples_efficient_net_rgb_nih":
-            "data/nih/hardest_samples/efficient_net/rgb",
-        "hardest_samples_efficient_net_texture_nih":
-            "data/nih/hardest_samples/efficient_net/texture",
+        "hardest_samples_efficient_net_contour_cure_one_sided":
+            "data/cure_one_sided/hardest_samples/efficient_net/contour",
+        "hardest_samples_efficient_net_lbp_cure_one_sided":
+            "data/cure_one_sided/hardest_samples/efficient_net/lbp",
+        "hardest_samples_efficient_net_rgb_cure_one_sided":
+            "data/cure_one_sided/hardest_samples/efficient_net/rgb",
+        "hardest_samples_efficient_net_texture_cure_one_sided":
+            "data/cure_one_sided/hardest_samples/efficient_net/texture",
 
         # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
         # Predictions
-        "predictions_efficient_net_nih":
-            "data/nih/predictions/stream_net/predictions_efficient_net",
+        "predictions_efficient_net_cure_one_sided":
+            "data/cure_one_sided/predictions/stream_net/predictions_efficient_net",
 
         # -------------------------------- P R E D I C T I O N S    F U S I O N   N E T --------------------------------
         # Predictions
-        "predictions_fusion_network_efficient_net_multi_head_attention_nih":
-            "data/nih/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
+        "predictions_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
+            "data/cure_one_sided/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
-        "reference_vectors_efficient_net_nih":
-            "data/nih/ref_vec/stream_net/reference_vectors_efficient_net",
+        "reference_vectors_efficient_net_cure_one_sided":
+            "data/cure_one_sided/ref_vec/stream_net/reference_vectors_efficient_net",
 
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
-        "reference_vectors_fusion_network_efficient_net_multi_head_attention_nih":
-            "data/nih/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
+        "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
+            "data/cure_one_sided/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
     }
 
     def __init__(self):
@@ -535,88 +535,88 @@ class Datasets(_Const):
 
         # -------------------------------------------------- C U R E ---------------------------------------------------
         # CUSTOMER
-        "cure_customer_images":
-            "cure/Customer/images",
-        "cure_customer_mask_images":
-            "cure/Customer/mask_images",
-        "cure_customer_segmentation_labels":
-            "cure/Customer/segmentation_labels",
+        "cure_two_sided_customer_images":
+            "cure_two_sided/Customer/images",
+        "cure_two_sided_customer_mask_images":
+            "cure_two_sided/Customer/mask_images",
+        "cure_two_sided_customer_segmentation_labels":
+            "cure_two_sided/Customer/segmentation_labels",
 
         # REFERENCE
-        "cure_reference_images":
-            "cure/Reference/images",
-        "cure_reference_mask_images":
-            "cure/Reference/mask_images",
-        "cure_reference_segmentation_labels":
-            "cure/Reference/segmentation_labels",
-        "cure_reference_yolo_labels":
-            "cure/Reference/yolo_labels",
+        "cure_two_sided_reference_images":
+            "cure_two_sided/Reference/images",
+        "cure_two_sided_reference_mask_images":
+            "cure_two_sided/Reference/mask_images",
+        "cure_two_sided_reference_segmentation_labels":
+            "cure_two_sided/Reference/segmentation_labels",
+        "cure_two_sided_reference_yolo_labels":
+            "cure_two_sided/Reference/yolo_labels",
 
         # CUSTOMER SPLITTED
-        "cure_train_images":
-            "cure/Customer_splitted/train_dir/images",
-        "cure_train_mask_images":
-            "cure/Customer_splitted/train_dir/mask_images",
-        "cure_train_segmentation_labels":
-            "cure/Customer_splitted/train_dir/segmentation_labels",
+        "cure_two_sided_train_images":
+            "cure_two_sided/Customer_splitted/train_dir/images",
+        "cure_two_sided_train_mask_images":
+            "cure_two_sided/Customer_splitted/train_dir/mask_images",
+        "cure_two_sided_train_segmentation_labels":
+            "cure_two_sided/Customer_splitted/train_dir/segmentation_labels",
 
-        "cure_valid_images":
-            "cure/Customer_splitted/valid_dir/images",
-        "cure_valid_mask_images":
-            "cure/Customer_splitted/valid_dir/mask_images",
-        "cure_valid_segmentation_labels":
-            "cure/Customer_splitted/valid_dir/segmentation_labels",
+        "cure_two_sided_valid_images":
+            "cure_two_sided/Customer_splitted/valid_dir/images",
+        "cure_two_sided_valid_mask_images":
+            "cure_two_sided/Customer_splitted/valid_dir/mask_images",
+        "cure_two_sided_valid_segmentation_labels":
+            "cure_two_sided/Customer_splitted/valid_dir/segmentation_labels",
 
-        "cure_test_images":
-            "cure/Customer_splitted/test_dir/images",
-        "cure_test_mask_images":
-            "cure/Customer_splitted/test_dir/mask_images",
-        "cure_test_segmentation_labels":
-            "cure/Customer_splitted/test_dir/segmentation_labels",
+        "cure_two_sided_test_images":
+            "cure_two_sided/Customer_splitted/test_dir/images",
+        "cure_two_sided_test_mask_images":
+            "cure_two_sided/Customer_splitted/test_dir/mask_images",
+        "cure_two_sided_test_segmentation_labels":
+            "cure_two_sided/Customer_splitted/test_dir/segmentation_labels",
 
         # CUSTOMER SPLITTED AUGMENTED
-        "cure_train_aug_images":
-            "cure/Customer_splitted_aug/train_dir/images",
-        "cure_train_aug_yolo_labels":
-            "cure/Customer_splitted_aug/train_dir/yolo_labels",
-        "cure_train_aug_mask_images":
-            "cure/Customer_splitted_aug/train_dir/mask_images",
+        "cure_two_sided_train_aug_images":
+            "cure_two_sided/Customer_splitted_aug/train_dir/images",
+        "cure_two_sided_train_aug_yolo_labels":
+            "cure_two_sided/Customer_splitted_aug/train_dir/yolo_labels",
+        "cure_two_sided_train_aug_mask_images":
+            "cure_two_sided/Customer_splitted_aug/train_dir/mask_images",
 
-        "cure_valid_aug_images":
-            "cure/Customer_splitted_aug/valid_dir/images",
-        "cure_valid_aug_yolo_labels":
-            "cure/Customer_splitted_aug/valid_dir/yolo_labels",
-        "cure_valid_aug_mask_images":
-            "cure/Customer_splitted_aug/valid_dir/mask_images",
+        "cure_two_sided_valid_aug_images":
+            "cure_two_sided/Customer_splitted_aug/valid_dir/images",
+        "cure_two_sided_valid_aug_yolo_labels":
+            "cure_two_sided/Customer_splitted_aug/valid_dir/yolo_labels",
+        "cure_two_sided_valid_aug_mask_images":
+            "cure_two_sided/Customer_splitted_aug/valid_dir/mask_images",
 
-        "cure_test_aug_images":
-            "cure/Customer_splitted_aug/test_dir/images",
-        "cure_test_aug_yolo_labels":
-            "cure/Customer_splitted_aug/test_dir/yolo_labels",
+        "cure_two_sided_test_aug_images":
+            "cure_two_sided/Customer_splitted_aug/test_dir/images",
+        "cure_two_sided_test_aug_yolo_labels":
+            "cure_two_sided/Customer_splitted_aug/test_dir/yolo_labels",
 
         # STREAM - Customer
-        "stream_images_cure_customer":
-            "cure/Customer/stream_images",
-        "stream_images_cure_customer_contour":
-            "cure/Customer/stream_images/contour",
-        "stream_images_cure_customer_lbp":
-            "cure/Customer/stream_images/lbp",
-        "stream_images_cure_customer_rgb":
-            "cure/Customer/stream_images/rgb",
-        "stream_images_cure_customer_texture":
-            "cure/Customer/stream_images/texture",
+        "stream_images_cure_two_sided_customer":
+            "cure_two_sided/Customer/stream_images",
+        "stream_images_cure_two_sided_customer_contour":
+            "cure_two_sided/Customer/stream_images/contour",
+        "stream_images_cure_two_sided_customer_lbp":
+            "cure_two_sided/Customer/stream_images/lbp",
+        "stream_images_cure_two_sided_customer_rgb":
+            "cure_two_sided/Customer/stream_images/rgb",
+        "stream_images_cure_two_sided_customer_texture":
+            "cure_two_sided/Customer/stream_images/texture",
 
         # STREAM - Reference
-        "stream_images_cure_reference":
-            "cure/Reference/stream_images",
-        "stream_images_cure_reference_contour":
-            "cure/Reference/stream_images/contour",
-        "stream_images_cure_reference_lbp":
-            "cure/Reference/stream_images/lbp",
-        "stream_images_cure_reference_rgb":
-            "cure/Reference/stream_images/rgb",
-        "stream_images_cure_reference_texture":
-            "cure/Reference/stream_images/texture",
+        "stream_images_cure_two_sided_reference":
+            "cure_two_sided/Reference/stream_images",
+        "stream_images_cure_two_sided_reference_contour":
+            "cure_two_sided/Reference/stream_images/contour",
+        "stream_images_cure_two_sided_reference_lbp":
+            "cure_two_sided/Reference/stream_images/lbp",
+        "stream_images_cure_two_sided_reference_rgb":
+            "cure_two_sided/Reference/stream_images/rgb",
+        "stream_images_cure_two_sided_reference_texture":
+            "cure_two_sided/Reference/stream_images/texture",
 
         # ------------------------------------------------- O G Y E I --------------------------------------------------
         # CUSTOMER
@@ -681,84 +681,90 @@ class Datasets(_Const):
         "stream_images_ogyei_reference_texture":
             "ogyei/Reference/stream_images/texture",
 
-        # --------------------------------------------------- N I H ----------------------------------------------------
+        # ---------------------------------------- C U R E    O N E   S I D E D ----------------------------------------
         # CUSTOMER
-        "nih_customer_images":
-            "nih/Customer/images",
-        "nih_customer_csv":
-            "nih/Customer/csv",
-        "nih_customer_xlsx":
-            "nih/Customer/xlsx",
-        "nih_customer_txt":
-            "nih/Customer/txt",
-        "nih_customer_yolo_labels":
-            "nih/Customer/yolo_labels",
-        "nih_customer_segmentation_labels":
-            "nih/Customer/segmentation_labels",
-        "nih_customer_mask_images":
-            "nih/Customer/mask_images",
+        "cure_one_sided_customer_images":
+            "cure_one_sided/Customer/images",
+        "cure_one_sided_customer_mask_images":
+            "cure_one_sided/Customer/mask_images",
+        "cure_one_sided_customer_segmentation_labels":
+            "cure_one_sided/Customer/segmentation_labels",
 
         # REFERENCE
-        "nih_reference_images":
-            "nih/Reference/images",
-        "nih_reference_csv":
-            "nih/Reference/csv",
-        "nih_reference_xlsx":
-            "nih/Reference/xlsx",
-        "nih_reference_txt":
-            "nih/Reference/txt",
-        "nih_reference_yolo_labels":
-            "nih/Reference/yolo_labels",
-        "nih_reference_segmentation_labels":
-            "nih/Reference/segmentation_labels",
-        "nih_reference_mask_images":
-            "nih/Reference/mask_images",
+        "cure_one_sided_reference_images":
+            "cure_one_sided/Reference/images",
+        "cure_one_sided_reference_mask_images":
+            "cure_one_sided/Reference/mask_images",
+        "cure_one_sided_reference_segmentation_labels":
+            "cure_one_sided/Reference/segmentation_labels",
+        "cure_one_sided_reference_yolo_labels":
+            "cure_one_sided/Reference/yolo_labels",
 
         # CUSTOMER SPLITTED
-        "nih_train_images":
-            "nih/Customer_splitted/train_dir/images",
-        "nih_train_mask_images":
-            "nih/Customer_splitted/train_dir/mask_images",
-        "nih_train_segmentation_labels":
-            "nih/Customer_splitted/train_dir/segmentation_labels",
+        "cure_one_sided_train_images":
+            "cure_one_sided/Customer_splitted/train_dir/images",
+        "cure_one_sided_train_mask_images":
+            "cure_one_sided/Customer_splitted/train_dir/mask_images",
+        "cure_one_sided_train_segmentation_labels":
+            "cure_one_sided/Customer_splitted/train_dir/segmentation_labels",
 
-        "nih_valid_images":
-            "nih/Customer_splitted/valid_dir/images",
-        "nih_valid_mask_images":
-            "nih/Customer_splitted/valid_dir/mask_images",
-        "nih_valid_segmentation_labels":
-            "nih/Customer_splitted/valid_dir/segmentation_labels",
+        "cure_one_sided_valid_images":
+            "cure_one_sided/Customer_splitted/valid_dir/images",
+        "cure_one_sided_valid_mask_images":
+            "cure_one_sided/Customer_splitted/valid_dir/mask_images",
+        "cure_one_sided_valid_segmentation_labels":
+            "cure_one_sided/Customer_splitted/valid_dir/segmentation_labels",
 
-        "nih_test_images":
-            "nih/Customer_splitted/test_dir/images",
-        "nih_test_mask_images":
-            "nih/Customer_splitted/test_dir/mask_images",
-        "nih_test_segmentation_labels":
-            "nih/Customer_splitted/test_dir/segmentation_labels",
+        "cure_one_sided_test_images":
+            "cure_one_sided/Customer_splitted/test_dir/images",
+        "cure_one_sided_test_mask_images":
+            "cure_one_sided/Customer_splitted/test_dir/mask_images",
+        "cure_one_sided_test_segmentation_labels":
+            "cure_one_sided/Customer_splitted/test_dir/segmentation_labels",
+
+        # CUSTOMER SPLITTED AUGMENTED
+        "cure_one_sided_train_aug_images":
+            "cure_one_sided/Customer_splitted_aug/train_dir/images",
+        "cure_one_sided_train_aug_yolo_labels":
+            "cure_one_sided/Customer_splitted_aug/train_dir/yolo_labels",
+        "cure_one_sided_train_aug_mask_images":
+            "cure_one_sided/Customer_splitted_aug/train_dir/mask_images",
+
+        "cure_one_sided_valid_aug_images":
+            "cure_one_sided/Customer_splitted_aug/valid_dir/images",
+        "cure_one_sided_valid_aug_yolo_labels":
+            "cure_one_sided/Customer_splitted_aug/valid_dir/yolo_labels",
+        "cure_one_sided_valid_aug_mask_images":
+            "cure_one_sided/Customer_splitted_aug/valid_dir/mask_images",
+
+        "cure_one_sided_test_aug_images":
+            "cure_one_sided/Customer_splitted_aug/test_dir/images",
+        "cure_one_sided_test_aug_yolo_labels":
+            "cure_one_sided/Customer_splitted_aug/test_dir/yolo_labels",
 
         # STREAM - Customer
-        "stream_images_nih_customer":
-            "nih/Customer/stream_images",
-        "stream_images_nih_customer_contour":
-            "nih/Customer/stream_images/contour",
-        "stream_images_nih_customer_lbp":
-            "nih/Customer/stream_images/lbp",
-        "stream_images_nih_customer_rgb":
-            "nih/Customer/stream_images/rgb",
-        "stream_images_nih_customer_texture":
-            "nih/Customer/stream_images/texture",
+        "stream_images_cure_one_sided_customer":
+            "cure_one_sided/Customer/stream_images",
+        "stream_images_cure_one_sided_customer_contour":
+            "cure_one_sided/Customer/stream_images/contour",
+        "stream_images_cure_one_sided_customer_lbp":
+            "cure_one_sided/Customer/stream_images/lbp",
+        "stream_images_cure_one_sided_customer_rgb":
+            "cure_one_sided/Customer/stream_images/rgb",
+        "stream_images_cure_one_sided_customer_texture":
+            "cure_one_sided/Customer/stream_images/texture",
 
         # STREAM - Reference
-        "stream_images_nih_reference":
-            "nih/Reference/stream_images",
-        "stream_images_nih_reference_contour":
-            "nih/Reference/stream_images/contour",
-        "stream_images_nih_reference_lbp":
-            "nih/Reference/stream_images/lbp",
-        "stream_images_nih_reference_rgb":
-            "nih/Reference/stream_images/rgb",
-        "stream_images_nih_reference_texture":
-            "nih/Reference/stream_images/texture",
+        "stream_images_cure_one_sided_reference":
+            "cure_one_sided/Reference/stream_images",
+        "stream_images_cure_one_sided_reference_contour":
+            "cure_one_sided/Reference/stream_images/contour",
+        "stream_images_cure_one_sided_reference_lbp":
+            "cure_one_sided/Reference/stream_images/lbp",
+        "stream_images_cure_one_sided_reference_rgb":
+            "cure_one_sided/Reference/stream_images/rgb",
+        "stream_images_cure_one_sided_reference_texture":
+            "cure_one_sided/Reference/stream_images/texture"
     }
 
     # ------------------------------------------------------------------------------------------------------------------

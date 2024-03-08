@@ -23,7 +23,7 @@ from config.config import ConfigFusionNetwork, ConfigStreamNetwork
 from config.config_selector import sub_stream_network_configs, fusion_network_config
 from fusion_network_models.fusion_network_selector import NetworkFactory
 from utils.utils import (use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory,
-                         plot_confusion_matrix, plot_ref_query_images, setup_logger)
+                         plot_ref_query_images, setup_logger)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -341,10 +341,14 @@ class PredictFusionNetwork:
             operation="query")
 
         ref_vectors, r_labels, r_images_path = self.get_vectors(
-            contour_dir=self.subnetwork_config.get("Contour").get("ref").get(self.cfg_stream_net.dataset_type),
-            lbp_dir=self.subnetwork_config.get("LBP").get("ref").get(self.cfg_stream_net.dataset_type),
-            rgb_dir=self.subnetwork_config.get("RGB").get("ref").get(self.cfg_stream_net.dataset_type),
-            texture_dir=self.subnetwork_config.get("Texture").get("ref").get(self.cfg_stream_net.dataset_type),
+            contour_dir="D:/storage/pill_detection/datasets/cure_one_sided/Reference/stream_images/contour",
+            #self.subnetwork_config.get("Contour").get("ref").get(self.cfg_stream_net.dataset_type),
+            lbp_dir="D:/storage/pill_detection/datasets/cure_one_sided/Reference/stream_images/lbp",
+            #self.subnetwork_config.get("LBP").get("ref").get(self.cfg_stream_net.dataset_type),
+            rgb_dir="D:/storage/pill_detection/datasets/cure_one_sided/Reference/stream_images/rgb",
+            #self.subnetwork_config.get("RGB").get("ref").get(self.cfg_stream_net.dataset_type),
+            texture_dir="D:/storage/pill_detection/datasets/cure_one_sided/Reference/stream_images/texture",
+            #self.subnetwork_config.get("Texture").get("ref").get(self.cfg_stream_net.dataset_type),
             operation="reference")
 
         gt, pred_ed, indices = (
@@ -359,12 +363,6 @@ class PredictFusionNetwork:
             gt=gt,
             predicted_labels=pred_ed,
             output_folder=self.plot_dir
-        )
-
-        plot_confusion_matrix(
-            gt=gt,
-            predictions=pred_ed,
-            out_path=self.plot_confusion_matrix_dir
         )
 
 
