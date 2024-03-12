@@ -41,12 +41,12 @@ class FourierDescriptor:
 
         self.images_dir = (
             dataset_images_path_selector(
-                cfg.dataset_type).get("src_stream_images").get("customer").get("stream_images_rgb")
+                cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb")
         )
-        self.file_path = Fourier_configs().get(cfg.dataset_type).get("Fourier_collected_images_by_shape")
-        self.plot_efd_dir = Fourier_configs().get(cfg.dataset_type).get("Fourier_plot_shape")
-        self.plot_euc_dir = Fourier_configs().get(cfg.dataset_type).get("Fourier_euclidean_distance")
-        self.json_dir = Fourier_configs().get(cfg.dataset_type).get("Fourier_saved_mean_vectors")
+        self.file_path = Fourier_configs(cfg.dataset_type).get("Fourier_collected_images_by_shape")
+        self.plot_efd_dir = Fourier_configs(cfg.dataset_type).get("Fourier_plot_shape")
+        self.plot_euc_dir = Fourier_configs(cfg.dataset_type).get("Fourier_euclidean_distance")
+        self.json_dir = Fourier_configs(cfg.dataset_type).get("Fourier_saved_mean_vectors")
         self.excel_path = (
             os.path.join(dataset_images_path_selector(cfg.dataset_type).get("other").get("pill_desc_xlsx"),
                          "pill_desc.xlsx")
@@ -346,17 +346,26 @@ class FourierDescriptor:
         plt.ylabel('Dimension 2')
         plt.show()
 
-    def save_json(self, class_averages: dict) -> None:
+    def save_json(self, dict_to_save: dict, file_name: str) -> None:
         """
         Save class averages to a JSON file.
 
-        :param class_averages: Dictionary mapping class labels to class averages.
-        :return: None
+        Args:
+            dict_to_save: Dictionary mapping class labels to class averages.
+            file_name: Name of the file to save.
+
+        Returns:
+             None
         """
 
-        file_name = os.path.join(self.json_dir, f"{self.timestamp}_average-vectors_order_{self.order}.json")
+        file_name = os.path.join(self.json_dir, f"{self.timestamp}_%s_{self.order}.json" % file_name)
+        if all(key.isdigit() for key in dict_to_save.keys()):
+            sorted_dict = dict(sorted(dict_to_save.items(), key=lambda item: int(item[0])))
+        else:
+            sorted_dict = dict_to_save
+
         with open(file_name, "w") as json_file:
-            json.dump(class_averages, json_file, cls=NumpyEncoder)
+            json.dump(sorted_dict, json_file, cls=NumpyEncoder)
 
     def load_json(self) -> dict:
         """
@@ -393,6 +402,7 @@ class FourierDescriptor:
 
         if not self.load:
             class_averages = {}
+            pill_coeffs = {}
 
             for root, dirs, files in os.walk(self.file_path):
                 for class_label in tqdm(dirs, desc=colorama.Fore.BLUE + "Processing classes"):
@@ -407,6 +417,12 @@ class FourierDescriptor:
                             segmented_image = self.preprocess_image(image)
                             norm_fourier_coeff = self.elliptic_fourier_w_norm(segmented_image=segmented_image)
                             class_coefficients.append(norm_fourier_coeff)
+
+                            file_key = file.split("_")[0]
+                            if file_key in pill_coeffs:
+                                pill_coeffs[file_key].append(norm_fourier_coeff)
+                            else:
+                                pill_coeffs[file_key] = [norm_fourier_coeff]
                         except Exception as e:
                             print(f"{e}, Could not open{image_path}")
 
@@ -414,9 +430,11 @@ class FourierDescriptor:
                         class_average = np.mean(class_coefficients, axis=0)
                         class_averages[class_label] = class_average
 
+            print(pill_coeffs)
             self.plot_euclidean_distances(class_averages)
             self.plot_vectors(class_averages)
-            self.save_json(class_averages)
+            self.save_json(class_averages, file_name="average-vectors_order")
+            self.save_json(pill_coeffs, file_name="pill_coeffs_order")
         else:
             try:
                 class_averages = self.load_json()

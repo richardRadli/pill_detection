@@ -7,13 +7,7 @@ from glob import glob
 
 from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
-
-
-class NumpyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return super(NumpyEncoder, self).default(obj)
+from utils.utils import NumpyEncoder
 
 
 def preprocess_image(image: np.ndarray) -> np.ndarray:
@@ -50,10 +44,10 @@ def extract_colour(image, width, height, x, y):
     return [int(avg_color) for avg_color in average_color_rgb]
 
 
-def plot_image(image, width, height, x1, y1, x2, y2, filename):
+def plot_image(image, width, height, x1, y1, x2, y2, path_to_dir, filename):
     cv2.rectangle(image, (x1, y1), (x1 + width, y1 + height), (0, 0, 255), 2)
     cv2.rectangle(image, (x2, y2), (x2 + width, y2 + height), (0, 0, 255), 2)
-    cv2.imwrite(f"C:/Users/ricsi/Desktop/color_pills/annotated/{filename}", image)
+    cv2.imwrite(os.path.join(path_to_dir, str(filename)), image)
 
 
 def main():
@@ -61,6 +55,9 @@ def main():
     images_dir = (
         dataset_images_path_selector(cfg.dataset_name).get("src_stream_images").get("reference").get("stream_images_rgb")
     )
+
+    annotation_path = dataset_images_path_selector(cfg.dataset_name).get("other").get("pill_colours_annotated")
+    json_path = dataset_images_path_selector(cfg.dataset_name).get("other").get("pill_colours_rgb_lab")
 
     width, height = 30, 30
     classes = os.listdir(images_dir)
@@ -70,32 +67,39 @@ def main():
     for class_name in classes:
         image_paths = sorted(glob(images_dir + f"/{class_name}/" + "*"))
         for idx, image_path in enumerate(image_paths):
-            if idx == 1:
-                image = cv2.imread(image_path)
-                binary_image = preprocess_image(image)
-                non_zero_pixels = cv2.findNonZero(binary_image)
 
-                y_coordinates = non_zero_pixels[:, 0, 1]
-                top_y = np.min(y_coordinates)
-                down_y = np.max(y_coordinates)
-                x1, x2, y1, y2 = image.shape[1] // 2, image.shape[1] // 2, top_y + 20, down_y - 40
+            image = cv2.imread(image_path)
+            binary_image = preprocess_image(image)
+            non_zero_pixels = cv2.findNonZero(binary_image)
 
-                # x_coordinates = non_zero_pixels[:, 0, 0]
-                # leftmost_x = np.min(x_coordinates)
-                # rightmost_x = np.max(x_coordinates)
-                # x1, x2, y1, y2 = leftmost_x+20, rightmost_x-40, image.shape[0]//2, image.shape[0]//2,
+            y_coordinates = non_zero_pixels[:, 0, 1]
+            top_y = np.min(y_coordinates)
+            down_y = np.max(y_coordinates)
+            x1, x2, y1, y2 = image.shape[1] // 2, image.shape[1] // 2, top_y + 20, down_y - 40
 
-                rgb1 = extract_colour(image, width, height, x1, y1)
-                rgb2 = extract_colour(image, width, height, x2, y2)
-                print("Average Color (RGB1):", rgb1)
-                print("Average Color (RGB2):", rgb2)
-                filename = os.path.basename(image_path)
-                plot_image(image, width, height, x1, y1, x2, y2, filename)
-                shape_class_colour[class_name] = (rgb1, rgb2)
+            rgb1 = extract_colour(image, width, height, x1, y1)
+            rgb2 = extract_colour(image, width, height, x2, y2)
 
-    sorted_dict = dict(sorted(shape_class_colour.items(), key=lambda item: int(item[0])))
+            print("Average Color (rgb1):", rgb1)
+            print("Average Color (rgb2):", rgb2)
 
-    with open("C:/Users/ricsi/Desktop/color_pills/colors_cure.json", "w") as json_file:
+            filename = os.path.basename(image_path)
+            plot_image(image, width, height, x1, y1, x2, y2, annotation_path, filename)
+
+            lab = [rgb1, rgb2]
+
+            if class_name in shape_class_colour:
+                shape_class_colour[class_name].append(lab)
+            else:
+                shape_class_colour[class_name] = [lab]
+
+    if all(key.isdigit() for key in shape_class_colour.keys()):
+        sorted_dict = dict(sorted(shape_class_colour.items(), key=lambda item: int(item[0])))
+    else:
+        sorted_dict = shape_class_colour
+
+    json_file_name = os.path.join(json_path, f"colors_{cfg.dataset_name}.json")
+    with open(json_file_name, "w") as json_file:
         json.dump(sorted_dict, json_file, cls=NumpyEncoder)
 
 

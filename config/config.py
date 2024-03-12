@@ -47,7 +47,7 @@ class ConfigStreamImages:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--dataset_type", type=str, default="cure_one_sided",
+        self.parser.add_argument("--dataset_type", type=str, default="cure_two_sided",
                                  choices=["cure_one_sided", "cure_two_sided", "ogyei"])
         self.parser.add_argument("--operation", type=str, default="reference", choices=["reference", "customer"])
         self.parser.add_argument("--threshold_area", type=int, default=100)
@@ -110,7 +110,7 @@ class ConfigFusionNetwork:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument("--dataset_type", type=str, default="cure_one_sided",
+        self.parser.add_argument("--dataset_type", type=str, default="cure_two_sided",
                                  choices=["cure_one_sided", "cure_two_sided", "ogyei"])
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetMultiHeadAttention")
         self.parser.add_argument("--type_of_loss_func", type=str, default="hmtl", help="hmtl | dmtl")

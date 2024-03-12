@@ -45,7 +45,7 @@ def nlp_configs() -> Dict:
     return nlp_config
 
 
-def Fourier_configs():
+def Fourier_configs(dataset_name):
     Fourier_paths = {
         "cure_two_sided": {
             "Fourier_collected_images_by_shape":
@@ -79,7 +79,7 @@ def Fourier_configs():
         }
     }
 
-    return Fourier_paths
+    return Fourier_paths[dataset_name]
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -754,8 +754,12 @@ def dataset_images_path_selector(dataset_name):
                 'k_fold':
                     DATA_PATH.get_data_path("cure_two_sided_k_fold"),
                 "pill_desc_xlsx":
-                    DATA_PATH.get_data_path("pill_desc_xlsx")
-            },
+                    DATA_PATH.get_data_path("pill_desc_xlsx_cure_two_sided"),
+                "pill_colours_annotated":
+                    IMAGES_PATH.get_data_path("pill_colours_cure_two_sided"),
+                "pill_colours_rgb_lab":
+                    DATA_PATH.get_data_path("pill_colours_cure_two_sided")
+            }
         },
         # -------------------------------------------------- O G Y E I -------------------------------------------------
         "ogyei": {
@@ -967,10 +971,18 @@ def dataset_images_path_selector(dataset_name):
             },
 
             "other": {
-                "ref": DATASET_PATH.get_data_path("cure_one_sided_ref_images"),
-                "query": DATASET_PATH.get_data_path("cure_one_sided_query_images"),
-                "xlsx": DATASET_PATH.get_data_path("cure_one_sided_xlsx"),
-                'k_fold': DATA_PATH.get_data_path("cure_one_sided_k_fold")
+                "ref":
+                    DATASET_PATH.get_data_path("cure_one_sided_ref_images"),
+                "query":
+                    DATASET_PATH.get_data_path("cure_one_sided_query_images"),
+                "pill_desc_xlsx":
+                    DATASET_PATH.get_data_path("pill_desc_xlsx_cure_one_sided"),
+                'k_fold':
+                    DATA_PATH.get_data_path("cure_one_sided_k_fold"),
+                "pill_colours_annotated":
+                    IMAGES_PATH.get_data_path("pill_colours_cure_one_sided"),
+                "pill_colours_rgb_lab":
+                    DATA_PATH.get_data_path("pill_colours_cure_one_sided")
             }
         },
 

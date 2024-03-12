@@ -9,8 +9,10 @@ Description: This code holds different functions used all around the project fil
 
 import colorlog
 import gc
+import json
 import logging
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 import pandas as pd
 import re
@@ -27,6 +29,13 @@ from sklearn.metrics import confusion_matrix
 from torch.utils.data import DataLoader, random_split
 from typing import Any, Callable, List, Optional, Tuple, Union
 from tqdm import tqdm
+
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NumpyEncoder, self).default(obj)
 
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -148,6 +148,9 @@ class Images(_Const):
         "Fourier_plot_shape_cure_two_sided":
             "images/cure_two_sided/Fourier_desc/plot_shape",
 
+        "pill_colours_cure_two_sided":
+            "images/cure_two_sided/pill_colours",
+
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I ++++++++++++++++++++++++++++++++++++++++++++++++
         "stream_images_ogyei_anchor":
             "images/ogyei/stream_images/anchor",
@@ -295,6 +298,10 @@ class Images(_Const):
             "images/cure_one_sided/Fourier_desc/euclidean_distance",
         "Fourier_plot_shape_cure_one_sided":
             "images/cure_one_sided/Fourier_desc/plot_shape",
+
+        # ---------------------------------------------- C O L O U R S -------------------------------------------------
+        "pill_colours_cure_one_sided":
+            "images/cure_one_sided/pill_colours",
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -331,6 +338,11 @@ class Data(_Const):
             "data/ogyei/k_fold",
         "cure_one_sided_k_fold":
             "data/cure_one_sided/k_fold",
+
+        "pill_colours_cure_one_sided":
+            "data/cure_one_sided/pill_colours",
+        "pill_colours_cure_two_sided":
+            "data/cure_two_sided/pill_colours",
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ C U R E ++++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
@@ -391,7 +403,8 @@ class Data(_Const):
         "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
             "data/cure_two_sided/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
 
-        "pill_desc_xlsx":
+        # ---------------------------------------- P I L L   D E S C   X L S X -----------------------------------------
+        "pill_desc_xlsx_cure_two_sided":
             "data/cure_two_sided/xlsx",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
@@ -514,6 +527,9 @@ class Data(_Const):
         # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
         "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
             "data/cure_one_sided/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
+
+        "pill_desc_xlsx_cure_one_sided":
+            "data/cure_one_sided/xlsx",
     }
 
     def __init__(self):
