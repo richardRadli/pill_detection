@@ -4,17 +4,18 @@ import os
 
 from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
-from utils.utils import NumpyEncoder
+from utils.utils import NumpyEncoder, sort_dict, create_timestamp, find_latest_file_in_directory
 
 
 def rgb_to_lab():
     cfg = ConfigAugmentation().parse()
+    timestamp = create_timestamp()
 
-    json_path = dataset_images_path_selector(cfg.dataset_name).get("other").get("pill_colours_rgb_lab")
-    json_file_name = os.path.join(json_path, f"colors_{cfg.dataset_name}_rgb.json")
-    json_file_name_lab = os.path.join(json_path, f"colors_{cfg.dataset_name}_lab.json")
+    json_path = dataset_images_path_selector(cfg.dataset_name).get("dynamic_margin").get("colour_vectors")
+    json_file_name_rgb = find_latest_file_in_directory(json_path, "json")
+    json_file_name_lab = os.path.join(json_path, f"{timestamp}_colors_lab.json")
 
-    with open(json_file_name, "r") as file:
+    with open(json_file_name_rgb, "r") as file:
         json_file = json.load(file)
 
     rgb_values = {}
@@ -27,10 +28,7 @@ def rgb_to_lab():
             else:
                 rgb_values[key] = [lab_value]
 
-    if all(key.isdigit() for key in rgb_values.keys()):
-        sorted_dict = dict(sorted(rgb_values.items(), key=lambda item: int(item[0])))
-    else:
-        sorted_dict = rgb_values
+    sorted_dict = sort_dict(rgb_values)
 
     with open(json_file_name_lab, "w") as json_file:
         json.dump(sorted_dict, json_file, cls=NumpyEncoder)

@@ -45,43 +45,6 @@ def nlp_configs() -> Dict:
     return nlp_config
 
 
-def Fourier_configs(dataset_name):
-    Fourier_paths = {
-        "cure_two_sided": {
-            "Fourier_collected_images_by_shape":
-                IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_cure_two_sided"),
-            "Fourier_euclidean_distance":
-                IMAGES_PATH.get_data_path("Fourier_euclidean_distance_cure_two_sided"),
-            "Fourier_plot_shape":
-                IMAGES_PATH.get_data_path("Fourier_plot_shape_cure_two_sided"),
-            "Fourier_saved_mean_vectors":
-                DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure_two_sided")
-        },
-        "ogyei": {
-            "Fourier_collected_images_by_shape":
-                IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_ogyei"),
-            "Fourier_euclidean_distance":
-                IMAGES_PATH.get_data_path("Fourier_euclidean_distance_ogyei"),
-            "Fourier_plot_shape":
-                IMAGES_PATH.get_data_path("Fourier_plot_shape_ogyei"),
-            "Fourier_saved_mean_vectors":
-                DATA_PATH.get_data_path("Fourier_saved_mean_vectors_ogyei")
-        },
-        "cure_one_sided": {
-            "Fourier_collected_images_by_shape":
-                IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_cure_one_sided"),
-            "Fourier_euclidean_distance":
-                IMAGES_PATH.get_data_path("Fourier_euclidean_distance_cure_one_sided"),
-            "Fourier_plot_shape":
-                IMAGES_PATH.get_data_path("Fourier_plot_shape_cure_one_sided"),
-            "Fourier_saved_mean_vectors":
-                DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure_one_sided")
-        }
-    }
-
-    return Fourier_paths[dataset_name]
-
-
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------- S U B N E T W O R K   C O N F I G S   T R A I N I N G -------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -119,7 +82,7 @@ def sub_stream_network_configs(cfg) -> Dict:
                             IMAGES_PATH.get_data_path("train_contour_stream_ogyei_anchor"),
                         "pos_neg":
                             IMAGES_PATH.get_data_path("contour_stream_ogyei_pos_neg")
-                        },
+                    },
                 },
             "ref":
                 {
@@ -557,18 +520,22 @@ def fusion_network_config(network_type) -> Dict:
             'logs_folder':
                 {
                     "cure_two_sided":
-                        DATA_PATH.get_data_path("logs_fusion_network_efficient_net_multi_head_attention_cure_two_sided"),
+                        DATA_PATH.get_data_path(
+                            "logs_fusion_network_efficient_net_multi_head_attention_cure_two_sided"),
                     "cure_one_sided":
-                        DATA_PATH.get_data_path("logs_fusion_network_efficient_net_multi_head_attention_cure_one_sided"),
+                        DATA_PATH.get_data_path(
+                            "logs_fusion_network_efficient_net_multi_head_attention_cure_one_sided"),
                     "ogyei":
                         DATA_PATH.get_data_path("logs_fusion_network_efficient_net_multi_head_attention_ogyei"),
                 },
             'weights_folder':
                 {
                     "cure_two_sided":
-                        DATA_PATH.get_data_path("weights_fusion_network_efficient_net_multi_head_attention_cure_two_sided"),
+                        DATA_PATH.get_data_path(
+                            "weights_fusion_network_efficient_net_multi_head_attention_cure_two_sided"),
                     "cure_one_sided":
-                        DATA_PATH.get_data_path("weights_fusion_network_efficient_net_multi_head_attention_cure_one_sided"),
+                        DATA_PATH.get_data_path(
+                            "weights_fusion_network_efficient_net_multi_head_attention_cure_one_sided"),
                     "ogyei":
                         DATA_PATH.get_data_path("weights_fusion_network_efficient_net_multi_head_attention_ogyei"),
                 },
@@ -752,13 +719,26 @@ def dataset_images_path_selector(dataset_name):
 
             "other": {
                 'k_fold':
-                    DATA_PATH.get_data_path("cure_two_sided_k_fold"),
+                    DATA_PATH.get_data_path("cure_two_sided_k_fold")
+            },
+
+            "dynamic_margin": {
                 "pill_desc_xlsx":
                     DATA_PATH.get_data_path("pill_desc_xlsx_cure_two_sided"),
-                "pill_colours_annotated":
-                    IMAGES_PATH.get_data_path("pill_colours_cure_two_sided"),
-                "pill_colours_rgb_lab":
-                    DATA_PATH.get_data_path("pill_colours_cure_two_sided")
+                "Fourier_vectors":
+                    DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure_two_sided"),
+                "Fourier_euclidean_distance":
+                    IMAGES_PATH.get_data_path("Fourier_euclidean_distance_cure_two_sided"),
+                "Fourier_saved_mean_vectors":
+                    DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure_two_sided"),
+                "Fourier_images_by_shape":
+                    IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_cure_two_sided"),
+                "colour_vectors":
+                    DATA_PATH.get_data_path("colour_vectors_cure_two_sided"),
+                "imprint_vectors":
+                    DATA_PATH.get_data_path("imprint_vectors_cure_two_sided"),
+                "score_vectors":
+                    DATA_PATH.get_data_path("score_vectors_cure_two_sided")
             }
         },
         # -------------------------------------------------- O G Y E I -------------------------------------------------
@@ -850,6 +830,27 @@ def dataset_images_path_selector(dataset_name):
                 "ref": DATASET_PATH.get_data_path("ogyei_ref_images"),
                 "query": DATASET_PATH.get_data_path("ogyei_query_images"),
                 'k_fold': DATA_PATH.get_data_path("ogyei_k_fold")
+            },
+
+            "dynamic_margin": {
+                "pill_desc_xlsx":
+                    DATA_PATH.get_data_path("pill_desc_xlsx_ogyei"),
+                "Fourier_vectors":
+                    DATA_PATH.get_data_path("Fourier_saved_mean_vectors_ogyei"),
+                "Fourier_euclidean_distance":
+                    IMAGES_PATH.get_data_path("Fourier_euclidean_distance_ogyei"),
+                "Fourier_saved_mean_vectors":
+                    DATA_PATH.get_data_path("Fourier_saved_mean_vectors_ogyei"),
+                "Fourier_images_by_shape":
+                    IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_ogyei"),
+                "colour_vectors":
+                    DATA_PATH.get_data_path("colour_vectors_ogyei"),
+                "colour_annotated_images":
+                    IMAGES_PATH.get_data_path("pill_colours_ogyei"),
+                "imprint_vectors":
+                    DATASET_PATH.get_data_path("imprint_vectors_ogyei"),
+                "score_vectors":
+                    DATASET_PATH.get_data_path("score_vectors_ogyei")
             }
         },
 
@@ -971,18 +972,29 @@ def dataset_images_path_selector(dataset_name):
             },
 
             "other": {
-                "ref":
-                    DATASET_PATH.get_data_path("cure_one_sided_ref_images"),
-                "query":
-                    DATASET_PATH.get_data_path("cure_one_sided_query_images"),
-                "pill_desc_xlsx":
-                    DATASET_PATH.get_data_path("pill_desc_xlsx_cure_one_sided"),
                 'k_fold':
                     DATA_PATH.get_data_path("cure_one_sided_k_fold"),
-                "pill_colours_annotated":
+            },
+
+            "dynamic_margin": {
+                "pill_desc_xlsx":
+                    DATA_PATH.get_data_path("pill_desc_xlsx_cure_one_sided"),
+                "Fourier_vectors":
+                    DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure_one_sided"),
+                "Fourier_euclidean_distance":
+                    IMAGES_PATH.get_data_path("Fourier_euclidean_distance_cure_one_sided"),
+                "Fourier_saved_mean_vectors":
+                    DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure_one_sided"),
+                "Fourier_images_by_shape":
+                    IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_cure_one_sided"),
+                "colour_vectors":
+                    DATA_PATH.get_data_path("colour_vectors_cure_one_sided"),
+                "colour_annotated_images":
                     IMAGES_PATH.get_data_path("pill_colours_cure_one_sided"),
-                "pill_colours_rgb_lab":
-                    DATA_PATH.get_data_path("pill_colours_cure_one_sided")
+                "imprint_vectors":
+                    DATASET_PATH.get_data_path("imprint_vectors_cure_one_sided"),
+                "score_vectors":
+                    DATASET_PATH.get_data_path("score_vectors_cure_one_sided")
             }
         },
 

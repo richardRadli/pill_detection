@@ -7,7 +7,7 @@ from glob import glob
 
 from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
-from utils.utils import NumpyEncoder
+from utils.utils import NumpyEncoder, sort_dict, create_timestamp
 
 
 def preprocess_image(image: np.ndarray) -> np.ndarray:
@@ -52,12 +52,18 @@ def plot_image(image, width, height, x1, y1, x2, y2, path_to_dir, filename):
 
 def main():
     cfg = ConfigAugmentation().parse()
+
+    timestamp = create_timestamp()
+
     images_dir = (
         dataset_images_path_selector(cfg.dataset_name).get("src_stream_images").get("reference").get("stream_images_rgb")
     )
-
-    annotation_path = dataset_images_path_selector(cfg.dataset_name).get("other").get("pill_colours_annotated")
-    json_path = dataset_images_path_selector(cfg.dataset_name).get("other").get("pill_colours_rgb_lab")
+    annotation_path = (
+        dataset_images_path_selector(cfg.dataset_name).get("dynamic_margin").get("colour_annotated_images")
+    )
+    json_path = (
+        dataset_images_path_selector(cfg.dataset_name).get("dynamic_margin").get("colour_vectors")
+    )
 
     width, height = 30, 30
     classes = os.listdir(images_dir)
@@ -93,12 +99,9 @@ def main():
             else:
                 shape_class_colour[class_name] = [lab]
 
-    if all(key.isdigit() for key in shape_class_colour.keys()):
-        sorted_dict = dict(sorted(shape_class_colour.items(), key=lambda item: int(item[0])))
-    else:
-        sorted_dict = shape_class_colour
+    sorted_dict = sort_dict(shape_class_colour)
 
-    json_file_name = os.path.join(json_path, f"colors_{cfg.dataset_name}.json")
+    json_file_name = os.path.join(json_path, f"{timestamp}_colors.json")
     with open(json_file_name, "w") as json_file:
         json.dump(sorted_dict, json_file, cls=NumpyEncoder)
 

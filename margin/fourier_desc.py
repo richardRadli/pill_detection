@@ -1,6 +1,5 @@
 import colorama
 import cv2
-import gc
 import json
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,16 +8,13 @@ import pyefd
 import os
 import openpyxl
 
-from concurrent.futures import ProcessPoolExecutor
-from glob import glob
-from multiprocessing import Manager
 from tqdm import tqdm
-from scipy.spatial.distance import directed_hausdorff, pdist, squareform, cosine
+from scipy.spatial.distance import pdist, squareform, cosine
 from sklearn.decomposition import PCA
 
 from config.config import ConfigStreamImages
-from config.config_selector import Fourier_configs, dataset_images_path_selector
-from utils.utils import create_timestamp, find_latest_file_in_directory, measure_execution_time
+from config.config_selector import dataset_images_path_selector
+from utils.utils import create_timestamp, find_latest_file_in_directory, measure_execution_time, sort_dict
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -29,7 +25,7 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 class FourierDescriptor:
-    def __init__(self, copy_images, load, order):
+    def __init__(self, copy_images, order):
         self.timestamp = create_timestamp()
         colorama.init()
 
@@ -37,19 +33,25 @@ class FourierDescriptor:
 
         self.order = order
         self.copy_images = copy_images
-        self.load = load
 
         self.images_dir = (
             dataset_images_path_selector(
                 cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb")
         )
-        self.file_path = Fourier_configs(cfg.dataset_type).get("Fourier_collected_images_by_shape")
-        self.plot_efd_dir = Fourier_configs(cfg.dataset_type).get("Fourier_plot_shape")
-        self.plot_euc_dir = Fourier_configs(cfg.dataset_type).get("Fourier_euclidean_distance")
-        self.json_dir = Fourier_configs(cfg.dataset_type).get("Fourier_saved_mean_vectors")
+        self.file_path = (
+            dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("Fourier_images_by_shape")
+        )
+        self.plot_euc_dir = (
+            dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("Fourier_euclidean_distance")
+        )
+        self.json_dir = (
+            dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("Fourier_saved_mean_vectors")
+        )
         self.excel_path = (
-            os.path.join(dataset_images_path_selector(cfg.dataset_type).get("other").get("pill_desc_xlsx"),
-                         "pill_desc.xlsx")
+            os.path.join(
+                dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("pill_desc_xlsx"),
+                "pill_desc.xlsx"
+            )
         )
 
     def get_excel_values(self) -> None:
@@ -91,60 +93,6 @@ class FourierDescriptor:
                 except FileNotFoundError:
                     print(f"File not found in directory: {src_dir}")
 
-    def plot_efd(self, filename: str, coeffs: np.ndarray, locus: tuple = (0.0, 0.0), image: np.ndarray = None,
-                 contour: np.ndarray = None, n: int = 300) -> None:
-        """
-         Plots the elliptical Fourier descriptors.
-
-         :param filename: Name of the file to save the plot.
-         :param coeffs: Coefficients for elliptical Fourier descriptors.
-         :param locus: Tuple representing the locus (center) of the plot.
-         :param image: Background image (optional).
-         :param contour: Contour data (optional).
-         :param n: Number of points to generate the plot.
-         :return: None
-         """
-
-        num_of_coeffs = coeffs.shape[0]
-        n_half = int(np.ceil(num_of_coeffs / 2))
-        n_rows = 2
-
-        t = np.linspace(0, 1.0, n)
-        xt = np.ones((n,)) * locus[0]
-        yt = np.ones((n,)) * locus[1]
-
-        for n in range(coeffs.shape[0]):
-            xt += (coeffs[n, 0] * np.cos(2 * (n + 1) * np.pi * t)) + (
-                    coeffs[n, 1] * np.sin(2 * (n + 1) * np.pi * t)
-            )
-            yt += (coeffs[n, 2] * np.cos(2 * (n + 1) * np.pi * t)) + (
-                    coeffs[n, 3] * np.sin(2 * (n + 1) * np.pi * t)
-            )
-            ax = plt.subplot2grid((n_rows, n_half), (n // n_half, n % n_half))
-            ax.set_title(str(n + 1))
-
-            if image is not None:
-                # A background image of shape [rows, cols] gets transposed by imshow so that the first dimension is
-                # vertical and the second dimension is horizontal. This implies swapping the x and y axes when plotting
-                # a curve.
-                if contour is not None:
-                    ax.plot(contour[:, 1], contour[:, 0], "c--", linewidth=2)
-                ax.plot(yt, xt, "r", linewidth=2)
-                ax.imshow(image, cmap="gray")
-            else:
-                # Without a background image, no transpose is implied. This case is useful when (x,y) point clouds
-                # without relation to an image are to be handled.
-                if contour is not None:
-                    ax.plot(contour[:, 0], contour[:, 1], "c--", linewidth=2)
-                ax.plot(xt, yt, "r", linewidth=2)
-                ax.axis("equal")
-
-        # plt.show()
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.plot_efd_dir, f"{filename}"))
-        plt.close()
-        gc.collect()
-
     @staticmethod
     def preprocess_image(image: np.ndarray) -> np.ndarray:
         """
@@ -182,29 +130,6 @@ class FourierDescriptor:
         contours, _ = cv2.findContours(segmented_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         largest_contour = max(contours, key=cv2.contourArea)
         return np.squeeze(largest_contour)
-
-    def elliptic_fourier_wo_norm(self, image: np.ndarray, segmented_image: np.ndarray, filename: str = None):
-        """
-        Compute elliptic Fourier descriptors for the largest contour in the segmented image.
-
-        :param image: Original image.
-        :param segmented_image: Segmented image.
-        :param filename: Name of the file for plot (optional).
-        :return: Optional
-        """
-
-        largest_contour = self.get_largest_contour(segmented_image)
-        number_of_points = largest_contour.shape[0]
-        locus = pyefd.calculate_dc_coefficients(largest_contour)
-        coefficients = pyefd.elliptic_fourier_descriptors(largest_contour, order=self.order, normalize=False)
-
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        rotated_image = cv2.transpose(image)
-        self.plot_efd(filename, coefficients, locus, rotated_image, largest_contour)
-
-        reconstruction = pyefd.reconstruct_contour(coefficients, locus, number_of_points)
-        hausdorff_distance, _, _ = directed_hausdorff(reconstruction, largest_contour)
-        print(hausdorff_distance)
 
     def elliptic_fourier_w_norm(self, segmented_image: np.ndarray):
         """
@@ -359,10 +284,7 @@ class FourierDescriptor:
         """
 
         file_name = os.path.join(self.json_dir, f"{self.timestamp}_%s_{self.order}.json" % file_name)
-        if all(key.isdigit() for key in dict_to_save.keys()):
-            sorted_dict = dict(sorted(dict_to_save.items(), key=lambda item: int(item[0])))
-        else:
-            sorted_dict = dict_to_save
+        sorted_dict = sort_dict(dict_to_save)
 
         with open(file_name, "w") as json_file:
             json.dump(sorted_dict, json_file, cls=NumpyEncoder)
@@ -400,77 +322,46 @@ class FourierDescriptor:
         if self.copy_images:
             self.get_excel_values()
 
-        if not self.load:
-            class_averages = {}
-            pill_coeffs = {}
 
-            for root, dirs, files in os.walk(self.file_path):
-                for class_label in tqdm(dirs, desc=colorama.Fore.BLUE + "Processing classes"):
-                    class_coefficients = []
+        class_averages = {}
+        pill_coeffs = {}
 
-                    class_path = str(os.path.join(root, class_label))
-                    for file in tqdm(os.listdir(class_path), desc=colorama.Fore.YELLOW + "Processing vectors"):
-                        image_path = os.path.join(class_path, file)
-                        image_original = cv2.imread(image_path, 1)
-                        try:
-                            image = cv2.cvtColor(image_original, cv2.COLOR_BGR2GRAY)
-                            segmented_image = self.preprocess_image(image)
-                            norm_fourier_coeff = self.elliptic_fourier_w_norm(segmented_image=segmented_image)
-                            class_coefficients.append(norm_fourier_coeff)
+        for root, dirs, files in os.walk(self.file_path):
+            for class_label in tqdm(dirs, desc=colorama.Fore.BLUE + "Processing classes"):
+                class_coefficients = []
 
-                            file_key = file.split("_")[0]
-                            if file_key in pill_coeffs:
-                                pill_coeffs[file_key].append(norm_fourier_coeff)
-                            else:
-                                pill_coeffs[file_key] = [norm_fourier_coeff]
-                        except Exception as e:
-                            print(f"{e}, Could not open{image_path}")
+                class_path = str(os.path.join(root, class_label))
+                for file in tqdm(os.listdir(class_path), desc=colorama.Fore.YELLOW + "Processing vectors"):
+                    image_path = os.path.join(class_path, file)
+                    image_original = cv2.imread(image_path, 1)
+                    try:
+                        image = cv2.cvtColor(image_original, cv2.COLOR_BGR2GRAY)
+                        segmented_image = self.preprocess_image(image)
+                        norm_fourier_coeff = self.elliptic_fourier_w_norm(segmented_image=segmented_image)
+                        class_coefficients.append(norm_fourier_coeff)
 
-                    if class_coefficients:
-                        class_average = np.mean(class_coefficients, axis=0)
-                        class_averages[class_label] = class_average
+                        file_key = file.split("_")[0]
+                        if file_key in pill_coeffs:
+                            pill_coeffs[file_key].append(norm_fourier_coeff)
+                        else:
+                            pill_coeffs[file_key] = [norm_fourier_coeff]
+                    except Exception as e:
+                        print(f"{e}, Could not open{image_path}")
 
-            print(pill_coeffs)
-            self.plot_euclidean_distances(class_averages)
-            self.plot_vectors(class_averages)
-            self.save_json(class_averages, file_name="average-vectors_order")
-            self.save_json(pill_coeffs, file_name="pill_coeffs_order")
-        else:
-            try:
-                class_averages = self.load_json()
-                self.plot_vectors(class_averages)
-                classes = os.listdir(self.images_dir)
-                cnt = 0
-                class_labels = list(class_averages.keys())
-                label_counts = Manager().dict({key: 0 for key in class_labels})
+                if class_coefficients:
+                    class_average = np.mean(class_coefficients, axis=0)
+                    class_averages[class_label] = class_average
 
-                with ProcessPoolExecutor(max_workers=8) as executor:
-                    features = []
-                    for clas in classes:
-                        image_paths = sorted(glob(self.images_dir + f"/{clas}/" + "*"))
-                        for idx, image_path in enumerate(image_paths):
-                            if idx == 1:
-                                future = executor.submit(
-                                    self.execute_comparison, class_averages, image_path, cnt, label_counts
-                                )
-                                features.append(future)
-
-                    for future in features:
-                        result_cnt = future.result()
-                        cnt += result_cnt
-
-                    print(colorama.Fore.WHITE + "Hit ratio: ", cnt / len(classes))
-
-                    for key, value in label_counts.items():
-                        print(f"{key}: {value}")
-
-            except FileNotFoundError as fne:
-                print(f"{fne}")
+        print(pill_coeffs)
+        self.plot_euclidean_distances(class_averages)
+        self.plot_vectors(class_averages)
+        self.save_json(class_averages, file_name="average-vectors_order")
+        self.save_json(pill_coeffs, file_name="pill_coeffs_order")
 
 
 if __name__ == "__main__":
     try:
-        fd = FourierDescriptor(copy_images=False, load=False, order=15)
+        fd = FourierDescriptor(copy_images=False, order=15)
         fd.main()
     except KeyboardInterrupt:
         print("Ctrl+C pressed")

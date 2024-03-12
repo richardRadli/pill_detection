@@ -142,14 +142,12 @@ class Images(_Const):
             "images/cure_two_sided/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
 
         "Fourier_collected_images_by_shape_cure_two_sided":
-            "images/cure_two_sided/Fourier_desc/collected_images_by_shape",
+            "images/cure_two_sided/dynamic_margin/Fourier_descriptor/collected_images_by_shape",
         "Fourier_euclidean_distance_cure_two_sided":
-            "images/cure_two_sided/Fourier_desc/euclidean_distance",
-        "Fourier_plot_shape_cure_two_sided":
-            "images/cure_two_sided/Fourier_desc/plot_shape",
+            "images/cure_two_sided/dynamic_margin/Fourier_descriptor/euclidean_distance",
 
         "pill_colours_cure_two_sided":
-            "images/cure_two_sided/pill_colours",
+            "images/cure_two_sided/dynamic_margin/pill_colours",
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I ++++++++++++++++++++++++++++++++++++++++++++++++
         "stream_images_ogyei_anchor":
@@ -218,13 +216,14 @@ class Images(_Const):
             "images/ogyei/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
 
         "Fourier_collected_images_by_shape_ogyei":
-            "images/ogyei/Fourier_desc/collected_images_by_shape",
+            "images/ogyei/dynamic_margin/Fourier_descriptor/collected_images_by_shape",
         "Fourier_euclidean_distance_ogyei":
-            "images/ogyei/Fourier_desc/euclidean_distance",
-        "Fourier_plot_shape_ogyei":
-            "images/ogyei/Fourier_desc/plot_shape",
+            "images/ogyei/dynamic_margin/Fourier_descriptor/euclidean_distance",
 
-        # ++++++++++++++++++++++++++++++++++++++++++++++++++++ N I H +++++++++++++++++++++++++++++++++++++++++++++++++++
+        "pill_colours_ogyei":
+            "images/ogyei/dynamic_margin/pill_colours",
+
+        # ++++++++++++++++++++++++++++++++++++++++ C U R E   O N E   S I D E D +++++++++++++++++++++++++++++++++++++++++
         "stream_images_cure_one_sided_anchor":
             "images/cure_one_sided/stream_images/anchor",
         "stream_images_cure_one_sided_pos_neg":
@@ -293,15 +292,13 @@ class Images(_Const):
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O T H E R +++++++++++++++++++++++++++++++++++++++++++++++++
         # ----------------------------------------------- F O U R I E R ------------------------------------------------
         "Fourier_collected_images_by_shape_cure_one_sided":
-            "images/cure_one_sided/Fourier_desc/collected_images_by_shape",
+            "images/cure_one_sided/dynamic_margin/Fourier_descriptor/collected_images_by_shape",
         "Fourier_euclidean_distance_cure_one_sided":
-            "images/cure_one_sided/Fourier_desc/euclidean_distance",
-        "Fourier_plot_shape_cure_one_sided":
-            "images/cure_one_sided/Fourier_desc/plot_shape",
+            "images/cure_one_sided/dynamic_margin/Fourier_descriptor/euclidean_distance",
 
         # ---------------------------------------------- C O L O U R S -------------------------------------------------
         "pill_colours_cure_one_sided":
-            "images/cure_one_sided/pill_colours",
+            "images/cure_one_sided/dynamic_margin/pill_colours",
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -323,28 +320,85 @@ class Images(_Const):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Data(_Const):
     dirs_data = {
-        # ------------------------------------------------- O T H E R --------------------------------------------------
-        "Fourier_saved_mean_vectors_cure_two_sided":
-            "data/cure_two_sided/Fourier_desc/saved_mean_vectors",
-        "Fourier_saved_mean_vectors_ogyei":
-            "data/ogyei/Fourier_desc/saved_mean_vectors",
-        "Fourier_saved_mean_vectors_cure_one_sided":
-            "data/cure_one_sided/Fourier_desc/saved_mean_vectors",
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++ C U R E   O N E   S I D E D +++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
+        # EfficientNet - StreamNetwork
+        "weights_efficient_net_contour_cure_one_sided":
+            "data/cure_one_sided/weights/stream_net/efficient_net/weights_efficient_net_contour",
+        "weights_efficient_net_lbp_cure_one_sided":
+            "data/cure_one_sided/weights/stream_net/efficient_net/weights_efficient_net_lbp",
+        "weights_efficient_net_rgb_cure_one_sided":
+            "data/cure_one_sided/weights/stream_net/efficient_net/weights_efficient_net_rgb",
+        "weights_efficient_net_texture_cure_one_sided":
+            "data/cure_one_sided/weights/stream_net/efficient_net/weights_efficient_net_texture",
 
-        # k-fold directory names
-        "cure_two_sided_k_fold":
-            "data/cure_two_sided/k_fold",
-        "ogyei_k_fold":
-            "data/ogyei/k_fold",
+        # ------------------------------------- W E I G H T S   F U S I O N   N E T ------------------------------------
+        "weights_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
+            "data/cure_one_sided/weights/fusion_net/efficient_net_multi_head_attention",
+
+        # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
+        # EfficientNet
+        "logs_efficient_net_contour_cure_one_sided":
+            "data/cure_one_sided/logs/stream_net/efficient_net/logs_efficient_net_contour",
+        "logs_efficient_net_lbp_cure_one_sided":
+            "data/cure_one_sided/logs/stream_net/efficient_net/logs_efficient_net_lbp",
+        "logs_efficient_net_rgb_cure_one_sided":
+            "data/cure_one_sided/logs/stream_net/efficient_net/logs_efficient_net_rgb",
+        "logs_efficient_net_texture_cure_one_sided":
+            "data/cure_one_sided/logs/stream_net/efficient_net/logs_efficient_net_texture",
+
+        # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
+        "logs_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
+            "data/cure_one_sided/logs/fusion_net/efficient_net_multi_head_attention",
+
+        # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
+        "hardest_samples_efficient_net_contour_cure_one_sided":
+            "data/cure_one_sided/hardest_samples/efficient_net/contour",
+        "hardest_samples_efficient_net_lbp_cure_one_sided":
+            "data/cure_one_sided/hardest_samples/efficient_net/lbp",
+        "hardest_samples_efficient_net_rgb_cure_one_sided":
+            "data/cure_one_sided/hardest_samples/efficient_net/rgb",
+        "hardest_samples_efficient_net_texture_cure_one_sided":
+            "data/cure_one_sided/hardest_samples/efficient_net/texture",
+
+        # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
+        # Predictions
+        "predictions_efficient_net_cure_one_sided":
+            "data/cure_one_sided/predictions/stream_net/predictions_efficient_net",
+
+        # -------------------------------- P R E D I C T I O N S    F U S I O N   N E T --------------------------------
+        # Predictions
+        "predictions_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
+            "data/cure_one_sided/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
+
+        # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
+        "reference_vectors_efficient_net_cure_one_sided":
+            "data/cure_one_sided/ref_vec/stream_net/reference_vectors_efficient_net",
+
+        # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
+        "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
+            "data/cure_one_sided/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
+
+        # ---------------------------------------- D Y N A M I C   M A R G I N -----------------------------------------
+        "pill_desc_xlsx_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/xlsx",
+        "Fourier_saved_mean_vectors_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/Fourier_descriptor/vectors",
+        "colour_vectors_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/colour_vectors",
+        "imprint_vectors_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/imprint_vectors",
+        "score_vectors_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/score_vectors",
+
+        # ------------------------------------------------ K   F O L D -------------------------------------------------
         "cure_one_sided_k_fold":
             "data/cure_one_sided/k_fold",
 
-        "pill_colours_cure_one_sided":
-            "data/cure_one_sided/pill_colours",
-        "pill_colours_cure_two_sided":
-            "data/cure_two_sided/pill_colours",
 
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++ C U R E ++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++ C U R E   T W O   S I D E D  ++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
         # EfficientNet - StreamNetwork
         "weights_efficient_net_contour_cure_two_sided":
@@ -403,9 +457,20 @@ class Data(_Const):
         "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
             "data/cure_two_sided/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
 
-        # ---------------------------------------- P I L L   D E S C   X L S X -----------------------------------------
+        # ---------------------------------------- D Y N A M I C   M A R G I N -----------------------------------------
         "pill_desc_xlsx_cure_two_sided":
-            "data/cure_two_sided/xlsx",
+            "data/cure_two_sided/dynamic_margin/xlsx",
+        "Fourier_saved_mean_vectors_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/Fourier_descriptor/vectors",
+        "colour_vectors_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/colour_vectors",
+        "imprint_vectors_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/imprint_vectors",
+        "score_vectors_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/score_vectors",
+
+        "cure_two_sided_k_fold":
+            "data/cure_two_sided/k_fold",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
@@ -466,70 +531,19 @@ class Data(_Const):
         "reference_vectors_fusion_network_efficient_net_multi_head_attention_ogyei":
             "data/ogyei/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
 
-        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # ++++++++++++++++++++++++++++++++++++++++++++++++++++ N I H +++++++++++++++++++++++++++++++++++++++++++++++++++
-        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        
-        # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
-        # EfficientNet - StreamNetwork
-        "weights_efficient_net_contour_cure_one_sided":
-            "data/cure_one_sided/weights/stream_net/efficient_net/weights_efficient_net_contour",
-        "weights_efficient_net_lbp_cure_one_sided":
-            "data/cure_one_sided/weights/stream_net/efficient_net/weights_efficient_net_lbp",
-        "weights_efficient_net_rgb_cure_one_sided":
-            "data/cure_one_sided/weights/stream_net/efficient_net/weights_efficient_net_rgb",
-        "weights_efficient_net_texture_cure_one_sided":
-            "data/cure_one_sided/weights/stream_net/efficient_net/weights_efficient_net_texture",
-        
-        # ------------------------------------- W E I G H T S   F U S I O N   N E T ------------------------------------
-        "weights_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
-            "data/cure_one_sided/weights/fusion_net/efficient_net_multi_head_attention",
+        "ogyei_k_fold":
+            "data/ogyei/k_fold",
 
-        # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
-        # EfficientNet 
-        "logs_efficient_net_contour_cure_one_sided":
-            "data/cure_one_sided/logs/stream_net/efficient_net/logs_efficient_net_contour",
-        "logs_efficient_net_lbp_cure_one_sided":
-            "data/cure_one_sided/logs/stream_net/efficient_net/logs_efficient_net_lbp",
-        "logs_efficient_net_rgb_cure_one_sided":
-            "data/cure_one_sided/logs/stream_net/efficient_net/logs_efficient_net_rgb",
-        "logs_efficient_net_texture_cure_one_sided":
-            "data/cure_one_sided/logs/stream_net/efficient_net/logs_efficient_net_texture",
-
-        # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
-        "logs_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
-            "data/cure_one_sided/logs/fusion_net/efficient_net_multi_head_attention",
-
-        # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
-        "hardest_samples_efficient_net_contour_cure_one_sided":
-            "data/cure_one_sided/hardest_samples/efficient_net/contour",
-        "hardest_samples_efficient_net_lbp_cure_one_sided":
-            "data/cure_one_sided/hardest_samples/efficient_net/lbp",
-        "hardest_samples_efficient_net_rgb_cure_one_sided":
-            "data/cure_one_sided/hardest_samples/efficient_net/rgb",
-        "hardest_samples_efficient_net_texture_cure_one_sided":
-            "data/cure_one_sided/hardest_samples/efficient_net/texture",
-
-        # -------------------------------- P R E D I C T I O N S    S T R E A M   N E T --------------------------------
-        # Predictions
-        "predictions_efficient_net_cure_one_sided":
-            "data/cure_one_sided/predictions/stream_net/predictions_efficient_net",
-
-        # -------------------------------- P R E D I C T I O N S    F U S I O N   N E T --------------------------------
-        # Predictions
-        "predictions_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
-            "data/cure_one_sided/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
-
-        # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
-        "reference_vectors_efficient_net_cure_one_sided":
-            "data/cure_one_sided/ref_vec/stream_net/reference_vectors_efficient_net",
-
-        # --------------------------------- R E F   V E C T O R S   F U S I O N   N E T --------------------------------
-        "reference_vectors_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
-            "data/cure_one_sided/ref_vec/fusion_net/reference_vectors_fusion_net_efficient_net_multi_head_attention",
-
-        "pill_desc_xlsx_cure_one_sided":
-            "data/cure_one_sided/xlsx",
+        "pill_desc_xlsx_ogyei":
+            "data/ogyei/dynamic_margin/xlsx",
+        "Fourier_saved_mean_vectors_ogyei":
+            "data/ogyei/dynamic_margin/Fourier_descriptor/vectors",
+        "colour_vectors_ogyei":
+            "data/ogyei/dynamic_margin/colour_vectors",
+        "imprint_vectors_ogyei":
+            "data/ogyei/dynamic_margin/imprint_vectors",
+        "score_vectors_ogyei":
+            "data/ogyei/dynamic_margin/score_vectors",
     }
 
     def __init__(self):
