@@ -9,7 +9,7 @@ from sklearn.metrics.pairwise import pairwise_distances
 
 from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
-from utils.utils import find_latest_file_in_directory
+from utils.utils import find_latest_file_in_directory, NumpyEncoder, create_timestamp
 
 
 def normalize_lab_values(lab_values):
@@ -93,6 +93,7 @@ def process_vectors(lab_values, fourier_desc_values, imprint_values, score_value
 
 def main():
     cfg = ConfigAugmentation().parse()
+    timestamp = create_timestamp()
     dataset_name = cfg.dataset_name
 
     # L*a*b* values
@@ -110,6 +111,13 @@ def main():
     score_values = load_json_files(dataset_name, "score_vectors")
 
     combined_vectors = process_vectors(norm_lab_values, norm_fourier_desc_values, imprint_values, score_values)
+
+    combined_vectors_path = (
+        dataset_images_path_selector(dataset_name).get("dynamic_margin").get("concatenated_vectors")
+    )
+    combined_vectors_name = os.path.join(combined_vectors_path, f"{timestamp}_concatenated_vectors.json")
+    with open(combined_vectors_name, "w") as file:
+        json.dump(combined_vectors, file, cls=NumpyEncoder)
 
     labels_list = []
     for key in combined_vectors.keys():

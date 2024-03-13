@@ -14,7 +14,7 @@ from sklearn.decomposition import PCA
 
 from config.config import ConfigStreamImages
 from config.config_selector import dataset_images_path_selector
-from utils.utils import create_timestamp, find_latest_file_in_directory, measure_execution_time, sort_dict
+from utils.utils import create_timestamp, find_latest_file_in_directory, sort_dict
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -177,68 +177,6 @@ class FourierDescriptor:
         plt.close()
 
     @staticmethod
-    def calculate_distance(vector1: list, vector2: list) -> float:
-        """
-        Calculate the Cosine distance between two vectors.
-
-        :param vector1: First vector.
-        :param vector2: Second vector.
-        :return: Cosine distance between the two vectors.
-        """
-
-        return cosine(vector1, vector2)
-
-    def compare_distances(self, class_averages, image_path):
-        """
-        Compare the Fourier descriptor of a new image with class averages and print the closest match.
-
-        :param class_averages: Dictionary mapping class labels to class averages.
-        :param image_path:
-        :return: None
-        """
-
-        hit = 0
-
-        if image_path.endswith('.jpg'):
-            new_image_original = cv2.imread(image_path, 1)
-            new_image = cv2.cvtColor(new_image_original, cv2.COLOR_BGR2GRAY)
-            new_segmented_image = self.preprocess_image(new_image)
-            new_fourier_descriptor = self.elliptic_fourier_w_norm(segmented_image=new_segmented_image)
-
-            closest_class = None
-            min_distance = float('inf')
-
-            for class_label, class_vector in class_averages.items():
-                distance = self.calculate_distance(new_fourier_descriptor, class_vector)
-
-                if distance < min_distance:
-                    min_distance = distance
-                    closest_class = class_label
-
-            workbook = openpyxl.load_workbook(self.excel_path)
-            sheet = workbook['Sheet1']
-            original_shape = []
-
-            image_path = image_path.replace("\\", "/")
-            query_pill_id = image_path.split("/")[-2]
-
-            for row in sheet.iter_rows(min_row=3, values_only=True):
-                pill_id = row[1]
-                shape = row[6]
-                if int(query_pill_id) == pill_id:
-                    original_shape.append(shape)
-
-            if original_shape[0] == closest_class:
-                print(colorama.Fore.LIGHTGREEN_EX +
-                      f"The predicted shape {closest_class} matches the original shape {original_shape[0]}")
-                hit += 1
-            else:
-                print(colorama.Fore.LIGHTRED_EX +
-                      f"The predicted shape {closest_class} does not match the original shape {original_shape[0]}")
-
-            return hit, original_shape[0], closest_class
-
-    @staticmethod
     def plot_vectors(class_averages):
         """
 
@@ -301,27 +239,9 @@ class FourierDescriptor:
             class_averages = json.load(json_file)
         return class_averages
 
-    def execute_comparison(self, class_averages: dict, image_path: str, cnt: int, label_counts: dict):
-        """
-
-        :param class_averages:
-        :param image_path:
-        :param cnt:
-        :param label_counts:
-        :return:
-        """
-
-        hit_cnt, original, predicted = self.compare_distances(class_averages, image_path)
-        cnt += hit_cnt
-        if predicted == original:
-            label_counts[original] += 1
-        return cnt
-
-    @measure_execution_time
     def main(self) -> None:
         if self.copy_images:
             self.get_excel_values()
-
 
         class_averages = {}
         pill_coeffs = {}
@@ -352,7 +272,6 @@ class FourierDescriptor:
                     class_average = np.mean(class_coefficients, axis=0)
                     class_averages[class_label] = class_average
 
-        print(pill_coeffs)
         self.plot_euclidean_distances(class_averages)
         self.plot_vectors(class_averages)
         self.save_json(class_averages, file_name="average-vectors_order")

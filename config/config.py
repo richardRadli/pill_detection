@@ -128,3 +128,24 @@ class ConfigFusionNetwork:
     def parse(self):
         self.opt = self.parser.parse_args()
         return self.opt
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++++++++++ C O N F I G   S T R E A M   I M A G E S ++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+class ConfigWordEmbedding:
+    def __init__(self):
+        self.opt = None
+        self.parser = argparse.ArgumentParser()
+
+        self.parser.add_argument("--dataset_type", type=str, default="cure_two_sided",
+                                 choices=["cure_one_sided", "cure_two_sided", "ogyei"])
+        self.parser.add_argument("-train_valid_ratio", type=float, default=0.8)
+        self.parser.add_argument("--batch_size", type=int, default=32)
+        self.parser.add_argument("--learning_rate", type=float, default=1e-4)
+        self.parser.add_argument("--weight_decay", type=float, default=1e-3)
+        self.parser.add_argument("--epochs", type=int, default=10)
+
+    def parse(self):
+        self.opt = self.parser.parse_args()
+        return self.opt

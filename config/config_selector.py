@@ -12,37 +12,59 @@ import logging
 
 from typing import Dict
 
-from config.const import DATA_PATH, DATASET_PATH, IMAGES_PATH, NLP_DATA_PATH
+from config.const import DATA_PATH, DATASET_PATH, IMAGES_PATH
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------- C A M E R A   C O N F I G --------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def nlp_configs() -> Dict:
-    nlp_config = {
-        "pill_names":
-            NLP_DATA_PATH.get_data_path("pill_names"),
-        "full_sentence_csv":
-            NLP_DATA_PATH.get_data_path("full_sentence_csv"),
-        "vector_distances":
-            NLP_DATA_PATH.get_data_path("vector_distances"),
-        "nlp_vector":
-            NLP_DATA_PATH.get_data_path("nlp_vector"),
-        "word_vector_vis":
-            NLP_DATA_PATH.get_data_path("word_vector_vis"),
-        "elbow":
-            NLP_DATA_PATH.get_data_path("elbow"),
-        "silhouette":
-            NLP_DATA_PATH.get_data_path("silhouette"),
-        "patient_information_leaflet_doc":
-            NLP_DATA_PATH.get_data_path("patient_information_leaflet_doc"),
-        "patient_information_leaflet_docx":
-            NLP_DATA_PATH.get_data_path("patient_information_leaflet_docx"),
-        "extracted_features_files":
-            NLP_DATA_PATH.get_data_path("extracted_features_files")
+def word_embedded_network_configs(dataset_name=None) -> Dict:
+    word_embedded_network_config_config = {
+        "cure_one_sided": {
+            "input_dim":
+                70,
+            "hidden_dim":
+                100,
+            "output_dim":
+                3,
+            "model_weights_dir":
+                DATA_PATH.get_data_path("weights_word_embedded_network_cure_one_sided"),
+            "logs_dir":
+                DATA_PATH.get_data_path("logs_word_embedded_network_cure_one_sided"),
+            "predictions":
+                DATA_PATH.get_data_path("predictions_word_embedded_network_cure_one_sided")
+        },
+        "cure_two_sided": {
+            "input_dim":
+                70,
+            "hidden_dim":
+                100,
+            "output_dim":
+                3,
+            "model_weights_dir":
+                DATA_PATH.get_data_path("weights_word_embedded_network_cure_two_sided"),
+            "logs_dir":
+                DATA_PATH.get_data_path("logs_word_embedded_network_cure_two_sided"),
+            "predictions":
+                DATA_PATH.get_data_path("predictions_word_embedded_network_cure_two_sided")
+        },
+        "ogyei": {
+            "input_dim":
+                70,
+            "hidden_dim":
+                100,
+            "output_dim":
+                3,
+            "model_weights_dir":
+                DATA_PATH.get_data_path("weights_word_embedded_network_ogyei"),
+            "logs_dir":
+                DATA_PATH.get_data_path("logs_word_embedded_network_ogyei"),
+            "predictions":
+                DATA_PATH.get_data_path("predictions_word_embedded_ogyei")
+        }
     }
 
-    return nlp_config
+    return word_embedded_network_config_config[dataset_name]
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -738,7 +760,9 @@ def dataset_images_path_selector(dataset_name):
                 "imprint_vectors":
                     DATA_PATH.get_data_path("imprint_vectors_cure_two_sided"),
                 "score_vectors":
-                    DATA_PATH.get_data_path("score_vectors_cure_two_sided")
+                    DATA_PATH.get_data_path("score_vectors_cure_two_sided"),
+                "concatenated_vectors":
+                    DATA_PATH.get_data_path("concatenated_vectors_cure_two_sided")
             }
         },
         # -------------------------------------------------- O G Y E I -------------------------------------------------
@@ -850,7 +874,9 @@ def dataset_images_path_selector(dataset_name):
                 "imprint_vectors":
                     DATASET_PATH.get_data_path("imprint_vectors_ogyei"),
                 "score_vectors":
-                    DATASET_PATH.get_data_path("score_vectors_ogyei")
+                    DATASET_PATH.get_data_path("score_vectors_ogyei"),
+                "concatenated_vectors":
+                    DATA_PATH.get_data_path("concatenated_vectors_ogyei")
             }
         },
 
@@ -994,7 +1020,9 @@ def dataset_images_path_selector(dataset_name):
                 "imprint_vectors":
                     DATASET_PATH.get_data_path("imprint_vectors_cure_one_sided"),
                 "score_vectors":
-                    DATASET_PATH.get_data_path("score_vectors_cure_one_sided")
+                    DATASET_PATH.get_data_path("score_vectors_cure_one_sided"),
+                "concatenated_vectors":
+                    DATA_PATH.get_data_path("concatenated_vectors_cure_one_sided")
             }
         },
 

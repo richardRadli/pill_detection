@@ -338,6 +338,10 @@ class Data(_Const):
         "weights_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
             "data/cure_one_sided/weights/fusion_net/efficient_net_multi_head_attention",
 
+        # ---------------------------------- W E I G H T S   W O R D   E M B E D D E D ---------------------------------
+        "weights_word_embedded_network_cure_one_sided":
+            "data/cure_one_sided/weights/word_embedded_network",
+
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
         # EfficientNet
         "logs_efficient_net_contour_cure_one_sided":
@@ -352,6 +356,10 @@ class Data(_Const):
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
         "logs_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
             "data/cure_one_sided/logs/fusion_net/efficient_net_multi_head_attention",
+
+        # ------------------------------------- L O G S   W O R D   E M B E D D E D ------------------------------------
+        "logs_word_embedded_network_cure_one_sided":
+            "data/cure_one_sided/logs/word_embedded_network",
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
         "hardest_samples_efficient_net_contour_cure_one_sided":
@@ -373,6 +381,11 @@ class Data(_Const):
         "predictions_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
             "data/cure_one_sided/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
 
+        # ------------------------------ P R E D I C T I O N S    W O R D   E M B E D E D ------------------------------
+        # Predictions
+        "predictions_word_embedded_network_cure_one_sided":
+            "data/cure_one_sided/predictions/word_embedded_network",
+
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
         "reference_vectors_efficient_net_cure_one_sided":
             "data/cure_one_sided/ref_vec/stream_net/reference_vectors_efficient_net",
@@ -392,6 +405,8 @@ class Data(_Const):
             "data/cure_one_sided/dynamic_margin/imprint_vectors",
         "score_vectors_cure_one_sided":
             "data/cure_one_sided/dynamic_margin/score_vectors",
+        "concatenated_vectors_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/concatenated_vectors",
 
         # ------------------------------------------------ K   F O L D -------------------------------------------------
         "cure_one_sided_k_fold":
@@ -414,6 +429,10 @@ class Data(_Const):
         "weights_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
             "data/cure_two_sided/weights/fusion_net/efficient_net_multi_head_attention",
 
+        # ---------------------------------- W E I G H T S   W O R D   E M B E D D E D ---------------------------------
+        "weights_word_embedded_network_cure_two_sided":
+            "data/cure_two_sided/weights/word_embedded_network",
+
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
         # EfficientNet 
         "logs_efficient_net_contour_cure_two_sided":
@@ -428,6 +447,10 @@ class Data(_Const):
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
         "logs_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
             "data/cure_two_sided/logs/fusion_net/efficient_net_multi_head_attention",
+
+        # ------------------------------------- L O G S   W O R D   E M B E D D E D ------------------------------------
+        "logs_word_embedded_network_cure_two_sided":
+            "data/cure_two_sided/logs/word_embedded_network",
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
         "hardest_samples_efficient_net_contour_cure_two_sided":
@@ -449,6 +472,11 @@ class Data(_Const):
         "predictions_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
             "data/cure_two_sided/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
 
+        # ------------------------------ P R E D I C T I O N S    W O R D   E M B E D E D ------------------------------
+        # Predictions
+        "predictions_word_embedded_network_cure_two_sided":
+            "data/cure_two_sided/predictions/word_embedded_network",
+
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
         "reference_vectors_efficient_net_cure_two_sided":
             "data/cure_two_sided/ref_vec/stream_net/reference_vectors_efficient_net",
@@ -468,6 +496,8 @@ class Data(_Const):
             "data/cure_two_sided/dynamic_margin/imprint_vectors",
         "score_vectors_cure_two_sided":
             "data/cure_two_sided/dynamic_margin/score_vectors",
+        "concatenated_vectors_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/concatenated_vectors",
 
         "cure_two_sided_k_fold":
             "data/cure_two_sided/k_fold",
@@ -488,6 +518,10 @@ class Data(_Const):
         "weights_fusion_network_efficient_net_multi_head_attention_ogyei":
             "data/ogyei/weights/fusion_net/efficient_net_multi_head_attention",
 
+        # ---------------------------------- W E I G H T S   W O R D   E M B E D D E D ---------------------------------
+        "weights_word_embedded_network_ogyei":
+            "data/ogyei/weights/word_embedded_network",
+
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
         # EfficientNet 
         "logs_efficient_net_contour_ogyei":
@@ -502,6 +536,10 @@ class Data(_Const):
         # ---------------------------------------- L O G S   F U S I O N   N E T ---------------------------------------
         "logs_fusion_network_efficient_net_multi_head_attention_ogyei":
             "data/ogyei/logs/fusion_net/efficient_net_multi_head_attention",
+
+        # ------------------------------------- L O G S   W O R D   E M B E D D E D ------------------------------------
+        "logs_word_embedded_network_ogyei":
+            "data/ogyei/logs/word_embedded_network",
 
         # ---------------------------------------- H A R D E S T   S A M P L E S ---------------------------------------
         "hardest_samples_efficient_net_contour_ogyei":
@@ -522,6 +560,11 @@ class Data(_Const):
         # Predictions
         "predictions_fusion_network_efficient_net_multi_head_attention_ogyei":
             "data/ogyei/predictions/fusion_net/predictions_fusion_network_efficient_net_multi_head_attention_net",
+
+        # ------------------------------ P R E D I C T I O N S    W O R D   E M B E D E D ------------------------------
+        # Predictions
+        "predictions_word_embedded_network_ogyei":
+            "data/ogyei/predictions/word_embedded_network",
 
         # -------------------------------------------- R E F   V E C T O R S -------------------------------------------
         "reference_vectors_efficient_net_ogyei":
@@ -544,6 +587,8 @@ class Data(_Const):
             "data/ogyei/dynamic_margin/imprint_vectors",
         "score_vectors_ogyei":
             "data/ogyei/dynamic_margin/score_vectors",
+        "concatenated_vectors_ogyei":
+            "data/ogyei/dynamic_margin/concatenated_vectors"
     }
 
     def __init__(self):
@@ -811,49 +856,7 @@ class Datasets(_Const):
         return os.path.join(self.DATASET_ROOT, self.dirs_dataset.get(key, ""))
 
 
-class NLPData(_Const):
-    nlp_data = {
-        "pill_names":
-            "nlp/csv/pill_names",
-        "full_sentence_csv":
-            "nlp/csv/full_sentence_csv",
-        "vector_distances":
-            "nlp/csv/distances",
-
-        "nlp_vector":
-            "nlp/npy/nlp_vector",
-
-        "word_vector_vis":
-            "nlp/plot/word_vector",
-        "elbow":
-            "nlp/plot/elbow",
-        "silhouette":
-            "nlp/plot/silhouette",
-
-        "patient_information_leaflet_doc":
-            "nlp/documents/patient_information_leaflet_doc",
-        "patient_information_leaflet_docx":
-            "nlp/documents/patient_information_leaflet_docx",
-        "extracted_features_files":
-            "nlp/documents/extracted_features_files"
-    }
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ---------------------------------------------------- I N I T -----------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self):
-        super().__init__()
-        self.create_directories(self.nlp_data, "PROJECT")
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------ G E T   D A T A   P A T H ---------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def get_data_path(self, key):
-        return os.path.join(self.PROJECT_ROOT, self.nlp_data.get(key, ""))
-
-
 CONST: _Const = _Const()
 IMAGES_PATH: Images = Images()
 DATA_PATH: Data = Data()
 DATASET_PATH: Datasets = Datasets()
-NLP_DATA_PATH: NLPData = NLPData()
