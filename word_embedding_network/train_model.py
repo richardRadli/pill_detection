@@ -21,6 +21,7 @@ class TrainWordEmbeddingNetwork:
         self.timestamp = create_timestamp()
         self.logger = setup_logger()
         self.cfg = ConfigWordEmbedding().parse()
+        self.device = use_gpu_if_available()
 
         word_emb_model_confing = word_embedded_network_configs(self.cfg.dataset_type)
         dataset_paths = dataset_images_path_selector(self.cfg.dataset_type)
@@ -46,14 +47,12 @@ class TrainWordEmbeddingNetwork:
                                   output_dim=word_emb_model_confing.get("output_dim"))
         )
 
-        self.model.to("cuda")
-        summary(self.model, input_size=(self.cfg.batch_size, 70))
+        self.model.to(self.device)
+        summary(self.model, input_size=(self.cfg.batch_size, word_emb_model_confing.get("input_dim")))
 
         self.optimizer = Adam(self.model.parameters(),
                               lr=self.cfg.learning_rate,
                               weight_decay=self.cfg.weight_decay)
-
-        self.device = use_gpu_if_available()
 
         tensorboard_log_dir = self.create_save_dir(word_emb_model_confing.get("logs_dir"))
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
@@ -64,8 +63,7 @@ class TrainWordEmbeddingNetwork:
         self.best_valid_loss = float('inf')
         self.best_model_path = None
 
-    def create_save_dir(self, network_cfg):
-        directory_path = network_cfg.get(self.cfg.dataset_type)
+    def create_save_dir(self, directory_path):
         directory_to_create = os.path.join(directory_path, f"{self.timestamp}")
         os.makedirs(directory_to_create, exist_ok=True)
         return directory_to_create
@@ -96,14 +94,24 @@ class TrainWordEmbeddingNetwork:
             logging.warning(f"No new weights have been saved. Best valid loss was {self.best_valid_loss:.5f},\n "
                             f"current valid loss is {valid_loss:.5f}")
 
-    def train_loop(self, train_losses):
+    def train_loop(self, train_losses: list):
+        """
+        Function that executes the train loop.
+
+        Args:
+            train_losses:
+
+        Returns:
+             train_losses:
+        """
+
         for batch, labels in self.train_dataloader:
             self.optimizer.zero_grad()
             batch = batch.to(self.device)
             label_indices = [self.classes.index(label) for label in labels]
             label_indices = torch.tensor(label_indices, dtype=torch.long).to(self.device)
-            embeddings = self.model(batch)
-            train_loss = self.criterion(embeddings, label_indices)
+            probs, embeddings = self.model(batch)
+            train_loss = self.criterion(probs, label_indices)
             train_loss.backward()
             self.optimizer.step()
             train_losses.append(train_loss.item())
@@ -115,8 +123,8 @@ class TrainWordEmbeddingNetwork:
             batch = batch.to(self.device)
             label_indices = [self.classes.index(label) for label in labels]
             label_indices = torch.tensor(label_indices, dtype=torch.long).to(self.device)
-            embeddings = self.model(batch)
-            valid_loss = self.criterion(embeddings, label_indices)
+            probs, embeddings = self.model(batch)
+            valid_loss = self.criterion(probs, label_indices)
             valid_losses.append(valid_loss.item())
 
         return valid_losses

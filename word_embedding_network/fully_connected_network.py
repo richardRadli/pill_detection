@@ -1,5 +1,4 @@
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 class FullyConnectedNetwork(nn.Module):
@@ -14,11 +13,12 @@ class FullyConnectedNetwork(nn.Module):
         self.fc6 = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        x = F.relu(self.fc4(x))
-        x = F.relu(self.fc5(x))
-        x = (self.fc6(x))
-        x = F.log_softmax(x, dim=1)
-        return x
+        x = nn.ReLU()(self.fc1(x))
+        x = nn.ReLU()(self.fc2(x))
+        x = nn.ReLU()(self.fc3(x))
+        x = nn.ReLU()(self.fc4(x))
+        x = nn.ReLU()(self.fc5(x))
+        embeddings = self.fc6(x)
+        probs = nn.Softmax(dim=1)(embeddings)
+        return probs, embeddings
+
