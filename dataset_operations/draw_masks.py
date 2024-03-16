@@ -182,7 +182,7 @@ def main(operation: str = "train") -> None:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
-        operations = ["customer"]
+        operations = ["reference", "customer"]
         for op in operations:
             main(operation=op)
     except KeyboardInterrupt as kie:

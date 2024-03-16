@@ -1,4 +1,5 @@
 import json
+import logging
 import numpy as np
 import os
 import openpyxl
@@ -28,7 +29,7 @@ def encoding(words: List[str]) -> Dict[str, List[float]]:
     return {word: encoded_features[idx].tolist() for idx, word in enumerate(words)}
 
 
-def create_feature_vectors(sheet, words: list, feature_type: str) -> dict:
+def create_feature_vectors(sheet, words: list, feature_type: str, dataset_name) -> dict:
     """
     Create feature vectors based on input words and feature type.
 
@@ -44,25 +45,44 @@ def create_feature_vectors(sheet, words: list, feature_type: str) -> dict:
     encoded_dict = encoding(words)
     feature_dict = {}
 
-    for row in sheet.iter_rows(min_row=3, values_only=True):
-        pill_id = row[1]
-        pill_id_prefix = pill_id.split("_")[0]
+    if dataset_name == "cure_one_sided":
+        for row in sheet.iter_rows(min_row=3, values_only=True):
+            pill_id = row[1]
+            pill_id_prefix = pill_id.split("_")[0]
 
-        selected_column = row[4] if feature_type == "imprint_vectors" else row[7]
-        if selected_column is None:
-            selected_column = "None"
+            selected_column = row[4] if feature_type == "imprint_vectors" else row[7]
+            if selected_column is None:
+                selected_column = "None"
 
-        if pill_id_prefix not in feature_dict:
-            feature_dict[pill_id_prefix] = {"top": [], "bottom": []}
+            if pill_id_prefix not in feature_dict:
+                feature_dict[pill_id_prefix] = {"top": [], "bottom": []}
 
-        encoded_feature = encoded_dict.get(selected_column)
+            encoded_feature = encoded_dict.get(selected_column)
 
-        if "top" in pill_id:
-            feature_dict[pill_id_prefix]["top"].append(encoded_feature)
-        elif "bottom" in pill_id:
-            feature_dict[pill_id_prefix]["bottom"].append(encoded_feature)
-        else:
-            raise ValueError(f"Wrong pill_id: {pill_id}")
+            if "top" in pill_id:
+                feature_dict[pill_id_prefix]["top"].append(encoded_feature)
+            elif "bottom" in pill_id:
+                feature_dict[pill_id_prefix]["bottom"].append(encoded_feature)
+            else:
+                raise ValueError(f"Wrong pill_id: {pill_id}")
+
+    elif dataset_name == "cure_two_sided" or dataset_name == "ogyei":
+        for row in sheet.iter_rows(min_row=3, values_only=True):
+            pill_id = row[1]
+            selected_column = row[3 if dataset_name == "ogyei" else 4] if feature_type == "imprint_vectors" \
+                else row[6 if dataset_name == "ogyei" else 7]
+
+            if selected_column is None:
+                selected_column = "None"
+
+            if pill_id not in feature_dict:
+                feature_dict[pill_id] = []
+
+            encoded_feature = encoded_dict.get(selected_column)
+            feature_dict[pill_id].append(encoded_feature)
+
+    else:
+        raise ValueError(f"Wrong dataset_name: {dataset_name}")
 
     return feature_dict
 
@@ -82,12 +102,13 @@ def process_vectors(sheet, words: list, dataset_name: str, timestamp: str, featu
         None
     """
     
-    dictionary = create_feature_vectors(sheet, words, feature_type)
+    dictionary = create_feature_vectors(sheet, words, feature_type, dataset_name)
     sorted_dict = sort_dict(dictionary)
     path = dataset_images_path_selector(dataset_name).get("dynamic_margin").get(f"{feature_type}")
     json_save_filename = os.path.join(path, f"{timestamp}_{feature_type}.json")
     with open(json_save_filename, "w") as json_file:
         json.dump(sorted_dict, json_file, cls=NumpyEncoder)
+    logging.info(f"Saved feature vectors to {json_save_filename}")
 
 
 def main() -> None:
@@ -100,7 +121,7 @@ def main() -> None:
     cfg = ConfigAugmentation().parse()
     timestamp = create_timestamp()
 
-    imprint_words = ['DEBOSSED', 'None', 'EMBOSSED', 'PRINTED']
+    imprint_words = ['DEBOSSED', 'NOTHING', 'EMBOSSED', 'PRINTED']
     score_words = [1, 2, 4]
 
     pill_desc_path = dataset_images_path_selector(cfg.dataset_name).get("dynamic_margin").get("pill_desc_xlsx")

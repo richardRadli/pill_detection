@@ -3,13 +3,14 @@ import cv2
 import json
 import matplotlib.pyplot as plt
 import numpy as np
-import shutil
-import pyefd
 import os
 import openpyxl
+import pyefd
+import re
+import shutil
 
 from tqdm import tqdm
-from scipy.spatial.distance import pdist, squareform, cosine
+from scipy.spatial.distance import pdist, squareform
 from sklearn.decomposition import PCA
 
 from config.config import ConfigStreamImages
@@ -30,6 +31,7 @@ class FourierDescriptor:
         colorama.init()
 
         cfg = ConfigStreamImages().parse()
+        self.dataset_name = cfg.dataset_type
 
         self.order = order
         self.copy_images = copy_images
@@ -68,7 +70,7 @@ class FourierDescriptor:
 
         for row in sheet.iter_rows(min_row=3, values_only=True):
             pill_id = row[1]
-            shape = row[6]
+            shape = row[5]
 
             if shape in shape_dict:
                 shape_dict[shape].append(pill_id)
@@ -260,11 +262,29 @@ class FourierDescriptor:
                         norm_fourier_coeff = self.elliptic_fourier_w_norm(segmented_image=segmented_image)
                         class_coefficients.append(norm_fourier_coeff)
 
-                        file_key = file.split("_")[0]
+                        if self.dataset_name == "cure_one_sided" or self.dataset_name == "cure_two_sided":
+                            file_key = file.split("_")[0]
+
+                        elif self.dataset_name == "ogyei":
+                            if "s_" in file:
+                                match = re.search(r'^(.*?)_s_\d{3}\.jpg$', file)
+                            elif "u_" in file:
+                                match = re.search(r'^(.*?)_u_\d{3}\.jpg$', file)
+                            else:
+                                match = None
+
+                            if match:
+                                file_key = match.group(1)
+                            else:
+                                raise ValueError(f"Wrong file name: {file}")
+                        else:
+                            raise ValueError(f"Wrong dataset")
+
                         if file_key in pill_coeffs:
                             pill_coeffs[file_key].append(norm_fourier_coeff)
                         else:
                             pill_coeffs[file_key] = [norm_fourier_coeff]
+
                     except Exception as e:
                         print(f"{e}, Could not open{image_path}")
 
@@ -280,7 +300,7 @@ class FourierDescriptor:
 
 if __name__ == "__main__":
     try:
-        fd = FourierDescriptor(copy_images=False, order=15)
+        fd = FourierDescriptor(copy_images=True, order=10)
         fd.main()
     except KeyboardInterrupt:
         print("Ctrl+C pressed")

@@ -20,7 +20,7 @@ from torchsummary import summary
 from typing import Any, List
 
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
-from config.config_selector import sub_stream_network_configs, fusion_network_config, word_embedded_network_configs
+from config.config_selector import sub_stream_network_configs, fusion_network_config, nlp_configs
 from dataloader_fusion_network import FusionDataset
 from loss_functions.dynamic_margin_triplet_loss_fusion import DynamicMarginTripletLoss
 from fusion_network_models.fusion_network_selector import NetworkFactory
@@ -75,9 +75,8 @@ class TrainFusionNet:
         self.model = self.setup_model(network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture)
 
         # Specify loss function
-        # Specify loss function
         if self.cfg_fusion_net.type_of_loss_func == "dmtl":
-            path_to_excel_file = word_embedded_network_configs().get("vector_distances")
+            path_to_excel_file = nlp_configs().get("vector_distances")
             df = get_embedded_text_matrix(path_to_excel_file)
             self.criterion = DynamicMarginTripletLoss(
                 euc_dist_mtx=df,

@@ -20,7 +20,7 @@ from typing import List, Tuple
 from PIL import Image
 
 from config.config import ConfigFusionNetwork, ConfigStreamNetwork
-from config.config_selector import sub_stream_network_configs, fusion_network_config
+from config.config_selector import sub_stream_network_configs, fusion_network_config, dataset_images_path_selector
 from fusion_network_models.fusion_network_selector import NetworkFactory
 from utils.utils import (use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory,
                          plot_ref_query_images, setup_logger)
@@ -340,16 +340,24 @@ class PredictFusionNetwork:
             texture_dir=self.subnetwork_config.get("Texture").get("query").get(self.cfg_stream_net.dataset_type),
             operation="query")
 
-        ref_vectors, r_labels, r_images_path = self.get_vectors(
-            contour_dir="D:/storage/pill_detection/datasets/cure_one_sided/Reference/stream_images/contour",
-            #self.subnetwork_config.get("Contour").get("ref").get(self.cfg_stream_net.dataset_type),
-            lbp_dir="D:/storage/pill_detection/datasets/cure_one_sided/Reference/stream_images/lbp",
-            #self.subnetwork_config.get("LBP").get("ref").get(self.cfg_stream_net.dataset_type),
-            rgb_dir="D:/storage/pill_detection/datasets/cure_one_sided/Reference/stream_images/rgb",
-            #self.subnetwork_config.get("RGB").get("ref").get(self.cfg_stream_net.dataset_type),
-            texture_dir="D:/storage/pill_detection/datasets/cure_one_sided/Reference/stream_images/texture",
-            #self.subnetwork_config.get("Texture").get("ref").get(self.cfg_stream_net.dataset_type),
-            operation="reference")
+        if self.cfg_fusion_net.reference_set == "partial":
+            ref_vectors, r_labels, r_images_path = self.get_vectors(
+                    self.subnetwork_config.get("Contour").get("ref").get(self.cfg_stream_net.dataset_type),
+                    self.subnetwork_config.get("LBP").get("ref").get(self.cfg_stream_net.dataset_type),
+                    self.subnetwork_config.get("RGB").get("ref").get(self.cfg_stream_net.dataset_type),
+                    self.subnetwork_config.get("Texture").get("ref").get(self.cfg_stream_net.dataset_type),
+                    operation="reference")
+        else:
+            ref_vectors, r_labels, r_images_path = self.get_vectors(
+                contour_dir=dataset_images_path_selector(self.cfg_fusion_net.dataset_type).get("src_stream_images").get(
+                    "reference").get("stream_images_contour"),
+                lbp_dir=dataset_images_path_selector(self.cfg_fusion_net.dataset_type).get("src_stream_images").get(
+                    "reference").get("stream_images_lbp"),
+                rgb_dir=dataset_images_path_selector(self.cfg_fusion_net.dataset_type).get("src_stream_images").get(
+                    "reference").get("stream_images_rgb"),
+                texture_dir=dataset_images_path_selector(self.cfg_fusion_net.dataset_type).get("src_stream_images").get(
+                    "reference").get("stream_images_texture"),
+                operation="reference")
 
         gt, pred_ed, indices = (
             self.compare_query_ref_vectors_euc_dist(q_labels, r_labels, ref_vectors, query_vectors))

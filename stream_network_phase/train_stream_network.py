@@ -21,7 +21,7 @@ from typing import List, Tuple
 from pytorch_metric_learning import losses, miners
 
 from config.config import ConfigStreamNetwork
-from config.config_selector import word_embedded_network_configs, sub_stream_network_configs
+from config.config_selector import sub_stream_network_configs, nlp_configs
 from loss_functions.dynamic_margin_triplet_loss_stream import DynamicMarginTripletLoss
 from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network import DataLoaderStreamNet
@@ -84,7 +84,7 @@ class TrainModel:
 
         # Set up loss and mining functions
         if self.cfg.type_of_loss_func == "dmtl":
-            path_to_excel_file = word_embedded_network_configs().get("vector_distances")
+            path_to_excel_file = nlp_configs().get("vector_distances")
             df = get_embedded_text_matrix(path_to_excel_file)
             self.criterion = (
                 DynamicMarginTripletLoss(

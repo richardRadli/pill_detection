@@ -5,6 +5,7 @@ import os
 import pandas as pd
 import seaborn as sns
 
+from sklearn.manifold import TSNE
 from sklearn.metrics.pairwise import pairwise_distances
 
 from config.config import ConfigAugmentation
@@ -124,14 +125,15 @@ def main():
         labels_list.append(key)
 
     vectors = np.concatenate([np.array(combined_vectors[key]) for key in combined_vectors.keys()])
-    distances = pairwise_distances(vectors, metric="euclidean")
+    tsne_vectors = TSNE(n_components=3, learning_rate="auto", init='random', perplexity=3).fit_transform(vectors)
+    distances = pairwise_distances(tsne_vectors, metric="euclidean")
 
     df = pd.DataFrame(distances, index=labels_list, columns=labels_list)
 
     plt.figure(figsize=(200, 200))
     sns.heatmap(df, annot=True, cmap="viridis", fmt=".2f", annot_kws={"size": 8}, square=True)
 
-    plt.savefig("C:/Users/ricsi/Desktop/plot.png")
+    plt.savefig("C:/Users/ricsi/Desktop/plot_tsne.png")
 
 
 if __name__ == "__main__":

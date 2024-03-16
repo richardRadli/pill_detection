@@ -20,7 +20,7 @@ from typing import List, Tuple
 from PIL import Image
 
 from config.config import ConfigStreamNetwork
-from config.config_selector import sub_stream_network_configs, stream_network_config
+from config.config_selector import sub_stream_network_configs, stream_network_config, dataset_images_path_selector
 from stream_network_models.stream_network_selector import NetworkFactory
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, plot_confusion_matrix, \
     plot_ref_query_images, use_gpu_if_available, setup_logger
@@ -405,10 +405,14 @@ class PredictStreamNetwork:
         else:
             ref_vecs, r_labels, r_images_path = \
                 self.get_vectors(
-                    contour_dir=self.sub_network_config.get("Contour").get("ref").get(self.cfg.dataset_type),
-                    lbp_dir=self.sub_network_config.get("LBP").get("ref").get(self.cfg.dataset_type),
-                    rgb_dir=self.sub_network_config.get("RGB").get("ref").get(self.cfg.dataset_type),
-                    texture_dir=self.sub_network_config.get("Texture").get("ref").get(self.cfg.dataset_type),
+                    contour_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_contour"),
+                    # self.sub_network_config.get("Contour").get("ref").get(self.cfg.dataset_type),
+                    lbp_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_lbp"),
+                    # self.sub_network_config.get("LBP").get("ref").get(self.cfg.dataset_type),
+                    rgb_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb"),
+                    # self.sub_network_config.get("RGB").get("ref").get(self.cfg.dataset_type),
+                    texture_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_texture"),
+                    # self.sub_network_config.get("Texture").get("ref").get(self.cfg.dataset_type),
                     operation="reference")
 
         gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)

@@ -856,7 +856,49 @@ class Datasets(_Const):
         return os.path.join(self.DATASET_ROOT, self.dirs_dataset.get(key, ""))
 
 
+class NLPData(_Const):
+    nlp_data = {
+        "pill_names":
+            "nlp/csv/pill_names",
+        "full_sentence_csv":
+            "nlp/csv/full_sentence_csv",
+        "vector_distances":
+            "nlp/csv/distances",
+
+        "nlp_vector":
+            "nlp/npy/nlp_vector",
+
+        "word_vector_vis":
+            "nlp/plot/word_vector",
+        "elbow":
+            "nlp/plot/elbow",
+        "silhouette":
+            "nlp/plot/silhouette",
+
+        "patient_information_leaflet_doc":
+            "nlp/documents/patient_information_leaflet_doc",
+        "patient_information_leaflet_docx":
+            "nlp/documents/patient_information_leaflet_docx",
+        "extracted_features_files":
+            "nlp/documents/extracted_features_files"
+    }
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------------- I N I T -----------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def __init__(self):
+        super().__init__()
+        self.create_directories(self.nlp_data, "PROJECT")
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------ G E T   D A T A   P A T H ---------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def get_data_path(self, key):
+        return os.path.join(self.PROJECT_ROOT, self.nlp_data.get(key, ""))
+
+
 CONST: _Const = _Const()
 IMAGES_PATH: Images = Images()
 DATA_PATH: Data = Data()
 DATASET_PATH: Datasets = Datasets()
+NLP_DATA_PATH: NLPData = NLPData()
