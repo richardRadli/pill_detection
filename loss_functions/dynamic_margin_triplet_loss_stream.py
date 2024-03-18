@@ -119,6 +119,7 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         for i, (anchor_idx, negative_idx) in enumerate(zip(anchor_file_idx, negative_file_idx)):
             # Extract labels for anchor and negative samples
             anchor_label = labels[anchor_idx].item()
+            negative_label = labels[negative_idx].item()
 
             # Find the corresponding row in the Euclidean distance matrix using labels
             anchor_row = self.euc_dist_mtx.iloc[anchor_label]
@@ -132,7 +133,7 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
             normalized_distance = 1 + (self.upper_norm_limit - 1) * ((anchor_row_tensor - min_distance) / (max_distance - min_distance))
 
             # Store normalized distance
-            normalized_distances[i] = normalized_distance[negative_idx]
+            normalized_distances[i] = normalized_distance[negative_label]
 
         return normalized_distances
 
