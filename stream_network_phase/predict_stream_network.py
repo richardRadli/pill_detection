@@ -171,7 +171,7 @@ class PredictStreamNetwork:
 
         logging.info("Processing %s images" % operation)
 
-        color = colorama.Fore.BLUE if operation == "query" else colorama.Fore.RED
+        color = colorama.Fore.BLUE if operation == "query" else colorama.Fore.LIGHTYELLOW_EX
         medicine_classes = os.listdir(rgb_dir)
         vectors = []
         labels = []
