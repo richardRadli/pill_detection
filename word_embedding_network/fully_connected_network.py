@@ -19,6 +19,4 @@ class FullyConnectedNetwork(nn.Module):
         x = nn.ReLU()(self.fc4(x))
         x = nn.ReLU()(self.fc5(x))
         embeddings = self.fc6(x)
-        probs = nn.Softmax(dim=1)(embeddings)
-        return probs, embeddings
-
+        return embeddings

@@ -130,7 +130,8 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
             max_distance = torch.max(anchor_row_tensor)
 
             # Calculate normalized distance
-            normalized_distance = 1 + (self.upper_norm_limit - 1) * ((anchor_row_tensor - min_distance) / (max_distance - min_distance))
+            normalized_distance = 1 + ((self.upper_norm_limit - 1) * (min_distance - anchor_row_tensor)) / (
+                        max_distance - min_distance)
 
             # Store normalized distance
             normalized_distances[i] = normalized_distance[negative_label]

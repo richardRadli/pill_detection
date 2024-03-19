@@ -222,7 +222,7 @@ class PredictStreamNetwork:
                     texture_vector = self.network_tex(tex_image).squeeze().cpu()
 
                 concatenated = torch.cat((contour_vector, lbp_vector, rgb_vector, texture_vector), dim=0)
-                vectors.append(contour_vector)
+                vectors.append(concatenated)
                 labels.append(image_name)
 
             if operation == "reference":
@@ -403,17 +403,24 @@ class PredictStreamNetwork:
             r_images_path = data['images_path']
             logging.info("Reference vectors has been loaded!")
         else:
-            ref_vecs, r_labels, r_images_path = \
-                self.get_vectors(
-                    contour_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_contour"),
-                    # self.sub_network_config.get("Contour").get("ref").get(self.cfg.dataset_type),
-                    lbp_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_lbp"),
-                    # self.sub_network_config.get("LBP").get("ref").get(self.cfg.dataset_type),
-                    rgb_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb"),
-                    # self.sub_network_config.get("RGB").get("ref").get(self.cfg.dataset_type),
-                    texture_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_texture"),
-                    # self.sub_network_config.get("Texture").get("ref").get(self.cfg.dataset_type),
-                    operation="reference")
+            if self.cfg.reference_set == "full":
+                ref_vecs, r_labels, r_images_path = \
+                    self.get_vectors(
+                        contour_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_contour"),
+                        lbp_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_lbp"),
+                        rgb_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb"),
+                        texture_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_texture"),
+                        operation="reference")
+            elif self.cfg.reference_set == "partial":
+                ref_vecs, r_labels, r_images_path = \
+                    self.get_vectors(
+                        self.sub_network_config.get("Contour").get("ref").get(self.cfg.dataset_type),
+                        self.sub_network_config.get("LBP").get("ref").get(self.cfg.dataset_type),
+                        self.sub_network_config.get("RGB").get("ref").get(self.cfg.dataset_type),
+                        self.sub_network_config.get("Texture").get("ref").get(self.cfg.dataset_type),
+                        operation="reference")
+            else:
+                raise ValueError(f"Wrong reference set: {self.cfg.reference_set}")
 
         gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
         self.display_results(gt, pred_ed, query_vecs)

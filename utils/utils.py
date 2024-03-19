@@ -278,7 +278,8 @@ def measure_execution_time(func: Callable) -> Callable:
         result = func(*args, **kwargs)
         end_time = time.time()
         execution_time = end_time - start_time
-        logging.info(f"Execution time of {func.__name__}: {execution_time} seconds")
+        logging.info(f"Execution time of {func.__name__}: {execution_time:.4f} seconds")
+        logging.info(f"Execution time of {func.__name__}: {execution_time/60:.4f} minutes")
         return result
 
     return wrapper

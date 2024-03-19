@@ -39,7 +39,7 @@ class TrainWordEmbeddingNetwork:
                            batch_size=self.cfg.batch_size)
         )
 
-        self.criterion = losses.ContrastiveLoss()
+        self.criterion = losses.NTXentLoss()
 
         self.model = (
             FullyConnectedNetwork(input_dim=word_emb_model_confing.get("input_dim"),

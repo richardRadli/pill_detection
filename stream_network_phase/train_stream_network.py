@@ -104,7 +104,8 @@ class TrainModel:
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                          lr=network_cfg.get("learning_rate"))
+                                          lr=network_cfg.get("learning_rate"),
+                                          weight_decay=1e-5)
 
         # LR scheduler
         self.scheduler = StepLR(optimizer=self.optimizer,
@@ -114,6 +115,12 @@ class TrainModel:
         # Tensorboard
         tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
+        dummy_input = torch.randn(1,
+                                  network_cfg.get('channels')[0],
+                                  network_cfg.get("image_size"),
+                                  network_cfg.get("image_size")
+                                  ).to(device=self.device)
+        self.writer.add_graph(self.model, dummy_input)
 
         # Create save directory for model weights
         self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))
@@ -362,6 +369,8 @@ class TrainModel:
         # Close and flush SummaryWriter
         self.writer.close()
         self.writer.flush()
+
+        del train_loss, valid_loss, hard_samples
 
 
 # ----------------------------------------------------------------------------------------------------------------------
