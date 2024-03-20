@@ -41,12 +41,12 @@ class DataLoaderWordEmbeddingNetwork(Dataset):
 
     @staticmethod
     def augment_lab_values(feature_vector):
-        lab_value = feature_vector[:6]
-        augmented_lab_value = lab_value + np.random.normal(loc=0, scale=0.1, size=lab_value.shape)
+        lab_value = feature_vector[:12]
+        augmented_lab_value = [f + np.random.normal(loc=0, scale=0.1) for f in lab_value]
         return augmented_lab_value
 
     @staticmethod
     def augment_fourier_values(feature_vector):
-        fourier_value = feature_vector[6:40]
-        augmented_fourier_value = fourier_value + np.random.normal(loc=0, scale=0.1, size=fourier_value.shape)
+        fourier_value = feature_vector[12:86]
+        augmented_fourier_value = [f + np.random.normal(loc=0, scale=0.1) for f in fourier_value]
         return augmented_fourier_value

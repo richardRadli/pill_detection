@@ -147,7 +147,9 @@ class TrainModel:
         """
 
         directory_path = network_cfg.get(self.cfg.type_of_net).get(self.cfg.dataset_type)
-        directory_to_create = os.path.join(directory_path, f"{self.timestamp}_{self.cfg.type_of_loss_func}")
+        directory_to_create = (
+            os.path.join(directory_path, f"{self.timestamp}_{self.cfg.type_of_loss_func}_{self.cfg.fold}")
+        )
         os.makedirs(directory_to_create, exist_ok=True)
         return directory_to_create
 

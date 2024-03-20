@@ -180,7 +180,10 @@ class TrainFusionNet:
         """
 
         directory_path = main_network_config.get(directory_type).get(self.cfg_stream_net.dataset_type)
-        directory_to_create = os.path.join(directory_path, f"{self.timestamp}_{self.cfg_fusion_net.type_of_loss_func}")
+        directory_to_create = (
+            os.path.join(directory_path,
+                         f"{self.timestamp}_{self.cfg_fusion_net.type_of_loss_func}_{self.cfg_fusion_net.fold}")
+        )
         os.makedirs(directory_to_create, exist_ok=True)
         return directory_to_create
 

@@ -11,11 +11,13 @@ from utils.utils import create_timestamp, find_latest_file_in_directory
 
 
 class KFoldSort:
-    def __init__(self, load_folds, fold_name, erase):
+    def __init__(self, load_folds, erase):
         self.stream_cfg = ConfigStreamNetwork().parse()
         self.load_folds = load_folds
-        self.fold_name = fold_name
+        self.fold_name = self.stream_cfg.fold
         self.erase = erase
+
+        logging.info(f"{self.fold_name} selected")
 
     def folds(self, load: bool = False, num_folds: int = None) -> dict:
         """
@@ -181,5 +183,6 @@ class KFoldSort:
 
 
 if __name__ == "__main__":
-    k_fold_sort = KFoldSort(load_folds=True, fold_name="fold3", erase=True)
+    k_fold_sort = KFoldSort(load_folds=True,
+                            erase=True)
     k_fold_sort.main()

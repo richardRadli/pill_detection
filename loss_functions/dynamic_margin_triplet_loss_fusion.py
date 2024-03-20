@@ -59,11 +59,14 @@ class DynamicMarginTripletLoss(nn.Module):
         losses = []
 
         for i in range(batch_size):
-            normalized_similarity = self.normalize_row(anchor_file_names, negative_file_names, i)
-            margin = normalized_similarity * self.margin
-            dist_pos = functional.pairwise_distance(anchor_tensor[i:i + 1], positive_tensor[i:i + 1], 2)
-            dist_neg = functional.pairwise_distance(anchor_tensor[i:i + 1], negative_tensor[i:i + 1], 2)
-            loss = functional.relu(margin + dist_pos - dist_neg)
+            ap_dist = functional.pairwise_distance(anchor_tensor[i:i + 1], positive_tensor[i:i + 1], 2)
+            an_dist = functional.pairwise_distance(anchor_tensor[i:i + 1], negative_tensor[i:i + 1], 2)
+
+            normalized_margins = self.normalize_row(anchor_file_names, negative_file_names, i)
+            margin = self.margin * normalized_margins
+
+            pos_neg_dists = ap_dist - an_dist
+            loss = functional.relu(margin + pos_neg_dists)
             losses.append(loss)
 
         triplet_loss = torch.mean(torch.stack(losses))
@@ -86,11 +89,11 @@ class DynamicMarginTripletLoss(nn.Module):
              The normalized row.
         """
 
-        row = self.euc_dist_mtx.loc[anchor_file_names[idx]]
-        min_val = row.min()
-        max_val = row.max()
-        normalized_row = 1 + (self.upper_norm_limit - 1) * ((min_val - row) / (max_val - min_val))
-        return normalized_row[negative_file_names[idx]]
+        d_i = self.euc_dist_mtx.loc[anchor_file_names[idx]]
+        d_min = d_i.min()
+        d_max = d_i.max()
+        d_i_norm = 1 + ((self.upper_norm_limit - 1) * (d_min - d_i)) / (d_max - d_min)
+        return d_i_norm[negative_file_names[idx]]
 
     @staticmethod
     def process_file_names(lines: list) -> list:
