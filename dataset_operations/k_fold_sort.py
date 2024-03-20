@@ -181,5 +181,5 @@ class KFoldSort:
 
 
 if __name__ == "__main__":
-    k_fold_sort = KFoldSort(load_folds=True, fold_name="fold1", erase=True)
+    k_fold_sort = KFoldSort(load_folds=True, fold_name="fold3", erase=True)
     k_fold_sort.main()

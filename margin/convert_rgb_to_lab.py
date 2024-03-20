@@ -7,32 +7,52 @@ from config.config_selector import dataset_images_path_selector
 from utils.utils import NumpyEncoder, sort_dict, create_timestamp, find_latest_file_in_directory
 
 
-def rgb_to_lab():
+def concatenate_json_files(json_path, output_path):
+    concatenated_data = {}
+
+    for file_name in os.listdir(json_path):
+        if file_name.endswith(".json"):
+            file_path = os.path.join(json_path, file_name)
+
+            with open(file_path, "r") as json_file:
+                data = json.load(json_file)
+                for key, value in data.items():
+                    concatenated_data.setdefault(key, {}).update(value)
+
+    with open(output_path, "w") as json_file:
+        json.dump(concatenated_data, json_file, indent=4)
+
+    return concatenated_data
+
+
+def rgb_to_lab(load: bool = True):
     cfg = ConfigAugmentation().parse()
     timestamp = create_timestamp()
 
     json_path = dataset_images_path_selector(cfg.dataset_name).get("dynamic_margin").get("colour_vectors")
-    json_file_name_rgb = find_latest_file_in_directory(json_path, "json")
+
     json_file_name_lab = os.path.join(json_path, f"{timestamp}_colors_lab.json")
 
-    with open(json_file_name_rgb, "r") as file:
-        json_file = json.load(file)
+    if load:
+        json_file_name_rgb = find_latest_file_in_directory(json_path, "json")
+        with open(json_file_name_rgb, "r") as file:
+            concatenated_data = json.load(file)
+    else:
+        json_file_name_rgb = os.path.join(json_path, f"{timestamp}_colors_rgb.json")
+        concatenated_data = concatenate_json_files(json_path, json_file_name_rgb)
 
-    rgb_values = {}
+    lab_values = {}
 
-    for key, value in json_file.items():
-        for rgb_value in value:
-            lab_value = colorspacious.cspace_convert(rgb_value, "sRGB255", "CIELab")
-            if key in rgb_values:
-                rgb_values[key].append(lab_value)
-            else:
-                rgb_values[key] = [lab_value]
+    for key, value in concatenated_data.items():
+        for image_key, rgb_value in value.items():
+            rgb_values = list(rgb_value.values())
+            lab_values.setdefault(key, []).append(colorspacious.cspace_convert(rgb_values, "sRGB255", "CIELab"))
 
-    sorted_dict = sort_dict(rgb_values)
+    sorted_dict = sort_dict(lab_values)
 
     with open(json_file_name_lab, "w") as json_file:
         json.dump(sorted_dict, json_file, cls=NumpyEncoder)
 
 
 if __name__ == "__main__":
-    rgb_to_lab()
+    rgb_to_lab(load=True)

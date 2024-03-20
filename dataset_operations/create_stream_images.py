@@ -344,6 +344,8 @@ class CreateStreamImages:
 
                 if match:
                     value = match.group(1)
+                else:
+                    raise ValueError(f"Wrong file name: {file_rgb}")
 
             elif self.cfg.dataset_type == 'cure_two_sided':
                 value = os.path.basename(file_rgb).split("_")[0]

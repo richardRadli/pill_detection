@@ -121,11 +121,11 @@ def main() -> None:
     cfg = ConfigAugmentation().parse()
     timestamp = create_timestamp()
 
-    imprint_words = ['DEBOSSED', 'NOTHING', 'EMBOSSED', 'PRINTED']
+    imprint_words = ['NOTHING', 'EMBOSSED', 'PRINTED']
     score_words = [1, 2, 4]
 
     pill_desc_path = dataset_images_path_selector(cfg.dataset_name).get("dynamic_margin").get("pill_desc_xlsx")
-    pill_desc_file = os.path.join(pill_desc_path, "pill_desc.xlsx")
+    pill_desc_file = os.path.join(pill_desc_path, f"pill_desc_{cfg.dataset_name}.xlsx")
 
     workbook = openpyxl.load_workbook(pill_desc_file)
     sheet = workbook['Sheet1']

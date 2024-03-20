@@ -1,6 +1,7 @@
 import colorama
 import cv2
 import json
+import logging
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -52,7 +53,7 @@ class FourierDescriptor:
         self.excel_path = (
             os.path.join(
                 dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("pill_desc_xlsx"),
-                "pill_desc.xlsx"
+                f"pill_desc_{cfg.dataset_type}.xlsx"
             )
         )
 
@@ -80,7 +81,7 @@ class FourierDescriptor:
         workbook.close()
 
         for shape, pill_id_list in tqdm(shape_dict.items(), desc=colorama.Fore.GREEN + "Processing Shapes"):
-            print(f"Shape: {shape}")
+            logging.info(f"Shape: {shape}")
             for pill_id in pill_id_list:
                 src_dir = os.path.join(self.images_dir, str(pill_id))
 
@@ -90,10 +91,10 @@ class FourierDescriptor:
                         src_file = os.path.join(src_dir, file_name)
                         dst_dir = os.path.join(self.file_path, shape)
                         os.makedirs(dst_dir, exist_ok=True)
-                        print(dst_dir)
+                        logging.info(dst_dir)
                         shutil.copy(src_file, dst_dir)
                 except FileNotFoundError:
-                    print(f"File not found in directory: {src_dir}")
+                    logging.error(f"File not found in directory: {src_dir}")
 
     @staticmethod
     def preprocess_image(image: np.ndarray) -> np.ndarray:
@@ -266,9 +267,9 @@ class FourierDescriptor:
                             file_key = file.split("_")[0]
 
                         elif self.dataset_name == "ogyei":
-                            if "s_" in file:
+                            if "_s_" in file:
                                 match = re.search(r'^(.*?)_s_\d{3}\.jpg$', file)
-                            elif "u_" in file:
+                            elif "_u_" in file:
                                 match = re.search(r'^(.*?)_u_\d{3}\.jpg$', file)
                             else:
                                 match = None
@@ -286,7 +287,7 @@ class FourierDescriptor:
                             pill_coeffs[file_key] = [norm_fourier_coeff]
 
                     except Exception as e:
-                        print(f"{e}, Could not open{image_path}")
+                        logging.error(f"{e}, Could not open{image_path}")
 
                 if class_coefficients:
                     class_average = np.mean(class_coefficients, axis=0)
@@ -303,4 +304,4 @@ if __name__ == "__main__":
         fd = FourierDescriptor(copy_images=True, order=10)
         fd.main()
     except KeyboardInterrupt:
-        print("Ctrl+C pressed")
+        logging.error("Ctrl+C pressed")

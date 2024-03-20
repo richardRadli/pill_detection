@@ -1,4 +1,5 @@
 import json
+import numpy as np
 import torch
 
 from torch.utils.data import Dataset
@@ -14,9 +15,18 @@ class DataLoaderWordEmbeddingNetwork(Dataset):
         return total_samples
 
     def __getitem__(self, idx):
+        augmented_data = []
+
         for class_label in self.classes:
             if idx < len(self.data[class_label]):
-                return torch.tensor(self.data[class_label][idx], dtype=torch.float32), class_label
+                original_vector = torch.tensor(self.data[class_label][idx], dtype=torch.float32), class_label
+                augmented_lab_vector = self.augment_lab_values(original_vector)
+                augmented_fourier_vector = self.augment_fourier_values(original_vector)
+
+                augmented_data.append((original_vector, augmented_lab_vector))
+                augmented_data.append((original_vector, augmented_fourier_vector))
+
+                return augmented_data, class_label
             else:
                 idx -= len(self.data[class_label])
 
@@ -28,3 +38,15 @@ class DataLoaderWordEmbeddingNetwork(Dataset):
 
     def get_classes(self):
         return self.classes
+
+    @staticmethod
+    def augment_lab_values(feature_vector):
+        lab_value = feature_vector[:6]
+        augmented_lab_value = lab_value + np.random.normal(loc=0, scale=0.1, size=lab_value.shape)
+        return augmented_lab_value
+
+    @staticmethod
+    def augment_fourier_values(feature_vector):
+        fourier_value = feature_vector[6:40]
+        augmented_fourier_value = fourier_value + np.random.normal(loc=0, scale=0.1, size=fourier_value.shape)
+        return augmented_fourier_value

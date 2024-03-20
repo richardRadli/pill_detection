@@ -13,26 +13,22 @@ from config.config_selector import dataset_images_path_selector
 from utils.utils import find_latest_file_in_directory, NumpyEncoder, create_timestamp
 
 
-def normalize_lab_values(lab_values):
+def normalize_lab_values(lab_values, type):
     normalized_values = {}
 
     for key, value in lab_values.items():
-        if 'bottom' in value:
-            bottom_data = np.array(value['bottom'])
-            normalized_bottom_data = (bottom_data - np.min(bottom_data)) / (np.max(bottom_data) - np.min(bottom_data))
-        else:
-            normalized_bottom_data = None
+        data1 = np.array(value[0])
+        normalized_data1 = (data1 - np.min(data1)) / (np.max(data1) - np.min(data1))
 
-        if 'top' in value:
-            top_data = np.array(value['top'])
-            normalized_top_data = (top_data - np.min(top_data)) / (np.max(top_data) - np.min(top_data))
-        else:
-            normalized_top_data = None
+        data2 = np.array(value[1])
+        normalized_data2 = (data2 - np.min(data2)) / (np.max(data2) - np.min(data2))
 
-        normalized_values[key] = {
-            'bottom': normalized_bottom_data.tolist() if normalized_bottom_data is not None else None,
-            'top': normalized_top_data.tolist() if normalized_top_data is not None else None
-        }
+        if type == 'lab':
+            concat_data = np.concatenate((normalized_data1, normalized_data2), axis=1)
+        else:
+            concat_data = np.concatenate((normalized_data1, normalized_data2), axis=0)
+        concat_data_flattened = np.reshape(concat_data, (1, -1))
+        normalized_values[key] = concat_data_flattened
 
     return normalized_values
 
@@ -50,45 +46,22 @@ def load_json_files(dataset_name, feature_type: str):
     return values
 
 
-def flatten_list(input_list):
-    concatenated_list = []
-
-    for element in input_list:
-        if isinstance(element, list):
-            concatenated_list.extend(element)
-        else:
-            concatenated_list.append(element)
-
-    return concatenated_list
-
-
 def process_vectors(lab_values, fourier_desc_values, imprint_values, score_values):
     combined_vectors = {}
 
     for class_id in lab_values.keys():
-        combined_vectors[class_id + "_top"] = []
-        combined_vectors[class_id + "_bottom"] = []
+        combined_vectors[class_id] = []
 
-        combined_sublist_top = (
-                lab_values[class_id]['top'] +
-                fourier_desc_values[class_id]['top'] +
-                imprint_values[class_id]['top'] +
-                score_values[class_id]['top']
-        )
+        combined_vector = np.hstack((
+                lab_values[class_id],
+                fourier_desc_values[class_id],
+                imprint_values[class_id],
+                score_values[class_id]
+        ))
 
-        combined_sublist_bottom = (
-                lab_values[class_id]['bottom'] +
-                fourier_desc_values[class_id]['bottom'] +
-                imprint_values[class_id]['bottom'] +
-                score_values[class_id]['bottom']
-        )
+        combined_vectors[class_id].append(combined_vector)
 
-        combined_sublist_top = flatten_list(combined_sublist_top)
-        combined_sublist_bottom = flatten_list(combined_sublist_bottom)
-
-        combined_vectors[class_id + "_top"].append(combined_sublist_top)
-        combined_vectors[class_id + "_bottom"].append(combined_sublist_bottom)
-
+    combined_vectors = {class_id: values[0] for class_id, values in combined_vectors.items()}
     return combined_vectors
 
 
@@ -99,11 +72,11 @@ def main():
 
     # L*a*b* values
     lab_values = load_json_files(dataset_name, "colour_vectors")
-    norm_lab_values = normalize_lab_values(lab_values)
+    norm_lab_values = normalize_lab_values(lab_values, "lab")
 
     # Fourier descriptors
     fourier_desc_values = load_json_files(dataset_name, "Fourier_saved_mean_vectors")
-    norm_fourier_desc_values = normalize_lab_values(fourier_desc_values)
+    norm_fourier_desc_values = normalize_lab_values(fourier_desc_values, "fourier")
 
     # imprint vectors
     imprint_values = load_json_files(dataset_name, "imprint_vectors")

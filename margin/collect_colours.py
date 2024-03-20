@@ -20,8 +20,9 @@ def click_event(event, x, y, flags, param):
     elif event == cv2.EVENT_LBUTTONUP and save_point:
         roi = image_copy[points[0][1]:points[1][1], points[0][0]:points[1][0]]
         average_color = [int(roi[:, :, i].mean()) for i in range(3)]
-        data[folder_name][os.path.basename(image_path)]["p" + str(len(data[folder_name][os.path.basename(image_path)]) + 1)] = average_color
-        cv2.rectangle(image, points[0], points[1], (0, 0, 255))  # Red circle for the first point
+        data[folder_name][os.path.basename(image_path)]\
+            ["p" + str(len(data[folder_name][os.path.basename(image_path)]) + 1)] = average_color
+        cv2.rectangle(image, points[0], points[1], (0, 0, 255))
 
         cv2.imshow('image', image)
         cv2.imshow('ROI', roi)
@@ -69,7 +70,11 @@ for directory in sorted(glob(os.path.join(images_dir, "*"))):
         cv2.destroyAllWindows()
 
         # Save data to JSON after iterating through all images
-        json_save_dir = "D:/storage/pill_detection/data/ogyei/dynamic_margin/colour_vectors"
+        json_save_dir = (
+            os.path.join(dataset_images_path_selector(cfg.dataset_name).get("dynamic_margin").get("colour_vectors"),
+                         timestamp)
+        )
+        os.makedirs(json_save_dir, exist_ok=True)
         json_path = os.path.join(json_save_dir,
                                  os.path.basename(image_path).replace(".jpg", ".json"))
         with open(json_path, 'w') as json_file:
