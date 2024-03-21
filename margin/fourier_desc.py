@@ -11,12 +11,11 @@ import re
 import shutil
 
 from tqdm import tqdm
-from scipy.spatial.distance import pdist, squareform
 from sklearn.decomposition import PCA
 
 from config.config import ConfigStreamImages
 from config.config_selector import dataset_images_path_selector
-from utils.utils import create_timestamp, find_latest_file_in_directory, sort_dict
+from utils.utils import create_timestamp, find_latest_file_in_directory, sort_dict, plot_euclidean_distances
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -87,12 +86,13 @@ class FourierDescriptor:
 
                 try:
                     files = os.listdir(src_dir)
-                    for file_name in files:
-                        src_file = os.path.join(src_dir, file_name)
-                        dst_dir = os.path.join(self.file_path, shape)
-                        os.makedirs(dst_dir, exist_ok=True)
-                        logging.info(dst_dir)
-                        shutil.copy(src_file, dst_dir)
+                    for idx, file_name in enumerate(files):
+                        if idx == 0:
+                            src_file = os.path.join(src_dir, file_name)
+                            dst_dir = os.path.join(self.file_path, shape)
+                            os.makedirs(dst_dir, exist_ok=True)
+                            logging.info(dst_dir)
+                            shutil.copy(src_file, dst_dir)
                 except FileNotFoundError:
                     logging.error(f"File not found in directory: {src_dir}")
 
@@ -105,6 +105,7 @@ class FourierDescriptor:
         :param image: Input image.
         :return: Preprocessed image.
         """
+
         sobel_x = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
         sobel_y = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
         edge_map = cv2.add(np.abs(sobel_x), np.abs(sobel_y))
@@ -148,43 +149,15 @@ class FourierDescriptor:
         np.testing.assert_almost_equal(coefficients[0, 2], 0.0, decimal=14)
         return coefficients.flatten()[3:]
 
-    def plot_euclidean_distances(self, class_averages: dict) -> None:
-        """
-        Plot pairwise Euclidean distances between class averages.
-
-        :param class_averages: Dictionary mapping class labels to class averages.
-        :return: None
-        """
-
-        class_labels = list(class_averages.keys())
-        class_vectors = np.array(list(class_averages.values()))
-
-        normalized_values = ((class_vectors - np.min(class_vectors, axis=0)) /
-                             (np.max(class_vectors, axis=0) - np.min(class_vectors, axis=0)))
-
-        distances = squareform(pdist(normalized_values, 'euclidean'))
-
-        plt.figure(figsize=(8, 8))
-        plt.imshow(distances, cmap='viridis', vmin=0, vmax=np.max(distances))
-        plt.colorbar(label='Euclidean Distance')
-
-        plt.xticks(np.arange(len(class_labels)), class_labels, rotation=45, ha='right')
-        plt.yticks(np.arange(len(class_labels)), class_labels)
-        plt.xlabel('Class Label')
-        plt.ylabel('Class Label')
-        plt.title('Pairwise Euclidean Distances between Class Averages')
-
-        plt.tight_layout()
-        filename = os.path.join(self.plot_euc_dir, f"euclidean_distances_{self.order}_{self.timestamp}.png")
-        plt.savefig(filename, dpi=300)
-        plt.close()
-
     @staticmethod
-    def plot_vectors(class_averages):
+    def plot_vectors(class_averages) -> None:
         """
 
-        :param class_averages:
-        :return:
+        Args:
+            class_averages:
+
+        Returns:
+            None
         """
 
         classes = list(class_averages.keys())
@@ -234,7 +207,8 @@ class FourierDescriptor:
         """
         Load class averages from a JSON file.
 
-        :return: Dictionary mapping class labels to class averages.
+        Returns:
+             Dictionary mapping class labels to class averages.
         """
 
         latest_file = find_latest_file_in_directory(path=self.json_dir, extension="json")
@@ -293,15 +267,20 @@ class FourierDescriptor:
                     class_average = np.mean(class_coefficients, axis=0)
                     class_averages[class_label] = class_average
 
-        self.plot_euclidean_distances(class_averages)
+        filename = os.path.join(self.plot_euc_dir, f"euclidean_distances_{self.order}_{self.timestamp}.png")
+        plot_euclidean_distances(vectors=class_averages,
+                                 dataset_name=self.dataset_name,
+                                 filename=filename,
+                                 normalize=True,
+                                 operation="shapes",
+                                 plot_size=8)
         self.plot_vectors(class_averages)
-        self.save_json(class_averages, file_name="average-vectors_order")
         self.save_json(pill_coeffs, file_name="pill_coeffs_order")
 
 
 if __name__ == "__main__":
     try:
-        fd = FourierDescriptor(copy_images=True, order=10)
+        fd = FourierDescriptor(copy_images=False, order=10)
         fd.main()
     except KeyboardInterrupt:
         logging.error("Ctrl+C pressed")

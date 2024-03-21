@@ -25,6 +25,7 @@ from functools import wraps
 from glob import glob
 from pathlib import Path
 from PIL import Image
+from scipy.spatial.distance import pdist, squareform
 from sklearn.metrics import confusion_matrix
 from torch.utils.data import DataLoader, random_split
 from typing import Any, Callable, List, Optional, Tuple, Union
@@ -199,6 +200,7 @@ def find_latest_file_in_latest_directory_word_emb(path) -> str:
 
     return latest_file
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------- F I N D   L A T E S T   S U B D ------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -279,7 +281,7 @@ def measure_execution_time(func: Callable) -> Callable:
         end_time = time.time()
         execution_time = end_time - start_time
         logging.info(f"Execution time of {func.__name__}: {execution_time:.4f} seconds")
-        logging.info(f"Execution time of {func.__name__}: {execution_time/60:.4f} minutes")
+        logging.info(f"Execution time of {func.__name__}: {execution_time / 60:.4f} minutes")
         return result
 
     return wrapper
@@ -374,6 +376,50 @@ def plot_confusion_matrix(gt: List[str], predictions: List[str], out_path: str) 
     os.makedirs(out_path, exist_ok=True)
     output_path = os.path.join(out_path, "confusion_matrix.png")
     plt.savefig(output_path, dpi=600)
+
+
+def plot_euclidean_distances(vectors: dict, dataset_name: str, filename: str, normalize: bool, operation: str,
+                             plot_size: int)\
+        -> None:
+    """
+    Plot pairwise Euclidean distances between class averages.
+
+    Args:
+        vectors: Dictionary mapping class labels to class averages.
+        dataset_name: Name of the dataset to plot.
+        filename: Name of the output file.
+        normalize: Whether to normalize the data before plotting or not.
+        operation:
+        plot_size:
+    Returns:
+        None
+    """
+
+    class_labels = list(vectors.keys())
+    class_vectors = np.array(list(vectors.values()))
+
+    if class_vectors.ndim != 2:
+        class_vectors = np.squeeze(class_vectors)
+
+    if normalize:
+        class_vectors = ((class_vectors - np.min(class_vectors, axis=0)) /
+                         (np.max(class_vectors, axis=0) - np.min(class_vectors, axis=0)))
+
+    distances = squareform(pdist(class_vectors, 'euclidean'))
+
+    df = pd.DataFrame(distances, index=class_labels, columns=class_labels)
+
+    plt.figure(figsize=(plot_size, plot_size))
+    sns.heatmap(df, annot=True, cmap="viridis", fmt=".2f", annot_kws={"size": 8}, square=True)
+
+    plt.xticks(np.arange(len(class_labels)), class_labels, rotation=45, ha='right')
+    plt.yticks(np.arange(len(class_labels)), class_labels)
+    plt.title(f'Pairwise Euclidean distances between {operation} '
+              f'\n {"normalized" if normalize else "not normalized"} - dataset: {dataset_name}')
+
+    plt.tight_layout()
+    plt.savefig(filename, dpi=300)
+    plt.close()
 
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -146,8 +146,8 @@ class Images(_Const):
         "Fourier_euclidean_distance_cure_two_sided":
             "images/cure_two_sided/dynamic_margin/Fourier_descriptor/euclidean_distance",
 
-        "pill_colours_cure_two_sided":
-            "images/cure_two_sided/dynamic_margin/pill_colours",
+        "combined_vectors_euc_dst_cure_two_sided":
+            "images/cure_two_sided/dynamic_margin/combined_vectors_euc_dst",
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I ++++++++++++++++++++++++++++++++++++++++++++++++
         "stream_images_ogyei_anchor":
@@ -220,8 +220,8 @@ class Images(_Const):
         "Fourier_euclidean_distance_ogyei":
             "images/ogyei/dynamic_margin/Fourier_descriptor/euclidean_distance",
 
-        "pill_colours_ogyei":
-            "images/ogyei/dynamic_margin/pill_colours",
+        "combined_vectors_euc_dst_ogyei":
+            "images/ogyei/dynamic_margin/combined_vectors_euc_dst",
 
         # ++++++++++++++++++++++++++++++++++++++++ C U R E   O N E   S I D E D +++++++++++++++++++++++++++++++++++++++++
         "stream_images_cure_one_sided_anchor":
@@ -297,8 +297,8 @@ class Images(_Const):
             "images/cure_one_sided/dynamic_margin/Fourier_descriptor/euclidean_distance",
 
         # ---------------------------------------------- C O L O U R S -------------------------------------------------
-        "pill_colours_cure_one_sided":
-            "images/cure_one_sided/dynamic_margin/pill_colours",
+        "combined_vectors_euc_dst_cure_one_sided":
+            "images/cure_one_sided/dynamic_margin/combined_vectors_euc_dst",
     }
 
     # ------------------------------------------------------------------------------------------------------------------

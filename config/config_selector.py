@@ -792,7 +792,9 @@ def dataset_images_path_selector(dataset_name):
                 "score_vectors":
                     DATA_PATH.get_data_path("score_vectors_cure_two_sided"),
                 "concatenated_vectors":
-                    DATA_PATH.get_data_path("concatenated_vectors_cure_two_sided")
+                    DATA_PATH.get_data_path("concatenated_vectors_cure_two_sided"),
+                "combined_vectors_euc_dst":
+                    IMAGES_PATH.get_data_path("combined_vectors_euc_dst_cure_two_sided"),
             }
         },
         # -------------------------------------------------- O G Y E I -------------------------------------------------
@@ -899,8 +901,8 @@ def dataset_images_path_selector(dataset_name):
                     IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_ogyei"),
                 "colour_vectors":
                     DATA_PATH.get_data_path("colour_vectors_ogyei"),
-                "colour_annotated_images":
-                    IMAGES_PATH.get_data_path("pill_colours_ogyei"),
+                "combined_vectors_euc_dst":
+                    IMAGES_PATH.get_data_path("combined_vectors_euc_dst_ogyei"),
                 "imprint_vectors":
                     DATA_PATH.get_data_path("imprint_vectors_ogyei"),
                 "score_vectors":
@@ -1045,8 +1047,8 @@ def dataset_images_path_selector(dataset_name):
                     IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_cure_one_sided"),
                 "colour_vectors":
                     DATA_PATH.get_data_path("colour_vectors_cure_one_sided"),
-                "colour_annotated_images":
-                    IMAGES_PATH.get_data_path("pill_colours_cure_one_sided"),
+                "combined_vectors_euc_dst":
+                    IMAGES_PATH.get_data_path("combined_vectors_euc_dst_cure_one_sided"),
                 "imprint_vectors":
                     DATA_PATH.get_data_path("imprint_vectors_cure_one_sided"),
                 "score_vectors":

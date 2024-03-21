@@ -69,17 +69,22 @@ def create_feature_vectors(sheet, words: list, feature_type: str, dataset_name) 
     elif dataset_name == "cure_two_sided" or dataset_name == "ogyei":
         for row in sheet.iter_rows(min_row=3, values_only=True):
             pill_id = row[1]
-            selected_column = row[3 if dataset_name == "ogyei" else 4] if feature_type == "imprint_vectors" \
-                else row[6 if dataset_name == "ogyei" else 7]
+            selected_column_1 = row[3] if feature_type == "imprint_vectors" else row[7]
+            selected_column_2 = row[4] if feature_type == "imprint_vectors" else row[8]
 
-            if selected_column is None:
-                selected_column = "None"
+            if selected_column_1 is None:
+                selected_column_1 = "None"
+
+            if selected_column_2 is None:
+                selected_column_2 = "None"
 
             if pill_id not in feature_dict:
                 feature_dict[pill_id] = []
 
-            encoded_feature = encoded_dict.get(selected_column)
-            feature_dict[pill_id].append(encoded_feature)
+            encoded_feature_1 = encoded_dict.get(selected_column_1)
+            encoded_feature_2 = encoded_dict.get(selected_column_2)
+            feature_dict[pill_id].append(encoded_feature_1)
+            feature_dict[pill_id].append(encoded_feature_2)
 
     else:
         raise ValueError(f"Wrong dataset_name: {dataset_name}")

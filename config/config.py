@@ -73,7 +73,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--dataset_type", type=str, default="ogyei",
                                  choices=["cure_one_sided", "cure_two_sided", "ogyei"])
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNet", choices=["EfficientNet"])
-        self.parser.add_argument("--type_of_stream", type=str, default="Texture",
+        self.parser.add_argument("--type_of_stream", type=str, default="Contour",
                                  choices=["Contour | LBP | RGB | Texture"])
         self.parser.add_argument("--type_of_loss_func", type=str, default="dmtl", help="hmtl | dmtl")
         self.parser.add_argument("--mining_type", type=str, default="semihard", choices=["semihard", "hard", "easy"])
@@ -82,7 +82,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--epochs", type=int, default=30)
         self.parser.add_argument("--batch_size", type=int, default=32)
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
-        self.parser.add_argument("--learning_rate_en_con", type=float, default=1e-5)
+        self.parser.add_argument("--learning_rate_en_con", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_lbp", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_rgb", type=float, default=1e-4)
         self.parser.add_argument("--learning_rate_en_tex", type=float, default=1e-4)
@@ -93,7 +93,7 @@ class ConfigStreamNetwork:
         self.parser.add_argument("--img_size_en", type=int, default=224)
         self.parser.add_argument("--load_ref_vector", type=bool, default=False)
         self.parser.add_argument("--reference_set", type=str, default="full", choices=["full", "partial"])
-        self.parser.add_argument("--fold", type=str, default="fold4",
+        self.parser.add_argument("--fold", type=str, default="fold5",
                                  choices=["fold1", "fold2", "fold3", "fold4", "fold5"])
 
     def parse(self):
@@ -114,7 +114,7 @@ class ConfigFusionNetwork:
         self.parser.add_argument("--type_of_loss_func", type=str, default="dmtl", help="hmtl | dmtl")
         self.parser.add_argument("--upper_norm_limit", type=float, default=3.0)
         self.parser.add_argument("--margin", type=float, default=0.5)
-        self.parser.add_argument("--reference_set", type=str, default="partial", choices=["full", "partial"])
+        self.parser.add_argument("--reference_set", type=str, default="full", choices=["full", "partial"])
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
         self.parser.add_argument("--epochs", type=int, default=7)
         self.parser.add_argument("--batch_size", type=int, default=32)
