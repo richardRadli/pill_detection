@@ -52,7 +52,7 @@ def word_embedded_network_configs(dataset_name=None) -> Dict:
     word_embedded_network_config_config = {
         "cure_one_sided": {
             "input_dim":
-                70,
+                61,
             "hidden_dim":
                 1000,
             "output_dim":
@@ -66,7 +66,7 @@ def word_embedded_network_configs(dataset_name=None) -> Dict:
         },
         "cure_two_sided": {
             "input_dim":
-                70,
+                61,
             "hidden_dim":
                 100,
             "output_dim":
@@ -80,11 +80,11 @@ def word_embedded_network_configs(dataset_name=None) -> Dict:
         },
         "ogyei": {
             "input_dim":
-                70,
+                61,
             "hidden_dim":
-                100,
+                1000,
             "output_dim":
-                3,
+                5,
             "model_weights_dir":
                 DATA_PATH.get_data_path("weights_word_embedded_network_ogyei"),
             "logs_dir":

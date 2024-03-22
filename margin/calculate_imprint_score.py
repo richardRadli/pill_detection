@@ -4,7 +4,6 @@ import numpy as np
 import os
 import openpyxl
 
-from sklearn.preprocessing import OneHotEncoder
 from typing import Dict, List
 
 from config.config import ConfigAugmentation
@@ -12,7 +11,7 @@ from config.config_selector import dataset_images_path_selector
 from utils.utils import create_timestamp, sort_dict, NumpyEncoder
 
 
-def encoding(words: List[str]) -> Dict[str, List[float]]:
+def encoding(words: List[str], feature_type) -> Dict[str, List[float]]:
     """
     Encode a list of words using one-hot encoding.
 
@@ -24,8 +23,13 @@ def encoding(words: List[str]) -> Dict[str, List[float]]:
         floats.
     """
 
-    encoder = OneHotEncoder(sparse_output=False)
-    encoded_features = encoder.fit_transform(np.array(words).reshape(-1, 1))
+    if feature_type == 'score_vectors':
+        encoded_features = np.array([[0, 1, 1], [1, 0, 0.5], [1, 0.5, 0]])
+    elif feature_type == 'imprint_vectors':
+        encoded_features = np.array([[0, 0.5, 1], [0.5, 0, 1], [1, 1, 0]])
+    else:
+        raise ValueError(f'Wrong feature type {feature_type}')
+
     return {word: encoded_features[idx].tolist() for idx, word in enumerate(words)}
 
 
@@ -37,12 +41,12 @@ def create_feature_vectors(sheet, words: list, feature_type: str, dataset_name) 
         sheet (Workbook): Excel sheet object.
         words (list): List of words for encoding.
         feature_type (str): Type of feature vectors to use.
-
+        dataset_name (str):
     Returns:
         dict: Dictionary containing feature vectors.
     """
 
-    encoded_dict = encoding(words)
+    encoded_dict = encoding(words, feature_type)
     feature_dict = {}
 
     if dataset_name == "cure_one_sided":
@@ -126,7 +130,7 @@ def main() -> None:
     cfg = ConfigAugmentation().parse()
     timestamp = create_timestamp()
 
-    imprint_words = ['NOTHING', 'EMBOSSED', 'PRINTED']
+    imprint_words = ['EMBOSSED', 'PRINTED', 'NOTHING']
     score_words = [1, 2, 4]
 
     pill_desc_path = dataset_images_path_selector(cfg.dataset_name).get("dynamic_margin").get("pill_desc_xlsx")

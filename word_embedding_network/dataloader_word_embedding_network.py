@@ -15,20 +15,18 @@ class DataLoaderWordEmbeddingNetwork(Dataset):
         return total_samples
 
     def __getitem__(self, idx):
-        augmented_data = []
+        original_vector = None
 
         for class_label in self.classes:
             if idx < len(self.data[class_label]):
-                original_vector = torch.tensor(self.data[class_label][idx], dtype=torch.float32), class_label
-                augmented_lab_vector = self.augment_lab_values(original_vector)
-                augmented_fourier_vector = self.augment_fourier_values(original_vector)
-
-                augmented_data.append((original_vector, augmented_lab_vector))
-                augmented_data.append((original_vector, augmented_fourier_vector))
-
-                return augmented_data, class_label
+                original_vector = torch.tensor(self.data[class_label][idx], dtype=torch.float32)
+                break
             else:
                 idx -= len(self.data[class_label])
+
+        augmented_vector = self.augment(original_vector)
+
+        return original_vector, augmented_vector
 
     @staticmethod
     def load_json(json_file):
@@ -39,6 +37,15 @@ class DataLoaderWordEmbeddingNetwork(Dataset):
     def get_classes(self):
         return self.classes
 
+    def augment(self, feature_vector):
+        augmented_lab_values = self.augment_lab_values(feature_vector)
+        augmented_fourier_values = self.augment_fourier_values(feature_vector)
+        imprint_score_values = self.get_imprint_and_score(feature_vector).tolist()
+        augmented_vector = (
+            torch.tensor(augmented_lab_values + augmented_fourier_values + imprint_score_values, dtype=torch.float32)
+        )
+        return augmented_vector
+
     @staticmethod
     def augment_lab_values(feature_vector):
         lab_value = feature_vector[:12]
@@ -47,6 +54,10 @@ class DataLoaderWordEmbeddingNetwork(Dataset):
 
     @staticmethod
     def augment_fourier_values(feature_vector):
-        fourier_value = feature_vector[12:86]
+        fourier_value = feature_vector[12:49]
         augmented_fourier_value = [f + np.random.normal(loc=0, scale=0.1) for f in fourier_value]
         return augmented_fourier_value
+
+    @staticmethod
+    def get_imprint_and_score(feature_vector):
+        return feature_vector[49:61]

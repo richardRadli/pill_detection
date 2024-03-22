@@ -36,10 +36,11 @@ class FourierDescriptor:
         self.order = order
         self.copy_images = copy_images
 
-        self.images_dir = (
-            dataset_images_path_selector(
-                cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb")
-        )
+        # self.images_dir = (
+        #     dataset_images_path_selector(
+        #         cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb")
+        # )
+        self.images_dir = "D:/storage/pill_detection/datasets/ogyei/Reference/stream_images/masks"
         self.file_path = (
             dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("Fourier_images_by_shape")
         )
@@ -70,7 +71,7 @@ class FourierDescriptor:
 
         for row in sheet.iter_rows(min_row=3, values_only=True):
             pill_id = row[1]
-            shape = row[5]
+            shape = row[6]
 
             if shape in shape_dict:
                 shape_dict[shape].append(pill_id)
@@ -232,8 +233,7 @@ class FourierDescriptor:
                     image_path = os.path.join(class_path, file)
                     image_original = cv2.imread(image_path, 1)
                     try:
-                        image = cv2.cvtColor(image_original, cv2.COLOR_BGR2GRAY)
-                        segmented_image = self.preprocess_image(image)
+                        segmented_image = cv2.cvtColor(image_original, cv2.COLOR_BGR2GRAY)
                         norm_fourier_coeff = self.elliptic_fourier_w_norm(segmented_image=segmented_image)
                         class_coefficients.append(norm_fourier_coeff)
 
@@ -271,7 +271,7 @@ class FourierDescriptor:
         plot_euclidean_distances(vectors=class_averages,
                                  dataset_name=self.dataset_name,
                                  filename=filename,
-                                 normalize=True,
+                                 normalize=False,
                                  operation="shapes",
                                  plot_size=8)
         self.plot_vectors(class_averages)

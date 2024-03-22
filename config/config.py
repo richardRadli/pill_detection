@@ -141,10 +141,10 @@ class ConfigWordEmbedding:
         self.parser.add_argument("--dataset_type", type=str, default="ogyei",
                                  choices=["cure_one_sided", "cure_two_sided", "ogyei"])
         self.parser.add_argument("-train_valid_ratio", type=float, default=0.8)
-        self.parser.add_argument("--batch_size", type=int, default=32)
-        self.parser.add_argument("--learning_rate", type=float, default=1e-4)
+        self.parser.add_argument("--batch_size", type=int, default=16)
+        self.parser.add_argument("--learning_rate", type=float, default=5e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-3)
-        self.parser.add_argument("--epochs", type=int, default=100)
+        self.parser.add_argument("--epochs", type=int, default=10)
 
     def parse(self):
         self.opt = self.parser.parse_args()

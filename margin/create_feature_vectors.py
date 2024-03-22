@@ -1,4 +1,5 @@
 import json
+import logging
 import numpy as np
 import os
 
@@ -40,7 +41,20 @@ def load_json_files(dataset_name, feature_type: str):
     with open(json_file_name, "r") as file:
         values = json.load(file)
 
+    logging.info(f"Loaded json file: {json_file_name}")
+
     return values
+
+
+def save_json_file(dataset_name, timestamp, combined_vectors):
+    combined_vectors_path = (
+        dataset_images_path_selector(dataset_name).get("dynamic_margin").get("concatenated_vectors")
+    )
+    combined_vectors_name = os.path.join(combined_vectors_path, f"{timestamp}_concatenated_vectors.json")
+    with open(combined_vectors_name, "w") as file:
+        json.dump(combined_vectors, file, cls=NumpyEncoder)
+
+    logging.info(f"Saved json file: {combined_vectors_name}")
 
 
 def reshape_one_hot_encoded_vectors(dataset_name, vector_type):
@@ -56,6 +70,17 @@ def reshape_one_hot_encoded_vectors(dataset_name, vector_type):
 
 
 def process_vectors(lab_values, fourier_desc_values, imprint_values, score_values):
+    """
+    
+    Args:
+        lab_values:
+        fourier_desc_values:
+        imprint_values:
+        score_values:
+
+    Returns:
+
+    """
     combined_vectors = {}
 
     for class_id in lab_values.keys():
@@ -93,21 +118,19 @@ def main():
     # score vectors
     score_values = reshape_one_hot_encoded_vectors(dataset_name, "score_vectors")
 
+    # Combine vectors
     combined_vectors = process_vectors(norm_lab_values, norm_fourier_desc_values, imprint_values, score_values)
 
-    combined_vectors_path = (
-        dataset_images_path_selector(dataset_name).get("dynamic_margin").get("concatenated_vectors")
-    )
-    combined_vectors_name = os.path.join(combined_vectors_path, f"{timestamp}_concatenated_vectors.json")
-    with open(combined_vectors_name, "w") as file:
-        json.dump(combined_vectors, file, cls=NumpyEncoder)
+    # Save it to a json file
+    save_json_file(dataset_name, timestamp, combined_vectors)
 
+    # Plot Euclidean matrix
     plot_euc_dir = dataset_images_path_selector(dataset_name).get("dynamic_margin").get("combined_vectors_euc_dst")
     filename = os.path.join(plot_euc_dir, f"euclidean_distances_{timestamp}.png")
     plot_euclidean_distances(vectors=combined_vectors,
                              dataset_name="ogyei",
                              filename=filename,
-                             normalize=True,
+                             normalize=False,
                              operation="combined_vectors",
                              plot_size=40)
 

@@ -7,6 +7,8 @@ from pytorch_metric_learning import losses
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 from torch.optim import Adam
+from torch.optim.lr_scheduler import StepLR
+from tqdm import tqdm
 
 from config.config import ConfigWordEmbedding
 from config.config_selector import word_embedded_network_configs, dataset_images_path_selector
@@ -32,14 +34,13 @@ class TrainWordEmbeddingNetwork:
         )
 
         dataset = DataLoaderWordEmbeddingNetwork(json_file_path)
-        self.classes = dataset.get_classes()
         self.train_dataloader, self.valid_dataloader = (
             create_dataset(dataset=dataset,
                            train_valid_ratio=self.cfg.train_valid_ratio,
                            batch_size=self.cfg.batch_size)
         )
 
-        self.criterion = losses.NTXentLoss()
+        self.criterion = losses.NTXentLoss(temperature=0.10)
 
         self.model = (
             FullyConnectedNetwork(input_dim=word_emb_model_confing.get("input_dim"),
@@ -51,8 +52,11 @@ class TrainWordEmbeddingNetwork:
         summary(self.model, input_size=(self.cfg.batch_size, word_emb_model_confing.get("input_dim")))
 
         self.optimizer = Adam(self.model.parameters(),
-                              lr=self.cfg.learning_rate,
-                              weight_decay=self.cfg.weight_decay)
+                              lr=self.cfg.learning_rate)
+
+        self.scheduler = StepLR(optimizer=self.optimizer,
+                                step_size=1,
+                                gamma=0.01)
 
         tensorboard_log_dir = self.create_save_dir(word_emb_model_confing.get("logs_dir"))
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
@@ -105,13 +109,16 @@ class TrainWordEmbeddingNetwork:
              train_losses:
         """
 
-        for batch, labels in self.train_dataloader:
+        for original, augmented in tqdm(self.train_dataloader, total=len(self.train_dataloader), desc="Training"):
             self.optimizer.zero_grad()
-            batch = batch.to(self.device)
-            label_indices = [self.classes.index(label) for label in labels]
-            label_indices = torch.tensor(label_indices, dtype=torch.long).to(self.device)
-            probs, embeddings = self.model(batch)
-            train_loss = self.criterion(probs, label_indices)
+            original = original.to(self.device)
+            augmented = augmented.to(self.device)
+            embeddings_original = self.model(original)
+            embeddings_augmented = self.model(augmented)
+            embeddings = torch.cat((embeddings_original, embeddings_augmented))
+            indices = torch.arange(0, embeddings_original.size(0), device=self.device)
+            labels = torch.cat((indices, indices))
+            train_loss = self.criterion(embeddings, labels)
             train_loss.backward()
             self.optimizer.step()
             train_losses.append(train_loss.item())
@@ -119,12 +126,15 @@ class TrainWordEmbeddingNetwork:
         return train_losses
 
     def valid_loop(self, valid_losses):
-        for batch, labels in self.valid_dataloader:
-            batch = batch.to(self.device)
-            label_indices = [self.classes.index(label) for label in labels]
-            label_indices = torch.tensor(label_indices, dtype=torch.long).to(self.device)
-            probs, embeddings = self.model(batch)
-            valid_loss = self.criterion(probs, label_indices)
+        for original, augmented in tqdm(self.valid_dataloader, total=len(self.valid_dataloader), desc="Validation"):
+            original = original.to(self.device)
+            augmented = augmented.to(self.device)
+            embeddings_original = self.model(original)
+            embeddings_augmented = self.model(augmented)
+            embeddings = torch.cat((embeddings_original, embeddings_augmented))
+            indices = torch.arange(0, embeddings_original.size(0), device=self.device)
+            labels = torch.cat((indices, indices))
+            valid_loss = self.criterion(embeddings, labels)
             valid_losses.append(valid_loss.item())
 
         return valid_losses
@@ -133,7 +143,7 @@ class TrainWordEmbeddingNetwork:
         train_losses = []
         valid_losses = []
 
-        for epoch in range(self.cfg.epochs):
+        for epoch in tqdm(range(self.cfg.epochs), desc="Epochs"):
             self.train_loop(train_losses)
             self.valid_loop(valid_losses)
 
@@ -147,6 +157,7 @@ class TrainWordEmbeddingNetwork:
             valid_losses.clear()
 
             self.save_model_weights(epoch, valid_loss)
+            self.scheduler.step()
 
         self.writer.close()
         self.writer.flush()

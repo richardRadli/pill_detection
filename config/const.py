@@ -398,7 +398,7 @@ class Data(_Const):
         "pill_desc_xlsx_cure_one_sided":
             "data/cure_one_sided/dynamic_margin/xlsx",
         "Fourier_saved_mean_vectors_cure_one_sided":
-            "data/cure_one_sided/dynamic_margin/Fourier_descriptor/vectors",
+            "data/cure_one_sided/dynamic_margin/Fourier_descriptor",
         "colour_vectors_cure_one_sided":
             "data/cure_one_sided/dynamic_margin/colour_vectors",
         "imprint_vectors_cure_one_sided":
@@ -489,7 +489,7 @@ class Data(_Const):
         "pill_desc_xlsx_cure_two_sided":
             "data/cure_two_sided/dynamic_margin/xlsx",
         "Fourier_saved_mean_vectors_cure_two_sided":
-            "data/cure_two_sided/dynamic_margin/Fourier_descriptor/vectors",
+            "data/cure_two_sided/dynamic_margin/Fourier_descriptor",
         "colour_vectors_cure_two_sided":
             "data/cure_two_sided/dynamic_margin/colour_vectors",
         "imprint_vectors_cure_two_sided":
@@ -580,7 +580,7 @@ class Data(_Const):
         "pill_desc_xlsx_ogyei":
             "data/ogyei/dynamic_margin/xlsx",
         "Fourier_saved_mean_vectors_ogyei":
-            "data/ogyei/dynamic_margin/Fourier_descriptor/vectors",
+            "data/ogyei/dynamic_margin/Fourier_descriptor",
         "colour_vectors_ogyei":
             "data/ogyei/dynamic_margin/colour_vectors",
         "imprint_vectors_ogyei":
