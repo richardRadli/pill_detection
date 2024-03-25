@@ -81,6 +81,8 @@ def load_files(images_dir: str, labels_dir: str) -> Tuple[List[str], List[str]]:
     if not text_files:
         raise ValueError(f"No text files found in {labels_dir}")
 
+    assert len(image_files) == len(text_files)
+
     return image_files, text_files
 
 
@@ -103,6 +105,7 @@ def process_data(img_files: str, txt_files: str):
     try:
         img = Image.open(img_files)
         img_width, img_height = img.size
+        img.close()
     except FileNotFoundError:
         logging.error(f"{img_files} is not a valid image file.")
         return None, None
@@ -127,7 +130,7 @@ def process_data(img_files: str, txt_files: str):
     ImageDraw.Draw(mask).polygon(xy=coords, outline=1, fill=1)
     mask = np.array(mask)
 
-    return img, mask
+    return mask
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -152,7 +155,7 @@ def save_masks(mask: np.ndarray, img_file: str, path_to_files: Dict[str, str]) -
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------- M A I N --------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def main(operation: str = "train") -> None:
+def main(operation: str = "train", batch_size: int = 10) -> None:
     """
     Runs the main processing pipeline.
     :return: None
@@ -163,18 +166,28 @@ def main(operation: str = "train") -> None:
 
     img_files, txt_files = load_files(images_dir=path_to_files.get("images"), labels_dir=path_to_files.get("labels"))
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=cfg.max_workers) as executor:
-        futures = []
-        for img_file, txt_file in zip(img_files, txt_files):
-            futures.append(executor.submit(process_data, img_file, txt_file))
+    total_files = len(img_files)
+    num_batches = (total_files + batch_size - 1) // batch_size
 
-        for future, (img_file, _) in tqdm(zip(futures, zip(img_files, txt_files)), total=len(img_files),
-                                          desc="Processing data"):
-            try:
-                img, mask = future.result()
-                save_masks(mask=mask, img_file=img_file, path_to_files=path_to_files)
-            except Exception as e:
-                logging.error(f"Error processing {img_file}: {e}")
+    with concurrent.futures.ProcessPoolExecutor(max_workers=cfg.max_workers) as executor:
+        for i in range(num_batches):
+            start_idx = i * batch_size
+            end_idx = min((i + 1) * batch_size, total_files)
+            batch_img_files = img_files[start_idx:end_idx]
+            batch_txt_files = txt_files[start_idx:end_idx]
+
+            futures = []
+            for img_file, txt_file in zip(batch_img_files, batch_txt_files):
+                futures.append(executor.submit(process_data, img_file, txt_file))
+
+            for future, (img_file, _) in tqdm(zip(futures, zip(batch_img_files, batch_txt_files)),
+                                              total=len(batch_img_files),
+                                              desc=f"Processing batch {i+1}/{num_batches}"):
+                try:
+                    mask = future.result()
+                    save_masks(mask=mask, img_file=img_file, path_to_files=path_to_files)
+                except Exception as e:
+                    logging.error(f"Error processing {img_file}: {e}")
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -182,7 +195,7 @@ def main(operation: str = "train") -> None:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
-        operations = ["reference", "customer"]
+        operations = ["customer"]
         for op in operations:
             main(operation=op)
     except KeyboardInterrupt as kie:

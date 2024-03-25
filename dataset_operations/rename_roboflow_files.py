@@ -77,8 +77,8 @@ def main() -> None:
     :return: None
     """
 
-    images_dir = DATASET_PATH.get_data_path("nih_customer_images")
-    labels_dir = DATASET_PATH.get_data_path("nih_customer_segmentation_labels")
+    images_dir = DATASET_PATH.get_data_path("cure_one_sided_reference_images")
+    labels_dir = DATASET_PATH.get_data_path("cure_one_sided_reference_segmentation_labels")
 
     rename_files(images_dir, labels_dir)
 

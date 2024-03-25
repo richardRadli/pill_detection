@@ -128,12 +128,14 @@ def get_hardest_samples():
     stream_texture_pos_neg = sub_stream_cfg.get("Texture").get("train").get(cfg.dataset_type).get("pos_neg")
 
     hardest_triplets = []
-    class_id_a_p = None
+    class_id_a = None
+    class_id_p = None
     class_id_n = None
 
     for file_name in common_triplets:
         if cfg.dataset_type == "cure_two_sided":
-            class_id_a_p = file_name[0].split("_")[0]
+            class_id_a = file_name[0].split("_")[0]
+            class_id_p = class_id_a
             class_id_n = file_name[2].split("_")[0]
         elif cfg.dataset_type == 'ogyei':
             for idx, file in enumerate(file_name):
@@ -147,7 +149,8 @@ def get_hardest_samples():
                 if match:
                     value = match.group(1)
                     if idx == 0:
-                        class_id_a_p = value
+                        class_id_a = value
+                        class_id_p = class_id_a
                     elif idx == 1:
                         pass
                     else:
@@ -155,25 +158,28 @@ def get_hardest_samples():
                 else:
                     raise ValueError(f"No match for file: {file}")
         elif cfg.dataset_type == "cure_one_sided":
-            class_id_a_p = file_name[0].split("_")[0] + "_" + file_name[0].split("_")[1]
-            class_id_n = file_name[2].split("_")[0] + "_" + file_name[2].split("_")[1]
+            class_id_a = file_name[0].split("_")[0] + "_" + file_name[0].split("_")[1]
+            class_id_p = file_name[1].split("_")[0] + "_" + file_name[1].split("_")[2].split(".")[0]
+            class_id_n = file_name[2].split("_")[0] + "_" + file_name[2].split("_")[2].split(".")[0]
         else:
             raise ValueError(f"Unknown dataset type: {cfg.dataset_type}")
 
-        contour_anchor = (os.path.join(stream_contour_anchor, class_id_a_p, f"contour_{file_name[0]}"))
-        contour_positive = (os.path.join(stream_contour_pos_neg, class_id_a_p, f"contour_{file_name[1]}"))
+        assert class_id_a == class_id_p
+
+        contour_anchor = (os.path.join(stream_contour_anchor, class_id_a, f"contour_{file_name[0]}"))
+        contour_positive = (os.path.join(stream_contour_pos_neg, class_id_p, f"contour_{file_name[1]}"))
         contour_negative = (os.path.join(stream_contour_pos_neg, class_id_n, f"contour_{file_name[2]}"))
 
-        lbp_anchor = (os.path.join(stream_lbp_anchor, class_id_a_p, f"lbp_{file_name[0]}"))
-        lbp_positive = (os.path.join(stream_lbp_pos_neg, class_id_a_p, f"lbp_{file_name[1]}"))
+        lbp_anchor = (os.path.join(stream_lbp_anchor, class_id_a, f"lbp_{file_name[0]}"))
+        lbp_positive = (os.path.join(stream_lbp_pos_neg, class_id_p, f"lbp_{file_name[1]}"))
         lbp_negative = (os.path.join(stream_lbp_pos_neg, class_id_n, f"lbp_{file_name[2]}"))
 
-        rgb_anchor = (os.path.join(stream_rgb_anchor, class_id_a_p, file_name[0]))
-        rgb_positive = (os.path.join(stream_rgb_pos_neg, class_id_a_p, file_name[1]))
+        rgb_anchor = (os.path.join(stream_rgb_anchor, class_id_a, file_name[0]))
+        rgb_positive = (os.path.join(stream_rgb_pos_neg, class_id_p, file_name[1]))
         rgb_negative = (os.path.join(stream_rgb_pos_neg, class_id_n, file_name[2]))
 
-        texture_anchor = (os.path.join(stream_texture_anchor, class_id_a_p, f"texture_{file_name[0]}"))
-        texture_positive = (os.path.join(stream_texture_pos_neg, class_id_a_p, f"texture_{file_name[1]}"))
+        texture_anchor = (os.path.join(stream_texture_anchor, class_id_a, f"texture_{file_name[0]}"))
+        texture_positive = (os.path.join(stream_texture_pos_neg, class_id_p, f"texture_{file_name[1]}"))
         texture_negative = (os.path.join(stream_texture_pos_neg, class_id_n, f"texture_{file_name[2]}"))
 
         hardest_triplets.append((contour_anchor, contour_positive, contour_negative,

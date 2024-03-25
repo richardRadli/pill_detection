@@ -40,4 +40,4 @@ for original, _ in dataloader:
         output_dict[class_label].append(output_embedding)
 
 filename = "C:/Users/ricsi/Desktop/asd.png"
-plot_euclidean_distances(output_dict, cfg.dataset_type, filename, False, "embeddings", 40)
+plot_euclidean_distances(output_dict, cfg.dataset_type, filename, True, "embeddings", 40)

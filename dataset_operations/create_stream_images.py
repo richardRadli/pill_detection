@@ -329,7 +329,6 @@ class CreateStreamImages:
         files_contour = os.listdir(contour_path)
         files_texture = os.listdir(texture_path)
         files_lbp = os.listdir(lbp_path)
-        value = None
 
         for idx, (file_rgb, file_contour, file_texture, file_lbp) in \
                 tqdm(enumerate(zip(files_rgb, files_contour, files_texture, files_lbp)), desc="Copying image files"):
@@ -351,7 +350,14 @@ class CreateStreamImages:
                 value = os.path.basename(file_rgb).split("_")[0]
 
             elif self.cfg.dataset_type == 'cure_one_sided':
-                value = os.path.basename(file_rgb).split("_")[0] + "_" + os.path.basename(file_rgb).split("_")[1]
+                basename = os.path.basename(file_rgb)
+                basename = basename.replace(".jpg", "")
+                if self.cfg.operation == "reference":
+                    value = basename.split("_")[0] + "_" + basename.split("_")[2]
+                elif self.cfg.operation == "customer":
+                    value = basename.split("_")[0] + "_" + basename.split("_")[1]
+                else:
+                    raise ValueError(f"Wrong operation name: {self.cfg.operation}")
             else:
                 raise ValueError("Wrong dataset type has given!")
 

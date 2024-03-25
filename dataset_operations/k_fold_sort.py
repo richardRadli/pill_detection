@@ -172,10 +172,12 @@ class KFoldSort:
 
         if self.erase:
             self.erase_files()
+
         if self.load_folds:
             sorted_folds = self.folds(load=True)
         else:
             sorted_folds = self.folds(load=False, num_folds=5)
+
         self.move_images_to_folds(sorted_folds, self.fold_name, operation="reference", data_role="train")
         self.move_images_to_folds(sorted_folds, self.fold_name, operation="reference", data_role="test")
         self.move_images_to_folds(sorted_folds, self.fold_name, operation="customer", data_role="train")

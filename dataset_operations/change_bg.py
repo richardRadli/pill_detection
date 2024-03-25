@@ -31,11 +31,11 @@ def change_background_dtd(image_path: str, mask_path: str, output_dir) -> None:
 
 
 if __name__ == "__main__":
-    images_path = sorted(glob("D:/storage/pill_detection/datasets/ogyei/Customer/images_original/*"))
-    mask_path = sorted(glob("D:/storage/pill_detection/datasets/ogyei/Customer/mask_images/*"))
-    output_path = "D:/storage/pill_detection/datasets/ogyei/Customer/images"
+    images_path = sorted(glob("D:/storage/pill_detection/datasets/cure_one_sided/Customer/images/*"))
+    mask_path = sorted(glob("D:/storage/pill_detection/datasets/cure_one_sided/Customer/mask_images/*"))
+    output_path = "D:/storage/pill_detection/datasets/cure_one_sided/Customer/images_original"
 
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=6) as executor:
         futures = []
         for img, mask in zip(images_path, mask_path):
             assert os.path.basename(img) == os.path.basename(mask)
