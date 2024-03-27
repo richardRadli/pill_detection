@@ -4,18 +4,13 @@ import numpy as np
 import os
 import pandas as pd
 import re
-import seaborn as sns
 import spacy
 
-from collections import OrderedDict
-from openpyxl import Workbook
-from openpyxl.utils.dataframe import dataframe_to_rows
-from scipy.spatial.distance import pdist, squareform
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 
 from config.config_selector import nlp_configs
-from utils.utils import create_timestamp, measure_execution_time, setup_logger
+from utils.utils import create_euc_matrix_file, create_timestamp, measure_execution_time, setup_logger
 
 
 class TextNLPAnalysis:
@@ -150,56 +145,6 @@ class TextNLPAnalysis:
 
         return np.array([nlp(sentence).vector for sentence in clean_sentences])
 
-    def create_matrix(self, list_of_labels, matrix):
-        """
-
-        :param list_of_labels:
-        :param matrix:
-        :return:
-        """
-
-        dict_words = {}
-
-        for i, matrix_values in enumerate(matrix):
-            dict_words[list_of_labels[i]] = matrix_values
-
-        sorted_dict = OrderedDict(sorted(dict_words.items()))
-        sorted_matrix = list(sorted_dict.values())
-        labels = list(sorted_dict.keys())
-
-        pairwise_distances = pdist(sorted_matrix, metric='euclidean')
-        distance_matrix = squareform(pairwise_distances)
-
-        sns.heatmap(distance_matrix, cmap='viridis', annot=False, fmt=".2f", square=True)
-        plt.show()
-
-        df = pd.DataFrame(distance_matrix)
-        df.columns = labels
-        df.index = labels
-        wb = Workbook()
-        ws = wb.active
-
-        for r in dataframe_to_rows(df, header=True, index=True):
-            ws.append(r)
-        ws.delete_rows(2)
-        ws.freeze_panes = ws["B2"]
-
-        # Iterate over all columns and adjust their widths
-        for column in ws.columns:
-            max_length = 0
-            column_letter = column[0].column_letter
-            for cell in column:
-                try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(cell.value)
-                except:
-                    pass
-            adjusted_width = (max_length + 2) * 1.2
-            ws.column_dimensions[column_letter].width = adjusted_width
-
-        file_name = os.path.join(nlp_configs().get("vector_distances"), self.timestamp+"_vector_distances.xlsx")
-        wb.save(file_name)
-
     @staticmethod
     def visualization(kmeans_model, new_values, list_of_labels):
         """
@@ -272,7 +217,8 @@ class TextNLPAnalysis:
         tsne_model = TSNE(perplexity=25, n_components=2, init='pca', n_iter=5000, random_state=random_seed)
         new_values = tsne_model.fit_transform(vectors)
 
-        self.create_matrix(list_of_labels, new_values)
+        file_name = os.path.join(nlp_configs().get("vector_distances"), f"{self.timestamp}_vector_distances.xlsx")
+        create_euc_matrix_file(list_of_labels, new_values, file_name)
 
         self.visualization(kmeans_model, new_values, list_of_labels)
 

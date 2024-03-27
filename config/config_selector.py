@@ -51,12 +51,8 @@ def nlp_configs() -> Dict:
 def word_embedded_network_configs(dataset_name=None) -> Dict:
     word_embedded_network_config_config = {
         "cure_one_sided": {
-            "input_dim":
-                61,
-            "hidden_dim":
-                1000,
-            "output_dim":
-                382,
+            "neurons":
+                [61, 100, 80, 60, 10],
             "model_weights_dir":
                 DATA_PATH.get_data_path("weights_word_embedded_network_cure_one_sided"),
             "logs_dir":
@@ -69,12 +65,8 @@ def word_embedded_network_configs(dataset_name=None) -> Dict:
                 IMAGES_PATH.get_data_path("emb_tsne_word_embedded_network_cure_one_sided")
         },
         "cure_two_sided": {
-            "input_dim":
-                61,
-            "hidden_dim":
-                100,
-            "output_dim":
-                3,
+            "neurons":
+                [61, 100, 80, 60, 10],
             "model_weights_dir":
                 DATA_PATH.get_data_path("weights_word_embedded_network_cure_two_sided"),
             "logs_dir":
@@ -87,12 +79,8 @@ def word_embedded_network_configs(dataset_name=None) -> Dict:
                 IMAGES_PATH.get_data_path("emb_tsne_word_embedded_network_cure_two_sided")
         },
         "ogyei": {
-            "input_dim":
-                61,
-            "hidden_dim":
-                100,
-            "output_dim":
-                5,
+            "neurons":
+                [61, 100, 80, 60, 10],
             "model_weights_dir":
                 DATA_PATH.get_data_path("weights_word_embedded_network_ogyei"),
             "logs_dir":
@@ -807,6 +795,8 @@ def dataset_images_path_selector(dataset_name):
                     DATA_PATH.get_data_path("concatenated_vectors_cure_two_sided"),
                 "combined_vectors_euc_dst":
                     IMAGES_PATH.get_data_path("combined_vectors_euc_dst_cure_two_sided"),
+                "euc_mtx_xlsx":
+                    DATA_PATH.get_data_path("euc_mtx_xlsx_cure_two_sided")
             }
         },
         # -------------------------------------------------- O G Y E I -------------------------------------------------
@@ -920,7 +910,9 @@ def dataset_images_path_selector(dataset_name):
                 "score_vectors":
                     DATA_PATH.get_data_path("score_vectors_ogyei"),
                 "concatenated_vectors":
-                    DATA_PATH.get_data_path("concatenated_vectors_ogyei")
+                    DATA_PATH.get_data_path("concatenated_vectors_ogyei"),
+                "euc_mtx_xlsx":
+                    DATA_PATH.get_data_path("euc_mtx_xlsx_ogyei")
             }
         },
 
@@ -1066,7 +1058,9 @@ def dataset_images_path_selector(dataset_name):
                 "score_vectors":
                     DATA_PATH.get_data_path("score_vectors_cure_one_sided"),
                 "concatenated_vectors":
-                    DATA_PATH.get_data_path("concatenated_vectors_cure_one_sided")
+                    DATA_PATH.get_data_path("concatenated_vectors_cure_one_sided"),
+                "euc_mtx_xlsx":
+                    DATA_PATH.get_data_path("euc_mtx_xlsx_cure_one_sided")
             }
         },
 

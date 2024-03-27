@@ -19,7 +19,7 @@ class ConfigAugmentation:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--dataset_name", type=str, default="cure_two_sided",
+        self.parser.add_argument("--dataset_name", type=str, default="ogyei",
                                  choices=["cure_one_sided", "cure_two_sided", "ogyei"])
         self.parser.add_argument('--wb_low_thr', type=float, default=0.7)
         self.parser.add_argument('--wb_high_thr', type=float, default=1.2)
@@ -47,7 +47,7 @@ class ConfigStreamImages:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--dataset_type", type=str, default="cure_two_sided",
+        self.parser.add_argument("--dataset_type", type=str, default="ogyei",
                                  choices=["cure_one_sided", "cure_two_sided", "ogyei"])
         self.parser.add_argument("--operation", type=str, default="reference", choices=["reference", "customer"])
         self.parser.add_argument("--threshold_area", type=int, default=100)
@@ -70,22 +70,23 @@ class ConfigStreamNetwork:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--dataset_type", type=str, default="cure_two_sided",
+        self.parser.add_argument("--dataset_type", type=str, default="ogyei",
                                  choices=["cure_one_sided", "cure_two_sided", "ogyei"])
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNet", choices=["EfficientNet"])
-        self.parser.add_argument("--type_of_stream", type=str, default="RGB",
+        self.parser.add_argument("--type_of_stream", type=str, default="Contour",
                                  choices=["Contour | LBP | RGB | Texture"])
-        self.parser.add_argument("--type_of_loss_func", type=str, default="hmtl", help="hmtl | dmtl")
+        self.parser.add_argument("--type_of_loss_func", type=str, default="dmtl", help="hmtl | dmtl")
+        self.parser.add_argument("--dmtl_type", type=str, default="feature", choices=["feature", "nlp"])
         self.parser.add_argument("--mining_type", type=str, default="semihard", choices=["semihard", "hard", "easy"])
         self.parser.add_argument("--upper_norm_limit", type=float, default=3.0)
         self.parser.add_argument("--margin", type=float, default=0.5)
         self.parser.add_argument("--epochs", type=int, default=25)
         self.parser.add_argument("--batch_size", type=int, default=32)
         self.parser.add_argument("--train_valid_ratio", type=float, default=0.8)
-        self.parser.add_argument("--learning_rate_en_con", type=float, default=1e-3)
-        self.parser.add_argument("--learning_rate_en_lbp", type=float, default=1e-3)
-        self.parser.add_argument("--learning_rate_en_rgb", type=float, default=1e-3)
-        self.parser.add_argument("--learning_rate_en_tex", type=float, default=1e-3)
+        self.parser.add_argument("--learning_rate_en_con", type=float, default=1e-4)
+        self.parser.add_argument("--learning_rate_en_lbp", type=float, default=1e-4)
+        self.parser.add_argument("--learning_rate_en_rgb", type=float, default=1e-4)
+        self.parser.add_argument("--learning_rate_en_tex", type=float, default=1e-4)
         self.parser.add_argument("--weight_decay", type=float, default=1e-5)
         self.parser.add_argument('--step_size', type=int, default=5,
                                  help="Number of epochs after which to decay the learning rate")
@@ -108,7 +109,7 @@ class ConfigFusionNetwork:
     def __init__(self):
         self.opt = None
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument("--dataset_type", type=str, default="cure_two_sided",
+        self.parser.add_argument("--dataset_type", type=str, default="ogyei",
                                  choices=["cure_one_sided", "cure_two_sided", "ogyei"])
         self.parser.add_argument("--type_of_net", type=str, default="EfficientNetMultiHeadAttention")
         self.parser.add_argument("--type_of_loss_func", type=str, default="hmtl", help="hmtl | dmtl")

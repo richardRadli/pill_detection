@@ -43,9 +43,7 @@ class TrainWordEmbeddingNetwork:
         self.criterion = losses.NTXentLoss(temperature=0.10)
 
         self.model = (
-            FullyConnectedNetwork(input_dim=word_emb_model_confing.get("input_dim"),
-                                  hidden_dim=word_emb_model_confing.get("hidden_dim"),
-                                  output_dim=word_emb_model_confing.get("output_dim"))
+            FullyConnectedNetwork(neurons=word_emb_model_confing.get("neurons"))
         )
 
         self.model.to(self.device)

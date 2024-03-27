@@ -21,12 +21,16 @@ import time
 import torch
 import plotly.graph_objs as go
 
+from collections import OrderedDict
 from datetime import datetime
 from functools import wraps
 from glob import glob
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
 from pathlib import Path
 from PIL import Image
 from scipy.spatial.distance import pdist, squareform
+from sklearn.manifold import TSNE
 from sklearn.metrics import confusion_matrix
 from torch.utils.data import DataLoader, random_split
 from typing import Any, Callable, List, Optional, Tuple, Union
@@ -38,6 +42,57 @@ class NumpyEncoder(json.JSONEncoder):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         return super(NumpyEncoder, self).default(obj)
+
+
+def create_euc_matrix_file(list_of_labels, matrix, file_name):
+    """
+
+    Args:
+        list_of_labels:
+        matrix:
+        file_name:
+
+    Return:
+
+    """
+
+    dict_words = {}
+
+    for i, matrix_values in enumerate(matrix):
+        dict_words[list_of_labels[i]] = matrix_values
+
+    sorted_dict = OrderedDict(sorted(dict_words.items()))
+    sorted_matrix = list(sorted_dict.values())
+    labels = list(sorted_dict.keys())
+
+    pairwise_distances = pdist(sorted_matrix, metric='euclidean')
+    distance_matrix = squareform(pairwise_distances)
+
+    df = pd.DataFrame(distance_matrix)
+    df.columns = labels
+    df.index = labels
+    wb = Workbook()
+    ws = wb.active
+
+    for r in dataframe_to_rows(df, header=True, index=True):
+        ws.append(r)
+    ws.delete_rows(2)
+    ws.freeze_panes = ws["B2"]
+
+    # Iterate over all columns and adjust their widths
+    for column in ws.columns:
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except Exception:
+                pass
+        adjusted_width = (max_length + 2) * 1.2
+        ws.column_dimensions[column_letter].width = adjusted_width
+
+    wb.save(file_name)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -399,11 +454,14 @@ def plot_embeddings(output_dict, output_filename, interactive: bool):
 
     embedding_vectors = np.array(embedding_vectors)
 
+    tsne = TSNE(n_components=2, random_state=42)
+    embedding_vectors_2d = tsne.fit_transform(embedding_vectors)
+
     if interactive:
         # Create trace for scatter plot
         trace = go.Scatter(
-            x=embedding_vectors[:, 0],
-            y=embedding_vectors[:, 1],
+            x=embedding_vectors_2d[:, 0],
+            y=embedding_vectors_2d[:, 1],
             mode='markers',
             marker=dict(
                 size=10,

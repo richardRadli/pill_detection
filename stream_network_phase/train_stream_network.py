@@ -21,7 +21,7 @@ from typing import List, Tuple
 from pytorch_metric_learning import losses, miners
 
 from config.config import ConfigStreamNetwork
-from config.config_selector import sub_stream_network_configs, nlp_configs
+from config.config_selector import sub_stream_network_configs, nlp_configs, dataset_images_path_selector
 from loss_functions.dynamic_margin_triplet_loss_stream import DynamicMarginTripletLoss
 from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network import DataLoaderStreamNet
@@ -84,7 +84,15 @@ class TrainModel:
 
         # Set up loss and mining functions
         if self.cfg.type_of_loss_func == "dmtl":
-            path_to_excel_file = nlp_configs().get("vector_distances")
+            if self.cfg.dmtl_type == "nlp":
+                path_to_excel_file = nlp_configs().get("vector_distances")
+            elif self.cfg.dmtl_type == "feature":
+                path_to_excel_file = (
+                    dataset_images_path_selector(self.cfg.dataset_type).get("dynamic_margin").get("euc_mtx_xlsx")
+                )
+            else:
+                raise ValueError(f"Wrong DMTL type: {self.cfg.dmtl_type}")
+
             df = get_embedded_text_matrix(path_to_excel_file)
             self.criterion = (
                 DynamicMarginTripletLoss(
@@ -104,7 +112,8 @@ class TrainModel:
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                          lr=network_cfg.get("learning_rate"))
+                                          lr=network_cfg.get("learning_rate"),
+                                          weight_decay=1e-5)
 
         # LR scheduler
         self.scheduler = StepLR(optimizer=self.optimizer,

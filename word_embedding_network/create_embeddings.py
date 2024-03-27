@@ -1,7 +1,9 @@
 import logging
+import numpy as np
 import os
 import torch
 
+from sklearn.manifold import TSNE
 from torch.utils.data import DataLoader
 from typing import Dict, Any, Tuple, List
 
@@ -9,12 +11,16 @@ from config.config import ConfigWordEmbedding
 from config.config_selector import word_embedded_network_configs, dataset_images_path_selector
 from dataloader_word_embedding_network import DataLoaderWordEmbeddingNetwork
 from fully_connected_network import FullyConnectedNetwork
-from utils.utils import (find_latest_file_in_latest_directory_word_emb, find_latest_file_in_directory,
-                         plot_euclidean_distances, plot_embeddings, create_timestamp, use_gpu_if_available)
+from utils.utils import (create_euc_matrix_file, find_latest_file_in_latest_directory_word_emb,
+                         find_latest_file_in_directory, plot_euclidean_distances, plot_embeddings, create_timestamp,
+                         use_gpu_if_available)
 
 
 class CreateEmbedding:
-    def __init__(self):
+    def __init__(self, interactive, plot_euc):
+        self.interactive = interactive
+        self.plot_euc = plot_euc
+
         timestamp = create_timestamp()
         self.cfg = ConfigWordEmbedding().parse()
         device = use_gpu_if_available()
@@ -27,10 +33,20 @@ class CreateEmbedding:
         self.output_dict = {}
 
         self.euc_mtx_filename = (
-            self.create_filename(word_emb_model_config.get("emb_euc_mtx"), timestamp, "emb_euc_mtx.png")
+            self.create_filename(word_emb_model_config.get("emb_euc_mtx"),
+                                 timestamp,
+                                 "emb_euc_mtx.png")
         )
         self.emb_tsne_filename = (
-            self.create_filename(word_emb_model_config.get("emb_tsne"), timestamp, "emb_tsne.png")
+            self.create_filename(word_emb_model_config.get("emb_tsne"),
+                                 timestamp,
+                                 "emb_tsne.png")
+        )
+        self.emb_mtx_xlsx_filename = (
+            self.create_filename(
+                dataset_images_path_selector(self.cfg.dataset_type).get("dynamic_margin").get("euc_mtx_xlsx"),
+                timestamp,
+                "emb_euc_mtx.xlsx")
         )
 
     @staticmethod
@@ -47,9 +63,7 @@ class CreateEmbedding:
             FullyConnectedNetwork: Loaded word embedding model.
         """
 
-        model = FullyConnectedNetwork(input_dim=word_emb_model_config.get("input_dim"),
-                                      hidden_dim=word_emb_model_config.get("hidden_dim"),
-                                      output_dim=word_emb_model_config.get("output_dim")).to(device)
+        model = FullyConnectedNetwork(neurons=word_emb_model_config.get("neurons")).to(device)
         latest_pt_file = (
             find_latest_file_in_latest_directory_word_emb(word_emb_model_config.get("model_weights_dir"))
         )
@@ -121,21 +135,35 @@ class CreateEmbedding:
 
         self.embedder()
 
-        plot_euclidean_distances(vectors=self.output_dict,
-                                 dataset_name=self.cfg.dataset_type,
-                                 filename=self.euc_mtx_filename,
-                                 normalize=False,
-                                 operation="embeddings",
-                                 plot_size=40)
+        labels = []
+        embedding_vectors = []
+        for label, embedding_list in self.output_dict.items():
+            for embedding in embedding_list:
+                labels.append(label)
+                embedding_vectors.append(embedding)
+
+        tsne_model = TSNE(perplexity=25, n_components=2, init='pca', n_iter=5000, random_state=42)
+        new_values = tsne_model.fit_transform(np.array(embedding_vectors))
+        create_euc_matrix_file(matrix=new_values,
+                               list_of_labels=labels,
+                               file_name=self.emb_mtx_xlsx_filename)
+
+        if self.plot_euc:
+            plot_euclidean_distances(vectors=self.output_dict,
+                                     dataset_name=self.cfg.dataset_type,
+                                     filename=self.euc_mtx_filename,
+                                     normalize=False,
+                                     operation="embeddings",
+                                     plot_size=40)
 
         plot_embeddings(output_dict=self.output_dict,
                         output_filename=self.emb_tsne_filename,
-                        interactive=False)
+                        interactive=self.interactive)
 
 
 if __name__ == "__main__":
     try:
-        emb = CreateEmbedding()
+        emb = CreateEmbedding(interactive=True, plot_euc=False)
         emb.main()
     except KeyboardInterrupt as kie:
         logging.error(f"{kie}")

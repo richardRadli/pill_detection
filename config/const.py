@@ -439,6 +439,8 @@ class Data(_Const):
             "data/cure_one_sided/dynamic_margin/score_vectors",
         "concatenated_vectors_cure_one_sided":
             "data/cure_one_sided/dynamic_margin/concatenated_vectors",
+        "euc_mtx_xlsx_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/euc_mtx_xlsx",
 
         # ------------------------------------------------ K   F O L D -------------------------------------------------
         "cure_one_sided_k_fold":
@@ -530,6 +532,8 @@ class Data(_Const):
             "data/cure_two_sided/dynamic_margin/score_vectors",
         "concatenated_vectors_cure_two_sided":
             "data/cure_two_sided/dynamic_margin/concatenated_vectors",
+        "euc_mtx_xlsx_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/euc_mtx_xlsx",
 
         "cure_two_sided_k_fold":
             "data/cure_two_sided/k_fold",
@@ -620,7 +624,9 @@ class Data(_Const):
         "score_vectors_ogyei":
             "data/ogyei/dynamic_margin/score_vectors",
         "concatenated_vectors_ogyei":
-            "data/ogyei/dynamic_margin/concatenated_vectors"
+            "data/ogyei/dynamic_margin/concatenated_vectors",
+        "euc_mtx_xlsx_ogyei":
+            "data/ogyei/dynamic_margin/euc_mtx_xlsx",
     }
 
     def __init__(self):
