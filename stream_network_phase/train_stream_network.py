@@ -104,8 +104,7 @@ class TrainModel:
 
         # Specify optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                          lr=network_cfg.get("learning_rate"),
-                                          weight_decay=1e-5)
+                                          lr=network_cfg.get("learning_rate"))
 
         # LR scheduler
         self.scheduler = StepLR(optimizer=self.optimizer,

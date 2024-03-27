@@ -75,155 +75,9 @@ class _Const(object):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Images(_Const):
     dirs_images = {
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++ C U R E ++++++++++++++++++++++++++++++++++++++++++++++++++
-        "stream_images_cure_two_sided_anchor":
-            "images/cure_two_sided/stream_images/anchor",
-        "stream_images_cure_two_sided_pos_neg":
-            "images/cure_two_sided/stream_images/pos_neg",
-
-        # ------------------------------------------------- A N C H O R ------------------------------------------------
-        "train_contour_stream_cure_two_sided_anchor":
-            "images/cure_two_sided/stream_images/anchor/contour",
-        "train_lbp_stream_cure_two_sided_anchor":
-            "images/cure_two_sided/stream_images/anchor/lbp",
-        "train_rgb_stream_cure_two_sided_anchor":
-            "images/cure_two_sided/stream_images/anchor/rgb",
-        "train_texture_stream_cure_two_sided_anchor":
-            "images/cure_two_sided/stream_images/anchor/texture",
-
-        # ----------------------------------------------- P O S   N E G ------------------------------------------------
-        "contour_stream_cure_two_sided_pos_neg":
-            "images/cure_two_sided/stream_images/pos_neg/contour",
-        "lbp_stream_cure_two_sided_pos_neg":
-            "images/cure_two_sided/stream_images/pos_neg/lbp",
-        "rgb_stream_cure_two_sided_pos_neg":
-            "images/cure_two_sided/stream_images/pos_neg/rgb",
-        "texture_stream_cure_two_sided_pos_neg":
-            "images/cure_two_sided/stream_images/pos_neg/texture",
-
-        # -------------------------------------------------- Q U E R Y -------------------------------------------------
-        "test_query_cure_two_sided":
-            "images/cure_two_sided/test/query",
-        "test_contour_stream_query_cure_two_sided":
-            "images/cure_two_sided/test/query/contour",
-        "test_lbp_stream_query_cure_two_sided":
-            "images/cure_two_sided/test/query/lbp",
-        "test_rgb_stream_query_cure_two_sided":
-            "images/cure_two_sided/test/query/rgb",
-        "test_texture_stream_query_cure_two_sided":
-            "images/cure_two_sided/test/query/texture",
-
-        # ---------------------------------------------------- R E F ---------------------------------------------------
-        "test_ref_cure_two_sided":
-            "images/cure_two_sided/test/ref",
-        "test_contour_stream_ref_cure_two_sided":
-            "images/cure_two_sided/test/ref/contour",
-        "test_lbp_stream_ref_cure_two_sided":
-            "images/cure_two_sided/test/ref/lbp",
-        "test_rgb_stream_ref_cure_two_sided":
-            "images/cure_two_sided/test/ref/rgb",
-        "test_texture_stream_ref_cure_two_sided":
-            "images/cure_two_sided/test/ref/texture",
-
-        # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
-        "plotting_efficient_net_cure_two_sided":
-            "images/cure_two_sided/plotting/stream_net/plotting_efficient_net",
-
-        # ------------------------------------ P L O T T I N G   F U S I O N   N E T -----------------------------------
-        "plotting_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
-            "images/cure_two_sided/plotting/fusion_net/plotting_fusion_network_efficient_net_multi_head_attention",
-
-        # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
-        "conf_mtx_efficient_net_cure_two_sided":
-            "images/cure_two_sided/conf_mtx/stream_net/conf_mtx_efficient_net",
-
-        # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
-        "conf_mtx_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
-            "images/cure_two_sided/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
-
-        "Fourier_collected_images_by_shape_cure_two_sided":
-            "images/cure_two_sided/dynamic_margin/Fourier_descriptor/collected_images_by_shape",
-        "Fourier_euclidean_distance_cure_two_sided":
-            "images/cure_two_sided/dynamic_margin/Fourier_descriptor/euclidean_distance",
-
-        "combined_vectors_euc_dst_cure_two_sided":
-            "images/cure_two_sided/dynamic_margin/combined_vectors_euc_dst",
-
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I ++++++++++++++++++++++++++++++++++++++++++++++++
-        "stream_images_ogyei_anchor":
-            "images/ogyei/stream_images/anchor",
-        "stream_images_ogyei_pos_neg":
-            "images/ogyei/stream_images/pos_neg",
-
-        # ------------------------------------------------- A N C H O R ------------------------------------------------
-        "train_contour_stream_ogyei_anchor":
-            "images/ogyei/stream_images/anchor/contour",
-        "train_lbp_stream_ogyei_anchor":
-            "images/ogyei/stream_images/anchor/lbp",
-        "train_rgb_stream_ogyei_anchor":
-            "images/ogyei/stream_images/anchor/rgb",
-        "train_texture_stream_ogyei_anchor":
-            "images/ogyei/stream_images/anchor/texture",
-
-        # ----------------------------------------------- P O S   N E G ------------------------------------------------
-        "contour_stream_ogyei_pos_neg":
-            "images/ogyei/stream_images/pos_neg/contour",
-        "lbp_stream_ogyei_pos_neg":
-            "images/ogyei/stream_images/pos_neg/lbp",
-        "rgb_stream_ogyei_pos_neg":
-            "images/ogyei/stream_images/pos_neg/rgb",
-        "texture_stream_ogyei_pos_neg":
-            "images/ogyei/stream_images/pos_neg/texture",
-
-        # -------------------------------------------------- Q U E R Y -------------------------------------------------
-        "test_query_ogyei":
-            "images/ogyei/test/query",
-        "test_contour_stream_query_ogyei":
-            "images/ogyei/test/query/contour",
-        "test_lbp_stream_query_ogyei":
-            "images/ogyei/test/query/lbp",
-        "test_rgb_stream_query_ogyei":
-            "images/ogyei/test/query/rgb",
-        "test_texture_stream_query_ogyei":
-            "images/ogyei/test/query/texture",
-
-        # ---------------------------------------------------- R E F ---------------------------------------------------
-        "test_ref_ogyei":
-            "images/ogyei/test/ref",
-        "test_contour_stream_ref_ogyei":
-            "images/ogyei/test/ref/contour",
-        "test_lbp_stream_ref_ogyei":
-            "images/ogyei/test/ref/lbp",
-        "test_rgb_stream_ref_ogyei":
-            "images/ogyei/test/ref/rgb",
-        "test_texture_stream_ref_ogyei":
-            "images/ogyei/test/ref/texture",
-
-        # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
-        "plotting_efficient_net_ogyei":
-            "images/ogyei/plotting/stream_net/plotting_efficient_net",
-
-        # ------------------------------------ P L O T T I N G   F U S I O N   N E T -----------------------------------
-        "plotting_fusion_network_efficient_net_multi_head_attention_ogyei":
-            "images/ogyei/plotting/fusion_net/plotting_fusion_network_efficient_net_multi_head_attention",
-
-        # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
-        "conf_mtx_efficient_net_ogyei":
-            "images/ogyei/conf_mtx/stream_net/conf_mtx_efficient_net",
-
-        # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
-        "conf_mtx_fusion_network_efficient_net_multi_head_attention_ogyei":
-            "images/ogyei/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
-
-        "Fourier_collected_images_by_shape_ogyei":
-            "images/ogyei/dynamic_margin/Fourier_descriptor/collected_images_by_shape",
-        "Fourier_euclidean_distance_ogyei":
-            "images/ogyei/dynamic_margin/Fourier_descriptor/euclidean_distance",
-
-        "combined_vectors_euc_dst_ogyei":
-            "images/ogyei/dynamic_margin/combined_vectors_euc_dst",
-
-        # ++++++++++++++++++++++++++++++++++++++++ C U R E   O N E   S I D E D +++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++ C U R E    O N E   S I D E D ++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         "stream_images_cure_one_sided_anchor":
             "images/cure_one_sided/stream_images/anchor",
         "stream_images_cure_one_sided_pos_neg":
@@ -283,11 +137,19 @@ class Images(_Const):
 
         # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
         "conf_mtx_efficient_net_cure_one_sided":
-            "images/cure_one_sided/conf_mtx/stream_net/conf_mtx_efficient_net",
+            "images/cure_one_sided/plotting/stream_net/conf_mtx_efficient_net",
 
         # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
         "conf_mtx_fusion_network_efficient_net_multi_head_attention_cure_one_sided":
-            "images/cure_one_sided/conf_mtx/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
+            "images/cure_one_sided/plotting/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
+
+        # -------------------------------- E M B E D D I N G   E U C L I D E A N   M T X -------------------------------
+        "emb_euc_mtx_word_embedded_network_cure_one_sided":
+            "images/cure_one_sided/plotting/word_embedded_network/emb_euc_mtx",
+
+        # --------------------------- E M B E D D I N G   T S N E ----------------------------
+        "emb_tsne_word_embedded_network_cure_one_sided":
+            "images/cure_one_sided/plotting/word_embedded_network/emb_tsne_vis",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O T H E R +++++++++++++++++++++++++++++++++++++++++++++++++
         # ----------------------------------------------- F O U R I E R ------------------------------------------------
@@ -299,6 +161,176 @@ class Images(_Const):
         # ---------------------------------------------- C O L O U R S -------------------------------------------------
         "combined_vectors_euc_dst_cure_one_sided":
             "images/cure_one_sided/dynamic_margin/combined_vectors_euc_dst",
+
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++ C U R E    T W O   S I D E D ++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        "stream_images_cure_two_sided_anchor":
+            "images/cure_two_sided/stream_images/anchor",
+        "stream_images_cure_two_sided_pos_neg":
+            "images/cure_two_sided/stream_images/pos_neg",
+
+        # ------------------------------------------------- A N C H O R ------------------------------------------------
+        "train_contour_stream_cure_two_sided_anchor":
+            "images/cure_two_sided/stream_images/anchor/contour",
+        "train_lbp_stream_cure_two_sided_anchor":
+            "images/cure_two_sided/stream_images/anchor/lbp",
+        "train_rgb_stream_cure_two_sided_anchor":
+            "images/cure_two_sided/stream_images/anchor/rgb",
+        "train_texture_stream_cure_two_sided_anchor":
+            "images/cure_two_sided/stream_images/anchor/texture",
+
+        # ----------------------------------------------- P O S   N E G ------------------------------------------------
+        "contour_stream_cure_two_sided_pos_neg":
+            "images/cure_two_sided/stream_images/pos_neg/contour",
+        "lbp_stream_cure_two_sided_pos_neg":
+            "images/cure_two_sided/stream_images/pos_neg/lbp",
+        "rgb_stream_cure_two_sided_pos_neg":
+            "images/cure_two_sided/stream_images/pos_neg/rgb",
+        "texture_stream_cure_two_sided_pos_neg":
+            "images/cure_two_sided/stream_images/pos_neg/texture",
+
+        # -------------------------------------------------- Q U E R Y -------------------------------------------------
+        "test_query_cure_two_sided":
+            "images/cure_two_sided/test/query",
+        "test_contour_stream_query_cure_two_sided":
+            "images/cure_two_sided/test/query/contour",
+        "test_lbp_stream_query_cure_two_sided":
+            "images/cure_two_sided/test/query/lbp",
+        "test_rgb_stream_query_cure_two_sided":
+            "images/cure_two_sided/test/query/rgb",
+        "test_texture_stream_query_cure_two_sided":
+            "images/cure_two_sided/test/query/texture",
+
+        # ---------------------------------------------------- R E F ---------------------------------------------------
+        "test_ref_cure_two_sided":
+            "images/cure_two_sided/test/ref",
+        "test_contour_stream_ref_cure_two_sided":
+            "images/cure_two_sided/test/ref/contour",
+        "test_lbp_stream_ref_cure_two_sided":
+            "images/cure_two_sided/test/ref/lbp",
+        "test_rgb_stream_ref_cure_two_sided":
+            "images/cure_two_sided/test/ref/rgb",
+        "test_texture_stream_ref_cure_two_sided":
+            "images/cure_two_sided/test/ref/texture",
+
+        # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
+        "plotting_efficient_net_cure_two_sided":
+            "images/cure_two_sided/plotting/stream_net/plotting_efficient_net",
+
+        # ------------------------------------ P L O T T I N G   F U S I O N   N E T -----------------------------------
+        "plotting_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
+            "images/cure_two_sided/plotting/fusion_net/plotting_fusion_network_efficient_net_multi_head_attention",
+
+        # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
+        "conf_mtx_efficient_net_cure_two_sided":
+            "images/cure_two_sided/plotting/stream_net/conf_mtx_efficient_net",
+
+        # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
+        "conf_mtx_fusion_network_efficient_net_multi_head_attention_cure_two_sided":
+            "images/cure_two_sided/plotting/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
+
+        # -------------------------------- E M B E D D I N G   E U C L I D E A N   M T X -------------------------------
+        "emb_euc_mtx_word_embedded_network_cure_two_sided":
+            "images/cure_two_sided/plotting/word_embedded_network/emb_euc_mtx",
+
+        # ----------------------------------------- E M B E D D I N G   T S N E ----------------------------------------
+        "emb_tsne_word_embedded_network_cure_two_sided":
+            "images/cure_two_sided/plotting/word_embedded_network/emb_tsne_vis",
+
+        # ------------------------------------------------ O T H E R ---------------------------------------------------
+        "Fourier_collected_images_by_shape_cure_two_sided":
+            "images/cure_two_sided/dynamic_margin/Fourier_descriptor/collected_images_by_shape",
+        "Fourier_euclidean_distance_cure_two_sided":
+            "images/cure_two_sided/dynamic_margin/Fourier_descriptor/euclidean_distance",
+
+        "combined_vectors_euc_dst_cure_two_sided":
+            "images/cure_two_sided/dynamic_margin/combined_vectors_euc_dst",
+
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I ++++++++++++++++++++++++++++++++++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        "stream_images_ogyei_anchor":
+            "images/ogyei/stream_images/anchor",
+        "stream_images_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg",
+
+        # ------------------------------------------------- A N C H O R ------------------------------------------------
+        "train_contour_stream_ogyei_anchor":
+            "images/ogyei/stream_images/anchor/contour",
+        "train_lbp_stream_ogyei_anchor":
+            "images/ogyei/stream_images/anchor/lbp",
+        "train_rgb_stream_ogyei_anchor":
+            "images/ogyei/stream_images/anchor/rgb",
+        "train_texture_stream_ogyei_anchor":
+            "images/ogyei/stream_images/anchor/texture",
+
+        # ----------------------------------------------- P O S   N E G ------------------------------------------------
+        "contour_stream_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg/contour",
+        "lbp_stream_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg/lbp",
+        "rgb_stream_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg/rgb",
+        "texture_stream_ogyei_pos_neg":
+            "images/ogyei/stream_images/pos_neg/texture",
+
+        # -------------------------------------------------- Q U E R Y -------------------------------------------------
+        "test_query_ogyei":
+            "images/ogyei/test/query",
+        "test_contour_stream_query_ogyei":
+            "images/ogyei/test/query/contour",
+        "test_lbp_stream_query_ogyei":
+            "images/ogyei/test/query/lbp",
+        "test_rgb_stream_query_ogyei":
+            "images/ogyei/test/query/rgb",
+        "test_texture_stream_query_ogyei":
+            "images/ogyei/test/query/texture",
+
+        # ---------------------------------------------------- R E F ---------------------------------------------------
+        "test_ref_ogyei":
+            "images/ogyei/test/ref",
+        "test_contour_stream_ref_ogyei":
+            "images/ogyei/test/ref/contour",
+        "test_lbp_stream_ref_ogyei":
+            "images/ogyei/test/ref/lbp",
+        "test_rgb_stream_ref_ogyei":
+            "images/ogyei/test/ref/rgb",
+        "test_texture_stream_ref_ogyei":
+            "images/ogyei/test/ref/texture",
+
+        # ------------------------------------ P L O T T I N G   S T R E A M   N E T -----------------------------------
+        "plotting_efficient_net_ogyei":
+            "images/ogyei/plotting/stream_net/plotting_efficient_net",
+
+        # ------------------------------------ P L O T T I N G   F U S I O N   N E T -----------------------------------
+        "plotting_fusion_network_efficient_net_multi_head_attention_ogyei":
+            "images/ogyei/plotting/fusion_net/plotting_fusion_network_efficient_net_multi_head_attention",
+
+        # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
+        "conf_mtx_efficient_net_ogyei":
+            "images/ogyei/plotting/stream_net/conf_mtx_efficient_net",
+
+        # --------------------------- C O N F U S I O N   M A T R I X   F U S I O N   N E T ----------------------------
+        "conf_mtx_fusion_network_efficient_net_multi_head_attention_ogyei":
+            "images/ogyei/plotting/fusion_net/conf_mtx_fusion_network_efficient_net_multi_head_attention",
+
+        # -------------------------------- E M B E D D I N G   E U C L I D E A N   M T X -------------------------------
+        "emb_euc_mtx_word_embedded_network_ogyei":
+            "images/ogyei/plotting/word_embedded_network/emb_euc_mtx",
+
+        # ---------------------------------------- E M B E D D I N G   T S N E -----------------------------------------
+        "emb_tsne_word_embedded_network_ogyei":
+            "images/ogyei/plotting/word_embedded_network/emb_tsne_vis",
+
+        # -------------------------------------------------- O T H E R -------------------------------------------------
+        "Fourier_collected_images_by_shape_ogyei":
+            "images/ogyei/dynamic_margin/Fourier_descriptor/collected_images_by_shape",
+        "Fourier_euclidean_distance_ogyei":
+            "images/ogyei/dynamic_margin/Fourier_descriptor/euclidean_distance",
+
+        "combined_vectors_euc_dst_ogyei":
+            "images/ogyei/dynamic_margin/combined_vectors_euc_dst"
     }
 
     # ------------------------------------------------------------------------------------------------------------------

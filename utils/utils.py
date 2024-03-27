@@ -19,6 +19,7 @@ import re
 import seaborn as sns
 import time
 import torch
+import plotly.graph_objs as go
 
 from datetime import datetime
 from functools import wraps
@@ -376,6 +377,65 @@ def plot_confusion_matrix(gt: List[str], predictions: List[str], out_path: str) 
     os.makedirs(out_path, exist_ok=True)
     output_path = os.path.join(out_path, "confusion_matrix.png")
     plt.savefig(output_path, dpi=600)
+
+
+def plot_embeddings(output_dict, output_filename, interactive: bool):
+    """
+
+    Args:
+        output_dict:
+        output_filename:
+        interactive:
+    Returns:
+        None
+    """
+
+    labels = []
+    embedding_vectors = []
+    for label, embedding_list in output_dict.items():
+        for embedding in embedding_list:
+            labels.append(label)
+            embedding_vectors.append(embedding)
+
+    embedding_vectors = np.array(embedding_vectors)
+
+    if interactive:
+        # Create trace for scatter plot
+        trace = go.Scatter(
+            x=embedding_vectors[:, 0],
+            y=embedding_vectors[:, 1],
+            mode='markers',
+            marker=dict(
+                size=10,
+                opacity=0.5
+            ),
+            text=labels,
+            hoverinfo='text'
+        )
+
+        # Create layout
+        layout = go.Layout(
+            title='Visualization of Embeddings',
+            hovermode='closest'
+        )
+
+        # Create figure
+        fig = go.Figure(data=[trace], layout=layout)
+
+        # Display interactive plot
+        fig.show()
+
+    else:
+        plt.figure(figsize=(12, 10))
+        for i, (label, embedding) in enumerate(zip(labels, embedding_vectors)):
+            plt.scatter(embedding[0], embedding[1], color='b', alpha=0.5)
+            plt.text(embedding[0], embedding[1], label, fontsize=9)
+
+        plt.title('Visualization of Embeddings')
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig(output_filename, dpi=300)
+        plt.close()
 
 
 def plot_euclidean_distances(vectors: dict, dataset_name: str, filename: str, normalize: bool, operation: str,

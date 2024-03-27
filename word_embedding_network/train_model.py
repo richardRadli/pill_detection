@@ -110,16 +110,27 @@ class TrainWordEmbeddingNetwork:
         """
 
         for original, augmented in tqdm(self.train_dataloader, total=len(self.train_dataloader), desc="Training"):
+            # Zero out gradients
             self.optimizer.zero_grad()
+
+            # Upload data to GPU
             original = original.to(self.device)
             augmented = augmented.to(self.device)
+
+            # Forward pass
             embeddings_original = self.model(original)
             embeddings_augmented = self.model(augmented)
             embeddings = torch.cat((embeddings_original, embeddings_augmented))
             indices = torch.arange(0, embeddings_original.size(0), device=self.device)
             labels = torch.cat((indices, indices))
+
+            # Apply loss
             train_loss = self.criterion(embeddings, labels)
+
+            # Backward pass
             train_loss.backward()
+
+            # Call optimizer
             self.optimizer.step()
             train_losses.append(train_loss.item())
 
@@ -127,13 +138,18 @@ class TrainWordEmbeddingNetwork:
 
     def valid_loop(self, valid_losses):
         for original, augmented in tqdm(self.valid_dataloader, total=len(self.valid_dataloader), desc="Validation"):
+            # Upload data to GPU
             original = original.to(self.device)
             augmented = augmented.to(self.device)
+
+            # Forward pass
             embeddings_original = self.model(original)
             embeddings_augmented = self.model(augmented)
             embeddings = torch.cat((embeddings_original, embeddings_augmented))
             indices = torch.arange(0, embeddings_original.size(0), device=self.device)
             labels = torch.cat((indices, indices))
+
+            # Apply loss
             valid_loss = self.criterion(embeddings, labels)
             valid_losses.append(valid_loss.item())
 

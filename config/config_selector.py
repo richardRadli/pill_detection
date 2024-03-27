@@ -62,7 +62,11 @@ def word_embedded_network_configs(dataset_name=None) -> Dict:
             "logs_dir":
                 DATA_PATH.get_data_path("logs_word_embedded_network_cure_one_sided"),
             "predictions":
-                DATA_PATH.get_data_path("predictions_word_embedded_network_cure_one_sided")
+                DATA_PATH.get_data_path("predictions_word_embedded_network_cure_one_sided"),
+            "emb_euc_mtx":
+                IMAGES_PATH.get_data_path("emb_euc_mtx_word_embedded_network_cure_one_sided"),
+            "emb_tsne":
+                IMAGES_PATH.get_data_path("emb_tsne_word_embedded_network_cure_one_sided")
         },
         "cure_two_sided": {
             "input_dim":
@@ -76,13 +80,17 @@ def word_embedded_network_configs(dataset_name=None) -> Dict:
             "logs_dir":
                 DATA_PATH.get_data_path("logs_word_embedded_network_cure_two_sided"),
             "predictions":
-                DATA_PATH.get_data_path("predictions_word_embedded_network_cure_two_sided")
+                DATA_PATH.get_data_path("predictions_word_embedded_network_cure_two_sided"),
+            "emb_euc_mtx":
+                IMAGES_PATH.get_data_path("emb_euc_mtx_word_embedded_network_cure_two_sided"),
+            "emb_tsne":
+                IMAGES_PATH.get_data_path("emb_tsne_word_embedded_network_cure_two_sided")
         },
         "ogyei": {
             "input_dim":
                 61,
             "hidden_dim":
-                1000,
+                100,
             "output_dim":
                 5,
             "model_weights_dir":
@@ -90,7 +98,11 @@ def word_embedded_network_configs(dataset_name=None) -> Dict:
             "logs_dir":
                 DATA_PATH.get_data_path("logs_word_embedded_network_ogyei"),
             "predictions":
-                DATA_PATH.get_data_path("predictions_word_embedded_ogyei")
+                DATA_PATH.get_data_path("predictions_word_embedded_ogyei"),
+            "emb_euc_mtx":
+                IMAGES_PATH.get_data_path("emb_euc_mtx_word_embedded_network_ogyei"),
+            "emb_tsne":
+                IMAGES_PATH.get_data_path("emb_tsne_word_embedded_network_ogyei")
         }
     }
 
