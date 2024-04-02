@@ -48,11 +48,11 @@ def nlp_configs() -> Dict:
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------- C A M E R A   C O N F I G --------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def word_embedded_network_configs(dataset_name=None) -> Dict:
+def word_embedded_network_configs(dataset_name) -> Dict:
     word_embedded_network_config_config = {
         "cure_one_sided": {
             "neurons":
-                [61, 100, 80, 60, 10],
+                [49, 100, 80, 60, 10],
             "model_weights_dir":
                 DATA_PATH.get_data_path("weights_word_embedded_network_cure_one_sided"),
             "logs_dir":

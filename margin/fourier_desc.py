@@ -40,7 +40,7 @@ class FourierDescriptor:
         #     dataset_images_path_selector(
         #         cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb")
         # )
-        self.images_dir = "D:/storage/pill_detection/datasets/ogyei/Reference/stream_images/masks"
+        self.images_dir = "D:/storage/pill_detection/datasets/cure_one_sided/Reference/stream_images/masks"
         self.file_path = (
             dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("Fourier_images_by_shape")
         )
@@ -237,8 +237,11 @@ class FourierDescriptor:
                         norm_fourier_coeff = self.elliptic_fourier_w_norm(segmented_image=segmented_image)
                         class_coefficients.append(norm_fourier_coeff)
 
-                        if self.dataset_name == "cure_one_sided" or self.dataset_name == "cure_two_sided":
-                            file_key = file.split("_")[0]
+                        if self.dataset_name == "cure_one_sided":
+                            file_key = f"{file.split('_')[0]}_{file.split('_')[2].split('.')[0]}"
+
+                        elif self.dataset_name == "cure_two_sided":
+                            file_key = f"{file.split('_')[0]}"
 
                         elif self.dataset_name == "ogyei":
                             if "_s_" in file:

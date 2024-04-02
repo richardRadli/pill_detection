@@ -528,7 +528,7 @@ def plot_euclidean_distances(vectors: dict, dataset_name: str, filename: str, no
     df = pd.DataFrame(distances, index=class_labels, columns=class_labels)
 
     plt.figure(figsize=(plot_size, plot_size))
-    sns.heatmap(df, annot=True, cmap="viridis", fmt=".2f", annot_kws={"size": 8}, square=True)
+    sns.heatmap(df, annot=True, cmap="viridis", fmt=".2f", annot_kws={"size": 4}, square=True)
 
     plt.xticks(np.arange(len(class_labels)), class_labels, rotation=45, ha='right')
     plt.yticks(np.arange(len(class_labels)), class_labels)

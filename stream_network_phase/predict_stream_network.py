@@ -222,22 +222,40 @@ class PredictStreamNetwork:
                     texture_vector = self.network_tex(tex_image).squeeze().cpu()
 
                 concatenated = torch.cat((contour_vector, lbp_vector, rgb_vector, texture_vector), dim=0)
-                vectors.append(concatenated)
+                vectors.append(contour_vector)
                 labels.append(image_name)
 
             if operation == "reference":
-                ref_save_dir = (
-                    os.path.join(
-                        self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type),
-                        f"{self.timestamp}_{self.cfg.type_of_loss_func}"
-                    )
-                )
-                os.makedirs(ref_save_dir, exist_ok=True)
-                torch.save({'vectors': vectors, 'labels': labels, 'images_path': images_path},
-                           os.path.join(ref_save_dir, "ref_vectors.pt"))
+                self.save_reference_vector(vectors, labels, images_path)
 
         logging.info("Processing of %s images is done" % operation)
         return vectors, labels, images_path
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------ S A V E   R E F E R E N C E   V E C T O R -----------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def save_reference_vector(self, vectors, labels, images_path):
+        """
+
+            vectors:
+            labels:
+            images_path:
+
+        Return:
+            None
+        """
+
+        ref_save_dir = (
+            os.path.join(
+                self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type),
+                f"{self.timestamp}_{self.cfg.type_of_loss_func}"
+            )
+        )
+        os.makedirs(ref_save_dir, exist_ok=True)
+        torch.save({'vectors': vectors,
+                    'labels': labels,
+                    'images_path': images_path},
+                   os.path.join(ref_save_dir, "ref_vectors.pt"))
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------- M E A S U R E   C O S S I M   A N D   E U C D I S T ------------------------------
@@ -406,10 +424,10 @@ class PredictStreamNetwork:
             if self.cfg.reference_set == "full":
                 ref_vecs, r_labels, r_images_path = \
                     self.get_vectors(
-                        contour_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_contour"),
-                        lbp_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_lbp"),
-                        rgb_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb"),
-                        texture_dir=dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_texture"),
+                        dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_contour"),
+                        dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_lbp"),
+                        dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb"),
+                        dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_texture"),
                         operation="reference")
             elif self.cfg.reference_set == "partial":
                 ref_vecs, r_labels, r_images_path = \

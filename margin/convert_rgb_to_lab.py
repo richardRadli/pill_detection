@@ -4,7 +4,7 @@ import os
 
 from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
-from utils.utils import NumpyEncoder, sort_dict, create_timestamp, find_latest_file_in_directory
+from utils.utils import NumpyEncoder, sort_dict, create_timestamp, find_latest_file_in_directory, find_latest_directory
 
 
 def concatenate_json_files(json_path, output_path):
@@ -39,7 +39,8 @@ def rgb_to_lab(load: bool = True):
             concatenated_data = json.load(file)
     else:
         json_file_name_rgb = os.path.join(json_path, f"{timestamp}_colors_rgb.json")
-        concatenated_data = concatenate_json_files(json_path, json_file_name_rgb)
+        latest_json_path = find_latest_directory(json_path)
+        concatenated_data = concatenate_json_files(latest_json_path, json_file_name_rgb)
 
     lab_values = {}
 
@@ -55,4 +56,4 @@ def rgb_to_lab(load: bool = True):
 
 
 if __name__ == "__main__":
-    rgb_to_lab(load=True)
+    rgb_to_lab(load=False)

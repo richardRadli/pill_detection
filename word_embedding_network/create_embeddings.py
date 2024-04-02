@@ -154,7 +154,7 @@ class CreateEmbedding:
                                      filename=self.euc_mtx_filename,
                                      normalize=False,
                                      operation="embeddings",
-                                     plot_size=40)
+                                     plot_size=80)
 
         plot_embeddings(output_dict=self.output_dict,
                         output_filename=self.emb_tsne_filename,

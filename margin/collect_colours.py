@@ -38,7 +38,7 @@ cfg = ConfigAugmentation().parse()
 timestamp = create_timestamp()
 
 images_dir = (
-    dataset_images_path_selector("ogyei").get("src_stream_images").get("reference").get("stream_images_rgb")
+    dataset_images_path_selector(cfg.dataset_name).get("src_stream_images").get("reference").get("stream_images_rgb")
 )
 
 # Load the image

@@ -11,12 +11,13 @@ from config.config_selector import dataset_images_path_selector
 from utils.utils import create_timestamp, sort_dict, NumpyEncoder
 
 
-def encoding(words: List[str], feature_type) -> Dict[str, List[float]]:
+def encoding(words: List[str], feature_type: str) -> Dict[str, List[float]]:
     """
     Encode a list of words using one-hot encoding.
 
     Args:
         words (List[str]): List of words to encode.
+        feature_type (str): Type of feature.
 
     Returns:
         Dict[str, List[float]]: A dictionary where each word is paired with its one-hot encoded vector as a list of
@@ -52,23 +53,16 @@ def create_feature_vectors(sheet, words: list, feature_type: str, dataset_name) 
     if dataset_name == "cure_one_sided":
         for row in sheet.iter_rows(min_row=3, values_only=True):
             pill_id = row[1]
-            pill_id_prefix = pill_id.split("_")[0]
 
             selected_column = row[4] if feature_type == "imprint_vectors" else row[7]
             if selected_column is None:
                 selected_column = "None"
 
-            if pill_id_prefix not in feature_dict:
-                feature_dict[pill_id_prefix] = {"top": [], "bottom": []}
+            if pill_id not in feature_dict:
+                feature_dict[pill_id] = []
 
             encoded_feature = encoded_dict.get(selected_column)
-
-            if "top" in pill_id:
-                feature_dict[pill_id_prefix]["top"].append(encoded_feature)
-            elif "bottom" in pill_id:
-                feature_dict[pill_id_prefix]["bottom"].append(encoded_feature)
-            else:
-                raise ValueError(f"Wrong pill_id: {pill_id}")
+            feature_dict[pill_id].append(encoded_feature)
 
     elif dataset_name == "cure_two_sided" or dataset_name == "ogyei":
         for row in sheet.iter_rows(min_row=3, values_only=True):

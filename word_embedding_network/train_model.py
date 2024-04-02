@@ -47,7 +47,7 @@ class TrainWordEmbeddingNetwork:
         )
 
         self.model.to(self.device)
-        summary(self.model, input_size=(self.cfg.batch_size, word_emb_model_confing.get("input_dim")))
+        summary(self.model, input_size=(self.cfg.batch_size, word_emb_model_confing.get("neurons")[0]))
 
         self.optimizer = Adam(self.model.parameters(),
                               lr=self.cfg.learning_rate)
