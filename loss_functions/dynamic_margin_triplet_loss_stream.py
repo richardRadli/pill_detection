@@ -34,14 +34,17 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         triplets_per_anchor="all",
         euc_dist_mtx=None,
         upper_norm_limit=3.0,
+        mapping_table=None,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.margin = margin
+        self.mapping_table = mapping_table
         self.triplets_per_anchor = triplets_per_anchor
         self.add_to_recordable_attributes(list_of_names=["margin"], is_stat=False)
-        self.euc_dist_mtx = euc_dist_mtx
         self.upper_norm_limit = upper_norm_limit
+        normalized_euc_dist_mtx = euc_dist_mtx.apply(self.normalize_row, axis=1)
+        self.normalized_euc_dist_mtx = self.convert_dataframe_to_dict(normalized_euc_dist_mtx)
 
     def compute_loss(self,
                      embeddings: torch.Tensor,
@@ -78,7 +81,7 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         ap_dists = mat[anchor_idx, positive_idx]    # Tensor(x,)
         an_dists = mat[anchor_idx, negative_idx]    # Tensor(x,)
 
-        normalized_margins = self.normalize_row(anchor_idx, negative_idx, labels)
+        normalized_margins = self.get_normalized_value(anchor_idx, negative_idx, labels)
         normalized_margins = self.margin * normalized_margins
         normalized_margins = normalized_margins.to("cuda")
 
@@ -95,10 +98,28 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
             }
         }
 
-    def normalize_row(self,
-                      anchor_file_idx: List[int],
-                      negative_file_idx: List[int],
-                      labels: List[int]) \
+    def normalize_row(self, row):
+        non_diagonal_elements = row[row.index != row.name]  # Exclude diagonal elements
+        min_distance = non_diagonal_elements.min()
+        max_distance = non_diagonal_elements.max()
+        normalized_row = 1 + ((self.upper_norm_limit - 1) * (row - min_distance)) / (max_distance - min_distance)
+
+        return normalized_row
+
+    @staticmethod
+    def convert_dataframe_to_dict(df):
+        distance_dict = {}
+
+        for index, row in df.iterrows():
+            for col in df.columns:
+                distance_dict[(index, col)] = row[col]
+
+        return distance_dict
+
+    def get_normalized_value(self,
+                             anchor_file_idx: List[int],
+                             negative_file_idx: List[int],
+                             labels: List[int]) \
             -> torch.Tensor:
         """
         Normalize rows of the Euclidean distance matrix.
@@ -121,20 +142,16 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
             anchor_label = labels[anchor_idx].item()
             negative_label = labels[negative_idx].item()
 
-            # Find the corresponding row in the Euclidean distance matrix using labels
-            anchor_row = self.euc_dist_mtx.iloc[anchor_label]
-            anchor_row_tensor = torch.tensor(anchor_row)
+            for key, value in self.mapping_table.items():
+                if value == anchor_label:
+                    anchor_label = key
 
-            # Find the minimum and maximum distances in the row
-            min_distance = torch.min(anchor_row_tensor)
-            max_distance = torch.max(anchor_row_tensor)
+            for key, value in self.mapping_table.items():
+                if value == negative_label:
+                    negative_label = key
 
-            # Calculate normalized distance
-            normalized_distance = 1 + ((self.upper_norm_limit - 1) * (min_distance - anchor_row_tensor)) / (
-                        max_distance - min_distance)
-
-            # Store normalized distance
-            normalized_distances[i] = normalized_distance[negative_label]
+            normalized_distance = self.normalized_euc_dist_mtx[(anchor_label, negative_label)]
+            normalized_distances[i] = normalized_distance
 
         return normalized_distances
 

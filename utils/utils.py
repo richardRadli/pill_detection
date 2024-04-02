@@ -44,6 +44,10 @@ class NumpyEncoder(json.JSONEncoder):
         return super(NumpyEncoder, self).default(obj)
 
 
+def custom_sort(label):
+    return int(label.split('_')[0])
+
+
 def create_euc_matrix_file(list_of_labels, matrix, file_name):
     """
 
@@ -61,7 +65,10 @@ def create_euc_matrix_file(list_of_labels, matrix, file_name):
     for i, matrix_values in enumerate(matrix):
         dict_words[list_of_labels[i]] = matrix_values
 
-    sorted_dict = OrderedDict(sorted(dict_words.items()))
+    # Sort the dictionary based on keys using custom sorting function
+    sorted_dict = OrderedDict(sorted(dict_words.items(), key=lambda x: custom_sort(x[0])))
+
+    # Extract sorted matrix and labels
     sorted_matrix = list(sorted_dict.values())
     labels = list(sorted_dict.keys())
 

@@ -77,7 +77,7 @@ class TrainModel:
                 dataset_dirs_anchor=[network_cfg.get("train").get(self.cfg.dataset_type).get("anchor")],
                 dataset_dirs_pos_neg=[network_cfg.get("train").get(self.cfg.dataset_type).get("pos_neg")]
             )
-
+        self.mapping = dataset.reference_encoding_map
         self.train_data_loader, self.valid_data_loader = create_dataset(dataset=dataset,
                                                                         train_valid_ratio=self.cfg.train_valid_ratio,
                                                                         batch_size=self.cfg.batch_size)
@@ -99,7 +99,9 @@ class TrainModel:
                     margin=self.cfg.margin,
                     triplets_per_anchor="all",
                     euc_dist_mtx=df,
-                    upper_norm_limit=self.cfg.upper_norm_limit)
+                    upper_norm_limit=self.cfg.upper_norm_limit,
+                    mapping_table=self.mapping
+                )
             )
         elif self.cfg.type_of_loss_func == "hmtl":
             self.criterion = losses.TripletMarginLoss(margin=self.cfg.margin)

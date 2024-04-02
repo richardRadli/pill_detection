@@ -32,8 +32,10 @@ class DataLoaderStreamNet(Dataset):
         self.cfg = ConfigStreamNetwork().parse()
 
         # Load datasets
-        self.query_images, self.query_labels = self.load_dataset(dataset_dirs_anchor)
-        self.reference_images, self.reference_labels = self.load_dataset(dataset_dirs_pos_neg)
+        self.query_images, self.query_labels, _ =\
+            self.load_dataset(dataset_dirs_anchor)
+        self.reference_images, self.reference_labels, self.reference_encoding_map =\
+            self.load_dataset(dataset_dirs_pos_neg)
 
         self.transform = self.get_transform()
 
@@ -41,7 +43,7 @@ class DataLoaderStreamNet(Dataset):
     # -------------------------------------------- L O A D   D A T A S E T ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def load_dataset(dataset_dirs: List[str]) -> Tuple[List[str], List[int]]:
+    def load_dataset(dataset_dirs: List[str]) -> Tuple[List[str], List[int], dict]:
         """
         Load images from multiple directories and encode the labels.
 
@@ -54,6 +56,7 @@ class DataLoaderStreamNet(Dataset):
 
         images = []
         labels = []
+        encoding_map = {}
 
         for dataset_path in dataset_dirs:
             for label_name in os.listdir(dataset_path):
@@ -69,7 +72,12 @@ class DataLoaderStreamNet(Dataset):
         # Initialize label encoder
         label_encoder = LabelEncoder()
         encoded_labels = label_encoder.fit_transform(labels)
-        return images, encoded_labels
+
+        for original_label, encoded_label in zip(labels, encoded_labels):
+            if original_label not in encoding_map:
+                encoding_map[original_label] = encoded_label
+
+        return images, encoded_labels, encoding_map
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------- G E T   T R A N S F O R M --------------------------------------------
