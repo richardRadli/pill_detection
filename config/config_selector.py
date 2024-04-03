@@ -53,6 +53,8 @@ def word_embedded_network_configs(dataset_name) -> Dict:
         "cure_one_sided": {
             "neurons":
                 [49, 100, 80, 60, 10],
+            "neuron_split":
+                [6, 43, 49],
             "model_weights_dir":
                 DATA_PATH.get_data_path("weights_word_embedded_network_cure_one_sided"),
             "logs_dir":
@@ -67,6 +69,8 @@ def word_embedded_network_configs(dataset_name) -> Dict:
         "cure_two_sided": {
             "neurons":
                 [61, 100, 80, 60, 10],
+            "neuron_split":
+                [12, 49, 61],
             "model_weights_dir":
                 DATA_PATH.get_data_path("weights_word_embedded_network_cure_two_sided"),
             "logs_dir":
@@ -81,6 +85,8 @@ def word_embedded_network_configs(dataset_name) -> Dict:
         "ogyei": {
             "neurons":
                 [61, 100, 80, 60, 10],
+            "neuron_split":
+                [12, 49, 61],
             "model_weights_dir":
                 DATA_PATH.get_data_path("weights_word_embedded_network_ogyei"),
             "logs_dir":

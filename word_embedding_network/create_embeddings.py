@@ -21,17 +21,23 @@ class CreateEmbedding:
         self.interactive = interactive
         self.plot_euc = plot_euc
 
+        # Init config
         timestamp = create_timestamp()
         self.cfg = ConfigWordEmbedding().parse()
         device = use_gpu_if_available()
         word_emb_model_config = word_embedded_network_configs(self.cfg.dataset_type)
 
+        # Aux variables
+        self.output_dict = {}
+        self.neuron_split = word_emb_model_config.get("neuron_split")
+
+        # Load model
         self.model = self.load_model(word_emb_model_config, device)
 
+        # Load Dataset
         self.dataloader, self.class_ids = self.load_dataset()
 
-        self.output_dict = {}
-
+        # Filenames
         self.euc_mtx_filename = (
             self.create_filename(word_emb_model_config.get("emb_euc_mtx"),
                                  timestamp,
@@ -85,7 +91,7 @@ class CreateEmbedding:
             find_latest_file_in_directory(path=dataset_paths.get("dynamic_margin").get("concatenated_vectors"),
                                           extension="json")
         )
-        dataset = DataLoaderWordEmbeddingNetwork(json_file_path)
+        dataset = DataLoaderWordEmbeddingNetwork(json_file_path, self.neuron_split)
         dataloader = DataLoader(dataset, batch_size=len(dataset), shuffle=False)
         class_ids = dataset.classes
 

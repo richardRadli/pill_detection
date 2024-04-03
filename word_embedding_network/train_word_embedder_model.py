@@ -33,7 +33,7 @@ class TrainWordEmbeddingNetwork:
                                           extension="json")
         )
 
-        dataset = DataLoaderWordEmbeddingNetwork(json_file_path)
+        dataset = DataLoaderWordEmbeddingNetwork(json_file_path, word_emb_model_confing.get("neuron_split"))
         self.train_dataloader, self.valid_dataloader = (
             create_dataset(dataset=dataset,
                            train_valid_ratio=self.cfg.train_valid_ratio,

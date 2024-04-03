@@ -6,9 +6,10 @@ from torch.utils.data import Dataset
 
 
 class DataLoaderWordEmbeddingNetwork(Dataset):
-    def __init__(self, json_file):
+    def __init__(self, json_file, neuron_split):
         self.data = self.load_json(json_file)
         self.classes = list(self.data.keys())
+        self.neuron_split = neuron_split
 
     def __len__(self):
         total_samples = sum(len(self.data[class_label]) for class_label in self.classes)
@@ -46,18 +47,15 @@ class DataLoaderWordEmbeddingNetwork(Dataset):
         )
         return augmented_vector
 
-    @staticmethod
-    def augment_lab_values(feature_vector):
-        lab_value = feature_vector[:12]
+    def augment_lab_values(self, feature_vector):
+        lab_value = feature_vector[:self.neuron_split[0]]
         augmented_lab_value = [f + np.random.normal(loc=0, scale=0.1) for f in lab_value]
         return augmented_lab_value
 
-    @staticmethod
-    def augment_fourier_values(feature_vector):
-        fourier_value = feature_vector[12:49]
+    def augment_fourier_values(self, feature_vector):
+        fourier_value = feature_vector[self.neuron_split[0]:self.neuron_split[1]]
         augmented_fourier_value = [f + np.random.normal(loc=0, scale=0.1) for f in fourier_value]
         return augmented_fourier_value
 
-    @staticmethod
-    def get_imprint_and_score(feature_vector):
-        return feature_vector[49:61]
+    def get_imprint_and_score(self, feature_vector):
+        return feature_vector[self.neuron_split[1]:self.neuron_split[2]]

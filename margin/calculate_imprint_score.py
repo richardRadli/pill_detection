@@ -8,7 +8,7 @@ from typing import Dict, List
 
 from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
-from utils.utils import create_timestamp, sort_dict, NumpyEncoder
+from utils.utils import create_timestamp, NumpyEncoder
 
 
 def encoding(words: List[str], feature_type: str) -> Dict[str, List[float]]:
@@ -106,11 +106,10 @@ def process_vectors(sheet, words: list, dataset_name: str, timestamp: str, featu
     """
     
     dictionary = create_feature_vectors(sheet, words, feature_type, dataset_name)
-    sorted_dict = sort_dict(dictionary)
     path = dataset_images_path_selector(dataset_name).get("dynamic_margin").get(f"{feature_type}")
     json_save_filename = os.path.join(path, f"{timestamp}_{feature_type}.json")
     with open(json_save_filename, "w") as json_file:
-        json.dump(sorted_dict, json_file, cls=NumpyEncoder)
+        json.dump(dictionary, json_file, cls=NumpyEncoder)
     logging.info(f"Saved feature vectors to {json_save_filename}")
 
 

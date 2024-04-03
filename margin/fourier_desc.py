@@ -15,7 +15,7 @@ from sklearn.decomposition import PCA
 
 from config.config import ConfigStreamImages
 from config.config_selector import dataset_images_path_selector
-from utils.utils import create_timestamp, find_latest_file_in_directory, sort_dict, plot_euclidean_distances
+from utils.utils import create_timestamp, find_latest_file_in_directory, plot_euclidean_distances
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -36,11 +36,8 @@ class FourierDescriptor:
         self.order = order
         self.copy_images = copy_images
 
-        # self.images_dir = (
-        #     dataset_images_path_selector(
-        #         cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb")
-        # )
         self.images_dir = "D:/storage/pill_detection/datasets/cure_one_sided/Reference/stream_images/masks"
+
         self.file_path = (
             dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("Fourier_images_by_shape")
         )
@@ -199,10 +196,9 @@ class FourierDescriptor:
         """
 
         file_name = os.path.join(self.json_dir, f"{self.timestamp}_%s_{self.order}.json" % file_name)
-        sorted_dict = sort_dict(dict_to_save)
 
         with open(file_name, "w") as json_file:
-            json.dump(sorted_dict, json_file, cls=NumpyEncoder)
+            json.dump(dict_to_save, json_file, cls=NumpyEncoder)
 
     def load_json(self) -> dict:
         """
@@ -270,6 +266,7 @@ class FourierDescriptor:
                     class_average = np.mean(class_coefficients, axis=0)
                     class_averages[class_label] = class_average
 
+        pill_coeffs = dict(sorted(pill_coeffs.items()))
         filename = os.path.join(self.plot_euc_dir, f"euclidean_distances_{self.order}_{self.timestamp}.png")
         plot_euclidean_distances(vectors=class_averages,
                                  dataset_name=self.dataset_name,

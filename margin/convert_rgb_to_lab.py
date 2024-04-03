@@ -4,7 +4,7 @@ import os
 
 from config.config import ConfigAugmentation
 from config.config_selector import dataset_images_path_selector
-from utils.utils import NumpyEncoder, sort_dict, create_timestamp, find_latest_file_in_directory, find_latest_directory
+from utils.utils import NumpyEncoder, create_timestamp, find_latest_file_in_directory, find_latest_directory
 
 
 def concatenate_json_files(json_path, output_path):
@@ -30,7 +30,6 @@ def rgb_to_lab(load: bool = True):
     timestamp = create_timestamp()
 
     json_path = dataset_images_path_selector(cfg.dataset_name).get("dynamic_margin").get("colour_vectors")
-
     json_file_name_lab = os.path.join(json_path, f"{timestamp}_colors_lab.json")
 
     if load:
@@ -49,10 +48,8 @@ def rgb_to_lab(load: bool = True):
             rgb_values = list(rgb_value.values())
             lab_values.setdefault(key, []).append(colorspacious.cspace_convert(rgb_values, "sRGB255", "CIELab"))
 
-    sorted_dict = sort_dict(lab_values)
-
     with open(json_file_name_lab, "w") as json_file:
-        json.dump(sorted_dict, json_file, cls=NumpyEncoder)
+        json.dump(lab_values, json_file, cls=NumpyEncoder)
 
 
 if __name__ == "__main__":
