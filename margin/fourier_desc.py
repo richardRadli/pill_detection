@@ -36,21 +36,21 @@ class FourierDescriptor:
         self.order = order
         self.copy_images = copy_images
 
-        self.images_dir = "D:/storage/pill_detection/datasets/cure_one_sided/Reference/stream_images/masks"
+        self.images_dir = "D:/storage/pill_detection/datasets/cure_two_sided/Reference/stream_images/masks"
 
         self.file_path = (
-            dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("Fourier_images_by_shape")
+            dataset_images_path_selector(self.dataset_name).get("dynamic_margin").get("Fourier_images_by_shape")
         )
         self.plot_euc_dir = (
-            dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("Fourier_euclidean_distance")
+            dataset_images_path_selector(self.dataset_name).get("dynamic_margin").get("Fourier_euclidean_distance")
         )
         self.json_dir = (
-            dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("Fourier_saved_mean_vectors")
+            dataset_images_path_selector(self.dataset_name).get("dynamic_margin").get("Fourier_saved_mean_vectors")
         )
         self.excel_path = (
             os.path.join(
-                dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("pill_desc_xlsx"),
-                f"pill_desc_{cfg.dataset_type}.xlsx"
+                dataset_images_path_selector(self.dataset_name).get("dynamic_margin").get("pill_desc_xlsx"),
+                f"pill_desc_{self.dataset_name}.xlsx"
             )
         )
 
@@ -66,9 +66,9 @@ class FourierDescriptor:
 
         shape_dict = {}
 
-        for row in sheet.iter_rows(min_row=3, values_only=True):
-            pill_id = row[1]
-            shape = row[6]
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            pill_id = row[0]
+            shape = row[4] if self.dataset_name == "cure_one_sided" else row[6]
 
             if shape in shape_dict:
                 shape_dict[shape].append(pill_id)
@@ -280,7 +280,7 @@ class FourierDescriptor:
 
 if __name__ == "__main__":
     try:
-        fd = FourierDescriptor(copy_images=False, order=10)
+        fd = FourierDescriptor(copy_images=True, order=10)
         fd.main()
     except KeyboardInterrupt:
         logging.error("Ctrl+C pressed")

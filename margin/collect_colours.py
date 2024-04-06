@@ -4,7 +4,7 @@ import os
 
 from glob import glob
 
-from config.config import ConfigAugmentation
+from config.config import ConfigStreamImages
 from config.config_selector import dataset_images_path_selector
 from utils.utils import create_timestamp
 
@@ -33,12 +33,12 @@ def click_event(event, x, y, flags, param):
         save_point = False
 
 
-cfg = ConfigAugmentation().parse()
+cfg = ConfigStreamImages().parse()
 
 timestamp = create_timestamp()
 
 images_dir = (
-    dataset_images_path_selector(cfg.dataset_name).get("src_stream_images").get("reference").get("stream_images_rgb")
+    dataset_images_path_selector(cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb")
 )
 
 # Load the image
@@ -71,7 +71,7 @@ for directory in sorted(glob(os.path.join(images_dir, "*"))):
 
         # Save data to JSON after iterating through all images
         json_save_dir = (
-            os.path.join(dataset_images_path_selector(cfg.dataset_name).get("dynamic_margin").get("colour_vectors"),
+            os.path.join(dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("colour_vectors"),
                          timestamp)
         )
         os.makedirs(json_save_dir, exist_ok=True)

@@ -99,6 +99,15 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         }
 
     def normalize_row(self, row):
+        """
+
+        Args:
+            row:
+
+        Returns:
+
+        """
+
         non_diagonal_elements = row[row.index != row.name]  # Exclude diagonal elements
         min_distance = non_diagonal_elements.min()
         max_distance = non_diagonal_elements.max()
@@ -108,6 +117,15 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
 
     @staticmethod
     def convert_dataframe_to_dict(df):
+        """
+
+        Args:
+            df:
+
+        Returns:
+
+        """
+
         distance_dict = {}
 
         for index, row in df.iterrows():

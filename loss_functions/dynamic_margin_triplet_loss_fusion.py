@@ -92,7 +92,7 @@ class DynamicMarginTripletLoss(nn.Module):
         d_i = self.euc_dist_mtx.loc[anchor_file_names[idx]]
         d_min = d_i.min()
         d_max = d_i.max()
-        d_i_norm = 1 + ((self.upper_norm_limit - 1) * (d_min - d_i)) / (d_max - d_min)
+        d_i_norm = 1 + ((self.upper_norm_limit - 1) * (d_i - d_min)) / (d_max - d_min)
         return d_i_norm[negative_file_names[idx]]
 
     @staticmethod

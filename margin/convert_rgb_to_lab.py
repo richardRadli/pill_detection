@@ -2,7 +2,7 @@ import colorspacious
 import json
 import os
 
-from config.config import ConfigAugmentation
+from config.config import ConfigStreamImages
 from config.config_selector import dataset_images_path_selector
 from utils.utils import NumpyEncoder, create_timestamp, find_latest_file_in_directory, find_latest_directory
 
@@ -26,10 +26,10 @@ def concatenate_json_files(json_path, output_path):
 
 
 def rgb_to_lab(load: bool = True):
-    cfg = ConfigAugmentation().parse()
+    cfg = ConfigStreamImages().parse()
     timestamp = create_timestamp()
 
-    json_path = dataset_images_path_selector(cfg.dataset_name).get("dynamic_margin").get("colour_vectors")
+    json_path = dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("colour_vectors")
     json_file_name_lab = os.path.join(json_path, f"{timestamp}_colors_lab.json")
 
     if load:

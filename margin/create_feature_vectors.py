@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import os
 
-from config.config import ConfigAugmentation
+from config.config import ConfigStreamImages
 from config.config_selector import dataset_images_path_selector
 from utils.utils import find_latest_file_in_directory, NumpyEncoder, create_timestamp, plot_euclidean_distances
 
@@ -103,13 +103,13 @@ def process_vectors(lab_values, fourier_desc_values, imprint_values, score_value
 
 
 def main():
-    cfg = ConfigAugmentation().parse()
+    cfg = ConfigStreamImages().parse()
     timestamp = create_timestamp()
-    dataset_name = cfg.dataset_name
+    dataset_name = cfg.dataset_type
 
     # L*a*b* values
     lab_values = load_json_files(dataset_name, "colour_vectors")
-    norm_lab_values = normalize_values(lab_values, "lab", cfg.dataset_name)
+    norm_lab_values = normalize_values(lab_values, "lab", dataset_name)
 
     # Fourier descriptors
     fourier_desc_values = load_json_files(dataset_name, "Fourier_saved_mean_vectors")
@@ -131,7 +131,7 @@ def main():
     plot_euc_dir = dataset_images_path_selector(dataset_name).get("dynamic_margin").get("combined_vectors_euc_dst")
     filename = os.path.join(plot_euc_dir, f"euclidean_distances_{timestamp}.png")
     plot_euclidean_distances(vectors=combined_vectors,
-                             dataset_name=cfg.dataset_name,
+                             dataset_name=dataset_name,
                              filename=filename,
                              normalize=False,
                              operation="combined_vectors",

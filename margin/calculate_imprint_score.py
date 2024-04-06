@@ -6,7 +6,7 @@ import openpyxl
 
 from typing import Dict, List
 
-from config.config import ConfigAugmentation
+from config.config import ConfigStreamImages
 from config.config_selector import dataset_images_path_selector
 from utils.utils import create_timestamp, NumpyEncoder
 
@@ -51,10 +51,10 @@ def create_feature_vectors(sheet, words: list, feature_type: str, dataset_name) 
     feature_dict = {}
 
     if dataset_name == "cure_one_sided":
-        for row in sheet.iter_rows(min_row=3, values_only=True):
-            pill_id = row[1]
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            pill_id = row[0]
 
-            selected_column = row[4] if feature_type == "imprint_vectors" else row[7]
+            selected_column = row[2] if feature_type == "imprint_vectors" else row[5]
             if selected_column is None:
                 selected_column = "None"
 
@@ -65,8 +65,8 @@ def create_feature_vectors(sheet, words: list, feature_type: str, dataset_name) 
             feature_dict[pill_id].append(encoded_feature)
 
     elif dataset_name == "cure_two_sided" or dataset_name == "ogyei":
-        for row in sheet.iter_rows(min_row=3, values_only=True):
-            pill_id = row[1]
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            pill_id = row[0]
             selected_column_1 = row[3] if feature_type == "imprint_vectors" else row[7]
             selected_column_2 = row[4] if feature_type == "imprint_vectors" else row[8]
 
@@ -120,20 +120,20 @@ def main() -> None:
          None
     """
     
-    cfg = ConfigAugmentation().parse()
+    cfg = ConfigStreamImages().parse()
     timestamp = create_timestamp()
 
     imprint_words = ['EMBOSSED', 'PRINTED', 'NOTHING']
     score_words = [1, 2, 4]
 
-    pill_desc_path = dataset_images_path_selector(cfg.dataset_name).get("dynamic_margin").get("pill_desc_xlsx")
-    pill_desc_file = os.path.join(pill_desc_path, f"pill_desc_{cfg.dataset_name}.xlsx")
+    pill_desc_path = dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("pill_desc_xlsx")
+    pill_desc_file = os.path.join(pill_desc_path, f"pill_desc_{cfg.dataset_type}.xlsx")
 
     workbook = openpyxl.load_workbook(pill_desc_file)
     sheet = workbook['Sheet1']
 
-    process_vectors(sheet, imprint_words, cfg.dataset_name, timestamp, "imprint_vectors")
-    process_vectors(sheet, score_words, cfg.dataset_name, timestamp, "score_vectors")
+    process_vectors(sheet, imprint_words, cfg.dataset_type, timestamp, "imprint_vectors")
+    process_vectors(sheet, score_words, cfg.dataset_type, timestamp, "score_vectors")
 
 
 if __name__ == '__main__':
