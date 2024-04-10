@@ -15,17 +15,17 @@ import torch
 
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
+from typing import List, Tuple
 from pytorch_metric_learning import losses, miners
 
 from config.config import ConfigStreamNetwork
-from config.config_selector import sub_stream_network_configs
+from config.config_selector import sub_stream_network_configs, dataset_images_path_selector
 from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network import DataLoaderStreamNet
-from utils.utils import (create_timestamp, measure_execution_time, print_network_config,
-                         use_gpu_if_available, setup_logger)
+from utils.utils import (create_dataset, create_timestamp, measure_execution_time, print_network_config, setup_logger,
+                         use_gpu_if_available)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -70,19 +70,27 @@ class TrainModel:
             input_size=(network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size"))
         )
 
+        # Create dataset
+        dataset = \
+            DataLoaderStreamNet(
+                dataset_dirs_anchor=[network_cfg.get("train").get(self.cfg.dataset_type).get("anchor")],
+                dataset_dirs_pos_neg=[network_cfg.get("train").get(self.cfg.dataset_type).get("pos_neg")]
+            )
+
+        self.train_data_loader, self.valid_data_loader = create_dataset(dataset=dataset,
+                                                                        train_valid_ratio=self.cfg.train_valid_ratio,
+                                                                        batch_size=self.cfg.batch_size)
+
+        # Set up loss and mining functions
         self.criterion = losses.TripletMarginLoss(margin=self.cfg.margin)
         self.mining_func = miners.TripletMarginMiner(
             margin=self.cfg.margin, type_of_triplets=self.cfg.mining_type
         )
 
         # Specify optimizer
-        if self.cfg.type_of_net == "CNN":
-            self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                              lr=network_cfg.get("learning_rate"),
-                                              weight_decay=self.cfg.weight_decay)
-        else:
-            self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                              lr=network_cfg.get("learning_rate"))
+        self.optimizer = torch.optim.Adam(self.model.parameters(),
+                                          lr=network_cfg.get("learning_rate"),
+                                          weight_decay=network_cfg.get("weight_decay"))
 
         # LR scheduler
         self.scheduler = StepLR(optimizer=self.optimizer,
@@ -92,6 +100,12 @@ class TrainModel:
         # Tensorboard
         tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
+        dummy_input = torch.randn(1,
+                                  network_cfg.get('channels')[0],
+                                  network_cfg.get("image_size"),
+                                  network_cfg.get("image_size")
+                                  ).to(device=self.device)
+        self.writer.add_graph(self.model, dummy_input)
 
         # Create save directory for model weights
         self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))
@@ -104,56 +118,38 @@ class TrainModel:
         self.best_model_path = None
 
     # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------ C R E A T E   D A T A S E T -------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def create_dataset(self, network_cfg):
-        """
-
-        :param network_cfg:
-        :return:
-        """
-
-        # Load dataset
-        dataset = \
-            DataLoaderStreamNet(
-                dataset_dirs_anchor=[network_cfg.get("train").get(self.cfg.dataset_type).get("anchor")],
-                dataset_dirs_pos_neg=[network_cfg.get("train").get(self.cfg.dataset_type).get("pos_neg")]
-            )
-
-        # Calculate the number of samples for each set
-        train_size = int(len(dataset) * self.cfg.train_valid_ratio)
-        val_size = len(dataset) - train_size
-        train_dataset, valid_dataset = random_split(dataset, [train_size, val_size])
-        logging.info(f"Number of images in the train set: {len(train_dataset)}")
-        logging.info(f"Number of images in the validation set: {len(valid_dataset)}")
-        train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
-        valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
-
-        return dataset, train_data_loader, valid_data_loader
-
-    # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- C R E A T E   S A V E   D I R S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def create_save_dirs(self, network_cfg):
+    def create_save_dirs(self, network_cfg) -> str:
         """
+        Creates and returns a directory path based on the provided network configuration.
 
-        :param network_cfg:
-        :return:
+        Args:
+            network_cfg: A dictionary containing network configuration information.
+
+        Returns:
+            directory_to_create (str): The path of the created directory.
         """
 
         directory_path = network_cfg.get(self.cfg.type_of_net).get(self.cfg.dataset_type)
-        directory_to_create = os.path.join(directory_path, f"{self.timestamp}_{self.cfg.type_of_loss_func}")
+        directory_to_create = (
+            os.path.join(directory_path, f"{self.timestamp}_{self.cfg.type_of_loss_func}_{self.cfg.fold}")
+        )
         os.makedirs(directory_to_create, exist_ok=True)
         return directory_to_create
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------ C O N V E R T   L A B E L S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def convert_labels(self, labels):
+    def convert_labels(self, labels: List[str]) -> torch.Tensor:
         """
+        Convert labels to a tensor.
 
-        :param labels:
-        :return:
+        Args:
+            labels: A list of labels.
+
+        Return:
+             A tensor containing the converted labels.
         """
 
         labels = tuple(int(item) for item in labels)
@@ -163,9 +159,23 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- T R A I N   L O O P ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def train_loop(self, train_data_loader, train_losses, hard_samples):
+    def train_loop(self, train_losses: List[float], hard_samples: List[list]) -> Tuple[List[float], List[List[str]]]:
+        """
+        Training loop for the model.
+
+        Args:
+            train_losses (list): List to store training losses.
+            hard_samples (list): List to store hard samples.
+
+        Returns:
+            train_losses (list): Updated list of training losses.
+            hard_samples (list): Updated list of hard samples.
+        """
+
         for idx, (consumer_images, consumer_labels, cp, reference_images, reference_labels, rp) in \
-                tqdm(enumerate(train_data_loader), total=len(train_data_loader), desc=colorama.Fore.CYAN + "Train"):
+                tqdm(enumerate(self.train_data_loader),
+                     total=len(self.train_data_loader),
+                     desc=colorama.Fore.CYAN + "Train"):
             # Set the gradients to zero
             self.optimizer.zero_grad()
 
@@ -213,17 +223,21 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- V A L I D   L O O P ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def valid_loop(self, valid_data_loader, valid_losses):
+    def valid_loop(self, valid_losses: List[float]) -> List[float]:
         """
+        Validation loop for the model.
 
-        :param valid_data_loader:
-        :param valid_losses:
-        :return:
+        Args:
+            valid_losses (list): List to store validation losses.
+
+        Returns:
+            valid_losses (list): Updated list of validation losses.
         """
 
         with torch.no_grad():
             for idx, (consumer_images, consumer_labels, _, reference_images, reference_labels, _) \
-                    in tqdm(enumerate(valid_data_loader), total=len(valid_data_loader),
+                    in tqdm(enumerate(self.valid_data_loader),
+                            total=len(self.valid_data_loader),
                             desc=colorama.Fore.MAGENTA + "Validation"):
                 # Upload data to GPU
                 consumer_images = consumer_images.to(self.device)
@@ -250,7 +264,18 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- S A V E   H A R D   S A M P L E S ---------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def save_hard_samples(self, hard_samples, epoch):
+    def save_hard_samples(self, hard_samples: List[List[str]], epoch: int) -> None:
+        """
+        Save hard samples to a file.
+
+        Args:
+            hard_samples (list): List of hard samples.
+            epoch (int): Current epoch number.
+
+        Returns:
+            None
+        """
+
         file_name = os.path.join(self.hard_samples_path, self.timestamp + "_epoch_" + str(epoch) + ".txt")
         with open(file_name, 'w') as file:
             file.write(str(hard_samples))
@@ -258,13 +283,16 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- S A V E   M O D E L ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def save_model_weights(self, epoch, valid_loss):
+    def save_model_weights(self, epoch: int, valid_loss: float) -> None:
         """
-        Saves the model and weights
+        Saves the model and weights if the validation loss is improved.
 
-        :param epoch:
-        :param valid_loss:
-        :return:
+        Args:
+            epoch (int): the current epoch
+            valid_loss (float): the validation loss
+
+        Returns:
+            None
         """
 
         if valid_loss < self.best_valid_loss:
@@ -286,7 +314,8 @@ class TrainModel:
         """
         This function is responsible for the training of the network.
 
-        :return: None
+        Returns:
+             None
         """
 
         # to track the training loss as the model trains
@@ -296,19 +325,15 @@ class TrainModel:
         # to track hard samples
         hard_samples = []
 
-        network_config = sub_stream_network_configs(self.cfg)
-        network_cfg = network_config.get(self.cfg.type_of_stream)
-
-        dataset, train_data_loader, valid_data_loader = self.create_dataset(network_cfg)
         for epoch in tqdm(range(self.cfg.epochs), desc=colorama.Fore.GREEN + "Epochs"):
             # Train loop
-            train_losses, hard_samples = self.train_loop(train_data_loader, train_losses, hard_samples)
+            train_losses, hard_samples = self.train_loop(train_losses, hard_samples)
 
             # Define the file path
             self.save_hard_samples(hard_samples, epoch)
 
             # Validation loop
-            valid_losses = self.valid_loop(valid_data_loader, valid_losses)
+            valid_losses = self.valid_loop(valid_losses)
 
             train_loss = np.average(train_losses)
             valid_loss = np.average(valid_losses)
@@ -331,6 +356,8 @@ class TrainModel:
         # Close and flush SummaryWriter
         self.writer.close()
         self.writer.flush()
+
+        del train_loss, valid_loss, hard_samples
 
 
 # ----------------------------------------------------------------------------------------------------------------------

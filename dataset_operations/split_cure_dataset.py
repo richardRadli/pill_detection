@@ -57,13 +57,13 @@ def split_images(directory_bbox, train_directory, valid_directory, test_director
 
 
 if __name__ == '__main__':
-    # Split ratio (60% train, 20% validation, 20% test)
-    split_ratio = [0.6, 0.2, 0.2]
+    # Split ratio (64% train, 16% validation, 20% test)
+    split_ratio = [0.64, 0.16, 0.2]
 
-    directory = DATASET_PATH.get_data_path("cure_customer_bbox")
-    train_dir = DATASET_PATH.get_data_path("cure_train")
-    valid_dir = DATASET_PATH.get_data_path("cure_valid")
-    test_dir = DATASET_PATH.get_data_path("cure_test")
+    directory = DATASET_PATH.get_data_path("")
+    train_dir = DATASET_PATH.get_data_path("")
+    valid_dir = DATASET_PATH.get_data_path("")
+    test_dir = DATASET_PATH.get_data_path("")
 
     # Call the split_images function
     split_images(directory, train_dir, valid_dir, test_dir, split_ratio)

@@ -25,7 +25,8 @@ from pathlib import Path
 from PIL import Image
 from sklearn.metrics import confusion_matrix
 from torch import Tensor
-from typing import List, Union
+from torch.utils.data import DataLoader, random_split
+from typing import List, Union, Optional, Tuple
 from tqdm import tqdm
 
 
@@ -72,6 +73,24 @@ def setup_logger():
     logger.addHandler(console_handler)
 
     return logger
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------ C R E A T E   D I R -------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def create_dir(root_dir, timestamp):
+    """
+    Args:
+        root_dir (string): Directory name.
+        timestamp (string): Date and time stamp.
+
+    Returns:
+        The path of the created directory.
+    """
+
+    location = os.path.join(root_dir, f"{timestamp}")
+    os.makedirs(location, exist_ok=True)
+    return location
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -193,17 +212,23 @@ def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) ->
     """
     Finds the latest file in the latest directory within the given path.
 
-    :param path: str, the path to the directory where we should look for the latest file
-    :param type_of_loss:
-    :return: str, the path to the latest file
-    :raise: when no directories or files found
+    Args:
+        path (str): The path to the directory where we should look for the latest file.
+        type_of_loss (str, optional): The type of loss to filter directories. Defaults to None.
+
+    Returns:
+        str: The path to the latest file.
+
+    Raises:
+        ValueError: When no directories or files are found.
     """
 
     dirs = [os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
 
-    if not dirs:
+    if len(dirs) == 0:
         raise ValueError(f"No directories found in {path}")
 
+    dirs = [path for path in dirs if type_of_loss in path.lower()]
     dirs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
     latest_dir = dirs[0]
     files = [os.path.join(latest_dir, f) for f in os.listdir(latest_dir) if
@@ -211,17 +236,6 @@ def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) ->
 
     if not files:
         raise ValueError(f"No files found in {latest_dir}")
-
-    if type_of_loss is not None:
-        if type_of_loss == "hmtl":
-            files = [f for f in files if "hmtl" in f]
-        elif type_of_loss == "tl":
-            files = [f for f in files if "tl" in f]
-        else:
-            raise ValueError(f"Wrong type of loss: {type_of_loss}")
-
-        if not files:
-            raise ValueError(f"No files containing {type_of_loss} found in {latest_dir}")
 
     files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
     latest_file = files[0]
@@ -231,21 +245,51 @@ def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) ->
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------- C R E A T E   D A T A S E T --------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def create_dataset(dataset, train_valid_ratio: float, batch_size: int) -> Tuple[DataLoader, DataLoader]:
+    """
+    Splits the dataset into training and validation sets, creates data loaders, and logs information.
+
+    Args:
+        dataset: The dataset to be split.
+        train_valid_ratio (float): The ratio of the dataset to be used for training.
+        batch_size (int): The batch size for the data loaders.
+
+    Returns:
+        Tuple[DataLoader, DataLoader]: A tuple containing the training and validation data loaders.
+
+    """
+
+    train_size = int(len(dataset) * train_valid_ratio)
+    val_size = len(dataset) - train_size
+    train_dataset, valid_dataset = random_split(dataset, [train_size, val_size])
+    logging.info(f"Number of images in the train set: {len(train_dataset)}")
+    logging.info(f"Number of images in the validation set: {len(valid_dataset)}")
+    train_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=True)
+
+    return train_data_loader, valid_data_loader
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------- P L O T   R E F   Q U E R Y   I M G S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images_path: list[str], gt: list[str],
-                          pred_ed: list[str], output_folder: str) -> None:
+def plot_ref_query_images(indices: List[int], q_images_path: List[str], r_images_path: List[str],
+                          gt: List[str], predicted_labels: List[str], output_folder: str) -> None:
     """
     Plots the reference and query images with their corresponding ground truth and predicted class labels.
 
-    :rtype: object
-    :param indices: list of indices representing the matched reference images for each query image
-    :param q_images_path: list of file paths to query images
-    :param r_images_path: list of file paths to reference images
-    :param gt: list of ground truth class labels for each query image
-    :param pred_ed: list of predicted class labels for each query image
-    :param output_folder: stream or fusion network path
-    :return: None
+    Args:
+        indices (List[int]): List of indices representing the matched reference images for each query image.
+        q_images_path (List[str]): List of file paths to query images.
+        r_images_path (List[str]): List of file paths to reference images.
+        gt (List[str]): List of ground truth class labels for each query image.
+        predicted_labels (List[str]): List of predicted class labels for each query image.
+        output_folder (str): Path to the output folder where the images will be saved.
+
+    Returns:
+        None
     """
 
     new_list = [i for i in range(len(indices))]
@@ -256,7 +300,7 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
     os.makedirs(correctly_classified, exist_ok=True)
     os.makedirs(incorrectly_classified, exist_ok=True)
 
-    for idx, (i, j, k, l) in tqdm(enumerate(zip(indices, new_list, gt, pred_ed)), total=len(new_list),
+    for idx, (i, j, k, l) in tqdm(enumerate(zip(indices, new_list, gt, predicted_labels)), total=len(new_list),
                                   desc="Plotting ref and query images"):
         img_path_query = q_images_path[j]
         img_query = Image.open(img_path_query)
@@ -283,15 +327,28 @@ def plot_ref_query_images(indices: list[int], q_images_path: list[str], r_images
         gc.collect()
 
 
-def plot_confusion_matrix(gt, pred, out_path):
-    labels = list(set(gt))
+def plot_confusion_matrix(gt: List[str], predictions: List[str], out_path: str) -> None:
+    """
+    Plots and saves the confusion matrix based on ground truth and predicted labels.
+
+    Args:
+        gt (List[str]): Ground truth labels.
+        predictions (List[str]): Predicted labels.
+        out_path (str): Path to the output directory to save the plot.
+
+    Returns:
+        None
+    """
+
+    # Get unique labels from ground truth and predictions
+    labels = list(set(gt + predictions))
 
     # Create a mapping from labels to unique integers
     label_to_int = {label: i for i, label in enumerate(labels)}
 
-    # Convert the redundant label sequences to true ground truth and prediction lists
+    # Convert labels to integers using the mapping
     true_labels = [label_to_int[label] for label in gt]
-    predicted_labels = [label_to_int[label] for label in pred]
+    predicted_labels = [label_to_int[label] for label in predictions]
 
     # Compute confusion matrix
     cm = confusion_matrix(true_labels, predicted_labels)
@@ -300,7 +357,7 @@ def plot_confusion_matrix(gt, pred, out_path):
     sorted_labels = [label for label, _ in sorted(label_to_int.items(), key=lambda x: x[1])]
 
     # Create a heatmap
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(20, 12))
     sns.set(font_scale=1.2)  # Adjust the font size for better readability
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=sorted_labels, yticklabels=sorted_labels)
 
@@ -313,11 +370,9 @@ def plot_confusion_matrix(gt, pred, out_path):
     plt.tight_layout()
 
     # Show the plot
-    timestamp = create_timestamp()
-    output_folder = os.path.join(out_path, timestamp)
-    os.makedirs(output_folder, exist_ok=True)
-    output_path = os.path.join(output_folder, "confusion_matrix.png")
-    plt.savefig(output_path)
+    os.makedirs(out_path, exist_ok=True)
+    output_path = os.path.join(out_path, "confusion_matrix.png")
+    plt.savefig(output_path, dpi=600)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -400,16 +455,26 @@ def find_latest_file_in_directory(path: str, extension: str) -> str:
     return latest_file
 
 
-def find_latest_subdir(directory):
-    # Get a list of all subdirectories in the given directory
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------- F I N D   L A T E S T   S U B D ------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def find_latest_subdir(directory: str) -> Optional[str]:
+    """
+    Finds the latest subdirectory within the given directory.
+
+    Args:
+        directory (str): The path to the directory where we should look for the latest subdirectory.
+
+    Returns:
+        str or None: The path to the latest subdirectory if found, otherwise None.
+    """
+
     subdirs = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
 
-    # Check if there are any subdirectories
     if not subdirs:
         print(f"No subdirectories found in {directory}.")
         return None
 
-    # Find the latest subdirectory based on the last modification time
     latest_subdir = max(subdirs, key=lambda d: os.path.getmtime(os.path.join(directory, d)))
 
     return os.path.join(directory, latest_subdir)

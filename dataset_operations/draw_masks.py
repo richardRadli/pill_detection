@@ -9,17 +9,20 @@ images.
 """
 
 import concurrent.futures
+import cv2
 import logging
 import numpy as np
 import os
 
 from PIL import Image, ImageDraw
-from pathlib import Path
 from tqdm import tqdm
 from typing import Tuple, List, Dict
 
-from config.const import DATASET_PATH
-from utils.utils import setup_logger
+from config.config import ConfigStreamImages
+from config.config_selector import dataset_images_path_selector
+from utils.utils import file_reader, setup_logger
+
+cfg = ConfigStreamImages().parse()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -34,29 +37,17 @@ def path_selector(operation: str):
     :raises ValueError: If the operation string is not "train", "valid", "test" or "whole".
     """
 
-    if operation.lower() == "train":
+    if operation.lower() == "customer":
         path_to_images = {
-            "images": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_images"),
-            "labels": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_labels"),
-            "masks": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_gt_train_masks")
+            "images": dataset_images_path_selector(cfg.dataset_type).get(operation).get("customer_images"),
+            "labels": dataset_images_path_selector(cfg.dataset_type).get(operation).get("customer_segmentation_labels"),
+            "masks": dataset_images_path_selector(cfg.dataset_type).get(operation).get("customer_mask_images")
         }
-    elif operation.lower() == "valid":
+    elif operation.lower() == "reference":
         path_to_images = {
-            "images": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_valid_images"),
-            "labels": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_valid_labels"),
-            "masks": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_gt_valid_masks")
-        }
-    elif operation.lower() == "test":
-        path_to_images = {
-            "images": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_images"),
-            "labels": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_test_labels"),
-            "masks": DATASET_PATH.get_data_path("ogyei_v1_single_splitted_gt_test_masks")
-        }
-    elif operation.lower() == "whole":
-        path_to_images = {
-            "images": DATASET_PATH.get_data_path("ogyei_v1_single_unsplitted_images"),
-            "labels": DATASET_PATH.get_data_path("ogyei_v1_single_unsplitted_labels"),
-            "masks": DATASET_PATH.get_data_path("ogyei_v1_single_unsplitted_gt_masks")
+            "images": dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_images"),
+            "labels": dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_segmentation_labels"),
+            "masks": dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_mask_images")
         }
     else:
         raise ValueError("Wrong operation!")
@@ -81,16 +72,16 @@ def load_files(images_dir: str, labels_dir: str) -> Tuple[List[str], List[str]]:
     if not os.path.isdir(labels_dir):
         raise ValueError(f"Invalid path: {labels_dir} is not a directory")
 
-    image_files = sorted([str(file) for file in Path(images_dir).glob("*.jpg")] +
-                         [str(file) for file in Path(images_dir).glob("*.png")])
-
-    text_files = sorted([str(file) for file in Path(labels_dir).glob("*.txt")])
+    image_files = file_reader(images_dir, "jpg")
+    text_files = file_reader(labels_dir, "txt")
 
     if not image_files:
         raise ValueError(f"No image files found in {images_dir}")
 
     if not text_files:
         raise ValueError(f"No text files found in {labels_dir}")
+
+    assert len(image_files) == len(text_files)
 
     return image_files, text_files
 
@@ -114,6 +105,7 @@ def process_data(img_files: str, txt_files: str):
     try:
         img = Image.open(img_files)
         img_width, img_height = img.size
+        img.close()
     except FileNotFoundError:
         logging.error(f"{img_files} is not a valid image file.")
         return None, None
@@ -127,14 +119,18 @@ def process_data(img_files: str, txt_files: str):
         logging.error(f"{txt_files} is not a valid text file.")
         return None, None
 
-    coords = [int(coord * img_width if i % 2 == 0 else coord * img_height) for i, coord in enumerate(yolo_coords)]
+    coords = []
+    for i, coord in enumerate(yolo_coords):
+        if i % 2 == 0:
+            coords.append(int(coord * img_width))
+        else:
+            coords.append(int(coord * img_height))
 
     mask = Image.new('1', (img_width, img_height), 0)
-    xy = list(zip(coords[::2], coords[1::2]))
-    ImageDraw.Draw(mask).polygon(xy=xy, outline=1, fill=1)
+    ImageDraw.Draw(mask).polygon(xy=coords, outline=1, fill=1)
     mask = np.array(mask)
 
-    return img, mask
+    return mask
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -152,14 +148,14 @@ def save_masks(mask: np.ndarray, img_file: str, path_to_files: Dict[str, str]) -
 
     name = os.path.basename(img_file)
     save_path = (os.path.join(path_to_files.get("masks"), name))
-    mask_pil = Image.fromarray(mask)
-    mask_pil.save(save_path)
+    mask_pil = mask.astype(np.uint8) * 255
+    cv2.imwrite(save_path, mask_pil)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------- M A I N --------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def main(operation: str = "Train") -> None:
+def main(operation: str = "train", batch_size: int = 10) -> None:
     """
     Runs the main processing pipeline.
     :return: None
@@ -170,18 +166,28 @@ def main(operation: str = "Train") -> None:
 
     img_files, txt_files = load_files(images_dir=path_to_files.get("images"), labels_dir=path_to_files.get("labels"))
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = []
-        for img_file, txt_file in zip(img_files, txt_files):
-            futures.append(executor.submit(process_data, img_file, txt_file))
+    total_files = len(img_files)
+    num_batches = (total_files + batch_size - 1) // batch_size
 
-        for future, (img_file, _) in tqdm(zip(futures, zip(img_files, txt_files)), total=len(img_files),
-                                          desc="Processing data"):
-            try:
-                img, mask = future.result()
-                save_masks(mask=mask, img_file=img_file, path_to_files=path_to_files)
-            except Exception as e:
-                logging.error(f"Error processing {img_file}: {e}")
+    with concurrent.futures.ProcessPoolExecutor(max_workers=cfg.max_workers) as executor:
+        for i in range(num_batches):
+            start_idx = i * batch_size
+            end_idx = min((i + 1) * batch_size, total_files)
+            batch_img_files = img_files[start_idx:end_idx]
+            batch_txt_files = txt_files[start_idx:end_idx]
+
+            futures = []
+            for img_file, txt_file in zip(batch_img_files, batch_txt_files):
+                futures.append(executor.submit(process_data, img_file, txt_file))
+
+            for future, (img_file, _) in tqdm(zip(futures, zip(batch_img_files, batch_txt_files)),
+                                              total=len(batch_img_files),
+                                              desc=f"Processing batch {i+1}/{num_batches}"):
+                try:
+                    mask = future.result()
+                    save_masks(mask=mask, img_file=img_file, path_to_files=path_to_files)
+                except Exception as e:
+                    logging.error(f"Error processing {img_file}: {e}")
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -189,7 +195,7 @@ def main(operation: str = "Train") -> None:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
-        operations = ["train", "valid", "test"]
+        operations = ["customer"]
         for op in operations:
             main(operation=op)
     except KeyboardInterrupt as kie:

@@ -14,30 +14,6 @@ import os
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++ C O N F I G   A U G M E N T A T I O N +++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CameraAndCalibrationConfig:
-    def __init__(self):
-        self.opt = None
-        self.parser = argparse.ArgumentParser()
-
-        self.parser.add_argument('--size_coeff', type=int, default=3,
-                                 help="The shown image will be resized by the given coefficient.")
-        self.parser.add_argument('--height', type=int, default=2048, help="Height of the image.")
-        self.parser.add_argument('--width', type=int, default=2448, help="Width of the image.")
-        self.parser.add_argument('--cam_id', type=int, default=0, help="Default camera device index")
-        self.parser.add_argument('--chs_col', type=int, default=8, help="Number of columns in the chessboard")
-        self.parser.add_argument('--chs_row', type=int, default=6, help="Number of rows in the chessboard")
-        self.parser.add_argument('--square_size', type=int, default=25, help="Square size of the chessboard")
-        self.parser.add_argument('--error_threshold', type=float, default=0.2,
-                                 help="Error threshold for the calibration")
-
-    def parse(self):
-        self.opt = self.parser.parse_args()
-        return self.opt
-
-
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++ C O N F I G   A U G M E N T A T I O N +++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class ConfigAugmentation:
     def __init__(self):
         self.opt = None
@@ -128,8 +104,9 @@ class ConfigStreamImages:
         self.opt = None
         self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument("--dataset_type", type=str, default="ogyei", choices=["cure | ogyei"])
-        self.parser.add_argument("--operation", type=str, default="customer", choices=["reference", "customer"])
+        self.parser.add_argument("--dataset_type", type=str, default="cure",
+                                 choices=["cure", "ogyei"])
+        self.parser.add_argument("--operation", type=str, default="reference", choices=["reference", "customer"])
         self.parser.add_argument("--threshold_area", type=int, default=100)
         self.parser.add_argument("--kernel_median_contour", type=int, default=7)
         self.parser.add_argument("--canny_low_thr", type=int, default=10)

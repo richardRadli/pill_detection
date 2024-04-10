@@ -11,16 +11,25 @@ This program collects the hard samples (images) that were mined during the strea
 import os.path
 import re
 
+from typing import List, Tuple
+
 from config.config import ConfigStreamNetwork
 from config.config_selector import stream_network_config, sub_stream_network_configs
 from utils.utils import find_latest_file_in_latest_directory, setup_logger, mine_hard_triplets
 
 
-def preprocess_path(paths):
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------- P R E P R O C E S S   P A T H -------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def preprocess_path(paths: List[str]) -> tuple:
     """
+    Preprocesses a list of file paths.
 
-    :param paths:
-    :return:
+    Args:
+        paths (List[str]): List of file paths.
+
+    Returns:
+        tuple: Preprocessed paths.
     """
 
     preprocessed_paths = []
@@ -37,11 +46,18 @@ def preprocess_path(paths):
     return tuple(preprocessed_paths)
 
 
-def find_union_triplets(*lists):
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------- F I N D   T R I P L E T S ---------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def find_union_triplets(*lists: [List[Tuple[str, str, str]]]) -> set:
     """
+    Finds the union of triplets from multiple lists.
 
-    :param lists:
-    :return:
+    Args:
+        *lists (List[Tuple[str, str, str]]): Variable number of lists containing triplets.
+
+    Returns:
+        set: Union of all triplets.
     """
 
     preprocessed_lists = [[preprocess_path(path) for path in triplet] for triplet in lists]
@@ -57,7 +73,8 @@ def get_hardest_samples():
     """
     The main function of the program.
 
-    :return: None
+    Returns:
+         None
     """
 
     setup_logger()
@@ -111,12 +128,14 @@ def get_hardest_samples():
     stream_texture_pos_neg = sub_stream_cfg.get("Texture").get("train").get(cfg.dataset_type).get("pos_neg")
 
     hardest_triplets = []
-    class_id_a_p = None
+    class_id_a = None
+    class_id_p = None
     class_id_n = None
 
     for file_name in common_triplets:
         if cfg.dataset_type == "cure":
-            class_id_a_p = file_name[0].split("_")[0]
+            class_id_a = file_name[0].split("_")[0]
+            class_id_p = class_id_a
             class_id_n = file_name[2].split("_")[0]
         elif cfg.dataset_type == 'ogyei':
             for idx, file in enumerate(file_name):
@@ -130,31 +149,33 @@ def get_hardest_samples():
                 if match:
                     value = match.group(1)
                     if idx == 0:
-                        class_id_a_p = value
+                        class_id_a = value
+                        class_id_p = class_id_a
                     elif idx == 1:
                         pass
                     else:
                         class_id_n = value
                 else:
                     raise ValueError(f"No match for file: {file}")
-
         else:
             raise ValueError(f"Unknown dataset type: {cfg.dataset_type}")
 
-        contour_anchor = (os.path.join(stream_contour_anchor, class_id_a_p, f"contour_{file_name[0]}"))
-        contour_positive = (os.path.join(stream_contour_pos_neg, class_id_a_p, f"contour_{file_name[1]}"))
+        assert class_id_a == class_id_p
+
+        contour_anchor = (os.path.join(stream_contour_anchor, class_id_a, f"contour_{file_name[0]}"))
+        contour_positive = (os.path.join(stream_contour_pos_neg, class_id_p, f"contour_{file_name[1]}"))
         contour_negative = (os.path.join(stream_contour_pos_neg, class_id_n, f"contour_{file_name[2]}"))
 
-        lbp_anchor = (os.path.join(stream_lbp_anchor, class_id_a_p, f"lbp_{file_name[0]}"))
-        lbp_positive = (os.path.join(stream_lbp_pos_neg, class_id_a_p, f"lbp_{file_name[1]}"))
+        lbp_anchor = (os.path.join(stream_lbp_anchor, class_id_a, f"lbp_{file_name[0]}"))
+        lbp_positive = (os.path.join(stream_lbp_pos_neg, class_id_p, f"lbp_{file_name[1]}"))
         lbp_negative = (os.path.join(stream_lbp_pos_neg, class_id_n, f"lbp_{file_name[2]}"))
 
-        rgb_anchor = (os.path.join(stream_rgb_anchor, class_id_a_p, file_name[0]))
-        rgb_positive = (os.path.join(stream_rgb_pos_neg, class_id_a_p, file_name[1]))
+        rgb_anchor = (os.path.join(stream_rgb_anchor, class_id_a, file_name[0]))
+        rgb_positive = (os.path.join(stream_rgb_pos_neg, class_id_p, file_name[1]))
         rgb_negative = (os.path.join(stream_rgb_pos_neg, class_id_n, file_name[2]))
 
-        texture_anchor = (os.path.join(stream_texture_anchor, class_id_a_p, f"texture_{file_name[0]}"))
-        texture_positive = (os.path.join(stream_texture_pos_neg, class_id_a_p, f"texture_{file_name[1]}"))
+        texture_anchor = (os.path.join(stream_texture_anchor, class_id_a, f"texture_{file_name[0]}"))
+        texture_positive = (os.path.join(stream_texture_pos_neg, class_id_p, f"texture_{file_name[1]}"))
         texture_negative = (os.path.join(stream_texture_pos_neg, class_id_n, f"texture_{file_name[2]}"))
 
         hardest_triplets.append((contour_anchor, contour_positive, contour_negative,

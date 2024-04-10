@@ -217,15 +217,7 @@ class Images(_Const):
         "unet_out":
             "images/unet/unet_out",
         "unet_compare":
-            "images/unet/unet_compare",
-
-        # ------------------------------------------- C A L I B R A T I O N --------------------------------------------
-        "calibration_images":
-            "images/camera/calibration_images",
-        "undistorted_images":
-            "images/camera/undistorted_images",
-        "pill_images":
-            "images/camera/pill_images"
+            "images/unet/unet_compare"
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -247,22 +239,6 @@ class Images(_Const):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Data(_Const):
     dirs_data = {
-        # ------------------------------------------------- O T H E R --------------------------------------------------
-        # Other
-        "camera_matrix":
-            "data/camera/camera_matrix",
-
-        "camera_settings":
-            "data/camera/camera_settings",
-
-        "pill_names":
-            "data/camera/pill_names",
-
-        "cure_k_fold":
-            "data/cure/k_fold",
-        "ogyei_k_fold":
-            "data/ogyei/k_fold",
-
         # --------------------------------------------------- U N E T --------------------------------------------------
         # ----------------------------------------------- W E I G H T S ------------------------------------------------
         # UNet

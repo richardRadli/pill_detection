@@ -20,7 +20,7 @@ from typing import List, Tuple
 from PIL import Image
 
 from config.config import ConfigStreamNetwork
-from config.config_selector import sub_stream_network_configs, stream_network_config
+from config.config_selector import dataset_images_path_selector, sub_stream_network_configs, stream_network_config
 from stream_network_models.stream_network_selector import NetworkFactory
 from utils.utils import create_timestamp, find_latest_file_in_latest_directory, plot_confusion_matrix, \
     plot_ref_query_images, use_gpu_if_available, setup_logger
@@ -148,6 +148,32 @@ class PredictStreamNetwork:
         return network_con, network_lbp, network_rgb, network_tex
 
     # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------ S A V E   R E F E R E N C E   V E C T O R -----------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def save_reference_vector(self, vectors, labels, images_path):
+        """
+
+            vectors:
+            labels:
+            images_path:
+
+        Return:
+            None
+        """
+
+        ref_save_dir = (
+            os.path.join(
+                self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type),
+                f"{self.timestamp}_{self.cfg.type_of_loss_func}"
+            )
+        )
+        os.makedirs(ref_save_dir, exist_ok=True)
+        torch.save({'vectors': vectors,
+                    'labels': labels,
+                    'images_path': images_path},
+                   os.path.join(ref_save_dir, "ref_vectors.pt"))
+
+    # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def get_vectors(self, contour_dir: str, lbp_dir: str, rgb_dir: str, texture_dir: str, operation: str):
@@ -217,15 +243,7 @@ class PredictStreamNetwork:
                 labels.append(image_name)
 
             if operation == "reference":
-                ref_save_dir = (
-                    os.path.join(
-                        self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type),
-                        f"{self.timestamp}_{self.cfg.type_of_loss_func}"
-                    )
-                )
-                os.makedirs(ref_save_dir, exist_ok=True)
-                torch.save({'vectors': vectors, 'labels': labels, 'images_path': images_path},
-                           os.path.join(ref_save_dir, "ref_vectors.pt"))
+                self.save_reference_vector(vectors, labels, images_path)
 
         logging.info("Processing of %s images is done" % operation)
         return vectors, labels, images_path
@@ -356,7 +374,9 @@ class PredictStreamNetwork:
     def main(self) -> None:
         """
         Executes the pipeline for prediction.
-        :return: None
+
+        Returns:
+             None
         """
 
         # Calculate query vectors
@@ -385,13 +405,24 @@ class PredictStreamNetwork:
             r_images_path = data['images_path']
             logging.info("Reference vectors has been loaded!")
         else:
-            ref_vecs, r_labels, r_images_path = \
-                self.get_vectors(
-                    contour_dir=self.sub_network_config.get("Contour").get("ref").get(self.cfg.dataset_type),
-                    lbp_dir=self.sub_network_config.get("LBP").get("ref").get(self.cfg.dataset_type),
-                    rgb_dir=self.sub_network_config.get("RGB").get("ref").get(self.cfg.dataset_type),
-                    texture_dir=self.sub_network_config.get("Texture").get("ref").get(self.cfg.dataset_type),
-                    operation="reference")
+            if self.cfg.reference_set == "full":
+                ref_vecs, r_labels, r_images_path = \
+                    self.get_vectors(
+                        dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_contour"),
+                        dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_lbp"),
+                        dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb"),
+                        dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_texture"),
+                        operation="reference")
+            elif self.cfg.reference_set == "partial":
+                ref_vecs, r_labels, r_images_path = \
+                    self.get_vectors(
+                        self.sub_network_config.get("Contour").get("ref").get(self.cfg.dataset_type),
+                        self.sub_network_config.get("LBP").get("ref").get(self.cfg.dataset_type),
+                        self.sub_network_config.get("RGB").get("ref").get(self.cfg.dataset_type),
+                        self.sub_network_config.get("Texture").get("ref").get(self.cfg.dataset_type),
+                        operation="reference")
+            else:
+                raise ValueError(f"Wrong reference set: {self.cfg.reference_set}")
 
         gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
         self.display_results(gt, pred_ed, query_vecs)
@@ -403,7 +434,7 @@ class PredictStreamNetwork:
 
         plot_confusion_matrix(
             gt=gt,
-            pred=pred_ed,
+            predictions=pred_ed,
             out_path=self.main_network_config.get("confusion_matrix").get(self.cfg.dataset_type)
         )
 
