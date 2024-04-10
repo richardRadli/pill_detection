@@ -95,33 +95,6 @@ class FourierDescriptor:
                     logging.error(f"File not found in directory: {src_dir}")
 
     @staticmethod
-    def preprocess_image(image: np.ndarray) -> np.ndarray:
-        """
-        Preprocesses an input image by applying edge detection, thresholding, dilation, and connected components
-        analysis.
-
-        :param image: Input image.
-        :return: Preprocessed image.
-        """
-
-        sobel_x = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
-        sobel_y = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
-        edge_map = cv2.add(np.abs(sobel_x), np.abs(sobel_y))
-
-        _, thresholded_edge_map = cv2.threshold(edge_map, 10, 255, cv2.THRESH_BINARY)
-        dilated_edge_map = cv2.dilate(thresholded_edge_map, kernel=np.ones((5, 5), np.uint8), iterations=1)
-        dilated_edge_map = dilated_edge_map.astype(np.uint8)
-        _, labels, stats, centroids = cv2.connectedComponentsWithStats(dilated_edge_map)
-
-        sorted_indices = np.argsort(stats[:, 4])[::-1]
-        second_largest_index = sorted_indices[1]
-
-        pill_mask = np.zeros_like(dilated_edge_map)
-        pill_mask[labels == second_largest_index] = 255
-
-        return cv2.bitwise_and(image, image, mask=pill_mask)
-
-    @staticmethod
     def get_largest_contour(segmented_image: np.ndarray):
         """
 

@@ -7,8 +7,8 @@ Date: March 01, 2024
 Description: This code implements the dataloader class for the stream network phase.
 """
 
-import os
 import numpy as np
+import os
 
 from PIL import Image
 from sklearn.preprocessing import LabelEncoder

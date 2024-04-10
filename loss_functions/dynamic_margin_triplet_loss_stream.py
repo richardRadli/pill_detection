@@ -7,6 +7,7 @@ Date: March 04, 2024
 Description: The program creates the dynamic margin-triplet loss for the stream phase.
 """
 
+import re
 import torch
 
 from pytorch_metric_learning.reducers import AvgNonZeroReducer
@@ -116,7 +117,17 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         return normalized_row
 
     @staticmethod
-    def convert_dataframe_to_dict(df):
+    def extend_numeric_part(filename):
+        match = re.match(r'(\d+)(.*)', filename)
+        if match:
+            numeric_part = match.group(1)
+            non_numeric_part = match.group(2)
+            formatted_numeric_part = numeric_part.zfill(3)
+            return f"{formatted_numeric_part}{non_numeric_part}"
+        else:
+            return filename
+
+    def convert_dataframe_to_dict(self, df):
         """
 
         Args:
@@ -129,6 +140,7 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         distance_dict = {}
 
         for index, row in df.iterrows():
+            index = self.extend_numeric_part(str(index))
             for col in df.columns:
                 distance_dict[(index, col)] = row[col]
 
