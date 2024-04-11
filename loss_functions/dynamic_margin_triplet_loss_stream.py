@@ -9,6 +9,9 @@ Description: The program creates the dynamic margin-triplet loss for the stream 
 
 import torch
 
+from pandas import Series, DataFrame
+from typing import Dict
+
 from pytorch_metric_learning.reducers import AvgNonZeroReducer
 from pytorch_metric_learning.utils import common_functions as c_f
 from pytorch_metric_learning.utils import loss_and_miner_utils as lmu
@@ -98,13 +101,15 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
             }
         }
 
-    def normalize_row(self, row):
+    def normalize_row(self, row: Series) -> Series:
         """
+        Normalize the values in a row of a DataFrame.
 
         Args:
-            row:
+            row (Series): The row to be normalized.
 
         Returns:
+            Series: The normalized row.
 
         """
 
@@ -116,13 +121,15 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         return normalized_row
 
     @staticmethod
-    def convert_dataframe_to_dict(df):
+    def convert_dataframe_to_dict(df: DataFrame) -> Dict:
         """
+        Convert a DataFrame to a dictionary.
 
         Args:
-            df:
+            df (DataFrame): The DataFrame to be converted.
 
         Returns:
+            Dict: A dictionary representation of the DataFrame.
 
         """
 
