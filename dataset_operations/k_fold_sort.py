@@ -11,26 +11,25 @@ from utils.utils import create_timestamp, find_latest_file_in_directory
 
 
 class KFoldSort:
-    def __init__(self, load_folds, fold_name, erase):
+    def __init__(self, load_folds, erase):
         self.stream_cfg = ConfigStreamNetwork().parse()
         self.load_folds = load_folds
-        self.fold_name = fold_name
+        self.fold_name = self.stream_cfg.fold
         self.erase = erase
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ---------------------------------------------------- F O L D S ---------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
+        logging.info(f"{self.fold_name} selected")
+
     def folds(self, load: bool = False, num_folds: int = None) -> dict:
         """
         Generate or load k-folds of class names.
 
         Args:
-            load (bool): If True, load k-folds from a previously generated file. If False, generate new k-folds.
-            num_folds (int): Number of folds.
+            load: If True, load k-folds from a previously generated file. If False, generate new k-folds.
+            num_folds: Number of folds.
 
         Returns:
-            dict: A dictionary where keys are fold names (fold1, fold2, ..., fold_{num_folds}) and values are lists of
-                  class names.
+             A dictionary where keys are fold names (fold1, fold2, ..., fold_{num_folds}) and values are lists of
+        class names.
         """
 
         if not load:
@@ -72,19 +71,15 @@ class KFoldSort:
 
         return k_folds
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------- M O V E   I M A G E S   T O   F O L D S ------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     def move_images_to_folds(self, sorted_folds, fold_id: str = "fold1", operation: str = "reference",
                              data_role: str = "train") -> None:
         """
-        Moves images to respective folds based on the sorted fold dictionary.
 
         Args:
-            sorted_folds (dict): A dictionary containing sorted fold information.
-            fold_id (str): The ID of the fold to move images for.
-            operation (str): The operation type (e.g., "reference" or "customer").
-            data_role (str): The role of the data (e.g., "train" or "test").
+            sorted_folds:
+            fold_id:
+            operation:
+            data_role:
 
         Returns:
             None
@@ -152,15 +147,12 @@ class KFoldSort:
                 else:
                     logging.error(f"Folder {folder} not found in {source_path}")
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ---------------------------------------------- E R A S E   F I L E S ---------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     def erase_files(self):
         """
         Remove directories corresponding to the test set.
 
         Returns:
-            None
+             None
         """
 
         root = (
@@ -171,23 +163,21 @@ class KFoldSort:
             logging.info("Removing {}".format(value))
             shutil.rmtree(value)
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ----------------------------------------------------- M A I N ----------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def main(self):
+    def main(self) -> None:
         """
-        Main method for executing the workflow.
 
         Returns:
-            None
+             None
         """
 
         if self.erase:
             self.erase_files()
+
         if self.load_folds:
             sorted_folds = self.folds(load=True)
         else:
             sorted_folds = self.folds(load=False, num_folds=5)
+
         self.move_images_to_folds(sorted_folds, self.fold_name, operation="reference", data_role="train")
         self.move_images_to_folds(sorted_folds, self.fold_name, operation="reference", data_role="test")
         self.move_images_to_folds(sorted_folds, self.fold_name, operation="customer", data_role="train")
@@ -195,5 +185,6 @@ class KFoldSort:
 
 
 if __name__ == "__main__":
-    k_fold_sort = KFoldSort(load_folds=True, fold_name="fold5", erase=True)
+    k_fold_sort = KFoldSort(load_folds=True,
+                            erase=True)
     k_fold_sort.main()

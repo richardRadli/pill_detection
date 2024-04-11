@@ -1,5 +1,5 @@
 """
-File: efficientnet.py
+File: efficientnet_v2.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: May 06, 2023
@@ -12,7 +12,7 @@ import torch.nn as nn
 import torchvision.models as models
 
 
-class EfficientNet(nn.Module):
+class EfficientNetV2(nn.Module):
     def __init__(self, num_out_feature: int, grayscale: bool) -> None:
         """
         EfficientNet model with custom linear layer.
@@ -25,7 +25,7 @@ class EfficientNet(nn.Module):
             None
         """
 
-        super(EfficientNet, self).__init__()
+        super(EfficientNetV2, self).__init__()
         self.num_out_feature = num_out_feature
         self.grayscale = grayscale
         self.model = self.build_model()

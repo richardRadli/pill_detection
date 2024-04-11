@@ -19,7 +19,7 @@ from utils.utils import find_latest_file_in_latest_directory
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++ E F F I C I E N T N E T V 2 M U L T I H E A D A T T E N T I O N +++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class EfficientNetMultiHeadAttention(nn.Module):
+class EfficientNetV2MultiHeadAttention(nn.Module):
     def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture) -> None:
         """
         This is the initialization function of the EfficientNetMultiHeadAttention class.
@@ -30,7 +30,7 @@ class EfficientNetMultiHeadAttention(nn.Module):
         :param network_cfg_rgb: Configuration for the RGB network.
         :param network_cfg_texture: Configuration for the texture network.
         """
-        super(EfficientNetMultiHeadAttention, self).__init__()
+        super(EfficientNetV2MultiHeadAttention, self).__init__()
 
         stream_net_cfg = ConfigStreamNetwork().parse()
         fusion_net_cfg = ConfigFusionNetwork().parse()

@@ -136,14 +136,6 @@ class Images(_Const):
         # ---------------------------- C O N F U S I O N   M A T R I X   S T R E A M   N E T ---------------------------
         "conf_mtx_efficient_net_ogyei":
             "images/ogyei/conf_mtx/stream_net/conf_mtx_efficient_net",
-
-        # ------------------------------------------- C A L I B R A T I O N --------------------------------------------
-        "calibration_images":
-            "images/camera/calibration_images",
-        "undistorted_images":
-            "images/camera/undistorted_images",
-        "pill_images":
-            "images/camera/pill_images"
     }
 
     # ------------------------------------------------------------------------------------------------------------------

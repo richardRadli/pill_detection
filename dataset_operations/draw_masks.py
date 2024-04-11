@@ -18,11 +18,11 @@ from PIL import Image, ImageDraw
 from tqdm import tqdm
 from typing import Tuple, List, Dict
 
-from config.config import ConfigAugmentation
+from config.config import ConfigStreamImages
 from config.config_selector import dataset_images_path_selector
 from utils.utils import file_reader, setup_logger
 
-cfg = ConfigAugmentation().parse()
+cfg = ConfigStreamImages().parse()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -39,15 +39,15 @@ def path_selector(operation: str):
 
     if operation.lower() == "customer":
         path_to_images = {
-            "images": dataset_images_path_selector(cfg.dataset_name).get(operation).get("customer_images"),
-            "labels": dataset_images_path_selector(cfg.dataset_name).get(operation).get("customer_segmentation_labels"),
-            "masks": dataset_images_path_selector(cfg.dataset_name).get(operation).get("customer_mask_images")
+            "images": dataset_images_path_selector(cfg.dataset_type).get(operation).get("customer_images"),
+            "labels": dataset_images_path_selector(cfg.dataset_type).get(operation).get("customer_segmentation_labels"),
+            "masks": dataset_images_path_selector(cfg.dataset_type).get(operation).get("customer_mask_images")
         }
     elif operation.lower() == "reference":
         path_to_images = {
-            "images": dataset_images_path_selector(cfg.dataset_name).get(operation).get("reference_images"),
-            "labels": dataset_images_path_selector(cfg.dataset_name).get(operation).get("reference_segmentation_labels"),
-            "masks": dataset_images_path_selector(cfg.dataset_name).get(operation).get("reference_mask_images")
+            "images": dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_images"),
+            "labels": dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_segmentation_labels"),
+            "masks": dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_mask_images")
         }
     else:
         raise ValueError("Wrong operation!")

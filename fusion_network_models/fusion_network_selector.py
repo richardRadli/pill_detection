@@ -25,7 +25,7 @@ import torch
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from fusion_network_models.efficient_net_multihead_attention import EfficientNetMultiHeadAttention
+from fusion_network_models.efficient_net_multihead_attention import EfficientNetV2MultiHeadAttention
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -43,10 +43,10 @@ class BaseNetwork(ABC):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # +++++++++++++++++ E F F I C I E N T N E T   M U L T I   H E A D   A T T E N T I O N   W R A P P E R ++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class EfficientNetMultiHeadAttentionWrapper(BaseNetwork):
+class EfficientNetV2MultiHeadAttentionWrapper(BaseNetwork):
     def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture):
         self.model = (
-            EfficientNetMultiHeadAttention(type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb,
+            EfficientNetV2MultiHeadAttention(type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb,
                                              network_cfg_texture))
 
     def forward(self, x):
@@ -74,8 +74,8 @@ class NetworkFactory:
         :return: The created fusion network model.
         """
 
-        if fusion_network_type == "EfficientNetMultiHeadAttention":
-            model = EfficientNetMultiHeadAttentionWrapper(type_of_net, network_cfg_contour, network_cfg_lbp,
+        if fusion_network_type == "EfficientNetV2MultiHeadAttention":
+            model = EfficientNetV2MultiHeadAttentionWrapper(type_of_net, network_cfg_contour, network_cfg_lbp,
                                                             network_cfg_rgb, network_cfg_texture).model
         else:
             raise ValueError(f"Wrong network type was given: {fusion_network_type}")

@@ -13,7 +13,6 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 
-from config.config import ConfigStreamNetwork
 from fusion_network_phase.mine_hard_samples import get_hardest_samples
 
 
@@ -34,8 +33,6 @@ class FusionDataset(Dataset):
         Returns:
              None
         """
-
-        self.cfg = ConfigStreamNetwork().parse()
 
         # Transforms for each dataset
         self.grayscale_transform = transforms.Compose([

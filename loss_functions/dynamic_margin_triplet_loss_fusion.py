@@ -15,12 +15,15 @@ from typing import List
 
 
 class DynamicMarginTripletLoss(nn.Module):
-    def __init__(self, euc_dist_mtx, upper_norm_limit: int = 3, margin: float = 0.5):
+    def __init__(self,
+                 euc_dist_mtx,
+                 upper_norm_limit: int = 3,
+                 margin: float = 0.5) -> None:
         """
 
-        :param euc_dist_mtx:
-        :param upper_norm_limit:
-        :param margin:
+            euc_dist_mtx:
+            upper_norm_limit:
+            margin:
         """
 
         super(DynamicMarginTripletLoss, self).__init__()
@@ -38,12 +41,15 @@ class DynamicMarginTripletLoss(nn.Module):
         """
         Perform forward pass of the DynamicMarginTripletLoss module.
 
-        :param anchor_tensor: The tensor containing anchor samples.
-        :param positive_tensor: The tensor containing positive samples.
-        :param negative_tensor: The tensor containing negative samples.
-        :param anchor_file_names: The list of anchor file names.
-        :param negative_file_names: The list of negative file names.
-        :return: A tuple containing the triplet loss, hardest negative samples, and hardest positive samples.
+        Args:
+            anchor_tensor: The tensor containing anchor samples.
+            positive_tensor: The tensor containing positive samples.
+            negative_tensor: The tensor containing negative samples.
+            anchor_file_names: The list of anchor file names.
+            negative_file_names: The list of negative file names.
+
+        Returns:
+             A tuple containing the triplet loss, hardest negative samples, and hardest positive samples.
         """
 
         anchor_file_names = self.process_file_names(anchor_file_names)
@@ -53,11 +59,14 @@ class DynamicMarginTripletLoss(nn.Module):
         losses = []
 
         for i in range(batch_size):
-            normalized_similarity = self.normalize_row(anchor_file_names, negative_file_names, i)
-            margin = normalized_similarity * self.margin
-            dist_pos = functional.pairwise_distance(anchor_tensor[i:i + 1], positive_tensor[i:i + 1], 2)
-            dist_neg = functional.pairwise_distance(anchor_tensor[i:i + 1], negative_tensor[i:i + 1], 2)
-            loss = functional.relu(margin + dist_pos - dist_neg)
+            ap_dist = functional.pairwise_distance(anchor_tensor[i:i + 1], positive_tensor[i:i + 1], 2)
+            an_dist = functional.pairwise_distance(anchor_tensor[i:i + 1], negative_tensor[i:i + 1], 2)
+
+            normalized_margins = self.normalize_row(anchor_file_names, negative_file_names, i)
+            margin = self.margin * normalized_margins
+
+            pos_neg_dists = ap_dist - an_dist
+            loss = functional.relu(margin + pos_neg_dists)
             losses.append(loss)
 
         triplet_loss = torch.mean(torch.stack(losses))
@@ -71,31 +80,35 @@ class DynamicMarginTripletLoss(nn.Module):
         """
         Normalize a row of the Euclidean distance matrix.
 
-        :param anchor_file_names: The list of anchor file names.
-        :param negative_file_names: The list of negative file names.
-        :param idx: The index of the row to normalize.
-        :return: The normalized row.
+        Args:
+            anchor_file_names: The list of anchor file names.
+            negative_file_names: The list of negative file names.
+            idx: The index of the row to normalize.
+
+        Returns:
+             The normalized row.
         """
 
-        row = self.euc_dist_mtx.loc[anchor_file_names[idx]]
-        min_val = row.min()
-        max_val = row.max()
-        normalized_row = 1 + (self.upper_norm_limit - 1) * ((row - min_val) / (max_val - min_val))
-        return normalized_row[negative_file_names[idx]]
+        d_i = self.euc_dist_mtx.loc[anchor_file_names[idx]]
+        d_min = d_i.min()
+        d_max = d_i.max()
+        d_i_norm = 1 + ((self.upper_norm_limit - 1) * (d_i - d_min)) / (d_max - d_min)
+        return d_i_norm[negative_file_names[idx]]
 
     @staticmethod
     def process_file_names(lines: list) -> list:
         """
         Process the file names and extract the texture names.
 
-        :param lines: A list of file paths.
+            lines: A list of file paths.
 
-        :return: A list of texture names extracted from the file paths.
+        Returns:
+             A list of texture names extracted from the file paths.
         """
 
-        texture_names = []
+        file_names = []
         for line in lines:
-            texture_name = line.split("\\")[2]
-            texture_names.append(texture_name)
+            file_name = line.split("\\")[2]
+            file_names.append(file_name)
 
-        return texture_names
+        return file_names

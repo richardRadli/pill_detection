@@ -132,28 +132,24 @@ def get_hardest_samples():
     class_id_n = None
 
     for file_name in common_triplets:
-        if cfg.dataset_type == 'ogyei':
-            for idx, file in enumerate(file_name):
-                if "_s_" in file:
-                    match = re.search(r'^(.*?)_s_\d{3}\.jpg$', file)
-                elif "_u_" in file:
-                    match = re.search(r'^(.*?)_u_\d{3}\.jpg$', file)
-                else:
-                    raise ValueError(f"Unrecognized file: {file}")
+        for idx, file in enumerate(file_name):
+            if "_s_" in file:
+                match = re.search(r'^(.*?)_s_\d{3}\.jpg$', file)
+            elif "_u_" in file:
+                match = re.search(r'^(.*?)_u_\d{3}\.jpg$', file)
+            else:
+                raise ValueError(f"Unrecognized file: {file}")
 
-                if match:
-                    value = match.group(1)
-                    if idx == 0:
-                        class_id_a_p = value
-                    elif idx == 1:
-                        pass
-                    else:
-                        class_id_n = value
+            if match:
+                value = match.group(1)
+                if idx == 0:
+                    class_id_a_p = value
+                elif idx == 1:
+                    pass
                 else:
-                    raise ValueError(f"No match for file: {file}")
-
-        else:
-            raise ValueError(f"Unknown dataset type: {cfg.dataset_type}")
+                    class_id_n = value
+            else:
+                raise ValueError(f"No match for file: {file}")
 
         contour_anchor = (os.path.join(stream_contour_anchor, class_id_a_p, f"contour_{file_name[0]}"))
         contour_positive = (os.path.join(stream_contour_pos_neg, class_id_a_p, f"contour_{file_name[1]}"))
@@ -174,6 +170,6 @@ def get_hardest_samples():
         hardest_triplets.append((contour_anchor, contour_positive, contour_negative,
                                  lbp_anchor, lbp_positive, lbp_negative,
                                  rgb_anchor, rgb_positive, rgb_negative,
-                                 texture_anchor, texture_positive, texture_negative
-                                 ))
+                                 texture_anchor, texture_positive, texture_negative))
+
     return hardest_triplets

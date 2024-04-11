@@ -7,7 +7,6 @@ Date: March 04, 2024
 Description: The program creates the dynamic margin-triplet loss for the stream phase.
 """
 
-import numpy as np
 import torch
 
 from pytorch_metric_learning.reducers import AvgNonZeroReducer
@@ -35,14 +34,17 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         triplets_per_anchor="all",
         euc_dist_mtx=None,
         upper_norm_limit=3.0,
+        mapping_table=None,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.margin = margin
+        self.mapping_table = mapping_table
         self.triplets_per_anchor = triplets_per_anchor
         self.add_to_recordable_attributes(list_of_names=["margin"], is_stat=False)
-        self.euc_dist_mtx = euc_dist_mtx
         self.upper_norm_limit = upper_norm_limit
+        normalized_euc_dist_mtx = euc_dist_mtx.apply(self.normalize_row, axis=1)
+        self.normalized_euc_dist_mtx = self.convert_dataframe_to_dict(normalized_euc_dist_mtx)
 
     def compute_loss(self,
                      embeddings: torch.Tensor,
@@ -79,9 +81,10 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         ap_dists = mat[anchor_idx, positive_idx]
         an_dists = mat[anchor_idx, negative_idx]
 
-        normalized_margins = self.normalize_row(anchor_idx, negative_idx, labels)
-        normalized_margins = normalized_margins * self.margin
+        normalized_margins = self.get_normalized_value(anchor_idx, negative_idx, labels)
+        normalized_margins = self.margin * normalized_margins
         normalized_margins = normalized_margins.to("cuda")
+
         pos_neg_dists = self.distance.margin(ap_dists, an_dists)
 
         loss = normalized_margins + pos_neg_dists
@@ -95,10 +98,45 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
             }
         }
 
-    def normalize_row(self,
-                      anchor_file_idx: List[int],
-                      negative_file_idx: List[int],
-                      labels: List[int]) \
+    def normalize_row(self, row):
+        """
+
+        Args:
+            row:
+
+        Returns:
+
+        """
+
+        non_diagonal_elements = row[row.index != row.name]  # Exclude diagonal elements
+        min_distance = non_diagonal_elements.min()
+        max_distance = non_diagonal_elements.max()
+        normalized_row = 1 + ((self.upper_norm_limit - 1) * (row - min_distance)) / (max_distance - min_distance)
+
+        return normalized_row
+
+    @staticmethod
+    def convert_dataframe_to_dict(df):
+        """
+
+        Args:
+            df:
+
+        Returns:
+
+        """
+
+        distance_dict = {}
+
+        for index, row in df.iterrows():
+            for col in df.columns:
+                distance_dict[(index, col)] = row[col]
+        return distance_dict
+
+    def get_normalized_value(self,
+                             anchor_file_idx: List[int],
+                             negative_file_idx: List[int],
+                             labels: List[int]) \
             -> torch.Tensor:
         """
         Normalize rows of the Euclidean distance matrix.
@@ -111,33 +149,28 @@ class DynamicMarginTripletLoss(BaseMetricLossFunction):
         Returns:
             torch.Tensor: Normalized rows.
         """
-        # Convert tensor labels to integers
-        labels = [int(label) for label in labels]
 
-        # Create a dictionary to map labels to indices in the normalize_row function
-        label_to_index = {label: idx for idx, label in enumerate(labels)}
+        # Initialize a tensor to store normalized distances
+        normalized_distances = torch.zeros(len(anchor_file_idx))
 
-        # Handle the case where labels may not start from 0 or may not be continuous
-        max_label = max(label_to_index.keys())
-        for label in range(max_label + 1):
-            label_to_index.setdefault(label, len(label_to_index))
+        # Iterate over each pair of anchor and negative indices
+        for i, (anchor_idx, negative_idx) in enumerate(zip(anchor_file_idx, negative_file_idx)):
+            # Extract labels for anchor and negative samples
+            anchor_label = labels[anchor_idx].item()
+            negative_label = labels[negative_idx].item()
 
-        anchor_file_idx_cpu = [label_to_index[int(idx)] for idx in anchor_file_idx]
-        negative_file_idx_cpu = [label_to_index[int(idx)] for idx in negative_file_idx]
+            for key, value in self.mapping_table.items():
+                if value == anchor_label:
+                    anchor_label = key
 
-        # Select rows corresponding to anchor file indices
-        rows = self.euc_dist_mtx.iloc[anchor_file_idx_cpu].to_numpy()
+            for key, value in self.mapping_table.items():
+                if value == negative_label:
+                    negative_label = key
 
-        # Normalize rows
-        min_vals = rows.min(axis=1)
-        max_vals = rows.max(axis=1)
-        normalized_rows = (
-                1 + (self.upper_norm_limit - 1) * ((rows - min_vals[:, np.newaxis]) / (max_vals - min_vals)[:, np.newaxis])
-        )
+            normalized_distance = self.normalized_euc_dist_mtx[(anchor_label, negative_label)]
+            normalized_distances[i] = normalized_distance
 
-        # Select normalized values for anchor-negative pairs
-        normalized_values = normalized_rows[np.arange(len(anchor_file_idx_cpu)), negative_file_idx_cpu]
-        return torch.tensor(normalized_values)
+        return normalized_distances
 
     def get_default_reducer(self) -> AvgNonZeroReducer:
         """

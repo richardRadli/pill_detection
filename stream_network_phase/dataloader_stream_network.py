@@ -7,36 +7,35 @@ Date: March 01, 2024
 Description: This code implements the dataloader class for the stream network phase.
 """
 
-import os
 import numpy as np
+import os
 
 from PIL import Image
 from sklearn.preprocessing import LabelEncoder
-from typing import List
+from typing import List, Tuple
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
-from typing import Tuple
 
 from config.config import ConfigStreamNetwork
 
 
 class DataLoaderStreamNet(Dataset):
-    # ------------------------------------------------------------------------------------------------------------------
-    # --------------------------------------------------- __I N I T__ --------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     def __init__(self, dataset_dirs_anchor: List[str], dataset_dirs_pos_neg: List[str]) -> None:
         """
         Initialize the StreamDataset class.
 
-        :param dataset_dirs_anchor: A list of directory paths containing the anchor dataset.
-        :param dataset_dirs_pos_neg: A list of directory paths containing the positive and negative dataset
+        Args:
+            dataset_dirs_anchor: A list of directory paths containing the anchor dataset.
+            dataset_dirs_pos_neg: A list of directory paths containing the positive and negative dataset
         """
 
         self.cfg = ConfigStreamNetwork().parse()
 
         # Load datasets
-        self.query_images, self.query_labels = self.load_dataset(dataset_dirs_anchor)
-        self.reference_images, self.reference_labels = self.load_dataset(dataset_dirs_pos_neg)
+        self.query_images, self.query_labels, _ =\
+            self.load_dataset(dataset_dirs_anchor)
+        self.reference_images, self.reference_labels, self.reference_encoding_map =\
+            self.load_dataset(dataset_dirs_pos_neg)
 
         self.transform = self.get_transform()
 
@@ -44,7 +43,7 @@ class DataLoaderStreamNet(Dataset):
     # -------------------------------------------- L O A D   D A T A S E T ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def load_dataset(dataset_dirs: List[str]) -> Tuple[List[str], List[int]]:
+    def load_dataset(dataset_dirs: List[str]) -> Tuple[List[str], List[int], dict]:
         """
         Load images from multiple directories and encode the labels.
 
@@ -55,8 +54,9 @@ class DataLoaderStreamNet(Dataset):
             Tuple[List[str], List[int]]: A tuple containing a list of image paths and a list of encoded labels.
         """
 
-        dataset = []
+        images = []
         labels = []
+        encoding_map = {}
 
         for dataset_path in dataset_dirs:
             for label_name in os.listdir(dataset_path):
@@ -66,13 +66,18 @@ class DataLoaderStreamNet(Dataset):
                 label = label_name
                 for image_name in os.listdir(label_path):
                     image_path = os.path.join(label_path, image_name)
-                    dataset.append(image_path)
+                    images.append(image_path)
                     labels.append(label)
 
         # Initialize label encoder
         label_encoder = LabelEncoder()
         encoded_labels = label_encoder.fit_transform(labels)
-        return dataset, encoded_labels
+
+        for original_label, encoded_label in zip(labels, encoded_labels):
+            if original_label not in encoding_map:
+                encoding_map[original_label] = encoded_label
+
+        return images, encoded_labels, encoding_map
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------- G E T   T R A N S F O R M --------------------------------------------
