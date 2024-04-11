@@ -56,7 +56,7 @@ The goal of our proposed Dynamic Margin Triplet Loss is to:
 - Maintain smaller margins for more similar pills.
 - Changing tha value of $`m`$: $`m=\alpha \cdot d_{i}^{norm}`$
 - $`d_{i}^{norm}`$ is based on the distance between the anchor and negative word embeddings: 
-$`d^{Norm}_{i} = 1 + \frac{(u-1)\cdot(d_{min}-d_{i})}  {d_{max}-d_{min}}`$
+$`d^{Norm}_{i} = 1 + \frac{(u-1)\cdot(d_{i}-d_{min})}  {d_{max}-d_{min}}`$
 
 ## Text embeddings
 
