@@ -3,21 +3,6 @@ File: fusion_network_selector.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Jul 26, 2023
-
-Description:
-This program defines a set of wrapper classes and a factory class for creating different fusion network
-models. The BaseNetwork class is an abstract base class that defines the interface for a network model.
-
-It has an abstract __init__ method and a forward method that needs to be implemented by subclasses.
-The CNNFusionNetWrapper, EfficientNetSelfAttentionWrapper, and EfficientNetV2MultiHeadAttentionWrapper classes are
-concrete implementations of the BaseNetwork interface. They wrap specific fusion network models (CNNFusionNet,
-EfficientNetSelfAttention, and EfficientNetV2MultiHeadAttention, respectively) and provide a forward method that calls
-the corresponding model's forward method.
-
-The NetworkFactory class is responsible for creating the appropriate fusion network model based on the given fusion
-network type. It has a static method create_network that takes the fusion network type, network configuration
-parameters, and an optional device argument. It checks the fusion network type and creates the corresponding wrapper
-class instance. It also sets the model's device to the specified device or the default device.
 """
 
 import torch
@@ -92,14 +77,17 @@ class NetworkFactory:
         """
         Create a fusion network model based on the given fusion network type.
 
-        :param fusion_network_type: The type of fusion network to create.
-        :param type_of_net: The type of network to use within the fusion network.
-        :param network_cfg_contour: Configuration for the contour network.
-        :param network_cfg_lbp: Configuration for the LBP network.
-        :param network_cfg_rgb: Configuration for the RGB network.
-        :param network_cfg_texture: Configuration for the texture network.
-        :param device: The device to use for the model (default: GPU if available, otherwise CPU).
-        :return: The created fusion network model.
+        Args:
+            fusion_network_type: The type of fusion network to create.
+            type_of_net: The type of network to use within the fusion network.
+            network_cfg_contour: Configuration for the contour network.
+            network_cfg_lbp: Configuration for the LBP network.
+            network_cfg_rgb: Configuration for the RGB network.
+            network_cfg_texture: Configuration for the texture network.
+            device: The device to use for the model (default: GPU if available, otherwise CPU).
+
+        Return:
+             The created fusion network model.
         """
 
         if fusion_network_type == "EfficientNetSelfAttention":

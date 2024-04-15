@@ -105,36 +105,45 @@ class EfficientNetSelfAttention(nn.Module):
         self.value_rgb = nn.Linear(rgb_dimension, rgb_dimension)
 
         self.fc1 = nn.Linear(self.input_dim, self.input_dim)
+        self.fc2 = nn.Linear(self.input_dim, self.input_dim)
+        self.relu = nn.ReLU()
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def forward(self, x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor) -> torch.Tensor:
+    def forward(self, contour_tensor: torch.Tensor, lbp_tensor: torch.Tensor, rgb_tensor: torch.Tensor,
+                texture_tensor: torch.Tensor) -> torch.Tensor:
         """
         This is the forward function of the FusionNet.
 
-        :param x1: input tensor for contour stream, with shape [batch_size, 1, height, width]
-        :param x2: input tensor for RGB stream, with shape [batch_size, 3, height, width]
-        :param x3: input tensor for texture stream, with shape [batch_size, 1, height, width]
-        :param x4: input tensor for LBP stream, with shape [batch_size, 1, height, width]
+        Args:
+            contour_tensor: input tensor for contour stream, with shape [batch_size, 1, height, width]
+            lbp_tensor: input tensor for LBP stream, with shape [batch_size, 1, height, width]
+            rgb_tensor: input tensor for RGB stream, with shape [batch_size, 3, height, width]
+            texture_tensor: input tensor for texture stream, with shape [batch_size, 1, height, width]
 
-        :return: output tensor with shape [batch_size, 640] after passing through fully connected layer.
+        Returns:
+             Output tensor with shape [batch_size, 640] after passing through fully connected layers.
         """
 
-        x1 = self.contour_network(x1)
-        x2 = self.lbp_network(x2)
-        x3 = self.rgb_network(x3)
-        x4 = self.texture_network(x4)
+        contour_tensor = self.contour_network(contour_tensor)
+        lbp_tensor = self.lbp_network(lbp_tensor)
+        rgb_tensor = self.rgb_network(rgb_tensor)
+        texture_tensor = self.texture_network(texture_tensor)
 
-        x1 = self.self_attention(x1)
-        x2 = self.self_attention(x2)
-        x3 = self.self_attention_rgb(x3)
-        x4 = self.self_attention(x4)
+        contour_tensor = self.self_attention(contour_tensor)
+        lbp_tensor = self.self_attention(lbp_tensor)
+        rgb_tensor = self.self_attention_rgb(rgb_tensor)
+        texture_tensor = self.self_attention(texture_tensor)
 
-        x = torch.cat((x1, x2, x3, x4), dim=1)
-        x = self.fc1(x)
+        concatenated = torch.cat(
+            (contour_tensor, lbp_tensor, rgb_tensor, texture_tensor), dim=1
+        )
+        concatenated = self.fc1(concatenated)
+        concatenated = self.fc2(concatenated)
+        concatenated = self.relu(concatenated)
 
-        return x
+        return concatenated
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------- S E L F   A T T E N T I O N ------------------------------------------
@@ -143,8 +152,11 @@ class EfficientNetSelfAttention(nn.Module):
         """
         Apply self-attention mechanism to the input tensor.
 
-        :param x: Input tensor with shape [batch_size, embedded_dim].
-        :return: Output tensor after applying self-attention with shape [batch_size, embedded_dim].
+        Args:
+            x: Input tensor with shape [batch_size, embedded_dim].
+
+        Returns:
+             Output tensor after applying self-attention with shape [batch_size, embedded_dim].
         """
 
         queries = self.query(x)
@@ -160,8 +172,11 @@ class EfficientNetSelfAttention(nn.Module):
         """
         Apply self-attention mechanism to the input tensor.
 
-        :param x: Input tensor with shape [batch_size, embedded_dim].
-        :return: Output tensor after applying self-attention with shape [batch_size, embedded_dim].
+        Args:
+            x: Input tensor with shape [batch_size, embedded_dim].
+
+        Returns:
+             Output tensor after applying self-attention with shape [batch_size, embedded_dim].
         """
 
         queries = self.query_rgb(x)
@@ -178,10 +193,13 @@ class EfficientNetSelfAttention(nn.Module):
         """
         Apply self-attention mechanism to the input tensors.
 
-        :param keys: Tensor with shape [batch_size, embedded_dim, 1].
-        :param values: Tensor with shape [batch_size, 1, embedded_dim].
-        :param queries: Tensor with shape [batch_size, 1, embedded_dim].
-        :return: Output tensor after applying self-attention with shape [batch_size, embedded_dim].
+        Args:
+            keys: Tensor with shape [batch_size, embedded_dim, 1].
+            values: Tensor with shape [batch_size, 1, embedded_dim].
+            queries: Tensor with shape [batch_size, 1, embedded_dim].
+
+        Return:
+             Output tensor after applying self-attention with shape [batch_size, embedded_dim].
         """
 
         scores = torch.matmul(queries, keys.transpose(-2, -1))

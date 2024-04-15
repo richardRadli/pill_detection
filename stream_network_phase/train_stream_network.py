@@ -8,7 +8,6 @@ Description: This code implements the training for the stream network phase.
 """
 
 import colorama
-import json
 import logging
 import numpy as np
 import os
@@ -16,19 +15,17 @@ import torch
 
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
+from typing import List, Tuple
+from pytorch_metric_learning import losses, miners
 
 from config.config import ConfigStreamNetwork
-
-from config.network_configs import sub_stream_network_configs
+from config.config_selector import sub_stream_network_configs
 from stream_network_models.stream_network_selector import NetworkFactory
-from dataloader_stream_network import StreamDataset
-from loss_functions.triplet_loss import TripletMarginLoss
-from loss_functions.triplet_loss_hard_mining import TripletLossWithHardMining
-from utils.utils import (create_timestamp, measure_execution_time, print_network_config, use_gpu_if_available,
-                         setup_logger)
+from dataloader_stream_network import DataLoaderStreamNet
+from utils.utils import (create_dataset, create_timestamp, measure_execution_time, print_network_config,
+                         use_gpu_if_available, setup_logger)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -63,42 +60,37 @@ class TrainModel:
         network_config = sub_stream_network_configs(self.cfg)
         network_cfg = network_config.get(self.cfg.type_of_stream)
 
-        # Load dataset
-        dataset = \
-            StreamDataset(dataset_dirs=[network_cfg.get("train").get(self.cfg.dataset_type),
-                                        network_cfg.get("valid").get(self.cfg.dataset_type)],
-                          type_of_stream=self.cfg.type_of_stream,
-                          image_size=network_cfg.get("image_size"),
-                          num_triplets=self.cfg.num_triplets)
-
-        # Calculate the number of samples for each set
-        train_size = int(len(dataset) * self.cfg.train_valid_ratio)
-        val_size = len(dataset) - train_size
-        train_dataset, valid_dataset = random_split(dataset, [train_size, val_size])
-        logging.info(f"Number of images in the train set: {len(train_dataset)}")
-        logging.info(f"Number of images in the validation set: {len(valid_dataset)}")
-        self.train_data_loader = DataLoader(train_dataset, batch_size=self.cfg.batch_size, shuffle=True)
-        self.valid_data_loader = DataLoader(valid_dataset, batch_size=self.cfg.batch_size, shuffle=True)
-
         # Load model and upload it to the GPU
         self.model = NetworkFactory.create_network(self.cfg.type_of_net, network_cfg)
         self.model.to(self.device)
 
         # Print model configuration
-        summary(self.model,
-                (network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size")))
+        summary(
+            model=self.model,
+            input_size=(network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size"))
+        )
 
-        # Specify loss function
-        if self.cfg.type_of_loss_func == "hmtl":
-            self.criterion = TripletLossWithHardMining(margin=self.cfg.margin)
-        elif self.cfg.type_of_loss_func == "tl":
-            self.criterion = TripletMarginLoss(margin=self.cfg.margin)
-        else:
-            raise ValueError(f"Wrong type of loss function: {self.cfg.type_of_loss_func}")
+        # Create dataset
+        dataset = \
+            DataLoaderStreamNet(
+                dataset_dirs_anchor=[network_cfg.get("train").get(self.cfg.dataset_type).get("anchor")],
+                dataset_dirs_pos_neg=[network_cfg.get("train").get(self.cfg.dataset_type).get("pos_neg")]
+            )
+        self.mapping = dataset.reference_encoding_map
+        self.train_data_loader, self.valid_data_loader = create_dataset(dataset=dataset,
+                                                                        train_valid_ratio=self.cfg.train_valid_ratio,
+                                                                        batch_size=self.cfg.batch_size)
+
+        # Specify loss and mining function
+        self.criterion = losses.TripletMarginLoss(margin=self.cfg.margin)
+        self.mining_func = miners.TripletMarginMiner(
+            margin=self.cfg.margin, type_of_triplets=self.cfg.mining_type
+        )
 
         # Specify optimizer
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=network_cfg.get("learning_rate"),
-                                          weight_decay=self.cfg.weight_decay)
+        self.optimizer = torch.optim.Adam(self.model.parameters(),
+                                          lr=network_cfg.get("learning_rate"),
+                                          weight_decay=1e-5)
 
         # LR scheduler
         self.scheduler = StepLR(optimizer=self.optimizer,
@@ -108,193 +100,264 @@ class TrainModel:
         # Tensorboard
         tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
+        dummy_input = torch.randn(1,
+                                  network_cfg.get('channels')[0],
+                                  network_cfg.get("image_size"),
+                                  network_cfg.get("image_size")
+                                  ).to(device=self.device)
+        self.writer.add_graph(self.model, dummy_input)
 
         # Create save directory for model weights
         self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))
 
-        # Hard samples paths
-        self.hardest_negative_samples_path = self.create_save_dirs(network_cfg.get('hardest_negative_samples'))
-        self.hardest_positive_samples_path = self.create_save_dirs(network_cfg.get('hardest_positive_samples'))
+        # Create save directory for hard samples
+        self.hard_samples_path = self.create_save_dirs(network_cfg.get('hardest_samples'))
+
+        # Variables to save only the best weights and model
+        self.best_valid_loss = float('inf')
+        self.best_model_path = None
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- C R E A T E   S A V E   D I R S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def create_save_dirs(self, network_cfg):
+    def create_save_dirs(self, network_cfg) -> str:
         """
+        Creates and returns a directory path based on the provided network configuration.
 
-        :param network_cfg:
-        :return:
+        Args:
+            network_cfg: A dictionary containing network configuration information.
+
+        Returns:
+            directory_to_create (str): The path of the created directory.
         """
 
         directory_path = network_cfg.get(self.cfg.type_of_net).get(self.cfg.dataset_type)
-        directory_to_create = os.path.join(directory_path, f"{self.timestamp}_{self.cfg.type_of_loss_func}")
+        directory_to_create = (
+            os.path.join(directory_path, f"{self.timestamp}_{self.cfg.type_of_loss_func}_{self.cfg.fold}")
+        )
         os.makedirs(directory_to_create, exist_ok=True)
         return directory_to_create
 
     # ------------------------------------------------------------------------------------------------------------------
-    # ----------------------------------------- G E T   H A R D  S A M P L E S -----------------------------------------
+    # ------------------------------------------ C O N V E R T   L A B E L S -------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def get_hardest_samples(self, epoch: int, hard_neg_images: list, dictionary_name: str, op: str) -> None:
+    def convert_labels(self, labels: List[str]) -> torch.Tensor:
         """
-        Saves the hardest images to a file in JSON format.
-        :param epoch: The epoch number.
-        :param hard_neg_images: A list of tensors of the hardest negative images.
-        :param dictionary_name: The directory where the output file will be saved.
-        :param op: A string representing the type of operation.
-        :return: None
+        Convert labels to a tensor.
+
+        Args:
+            labels: A list of labels.
+
+        Return:
+             A tensor containing the converted labels.
         """
 
-        file_name = os.path.join(dictionary_name, self.timestamp + "_epoch_" + str(epoch) + "_%s.txt" % op)
-
-        hardest_samples = []
-        for i, hard_neg_tensor in enumerate(hard_neg_images):
-            hardest_samples.append(hard_neg_tensor)
-
-        with open(file_name, "w") as fp:
-            json.dump(hardest_samples, fp)
+        labels = tuple(int(item) for item in labels)
+        labels = torch.tensor(labels)
+        return labels.to(self.device)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # -------------------------------------- R E C O R D   H A R D   S A M P L E S -------------------------------------
+    # ----------------------------------------------- T R A I N   L O O P ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def record_hard_samples(hard_samples: torch.Tensor, img_path: tuple, hard_images: list) -> list:
+    def train_loop(self, train_losses: List[float], hard_samples: List[list]) -> Tuple[List[float], List[List[str]]]:
         """
-        Records filenames of the hardest negative samples.
+        Training loop for the model.
 
-        :param hard_samples: A tensor containing the hardest negative samples.
-        :param img_path: A tuple of image file paths.
-        :param hard_images: A list to store the filenames of the hardest negative samples.
-        :return: The updated list of hardest negative sample filenames.
+        Args:
+            train_losses (list): List to store training losses.
+            hard_samples (list): List to store hard samples.
+
+        Returns:
+            train_losses (list): Updated list of training losses.
+            hard_samples (list): Updated list of hard samples.
         """
 
-        if hard_samples is not None:
-            for filename, sample in zip(img_path, hard_samples):
-                if sample is not None:
-                    hard_images.append(filename)
+        for idx, (consumer_images, consumer_labels, cp, reference_images, reference_labels, rp) in \
+                tqdm(enumerate(self.train_data_loader),
+                     total=len(self.train_data_loader),
+                     desc=colorama.Fore.CYAN + "Train"):
+            # Set the gradients to zero
+            self.optimizer.zero_grad()
 
-        return hard_images
+            # Upload data to the GPU
+            consumer_images = consumer_images.to(self.device)
+            reference_images = reference_images.to(self.device)
+
+            consumer_labels = self.convert_labels(consumer_labels)
+            reference_labels = self.convert_labels(reference_labels)
+
+            # Forward pass
+            consumer_embeddings = self.model(consumer_images)
+            reference_embeddings = self.model(reference_images)
+
+            # Get hard samples
+            indices_tuple = self.mining_func(embeddings=consumer_embeddings,
+                                             labels=consumer_labels,
+                                             ref_emb=reference_embeddings,
+                                             ref_labels=reference_labels)
+
+            anchor_indices, positive_indices, negative_indices = indices_tuple
+
+            anchor_filenames = [cp[i] for i in anchor_indices]
+            positive_filenames = [rp[i] for i in positive_indices]
+            negative_filenames = [rp[i] for i in negative_indices]
+
+            hard_sample = [anchor_filenames, positive_filenames, negative_filenames]
+            hard_samples.append(hard_sample)
+
+            # Compute loss
+            train_loss = self.criterion(embeddings=consumer_embeddings,
+                                        labels=consumer_labels,
+                                        ref_emb=reference_embeddings,
+                                        ref_labels=reference_labels)
+
+            # Backward pass, optimize
+            train_loss.backward()
+            self.optimizer.step()
+
+            # Accumulate loss
+            train_losses.append(train_loss.item())
+
+        return train_losses, hard_samples
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------- V A L I D   L O O P ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def valid_loop(self, valid_losses: List[float]) -> List[float]:
+        """
+        Validation loop for the model.
+
+        Args:
+            valid_losses (list): List to store validation losses.
+
+        Returns:
+            valid_losses (list): Updated list of validation losses.
+        """
+
+        with torch.no_grad():
+            for idx, (consumer_images, consumer_labels, _, reference_images, reference_labels, _) \
+                    in tqdm(enumerate(self.valid_data_loader),
+                            total=len(self.valid_data_loader),
+                            desc=colorama.Fore.MAGENTA + "Validation"):
+                # Upload data to GPU
+                consumer_images = consumer_images.to(self.device)
+                reference_images = reference_images.to(self.device)
+
+                # Forward pass
+                consumer_embeddings = self.model(consumer_images)
+                reference_embeddings = self.model(reference_images)
+
+                consumer_labels = self.convert_labels(consumer_labels)
+                reference_labels = self.convert_labels(reference_labels)
+
+                # Compute triplet loss
+                val_loss = self.criterion(embeddings=consumer_embeddings,
+                                          labels=consumer_labels,
+                                          ref_emb=reference_embeddings,
+                                          ref_labels=reference_labels)
+
+                # Accumulate loss
+                valid_losses.append(val_loss.item())
+
+        return valid_losses
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------- S A V E   H A R D   S A M P L E S ---------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def save_hard_samples(self, hard_samples: List[List[str]], epoch: int) -> None:
+        """
+        Save hard samples to a file.
+
+        Args:
+            hard_samples (list): List of hard samples.
+            epoch (int): Current epoch number.
+
+        Returns:
+            None
+        """
+
+        file_name = os.path.join(self.hard_samples_path, self.timestamp + "_epoch_" + str(epoch) + ".txt")
+        with open(file_name, 'w') as file:
+            file.write(str(hard_samples))
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------- S A V E   M O D E L ----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def save_model_weights(self, epoch: int, valid_loss: float) -> None:
+        """
+        Saves the model and weights if the validation loss is improved.
+
+        Args:
+            epoch (int): the current epoch
+            valid_loss (float): the validation loss
+
+        Returns:
+            None
+        """
+
+        if valid_loss < self.best_valid_loss:
+            self.best_valid_loss = valid_loss
+            if self.best_model_path is not None:
+                os.remove(self.best_model_path)
+            self.best_model_path = os.path.join(self.save_path, "epoch_" + str(epoch) + ".pt")
+            torch.save(self.model.state_dict(), self.best_model_path)
+            logging.info(f"New weights have been saved at epoch {epoch} with value of {valid_loss:.5f}")
+        else:
+            logging.warning(f"No new weights have been saved. Best valid loss was {self.best_valid_loss:.5f},\n "
+                            f"current valid loss is {valid_loss:.5f}")
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------------ F I T -----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     @measure_execution_time
-    def train(self) -> None:
+    def training(self) -> None:
         """
         This function is responsible for the training of the network.
 
-        :return: None
+        Returns:
+             None
         """
 
         # to track the training loss as the model trains
         train_losses = []
         # to track the validation loss as the model trains
         valid_losses = []
-        # to mine the hard negative samples
-        hard_neg_images = []
-        # to mine the hard positive samples
-        hard_pos_images = []
-
-        # Variables to save only the best weights and model
-        best_valid_loss = float('inf')
-        best_model_path = None
+        # to track hard samples
+        hard_samples = []
 
         for epoch in tqdm(range(self.cfg.epochs), desc=colorama.Fore.GREEN + "Epochs"):
             # Train loop
-            for idx, (anchor, positive, negative, negative_img_path, positive_img_path) in \
-                    tqdm(enumerate(self.train_data_loader), total=len(self.train_data_loader),
-                         desc=colorama.Fore.CYAN + "Train"):
-                # Upload data to the GPU
-                anchor = anchor.to(self.device)
-                positive = positive.to(self.device)
-                negative = negative.to(self.device)
+            train_losses, hard_samples = self.train_loop(train_losses, hard_samples)
 
-                # Set the gradients to zero
-                self.optimizer.zero_grad()
-
-                # Forward pass
-                anchor_emb = self.model(anchor)
-                positive_emb = self.model(positive)
-                negative_emb = self.model(negative)
-
-                # Compute triplet loss
-                if self.cfg.type_of_loss_func == "hmtl":
-                    loss, hard_neg, hard_pos = self.criterion(anchor_emb, positive_emb, negative_emb)
-                    # Collect hardest positive and negative samples
-                    hard_neg_images = self.record_hard_samples(hard_neg, negative_img_path, hard_neg_images)
-                    hard_pos_images = self.record_hard_samples(hard_pos, positive_img_path, hard_pos_images)
-                elif self.cfg.type_of_loss_func == "tl":
-                    loss = self.criterion(anchor_emb, positive_emb, negative_emb)
-                else:
-                    raise ValueError(f"Wrong type of loss function {self.cfg.type_of_loss_func}")
-
-                # Backward pass, optimize and scheduler
-                loss.backward()
-                self.optimizer.step()
-
-                # Accumulate loss
-                train_losses.append(loss.item())
+            # Define the file path
+            self.save_hard_samples(hard_samples, epoch)
 
             # Validation loop
-            with torch.no_grad():
-                for idx, (anchor, positive, negative, negative_img_path, positive_img_path) \
-                        in tqdm(enumerate(self.valid_data_loader), total=len(self.valid_data_loader),
-                                desc=colorama.Fore.MAGENTA + "Validation"):
-                    # Upload data to GPU
-                    anchor = anchor.to(self.device)
-                    positive = positive.to(self.device)
-                    negative = negative.to(self.device)
-
-                    # Forward pass
-                    anchor_emb = self.model(anchor)
-                    positive_emb = self.model(positive)
-                    negative_emb = self.model(negative)
-
-                    # Compute triplet loss
-                    if self.cfg.type_of_loss_func == "hmtl":
-                        val_loss, _, _ = self.criterion(anchor_emb, positive_emb, negative_emb)
-                    elif self.cfg.type_of_loss_func == "tl":
-                        val_loss = self.criterion(anchor_emb, positive_emb, negative_emb)
-                    else:
-                        raise ValueError(f"Wrong type of loss function {self.cfg.type_of_loss_func}")
-
-                    # Accumulate loss
-                    valid_losses.append(val_loss.item())
-
-            # Decay the learning rate
-            self.scheduler.step()
+            valid_losses = self.valid_loop(valid_losses)
 
             train_loss = np.average(train_losses)
             valid_loss = np.average(valid_losses)
+
             self.writer.add_scalars("Loss", {"train": train_loss, "validation": valid_loss}, epoch)
 
             # Log loss for epoch
             logging.info(f'train_loss: {train_loss:.5f} valid_loss: {valid_loss:.5f}')
 
-            # Loop over the hard negative tensors
-            self.get_hardest_samples(epoch, hard_neg_images, self.hardest_negative_samples_path, "negative")
-            self.get_hardest_samples(epoch, hard_pos_images, self.hardest_positive_samples_path, "positive")
-
             # Clear lists to track next epoch
             train_losses.clear()
             valid_losses.clear()
-            hard_neg_images.clear()
-            hard_pos_images.clear()
+            hard_samples.clear()
 
-            # Save the model and weights
-            if valid_loss < best_valid_loss:
-                best_valid_loss = valid_loss
-                if best_model_path is not None:
-                    os.remove(best_model_path)
-                best_model_path = os.path.join(self.save_path, "epoch_" + str(epoch) + ".pt")
-                torch.save(self.model.state_dict(), best_model_path)
-                logging.info(f"New weights have been saved at epoch {epoch} with value of {valid_loss:.5f}")
-            else:
-                logging.warning(f"No new weights have been saved. Best valid loss was {best_valid_loss:.5f},\n "
-                                f"current valid loss is {valid_loss:.5f}")
+            # Save model
+            self.save_model_weights(epoch, valid_loss)
+
+            self.scheduler.step()
 
         # Close and flush SummaryWriter
         self.writer.close()
         self.writer.flush()
+
+        del train_loss, valid_loss, hard_samples
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -303,6 +366,10 @@ class TrainModel:
 if __name__ == "__main__":
     try:
         tm = TrainModel()
-        tm.train()
+        try:
+            tm.training()
+        except torch.cuda.OutOfMemoryError:
+            logging.error('Detected OutOfMemoryError!')
+            torch.cuda.empty_cache()
     except KeyboardInterrupt as kbe:
         logging.error("Keyboard interrupt, program has been shut down!")

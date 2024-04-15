@@ -16,7 +16,7 @@ from tqdm import tqdm
 from config.const import DATASET_PATH
 
 
-def display_annotations(image_path: str, annotation_path: str, out_path: str):
+def crop_bounding_boxes(image_path: str, annotation_path: str, out_path: str):
     """
     Crop images based on bounding box annotations and save the cropped images.
 
@@ -96,4 +96,4 @@ if __name__ == "__main__":
     img_path = DATASET_PATH.get_data_path("cure_customer")
     ann_path = "C:/Users/ricsi/Documents/yolov7/runs/detect/yolov7_cure_100k_binary_labels_cure_customer2/labels"
     out_path = "C:/Users/ricsi/Documents/project/storage/IVM/datasets/cure/Customer_bbox"
-    display_annotations(img_path, ann_path, out_path)
+    crop_bounding_boxes(img_path, ann_path, out_path)

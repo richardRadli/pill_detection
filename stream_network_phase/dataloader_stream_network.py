@@ -2,17 +2,16 @@
 File: dataloader_stream_network.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
-Date: Apr 12, 2023
+Date: March 01, 2024
 
-Description: The program creates the different images (contour, lbp, rgb, texture) for the substreams.
+Description: This code implements the dataloader class for the stream network phase.
 """
 
 import numpy as np
 import os
-import random
 
-from itertools import combinations
 from PIL import Image
+from sklearn.preprocessing import LabelEncoder
 from typing import List, Tuple
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
@@ -20,148 +19,137 @@ from torchvision.transforms import transforms
 from config.config import ConfigStreamNetwork
 
 
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# +++++++++++++++++++++++++++++++++++++++++++++ S T R E A M   D A T A S E T ++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class StreamDataset(Dataset):
-    def __init__(self, dataset_dirs: List[str], type_of_stream: str, image_size: int, num_triplets: int = -1) -> None:
+class DataLoaderStreamNet(Dataset):
+    def __init__(self, dataset_dirs_anchor: List[str], dataset_dirs_pos_neg: List[str]) -> None:
         """
         Initialize the StreamDataset class.
 
-        :param dataset_dirs: A list of directory paths containing the dataset.
-        :param type_of_stream: The type of stream (RGB, Contour, Texture, LBP).
-        :param image_size: The size of the images.
-        :param num_triplets: The number of triplets to generate (-1 means all possible triplets).
+        Args:
+            dataset_dirs_anchor: A list of directory paths containing the anchor dataset.
+            dataset_dirs_pos_neg: A list of directory paths containing the positive and negative dataset
         """
+
         self.cfg = ConfigStreamNetwork().parse()
 
-        self.labels_set = None
-        self.label_to_indices = None
-        self.labels = None
-        self.dataset_paths = dataset_dirs
-        self.type_of_stream = type_of_stream
+        # Load datasets
+        self.query_images, self.query_labels, _ =\
+            self.load_dataset(dataset_dirs_anchor)
+        self.reference_images, self.reference_labels, self.reference_encoding_map =\
+            self.load_dataset(dataset_dirs_pos_neg)
 
-        if self.type_of_stream == "RGB":
-            self.transform = transforms.Compose([
-                transforms.Resize(image_size),
-                transforms.CenterCrop(image_size),
+        self.transform = self.get_transform()
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------- L O A D   D A T A S E T ---------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def load_dataset(dataset_dirs: List[str]) -> Tuple[List[str], List[int], dict]:
+        """
+        Load images from multiple directories and encode the labels.
+
+        Args:
+            dataset_dirs (List[str]): List of directories containing the dataset.
+
+        Returns:
+            Tuple[List[str], List[int]]: A tuple containing a list of image paths and a list of encoded labels.
+        """
+
+        images = []
+        labels = []
+        encoding_map = {}
+
+        for dataset_path in dataset_dirs:
+            for label_name in os.listdir(dataset_path):
+                label_path = os.path.join(dataset_path, label_name)
+                if not os.path.isdir(label_path):
+                    continue
+                label = label_name
+                for image_name in os.listdir(label_path):
+                    image_path = os.path.join(label_path, image_name)
+                    images.append(image_path)
+                    labels.append(label)
+
+        # Initialize label encoder
+        label_encoder = LabelEncoder()
+        encoded_labels = label_encoder.fit_transform(labels)
+
+        for original_label, encoded_label in zip(labels, encoded_labels):
+            if original_label not in encoding_map:
+                encoding_map[original_label] = encoded_label
+
+        return images, encoded_labels, encoding_map
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------- G E T   T R A N S F O R M --------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def get_transform(self) -> transforms.Compose:
+        """
+        Get the appropriate transformation based on the type of stream.
+
+        Returns:
+            transforms.Compose: A composition of image transformations.
+        """
+
+        if self.cfg.type_of_stream == "RGB":
+            return transforms.Compose([
+                transforms.Resize(self.cfg.img_size_en),
+                transforms.CenterCrop(self.cfg.img_size_en),
                 transforms.ToTensor(),
                 transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
             ])
-        elif self.type_of_stream in ["Contour", "Texture", "LBP"]:
-            self.transform = transforms.Compose([
-                transforms.Resize(image_size),
-                transforms.CenterCrop(image_size),
+        elif self.cfg.type_of_stream in ["Contour", "Texture", "LBP"]:
+            return transforms.Compose([
+                transforms.Resize(self.cfg.img_size_en),
+                transforms.CenterCrop(self.cfg.img_size_en),
                 transforms.Grayscale(),
                 transforms.ToTensor(),
             ])
         else:
             raise ValueError("Wrong kind of network")
 
-        self.dataset = self.load_dataset()
-        self.triplets = self.generate_triplets(num_triplets)
-
     # ------------------------------------------------------------------------------------------------------------------
-    # -------------------------------------------- L O A D   D A T A S E T ---------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def load_dataset(self) -> List[Tuple[str, str]]:
-        """
-        Load the dataset from the specified directory paths.
-
-        :return: A list of tuples containing the image paths and their corresponding labels.
-        """
-
-        dataset = []
-        labels = set()
-
-        # Iterate over the dataset directories
-        for dataset_path in self.dataset_paths:
-            # Iterate over the label directories in each dataset directory
-            for label_name in os.listdir(dataset_path):
-                label_path = os.path.join(dataset_path, label_name)
-
-                # Skip non-directory files
-                if not os.path.isdir(label_path):
-                    continue
-
-                label = label_name
-                labels.add(label)
-
-                # Iterate over the image files in the label directory
-                for image_name in os.listdir(label_path):
-                    image_path = os.path.join(label_path, image_name)
-                    dataset.append((image_path, label))
-
-        self.labels = np.array([x[1] for x in dataset])
-        self.labels_set = set(self.labels)
-        self.label_to_indices = {label: np.where(self.labels == label)[0] for label in self.labels_set}
-
-        return dataset
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # --------------------------------------- G E N E R A T E   T R I P L E T S ----------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def generate_triplets(self, num_triplets: int = 1000) -> List[Tuple[int, int, int]]:
-        """
-        Generate triplets of indices for anchor, positive, and negative images.
-
-        :param num_triplets: The number of triplets to generate.
-        :return: A list of triplets, where each triplet contains the indices of anchor, positive, and negative images.
-        """
-
-        triplets = []
-        for label in self.labels_set:
-            label_indices = self.label_to_indices[label]
-            if len(label_indices) < 2:
-                continue
-            anchor_positive_pairs = list(combinations(label_indices, 2))
-            for anchor_index, positive_index in anchor_positive_pairs:
-                negative_label = np.random.choice(list(self.labels_set - {label}))
-                negative_index = np.random.choice(self.label_to_indices[negative_label])
-                triplets.append((anchor_index, positive_index, negative_index))
-
-        # Shuffle the triplets and select a fixed number
-        random.shuffle(triplets)
-        triplets = triplets[:num_triplets]
-
-        return triplets
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ----------------------------------------------- __ G E T I T E M __ ----------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def __getitem__(self, index: int) -> Tuple[Image.Image, Image.Image, Image.Image, str, str]:
-        """
-        Retrieve a triplet of images (anchor, positive, negative) and their paths for a given index.
-
-        :param index: The index of the anchor image.
-        :return: A tuple of three images (anchor, positive, negative) and their paths.
-        """
-
-        anchor_index, positive_index, negative_index = self.triplets[index]
-
-        anchor_img_path, _ = self.dataset[anchor_index]
-        positive_img_path, _ = self.dataset[positive_index]
-        negative_img_path, _ = self.dataset[negative_index]
-
-        anchor_img = Image.open(anchor_img_path)
-        positive_img = Image.open(positive_img_path)
-        negative_img = Image.open(negative_img_path)
-
-        if self.transform:
-            anchor_img = self.transform(anchor_img)
-            positive_img = self.transform(positive_img)
-            negative_img = self.transform(negative_img)
-
-        return anchor_img, positive_img, negative_img, negative_img_path, positive_img_path
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # --------------------------------------------------- __ L E N __ --------------------------------------------------
+    # ---------------------------------------------------- __L E N__ ---------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __len__(self) -> int:
         """
-        This is the __len__ method of a dataset loader class.
+        Get the length of the dataset.
 
-        :return: The length of the dataset
+        Returns:
+            int: The number of query images in the dataset.
         """
 
-        return len(self.triplets)
+        return len(self.query_images)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------ __G E T I T E M__ -----------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    def __getitem__(self, index: int):
+        """
+        Retrieve a sample from the dataset at the given index.
+
+        Args:
+            index (int): Index of the sample to retrieve.
+
+        Returns:
+            Tuple: A tuple containing query image, query label, query image path,
+            reference image, reference label, and reference image path.
+        """
+
+        # Query (consumer) images
+        query_image_path = self.query_images[index]
+        query_image = self.transform(Image.open(query_image_path))
+        query_label = self.query_labels[index]
+
+        # Reference images
+        reference_label = query_label
+        reference_indices = np.where(np.array(self.reference_labels) == reference_label)[0]
+
+        if len(reference_indices) == 0:
+            reference_image_path = self.reference_images[-1]
+        else:
+            reference_index = np.random.choice(reference_indices)
+            reference_image_path = self.reference_images[reference_index]
+
+        reference_image = self.transform(Image.open(reference_image_path))
+
+        return query_image, query_label, query_image_path, reference_image, reference_label, reference_image_path

@@ -1,205 +1,64 @@
+"""
+File: efficientnet_v2s.py
+Author: Richárd Rádli
+E-mail: radli.richard@mik.uni-pannon.hu
+Date: May 06, 2023
+
+Description: The program implements the EfficientNet V2 s with custom linear layer.
+"""
+
 import torch
-from torch import nn
-
-Eff_V2_SETTINGS = {
-    # expansion factor, k, stride, n_in, n_out, num_layers, use_fusedMBCONV
-    's': [
-        [1, 3, 1, 24, 24, 2, True],
-        [4, 3, 2, 24, 48, 4, True],
-        [4, 3, 2, 48, 64, 4, True],
-        [4, 3, 2, 64, 128, 6, False],
-        [6, 3, 1, 128, 160, 9, False],
-        [6, 3, 2, 160, 256, 15, False]
-    ],
-
-    'm': [
-        [1, 3, 1, 24, 24, 3, True],
-        [4, 3, 2, 24, 48, 5, True],
-        [4, 3, 2, 48, 80, 5, True],
-        [4, 3, 2, 80, 160, 7, False],
-        [6, 3, 1, 160, 176, 14, False],
-        [6, 3, 2, 176, 304, 18, False],
-        [6, 3, 1, 304, 512, 5, False]
-    ],
-
-    'l': [
-        [1, 3, 1, 32, 32, 4, True],
-        [4, 3, 2, 32, 64, 7, True],
-        [4, 3, 2, 64, 96, 7, True],
-        [4, 3, 2, 96, 192, 10, False],
-        [6, 3, 1, 192, 224, 19, False],
-        [6, 3, 2, 224, 384, 25, False],
-        [6, 3, 1, 384, 640, 7, False]
-    ]
-}
+import torch.nn as nn
+import torchvision.models as models
 
 
-class ConvBnAct(nn.Module):
+class EfficientNetV2s(nn.Module):
+    def __init__(self, num_out_feature: int, grayscale: bool):
+        """
+        EfficientNet model with custom linear layer.
 
-    def __init__(self, n_in, n_out, k_size=3, stride=1, padding=0, groups=1, act=True, bn=True, bias=False):
-        super(ConvBnAct, self).__init__()
+        Args:
+            num_out_feature: Number of output features.
+            grayscale: Whether the input is grayscale or not. Defaults to True.
 
-        self.conv = nn.Conv2d(n_in, n_out, kernel_size=k_size, stride=stride, padding=padding, groups=groups, bias=bias)
-        self.batch_norm = nn.BatchNorm2d(n_out) if bn else nn.Identity()
-        self.activation = nn.SiLU() if act else nn.Identity()
+        Returns:
+            None
+        """
 
-    def forward(self, x):
-        x = self.conv(x)
-        x = self.batch_norm(x)
-        x = self.activation(x)
+        super(EfficientNetV2s, self).__init__()
+        self.num_out_feature = num_out_feature
+        self.grayscale = grayscale
+        self.model = self.build_model()
+        if self.grayscale:
+            self.model.conv1 = (
+                nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, stride=2, bias=False)
+            )
 
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass of the EfficientNet model.
+
+        Args:
+            x: Input tensor.
+
+        Returns:
+             Output tensor.
+        """
+
+        if self.grayscale:
+            x = x.expand(-1, 3, -1, -1)
+        x = self.model(x)
         return x
 
+    def build_model(self) -> nn.Module:
+        """
+        Build the EfficientNet model with a custom linear layer.
 
-'''Squeeze and Excitation Class'''
+        Returns:
+             EfficientNet model with custom linear layer.
+        """
 
-
-class SqueezeExcitation(nn.Module):
-    def __init__(self, n_in, reduced_dim):
-        super(SqueezeExcitation, self).__init__()
-
-        self.squeeze = nn.AdaptiveAvgPool2d(1)
-        self.excite = nn.Sequential(nn.Conv2d(n_in, reduced_dim, kernel_size=1),
-                                    nn.SiLU(),
-                                    nn.Conv2d(reduced_dim, n_in, kernel_size=1),
-                                    nn.Sigmoid()
-                                    )
-
-    def forward(self, x):
-        y = self.squeeze(x)
-        y = self.excite(y)
-
-        return x * y
-
-
-''' Stochastic Depth Class'''
-
-
-class StochasticDepth(nn.Module):
-
-    def __init__(self, survival_prob=0.8):
-        super(StochasticDepth, self).__init__()
-
-        self.p = survival_prob
-
-    def forward(self, x):
-        if not self.training:
-            return x
-
-        binary_tensor = torch.rand(x.shape[0], 1, 1, 1, device=x.device) < self.p
-
-        return torch.div(x, self.p) * binary_tensor
-
-
-'''MBCONV Class'''
-
-
-class MBConvN(nn.Module):
-
-    def __init__(self, n_in, n_out, k_size=3, stride=1, expansion_factor=4, survival_prob=0.8):
-        super(MBConvN, self).__init__()
-        reduced_dim = int(n_in // 4)
-        expanded_dim = int(expansion_factor * n_in)
-        padding = (k_size - 1) // 2
-
-        self.use_residual = (n_in == n_out) and (stride == 1)
-        self.expand = nn.Identity() if (expansion_factor == 1) else ConvBnAct(n_in, expanded_dim, k_size=1)
-        self.depthwise_conv = (
-            ConvBnAct(expanded_dim, expanded_dim, k_size, stride=stride, padding=padding, groups=expanded_dim)
-        )
-        self.se = SqueezeExcitation(expanded_dim, reduced_dim)
-        self.drop_layers = StochasticDepth(survival_prob)
-        self.pointwise_conv = ConvBnAct(expanded_dim, n_out, k_size=1, act=False)
-
-    def forward(self, x):
-        residual = x.clone()
-        x = self.expand(x)
-        x = self.depthwise_conv(x)
-        x = self.se(x)
-        x = self.pointwise_conv(x)
-
-        if self.use_residual:
-            x = self.drop_layers(x)
-            x += residual
-
-        return x
-
-
-'''Fused-MBCONV Class'''
-
-
-class FusedMBConvN(nn.Module):
-
-    def __init__(self, n_in, n_out, k_size=3, stride=1, expansion_factor=4, survival_prob=0.8):
-        super(FusedMBConvN, self).__init__()
-
-        expanded_dim = int(expansion_factor * n_in)
-        padding = (k_size - 1) // 2
-
-        self.use_residual = (n_in == n_out) and (stride == 1)
-        self.conv = (
-            ConvBnAct(n_in, expanded_dim, k_size, stride=stride, padding=padding, groups=1)
-        )
-        self.drop_layers = StochasticDepth(survival_prob)
-        self.pointwise_conv =\
-            nn.Identity() if (expansion_factor == 1) else ConvBnAct(expanded_dim, n_out, k_size=1, act=False)
-
-    def forward(self, x):
-        residual = x.clone()
-        x = self.conv(x)
-        x = self.pointwise_conv(x)
-
-        if self.use_residual:
-            x = self.drop_layers(x)
-            x += residual
-
-        return x
-
-
-class EfficientNetV2(nn.Module):
-
-    def __init__(self, version='s', dropout_rate=0.2, num_classes=1000, is_grayscale=3):
-        super(EfficientNetV2, self).__init__()
-        last_channel = 1280
-        in_channels = 1 if is_grayscale else 3
-        self.features = self._feature_extractor(version, last_channel, in_channels)
-        self.classifier = nn.Sequential(
-            nn.AdaptiveAvgPool2d((1, 1)),
-            nn.Flatten(),
-            nn.Dropout(dropout_rate, inplace=True),
-            nn.Linear(last_channel, num_classes)
-        )
-
-    def forward(self, x):
-        x = self.features(x)
-        x = self.classifier(x)
-        return x
-
-    @staticmethod
-    def _feature_extractor(version, last_channel, in_channels):
-        # Extract the Config
-        config = Eff_V2_SETTINGS[version]
-
-        # Modify the first layer to accept grayscale images
-        layers = [ConvBnAct(in_channels, config[0][3], k_size=3, stride=2, padding=1)]
-
-        for (expansion_factor, k, stride, n_in, n_out, num_layers, use_fused) in config:
-            if use_fused:
-                layers += [FusedMBConvN(n_in if repeat == 0 else n_out,
-                                        n_out,
-                                        k_size=k,
-                                        stride=stride if repeat == 0 else 1,
-                                        expansion_factor=expansion_factor
-                                        ) for repeat in range(num_layers)
-                           ]
-            else:
-                layers += [MBConvN(n_in if repeat == 0 else n_out,
-                                   n_out,
-                                   k_size=k,
-                                   stride=stride if repeat == 0 else 1,
-                                   expansion_factor=expansion_factor
-                                   ) for repeat in range(num_layers)
-                           ]
-
-        layers.append(ConvBnAct(config[-1][4], last_channel, k_size=1))
-        return nn.Sequential(*layers)
+        model = models.efficientnet_v2_s(weights="DEFAULT")
+        model.classifier[1] = nn.Linear(in_features=model.classifier[1].in_features,
+                                        out_features=self.num_out_feature)
+        return model

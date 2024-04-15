@@ -13,27 +13,38 @@ import torchvision.models as models
 
 
 class EfficientNet(nn.Module):
-    def __init__(self, num_out_feature: int = 128, grayscale=True):
+    def __init__(self, num_out_feature: int, grayscale: bool):
         """
-        EfficientNet model with custom linear layer.
+        EfficientNet model with custom linear layer at the end of the network.
 
-        :param num_out_feature: Number of output features.
-        :param grayscale: Whether the input is grayscale or not. Defaults to True.
+        Args:
+            num_out_feature: Number of output features.
+            grayscale: Whether the input is grayscale or not.
+
+        Returns:
+            None
         """
 
         super(EfficientNet, self).__init__()
+
         self.num_out_feature = num_out_feature
         self.grayscale = grayscale
         self.model = self.build_model()
+
         if self.grayscale:
-            self.model.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
+            self.model.conv1 = (
+                nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, stride=2, bias=False)
+            )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Forward pass of the EfficientNet model.
 
-        :param x: Input tensor.
-        :return: Output tensor.
+        Args:
+            x: Input tensor.
+
+        Returns:
+             Output tensor.
         """
 
         if self.grayscale:
@@ -45,12 +56,11 @@ class EfficientNet(nn.Module):
         """
         Build the EfficientNet model with a custom linear layer.
 
-        :return: EfficientNet model with custom linear layer.
+        Returns:
+             EfficientNet model with custom linear layer.
         """
 
         model = models.efficientnet_b0(weights='DEFAULT')
-        for params in model.parameters():
-            params.requires_grad = False
-
-        model.classifier[1] = nn.Linear(in_features=1280, out_features=self.num_out_feature)
+        model.classifier[1] = nn.Linear(in_features=model.classifier[1].in_features,
+                                        out_features=self.num_out_feature)
         return model

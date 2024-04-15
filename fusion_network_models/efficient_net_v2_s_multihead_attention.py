@@ -98,38 +98,45 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
                      network_cfg_texture.get("embedded_dim"))
 
         self.fc1 = nn.Linear(input_dim, input_dim)
+        self.fc2 = nn.Linear(input_dim, input_dim)
         self.relu = nn.ReLU()
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def forward(self, x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor):
+    def forward(self, contour_tensor: torch.Tensor, lbp_tensor: torch.Tensor, rgb_tensor: torch.Tensor,
+                texture_tensor: torch.Tensor):
         """
         This is the forward function of the FusionNet.
 
-        :param x1: input tensor for contour stream, with shape [batch_size, 1, height, width]
-        :param x2: input tensor for RGB stream, with shape [batch_size, 3, height, width]
-        :param x3: input tensor for texture stream, with shape [batch_size, 1, height, width]
-        :param x4: input tensor for LBP stream, with shape [batch_size, 1, height, width]
+        Args:
+            contour_tensor: input tensor for contour stream, with shape [batch_size, 1, height, width]
+            lbp_tensor: input tensor for LBP stream, with shape [batch_size, 1, height, width]
+            rgb_tensor: input tensor for RGB stream, with shape [batch_size, 3, height, width]
+            texture_tensor: input tensor for texture stream, with shape [batch_size, 1, height, width]
 
-        :return: output tensor with shape [batch_size, 640] after passing through fully connected layers.
+        Returns:
+             output tensor with shape [batch_size, 640] after passing through fully connected layers.
         """
 
-        x1 = self.contour_network(x1)
-        x2 = self.lbp_network(x2)
-        x3 = self.rgb_network(x3)
-        x4 = self.texture_network(x4)
+        contour_tensor = self.contour_network(contour_tensor)
+        lbp_tensor = self.lbp_network(lbp_tensor)
+        rgb_tensor = self.rgb_network(rgb_tensor)
+        texture_tensor = self.texture_network(texture_tensor)
 
-        x1 = self.multi_head_attention(x1, sub_stream="contour")
-        x2 = self.multi_head_attention(x2, sub_stream="lbp")
-        x3 = self.multi_head_attention(x3, sub_stream="rgb")
-        x4 = self.multi_head_attention(x4, sub_stream="texture")
+        contour_tensor = self.multi_head_attention(contour_tensor, sub_stream="contour")
+        lbp_tensor = self.multi_head_attention(lbp_tensor, sub_stream="lbp")
+        rgb_tensor = self.multi_head_attention(rgb_tensor, sub_stream="rgb")
+        texture_tensor = self.multi_head_attention(texture_tensor, sub_stream="texture")
 
-        x = torch.cat((x1, x2, x3, x4), dim=1)
-        x = self.fc1(x)
-        x = self.relu(x)
+        concatenated = torch.cat(
+            (contour_tensor, lbp_tensor, rgb_tensor, texture_tensor), dim=1
+        )
+        concatenated = self.fc1(concatenated)
+        concatenated = self.fc2(concatenated)
+        concatenated = self.relu(concatenated)
 
-        return x
+        return concatenated
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------- M U L T I H E A D A T T E N T I O N ---------------------------------------
@@ -138,9 +145,12 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
         """
         This function implements the multi-head attention
 
-        :param x: Input tensor
-        :param sub_stream: type of sub stream
-        :return:
+        Args:
+            x: Input tensor
+            sub_stream: type of sub stream
+
+        Return:
+            Attention output tensor
         """
 
         if len(x.shape) == 2:

@@ -1,181 +1,206 @@
-"""
-File: augment_cure_images.py
-Author: Richárd Rádli
-E-mail: radli.richard@mik.uni-pannon.hu
-Date: Jun 27, 2023
-
-Description: The program  augments images for the CURE dataset. It can split the dataset, augment it and change
-background on the images.
-"""
-
-import os
+import colorama
+import concurrent.futures
+import gc
 import random
 
 from tqdm import tqdm
 
-from augmentation_utils import change_brightness, gaussian_smooth, rotate_image, create_directories, shift_image, \
-    zoom_in_object, change_white_balance, flip_image, change_background_dtd
+from augmentation_utils import (change_brightness, gaussian_smooth, rotate_image_segmentation, shift_image_segmentation,
+                                zoom_in_object_segmentation, change_white_balance, change_background_dtd)
 from config.config import ConfigAugmentation
-from config.const import DATASET_PATH
-from utils.utils import setup_logger
+from config.config_selector import dataset_images_path_selector
+from utils.utils import file_reader
 
 
 class AugmentCUREDataset:
-    def __init__(self):
+    def __init__(self, operation):
+        colorama.init()
+        self.cfg_aug = ConfigAugmentation().parse()
+        self.operation = operation
+
+        # Train data paths
+        self.training_images = (
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("images")
+        )
+        self.training_annotations = (
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("segmentation_labels")
+        )
+        self.train_masks = (
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("mask_images")
+        )
+        self.train_aug_img_path = (
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("aug_images")
+        )
+        self.train_aug_annotation_path = (
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("aug_yolo_labels")
+        )
+        self.train_aug_mask_path = (
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("train").get("aug_mask_images")
+        )
+
+        # Valid data paths
+        self.valid_images = (
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("images")
+        )
+        self.valid_annotations = (
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("segmentation_labels")
+        )
+        self.valid_masks = (
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("mask_images")
+        )
+        self.valid_aug_img_path = (
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("aug_images")
+        )
+        self.valid_aug_annotation_path = (
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("aug_yolo_labels")
+        )
+        self.valid_aug_mask_path = (
+            dataset_images_path_selector(dataset_name=self.cfg_aug.dataset_name).get("valid").get("aug_mask_images")
+        )
+
+        self.background_images = (
+            dataset_images_path_selector(dataset_name="dtd").get("dataset_path"))
+
+    def path_select(self, operation):
         """
-        Initialize the AugmentCUREDataset object.
 
-        - Set up the logger.
-        - Set the paths for dataset, masks, backgrounds, training images, training masks, test images, and test masks.
-        - Set the number of training and test classes.
-        - Get the list of all images and collect the unique classes.
-        - Split the classes into training and test sets.
+        :param operation:
+        :return:
         """
 
-        setup_logger()
+        image = self.training_images if operation == "train" else self.valid_images
+        anno = self.training_annotations if operation == "train" else self.valid_annotations
+        mask = self.train_masks if operation == "train" else self.valid_masks
 
-        self.dataset_path = DATASET_PATH.get_data_path("cure_customer")
-        self.mask_path = DATASET_PATH.get_data_path("cure_customer_mask")
-        self.backgrounds = DATASET_PATH.get_data_path("dtd_images")
+        aug_image = self.train_aug_img_path if operation == "train" else self.valid_aug_img_path
+        aug_anno = self.train_aug_annotation_path if operation == "train" else self.valid_aug_annotation_path
+        aug_mask = self.train_aug_mask_path if operation == "train" else self.valid_aug_mask_path
 
-        self.training_images = DATASET_PATH.get_data_path("cure_train")
-        self.training_masks = DATASET_PATH.get_data_path("cure_train_mask")
-        self.test_images = DATASET_PATH.get_data_path("cure_test")
-        self.test_masks = DATASET_PATH.get_data_path("cure_test_mask")
+        image_files = file_reader(image, "jpg")
+        annotation_files = file_reader(anno, "txt")
+        mask_files = file_reader(mask, "jpg")
 
-        # Set the number of training and test classes
-        num_training_classes = 156
+        return image_files, annotation_files, mask_files, aug_image, aug_anno, aug_mask
 
-        # Get the list of all images
-        image_files = os.listdir(self.dataset_path)
-        image_files.sort()
-
-        # Collect the unique classes from the image filenames
-        all_classes = set()
-        for image_file in image_files:
-            class_name = image_file.split('_')[0]
-            all_classes.add(class_name)
-        all_classes = sorted(list(all_classes))
-
-        # Split the classes into training and test sets
-        self.training_classes = all_classes[:num_training_classes]
-        self.test_classes = all_classes[num_training_classes:]
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ---------------------------------------------------- M A I N -----------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def main(self, split_dataset: bool, do_aug: bool, change_background: bool) -> None:
+    def process_image(self, image_path: str, anno_path: str, mask_path: str, aug_image_path: str, aug_anno_path: str,
+                      aug_mask_path: str) -> None:
         """
-        Perform the main operations for augmenting the CURE dataset.
-
-        :param split_dataset: Flag indicating whether to split the dataset into training and test sets.
-        :param do_aug: Flag indicating whether to perform data augmentation.
-        :param change_background: Flag indicating whether to change the background of the images.
+        This function executes the various image augmentation operations.
+        :param image_path: Path to the images.
+        :param anno_path: Path to the annotations.
+        :param mask_path: Path to the mask images.
+        :param aug_image_path: Path to the augmented images.
+        :param aug_anno_path: Path to the augmented annotations.
+        :param aug_mask_path: Path to the augmented mask images.
         :return: None
         """
 
-        aug_cfg = ConfigAugmentation().parse()
+        change_white_balance(image_path=image_path,
+                             annotation_path=anno_path,
+                             mask_path=mask_path,
+                             aug_img_path=aug_image_path,
+                             aug_annotation_path=aug_anno_path,
+                             aug_mask_path=aug_mask_path,
+                             domain=(self.cfg_aug.wb_low_thr, self.cfg_aug.wb_high_thr))
+        gaussian_smooth(image_path=image_path,
+                        annotation_path=anno_path,
+                        mask_path=mask_path,
+                        aug_img_path=aug_image_path,
+                        aug_annotation_path=aug_anno_path,
+                        aug_mask_path=aug_mask_path,
+                        kernel=(self.cfg_aug.kernel_size, self.cfg_aug.kernel_size))
+        change_brightness(image_path=image_path,
+                          annotation_path=anno_path,
+                          mask_path=mask_path,
+                          aug_img_path=aug_image_path,
+                          aug_annotation_path=aug_anno_path,
+                          aug_mask_path=aug_mask_path,
+                          exposure_factor=random.uniform(
+                              self.cfg_aug.brightness_low_thr, self.cfg_aug.brightness_high_thr
+                          ))
+        rotate_image_segmentation(image_path=image_path,
+                                  annotation_path=anno_path,
+                                  mask_path=mask_path,
+                                  aug_img_path=aug_image_path,
+                                  aug_annotation_path=aug_anno_path,
+                                  aug_mask_path=aug_mask_path,
+                                  angle=self.cfg_aug.rotate_1)
+        rotate_image_segmentation(image_path=image_path,
+                                  annotation_path=anno_path,
+                                  mask_path=mask_path,
+                                  aug_img_path=aug_image_path,
+                                  aug_annotation_path=aug_anno_path,
+                                  aug_mask_path=aug_mask_path,
+                                  angle=self.cfg_aug.rotate_2)
+        shift_image_segmentation(image_path=image_path,
+                                 annotation_path=anno_path,
+                                 mask_path=mask_path,
+                                 aug_img_path=aug_image_path,
+                                 aug_annotation_path=aug_anno_path,
+                                 aug_mask_path=aug_mask_path,
+                                 shift_x=self.cfg_aug.shift_x,
+                                 shift_y=self.cfg_aug.shift_y
+                                 )
+        zoom_in_object_segmentation(image_path=image_path,
+                                    annotation_path=anno_path,
+                                    mask_path=mask_path,
+                                    aug_img_path=aug_image_path,
+                                    aug_annotation_path=aug_anno_path,
+                                    aug_mask_path=aug_mask_path,
+                                    crop_size=self.cfg_aug.zoom)
 
-        if split_dataset:
-            # Create directories for the train images
-            create_directories(classes=self.training_classes,
-                               images_dir=self.training_images,
-                               dataset_path=self.dataset_path,
-                               masks_dir=None,
-                               masks_path=None)
+    def change_bg(self, image_path, anno_path, mask_path, aug_img_path, aug_anno_path):
+        """
 
-            # Create directories for the test images
-            create_directories(classes=self.test_classes,
-                               images_dir=self.test_images,
-                               dataset_path=self.dataset_path,
-                               masks_dir=None,
-                               masks_path=None)
+        :param image_path:
+        :param anno_path:
+        :param mask_path:
+        :param aug_img_path:
+        :param aug_anno_path:
+        :return:
+        """
 
-        for class_name in self.training_classes:
-            print(class_name)
-            class_dir = os.path.join(self.training_images, class_name)
-            class_dir_mask = os.path.join(self.training_masks, class_name)
+        change_background_dtd(image_path=image_path,
+                              mask_path=mask_path,
+                              annotation_path=anno_path,
+                              aug_image_path=aug_img_path,
+                              aug_annotation_path=aug_anno_path,
+                              backgrounds_path=self.background_images)
 
-            image_files = os.listdir(class_dir)
-            mask_files = os.listdir(class_dir_mask)
+    def main(self):
+        image_files, annotation_files, mask_files, aug_image, aug_anno, aug_mask = self.path_select(self.operation)
 
-            for idx, (image_file, mask_file) in tqdm(enumerate(zip(image_files, mask_files)), total=len(image_files)):
-                full_image_path = os.path.join(class_dir, image_file)
-                full_mask_path = os.path.join(class_dir_mask, mask_file)
+        assert len(image_files) == len(annotation_files) == len(mask_files)
 
-                if do_aug:
-                    change_white_balance(image_path=full_image_path,
-                                         aug_path=full_image_path,
-                                         domain=(aug_cfg.wb_low_thr, aug_cfg.wb_high_thr),
-                                         mask_path=full_mask_path)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.cfg_aug.max_workers) as executor:
+            futures = []
+            for image_path, annotation_path, mask_path in zip(image_files, annotation_files, mask_files):
+                future = \
+                    executor.submit(
+                        self.process_image, image_path, annotation_path, mask_path, aug_image, aug_anno, aug_mask
+                    )
+                futures.append(future)
 
-                    change_white_balance(image_path=full_image_path,
-                                         aug_path=full_image_path,
-                                         domain=(aug_cfg.wb_low_thr_2nd_aug, aug_cfg.wb_high_thr_2nd_aug),
-                                         mask_path=full_mask_path)
+            for _ in tqdm(concurrent.futures.as_completed(futures),
+                          total=len(futures),
+                          desc=colorama.Fore.BLUE + "Augmenting images"):
+                pass
 
-                    gaussian_smooth(image_path=full_image_path,
-                                    aug_path=full_image_path,
-                                    kernel=(aug_cfg.kernel_size, aug_cfg.kernel_size),
-                                    mask_path=full_mask_path)
+        assert len(image_files) == len(annotation_files) == len(mask_files)
 
-                    change_brightness(image_path=full_image_path,
-                                      aug_path=full_image_path,
-                                      exposure_factor=random.uniform(aug_cfg.brightness_low_thr,
-                                                                     aug_cfg.brightness_high_thr),
-                                      mask_path=full_mask_path)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.cfg_aug.max_workers) as executor:
+            futures = []
+            for image_path, annotation_path, mask_path in zip(image_files, annotation_files, mask_files):
+                future = executor.submit(self.change_bg, image_path, annotation_path, mask_path, aug_image, aug_anno)
+                futures.append(future)
+                gc.collect()
 
-                    change_brightness(image_path=full_image_path,
-                                      aug_path=full_image_path,
-                                      exposure_factor=random.uniform(aug_cfg.brightness_low_thr_2nd_aug,
-                                                                     aug_cfg.brightness_high_thr_2nd_aug),
-                                      mask_path=full_mask_path)
-
-                    rotate_image(image_path=full_image_path,
-                                 aug_path=full_image_path,
-                                 angle=random.randint(aug_cfg.rotate_low_thr, aug_cfg.rotate_high_thr),
-                                 mask_path=full_mask_path)
-
-                    rotate_image(image_path=full_image_path,
-                                 aug_path=full_image_path,
-                                 angle=random.randint(aug_cfg.rotate_low_thr, aug_cfg.rotate_high_thr),
-                                 mask_path=full_mask_path)
-
-                    rotate_image(image_path=full_image_path,
-                                 aug_path=full_image_path,
-                                 angle=random.randint(aug_cfg.rotate_low_thr, aug_cfg.rotate_high_thr),
-                                 mask_path=full_mask_path)
-
-                    shift_image(image_path=full_image_path,
-                                aug_path=full_image_path,
-                                shift_x=aug_cfg.shift_low_thr,
-                                shift_y=aug_cfg.shift_high_thr,
-                                mask_path=full_mask_path)
-
-                    zoom_in_object(image_path=full_image_path,
-                                   aug_path=full_image_path,
-                                   crop_size=aug_cfg.crop_size,
-                                   mask_path=full_mask_path)
-
-                    flip_image(image_path=full_image_path,
-                               aug_path=full_image_path,
-                               flip_direction='horizontal',
-                               mask_path=full_mask_path)
-
-                    flip_image(image_path=full_image_path,
-                               aug_path=full_image_path,
-                               flip_direction='vertical',
-                               mask_path=full_mask_path)
-
-                if change_background:
-                    change_background_dtd(image_path=full_image_path,
-                                          mask_path=full_mask_path,
-                                          backgrounds_path=self.backgrounds)
+            for _ in tqdm(concurrent.futures.as_completed(futures),
+                          total=len(futures),
+                          desc=colorama.Fore.CYAN + "Changing backgrounds"):
+                pass
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# -------------------------------------------------- __M A I N__ -------------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    aug = AugmentCUREDataset()
-    aug.main(split_dataset=True, do_aug=False, change_background=False)
+    aug_cure = AugmentCUREDataset(operation="train")
+    aug_cure.main()
