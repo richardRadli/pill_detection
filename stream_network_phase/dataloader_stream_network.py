@@ -95,7 +95,7 @@ class DataLoaderStreamNet(Dataset):
                 transforms.Resize(self.cfg.img_size_en),
                 transforms.CenterCrop(self.cfg.img_size_en),
                 transforms.ToTensor(),
-                transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
             ])
         elif self.cfg.type_of_stream in ["Contour", "Texture", "LBP"]:
             return transforms.Compose([

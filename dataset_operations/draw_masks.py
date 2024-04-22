@@ -42,11 +42,12 @@ def path_selector(operation: str):
             "images": dataset_images_path_selector(cfg.dataset_type).get(operation).get("customer_images"),
             "labels": dataset_images_path_selector(cfg.dataset_type).get(operation).get("customer_segmentation_labels"),
             "masks": dataset_images_path_selector(cfg.dataset_type).get(operation).get("customer_mask_images")
+
         }
     elif operation.lower() == "reference":
         path_to_images = {
             "images": dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_images"),
-            "labels": dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_segmentation_labels"),
+            "labels":  dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_segmentation_labels"),
             "masks": dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_mask_images")
         }
     else:
@@ -169,7 +170,7 @@ def main(operation: str = "train", batch_size: int = 10) -> None:
     total_files = len(img_files)
     num_batches = (total_files + batch_size - 1) // batch_size
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=cfg.max_workers) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=cfg.max_worker) as executor:
         for i in range(num_batches):
             start_idx = i * batch_size
             end_idx = min((i + 1) * batch_size, total_files)
@@ -195,7 +196,7 @@ def main(operation: str = "train", batch_size: int = 10) -> None:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
-        operations = ["customer"]
+        operations = ["customer", "reference"]
         for op in operations:
             main(operation=op)
     except KeyboardInterrupt as kie:
