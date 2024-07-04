@@ -307,6 +307,7 @@ class PredictStreamNetwork:
 
             most_similar_indices_and_scores_e = [(i, min(scores)) for i, scores in
                                                  enumerate(similarity_scores_euc_dist)]
+
             corresp_sim_euc_dist.append(most_similar_indices_and_scores_e[idx_query][1])
 
             # Calculate top-1 accuracy

@@ -125,12 +125,6 @@ class TrainModel:
         # Tensorboard
         tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
-        dummy_input = torch.randn(1,
-                                  network_cfg.get('channels')[0],
-                                  network_cfg.get("image_size"),
-                                  network_cfg.get("image_size")
-                                  ).to(device=self.device)
-        self.writer.add_graph(self.model, dummy_input)
 
         # Create save directory for model weights
         self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))

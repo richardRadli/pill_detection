@@ -21,7 +21,6 @@ import time
 import torch
 import plotly.graph_objs as go
 
-from collections import OrderedDict
 from datetime import datetime
 from functools import wraps
 from glob import glob
@@ -66,11 +65,11 @@ def create_euc_matrix_file(list_of_labels, matrix, file_name):
         dict_words[list_of_labels[i]] = matrix_values
 
     # Sort the dictionary based on keys using custom sorting function
-    sorted_dict = OrderedDict(sorted(dict_words.items(), key=lambda x: custom_sort(x[0])))
+    # sorted_dict = OrderedDict(sorted(dict_words.items(), key=lambda x: custom_sort(x[0])))
 
     # Extract sorted matrix and labels
-    sorted_matrix = list(sorted_dict.values())
-    labels = list(sorted_dict.keys())
+    sorted_matrix = list(dict_words.values())
+    labels = list(dict_words.keys())
 
     pairwise_distances = pdist(sorted_matrix, metric='euclidean')
     distance_matrix = squareform(pairwise_distances)
@@ -535,7 +534,7 @@ def plot_euclidean_distances(vectors: dict, dataset_name: str, filename: str, no
     df = pd.DataFrame(distances, index=class_labels, columns=class_labels)
 
     plt.figure(figsize=(plot_size, plot_size))
-    sns.heatmap(df, annot=True, cmap="viridis", fmt=".2f", annot_kws={"size": 4}, square=True)
+    sns.heatmap(df, annot=True, cmap="viridis", fmt=".2f", annot_kws={"size": 10}, square=True)
 
     plt.xticks(np.arange(len(class_labels)), class_labels, rotation=45, ha='right')
     plt.yticks(np.arange(len(class_labels)), class_labels)

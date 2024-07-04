@@ -146,7 +146,7 @@ class TextNLPAnalysis:
         return np.array([nlp(sentence).vector for sentence in clean_sentences])
 
     @staticmethod
-    def visualization(kmeans_model, new_values, list_of_labels):
+    def visualization(kmeans_model, new_values, list_of_labels=None):
         """
 
         :param kmeans_model:
@@ -201,26 +201,54 @@ class TextNLPAnalysis:
         os.makedirs(word_vector_save_path, exist_ok=True)
 
         np.save(os.path.join(word_vector_save_path, "word_vectors.npy"),
-                {'vectors': vectors,
-                 'clean_sentences': clean_sentences,
-                 'list_of_labels': list_of_labels,
-                 'data': data}
-                )
+                {
+                    'vectors': vectors,
+                    'clean_sentences': clean_sentences,
+                    'list_of_labels': list_of_labels,
+                    'data': data
+                }
+        )
 
-        num_clusters = 3
-        random_seed = 23
+        num_clusters = 1
+        random_seed = 42
         np.random.seed(random_seed)
 
         kmeans_model = KMeans(n_clusters=num_clusters, random_state=random_seed, n_init=10)
         kmeans_model.fit(vectors)
 
         tsne_model = TSNE(perplexity=25, n_components=2, init='pca', n_iter=5000, random_state=random_seed)
-        new_values = tsne_model.fit_transform(vectors)
+        embedding_vectors_2d = tsne_model.fit_transform(vectors)
 
-        file_name = os.path.join(nlp_configs().get("vector_distances"), f"{self.timestamp}_vector_distances.xlsx")
-        create_euc_matrix_file(list_of_labels, new_values, file_name)
+        import plotly.graph_objs as go
 
-        self.visualization(kmeans_model, new_values, list_of_labels)
+        trace = go.Scatter(
+            x=embedding_vectors_2d[:, 0],
+            y=embedding_vectors_2d[:, 1],
+            mode='markers',
+            marker=dict(
+                size=10,
+                opacity=0.5
+            ),
+            text=list_of_labels,
+            hoverinfo='text'
+        )
+
+        # Create layout
+        layout = go.Layout(
+            title='Visualization of Embeddings',
+            hovermode='closest'
+        )
+
+        # Create figure
+        fig = go.Figure(data=[trace], layout=layout)
+
+        # Display interactive plot
+        fig.show()
+
+        # file_name = os.path.join(nlp_configs().get("vector_distances"), f"{self.timestamp}_vector_distances.xlsx")
+        # create_euc_matrix_file(list_of_labels, new_values, file_name)
+
+        # self.visualization(kmeans_model, new_values, list_of_labels)
 
 
 if __name__ == '__main__':

@@ -1,9 +1,8 @@
 import logging
-import numpy as np
 import os
 import torch
 
-from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 from torch.utils.data import DataLoader
 from typing import Dict, Any, Tuple, List
 
@@ -148,8 +147,10 @@ class CreateEmbedding:
                 labels.append(label)
                 embedding_vectors.append(embedding)
 
-        tsne_model = TSNE(perplexity=25, n_components=2, init='pca', n_iter=5000, random_state=42)
-        new_values = tsne_model.fit_transform(np.array(embedding_vectors))
+        # tsne_model = TSNE(perplexity=5, n_components=2, init='pca', n_iter=500, random_state=42)
+        # new_values = tsne_model.fit_transform(np.array(embedding_vectors))
+        pca_model = PCA(n_components=2)
+        new_values = pca_model.fit_transform(embedding_vectors)
         create_euc_matrix_file(matrix=new_values,
                                list_of_labels=labels,
                                file_name=self.emb_mtx_xlsx_filename)

@@ -253,7 +253,7 @@ class FourierDescriptor:
 
 if __name__ == "__main__":
     try:
-        fd = FourierDescriptor(copy_images=True, order=10)
+        fd = FourierDescriptor(copy_images=False, order=10)
         fd.main()
     except KeyboardInterrupt:
         logging.error("Ctrl+C pressed")
