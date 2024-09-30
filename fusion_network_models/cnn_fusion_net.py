@@ -99,52 +99,47 @@ class CNNFusionNet(nn.Module):
 
     @staticmethod
     def freeze_networks(network):
+        """
+
+        Args:
+            network:
+
+        Returns:
+
+        """
+
         for param in network.parameters():
             param.requires_grad = False
 
-    def forward(self,
-                x_contour_query: torch.Tensor, x_lbp_query: torch.Tensor, x_rgb_query: torch.Tensor, x_texture_query: torch.Tensor,
-                x_contour_ref: torch.Tensor, x_lbp_ref: torch.Tensor, x_rgb_ref: torch.Tensor, x_texture_ref: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x_contour: torch.Tensor, x_lbp: torch.Tensor, x_rgb: torch.Tensor, x_texture: torch.Tensor) \
+            -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Forward pass of the FusionNet for both query and reference images.
 
         Args:
-            x_contour_query: Input tensor for the contour network (query).
-            x_lbp_query: Input tensor for the LBP network (query).
-            x_rgb_query: Input tensor for the RGB network (query).
-            x_texture_query: Input tensor for the texture network (query).
-            x_contour_ref: Input tensor for the contour network (reference).
-            x_lbp_ref: Input tensor for the LBP network (reference).
-            x_rgb_ref: Input tensor for the RGB network (reference).
-            x_texture_ref: Input tensor for the texture network (reference).
+            x_contour: Input tensor for the contour network (query).
+            x_lbp: Input tensor for the LBP network (query).
+            x_rgb: Input tensor for the RGB network (query).
+            x_texture: Input tensor for the texture network (query).
 
         Returns:
             Embedding for query and reference after fusion.
         """
 
         # Process query and reference images through each stream's metric learning model
-        x_contour_query, x_contour_ref = self.network_con(x_contour_query, x_contour_ref)
-        x_lbp_query, x_lbp_ref = self.network_lbp(x_lbp_query, x_lbp_ref)
-        x_rgb_query, x_rgb_ref = self.network_rgb(x_rgb_query, x_rgb_ref)
-        x_texture_query, x_texture_ref = self.network_tex(x_texture_query, x_texture_ref)
+        x_contour = self.network_con(x_contour)
+        x_lbp = self.network_lbp(x_lbp)
+        x_rgb = self.network_rgb(x_rgb)
+        x_texture = self.network_tex(x_texture)
 
         # Concatenate embeddings for both query and reference
-        query_fusion_out = torch.cat([x_contour_query, x_lbp_query, x_rgb_query, x_texture_query], dim=1)
-        ref_fusion_out = torch.cat([x_contour_ref, x_lbp_ref, x_rgb_ref, x_texture_ref], dim=1)
-
+        fusion_out = torch.cat([x_contour, x_lbp, x_rgb, x_texture], dim=1)
+       
         # Apply fully connected layers for query fusion
-        query_out = self.fc1(query_fusion_out)
-        query_out = self.bn(query_out)
-        query_out = torch.relu(query_out)
-        query_out = self.dropout(query_out)
-        query_out = self.fc2(query_out)
+        out = self.fc1(fusion_out)
+        out = self.bn(out)
+        out = torch.relu(out)
+        out = self.dropout(out)
+        out = self.fc2(out)
 
-        # Apply fully connected layers for reference fusion
-        ref_out = self.fc1(ref_fusion_out)
-        ref_out = self.bn(ref_out)
-        ref_out = torch.relu(ref_out)
-        ref_out = self.dropout(ref_out)
-        ref_out = self.fc2(ref_out)
-
-        return query_out, ref_out
-
+        return out

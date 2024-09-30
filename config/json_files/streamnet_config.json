@@ -13,7 +13,7 @@
   "load_ref_vector": false,
   "networks": {
     "CNN": {
-      "learning_rate": 2e-4,
+      "learning_rate": 3e-4,
       "image_size": 128
     },
     "EfficientNet": {

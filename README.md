@@ -1,3 +1,10 @@
+![Python](https://img.shields.io/badge/python-v3.11-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![PyTorch](https://img.shields.io/badge/PyTorch-v2.2.1-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit-v1.4.0--learn-%23F7931E.svg?style=for-the-badge&logo=scikit-learn&logoColor=white)
+![NumPy](https://img.shields.io/badge/numpy-v1.26-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white)
+![Pandas](https://img.shields.io/badge/pandas-v2.1.0-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white)
+![Matplotlib](https://img.shields.io/badge/Matplotlib-v3.7.1-%23ffffff.svg?style=for-the-badge&logo=Matplotlib&logoColor=black)
+
 # Multi-Stream Pill Recognition with Attention
 We address the challenge of pill recognition by proposing a novel approach that utilizes a multi-stream network 
 with EfficientNet-B0 and a self-attention mechanism. To get rid of the explicit training of printed or embossed 
@@ -72,16 +79,15 @@ colorama>=0.4.6
 colorlog>=6.7.0
 json>=2.0.9
 matplotlib>=3.7.1
-numpy>=1.23.5
+numpy>=1.26
 opencv-python>=4.5.5.64
-pandas>=2.0.0
+pandas>=2.1.0
 Pillow>=9.3.0
 seaborn>=0.12.2
 segmentation_models_pytorch>=0.3.3
 skimage>=0.20.0
-sklearn>=1.2.2
-tkinter>=8.6.12
-torch>=2.0.0+cu117
+sklearn>=1.4.0
+torch>=2.2.1
 torchsummary>=1.5.1
 torchvision>=0.15.1+cu117
 tqdm>=4.65.0

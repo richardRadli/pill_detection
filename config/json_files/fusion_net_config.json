@@ -1,7 +1,6 @@
 {
   "dataset_type": "ogyei",
   "type_of_net": "CNNFusionNet",
-  "type_of_loss_func": "tl",
   "margin": 0.5,
   "train_valid_ratio": 0.8,
   "epochs": 10,

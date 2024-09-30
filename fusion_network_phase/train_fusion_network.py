@@ -60,7 +60,8 @@ class TrainFusionNet:
         self.device = use_gpu_if_available()
 
         # Load datasets using FusionDataset
-        dataset = FusionDataset()
+        image_size = 128 if self.cfg_fusion_net.get("type_of_net") == "CNNFusionNet" else 224
+        dataset = FusionDataset(image_size)
         self.train_data_loader, self.valid_data_loader = (
             create_dataset(dataset=dataset,
                            train_valid_ratio=self.cfg_fusion_net.get("train_valid_ratio"),
@@ -164,8 +165,10 @@ class TrainFusionNet:
         """
 
         directory_to_create = (
-            os.path.join(directory_path,
-                         f"{self.timestamp}_{self.cfg_fusion_net.type_of_loss_func}_{self.cfg_fusion_net.fold}")
+            os.path.join(
+                directory_path,
+                f"{self.timestamp}"
+            )
         )
         os.makedirs(directory_to_create, exist_ok=True)
         return directory_to_create
@@ -187,8 +190,7 @@ class TrainFusionNet:
         for (contour_anchor, contour_positive, contour_negative,
              lbp_anchor, lbp_positive, lbp_negative,
              rgb_anchor, rgb_positive, rgb_negative,
-             texture_anchor, texture_positive, texture_negative,
-             anchor_img_path, negative_img_path) \
+             texture_anchor, texture_positive, texture_negative) \
                 in tqdm(self.train_data_loader,
                         total=len(self.train_data_loader),
                         desc=colorama.Fore.LIGHTCYAN_EX + "Training"):
@@ -246,8 +248,8 @@ class TrainFusionNet:
             for (contour_anchor, contour_positive, contour_negative,
                  lbp_anchor, lbp_positive, lbp_negative,
                  rgb_anchor, rgb_positive, rgb_negative,
-                 texture_anchor, texture_positive, texture_negative,
-                 anchor_img_path, negative_img_path) in tqdm(
+                 texture_anchor, texture_positive, texture_negative
+                 ) in tqdm(
                 self.valid_data_loader,
                 total=len(self.valid_data_loader),
                 desc=colorama.Fore.LIGHTWHITE_EX + "Validation"
