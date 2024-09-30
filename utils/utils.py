@@ -9,25 +9,24 @@ Description: This code holds different function used all around the project file
 
 import colorlog
 import gc
+import json
+import jsonschema
 import logging
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import re
-import seaborn as sns
 import time
 import torch
 
 from datetime import datetime
 from functools import wraps
-from glob import glob
+from jsonschema import validate
 from pathlib import Path
 from PIL import Image
-from sklearn.metrics import confusion_matrix
-from torch import Tensor
-from torch.utils.data import DataLoader, random_split
-from typing import List, Union, Optional, Tuple
 from tqdm import tqdm
+from torch.utils.data import DataLoader, random_split
+from typing import List, Union, Tuple
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -76,100 +75,16 @@ def setup_logger():
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------------ C R E A T E   D I R -------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def create_dir(root_dir, timestamp):
-    """
-    Args:
-        root_dir (string): Directory name.
-        timestamp (string): Date and time stamp.
-
-    Returns:
-        The path of the created directory.
-    """
-
-    location = os.path.join(root_dir, f"{timestamp}")
-    os.makedirs(location, exist_ok=True)
-    return location
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------------  D I C E   C O E F F ------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_batch_first: bool = False, epsilon: float = 1e-6) \
-        -> Tensor:
-    """
-    Average of Dice coefficient for all batches, or for a single mask
-
-    :param input_tensor: The input tensor with shape (batch_size, num_classes, height, width).
-    :param target: The target tensor with shape (batch_size, num_classes, height, width)
-    :param reduce_batch_first: A flag indicating whether to reduce the batch dimension first before computing the
-    Dice coefficient. Default is False.
-    :param epsilon: A small value to prevent division by zero. Default is 1e-6.
-    :return: The Dice coefficient computed for each batch or for a single mask, depending on the reduce_batch_first
-    flag. If reduce_batch_first is True, the returned tensor has shape (num_classes,).
-    If reduce_batch_first is False, the returned tensor has shape (batch_size, num_classes)
-    """
-
-    assert input_tensor.size() == target.size()
-    assert input_tensor.dim() == 3 or not reduce_batch_first
-
-    sum_dim = (-1, -2) if input_tensor.dim() == 2 or not reduce_batch_first else (-1, -2, -3)
-
-    inter = 2 * (input_tensor * target).sum(dim=sum_dim)
-    sets_sum = input_tensor.sum(dim=sum_dim) + target.sum(dim=sum_dim)
-    sets_sum = torch.where(sets_sum == 0, inter, sets_sum)
-
-    dice = (inter + epsilon) / (sets_sum + epsilon)
-    return dice.mean()
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------ M C L A S S   D I C E   C O E F F -----------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def multiclass_dice_coefficient(input_tensor: Tensor, target: Tensor, reduce_batch_first: bool = False,
-                                epsilon: float = 1e-6):
-    """
-    Calculate the average Dice coefficient for all classes in a multi-class segmentation task.
-
-    :param input_tensor: The input tensor with shape [batch_size, num_classes, height, width]
-    :param target: The target tensor with shape [batch_size, num_classes, height, width].
-    :param reduce_batch_first: Whether to reduce the batch size before calculating the Dice coefficient.
-    :param epsilon: A small value added to the denominator to avoid division by zero.
-    :return: The average Dice coefficient for all classes.
-    """
-
-    return dice_coefficient(input_tensor.flatten(0, 1), target.flatten(0, 1), reduce_batch_first, epsilon)
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------------ D I C E   L O S S ---------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def dice_loss(input_tensor: Tensor, target: Tensor, multiclass: bool = False) -> float:
-    """
-    Dice loss (objective to minimize) between 0 and 1
-
-    :param input_tensor: a tensor representing the predicted mask, of shape (batch_size, num_classes, height, width)
-    :param target: a tensor representing the ground truth mask, of shape (batch_size, num_classes, height, width)
-    :param multiclass: a boolean flag that indicates whether the input and target tensors represent a multiclass
-    segmentation task, where each pixel can belong to one of several classes
-    :return: a scalar tensor representing the Dice loss between the input and target tensors, which is a value between
-    0 and 1.
-    """
-
-    fn = multiclass_dice_coefficient if multiclass else dice_coefficient
-    return 1 - fn(input_tensor, target, reduce_batch_first=True)
-
-
-# ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------ F I L E   R E A D E R -----------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def file_reader(file_path: str, extension: str):
+def file_reader(file_path: str, extension: str) -> List[str]:
     """
+    Args:
+        file_path:
+        extension:
 
-    :param file_path:
-    :param extension:
-    :return:
+    Returns:
+
     """
 
     return sorted([str(file) for file in Path(file_path).glob(f'*.{extension}')], key=numerical_sort)
@@ -182,8 +97,8 @@ def numerical_sort(value: str) -> List[Union[str, int]]:
     """
     Sort numerical values in a string in a way that ensures numerical values are sorted correctly.
 
-    :param value: The input string.
-    :return: A list of strings and integers sorted by numerical value.
+        value: The input string.
+    Returns: A list of strings and integers sorted by numerical value.
     """
 
     numbers = re.compile(r'(\d+)')
@@ -199,7 +114,7 @@ def create_timestamp() -> str:
     """
     Creates a timestamp in the format of '%Y-%m-%d_%H-%M-%S', representing the current date and time.
 
-    :return: The timestamp string.
+    Returns: The timestamp string.
     """
 
     return datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -208,13 +123,12 @@ def create_timestamp() -> str:
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------- F I N D   L A T E S T   F I L E   I N   L A T E S T   D I R E C T O R Y ----------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) -> str:
+def find_latest_file_in_latest_directory(path: str) -> str:
     """
     Finds the latest file in the latest directory within the given path.
 
     Args:
         path (str): The path to the directory where we should look for the latest file.
-        type_of_loss (str, optional): The type of loss to filter directories. Defaults to None.
 
     Returns:
         str: The path to the latest file.
@@ -228,7 +142,6 @@ def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) ->
     if len(dirs) == 0:
         raise ValueError(f"No directories found in {path}")
 
-    dirs = [path for path in dirs if type_of_loss in path.lower()]
     dirs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
     latest_dir = dirs[0]
     files = [os.path.join(latest_dir, f) for f in os.listdir(latest_dir) if
@@ -275,119 +188,64 @@ def create_dataset(dataset, train_valid_ratio: float, batch_size: int) -> Tuple[
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------- P L O T   R E F   Q U E R Y   I M G S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def plot_ref_query_images(indices: List[int], q_images_path: List[str], r_images_path: List[str],
-                          gt: List[str], predicted_labels: List[str], output_folder: str) -> None:
+def plot_ref_query_images(gt_labels: List[str], predicted_medicines: List[str],
+                          query_image_paths: dict, reference_image_paths: dict,
+                          output_folder: str) -> None:
     """
-    Plots the reference and query images with their corresponding ground truth and predicted class labels.
 
     Args:
-        indices (List[int]): List of indices representing the matched reference images for each query image.
-        q_images_path (List[str]): List of file paths to query images.
-        r_images_path (List[str]): List of file paths to reference images.
-        gt (List[str]): List of ground truth class labels for each query image.
-        predicted_labels (List[str]): List of predicted class labels for each query image.
-        output_folder (str): Path to the output folder where the images will be saved.
+        gt_labels: 
+        predicted_medicines: 
+        query_image_paths: 
+        reference_image_paths: 
+        output_folder: 
 
     Returns:
-        None
-    """
 
-    new_list = [i for i in range(len(indices))]
+    """
 
     correctly_classified = os.path.join(output_folder, "correctly_classified")
     incorrectly_classified = os.path.join(output_folder, "incorrectly_classified")
-
     os.makedirs(correctly_classified, exist_ok=True)
     os.makedirs(incorrectly_classified, exist_ok=True)
 
-    for idx, (i, j, k, l) in tqdm(enumerate(zip(indices, new_list, gt, predicted_labels)), total=len(new_list),
-                                  desc="Plotting ref and query images"):
-        img_path_query = q_images_path[j]
-        img_query = Image.open(img_path_query)
+    # Loop through ground truth and predicted labels
+    for i, (gt_label, predicted_medicine) in tqdm(enumerate(zip(gt_labels, predicted_medicines)),
+                                                  total=len(gt_labels),
+                                                  desc="Plotting images"):
 
-        img_path_ref = r_images_path[int(i)]
-        img_ref = Image.open(img_path_ref)
+        query_images = query_image_paths[predicted_medicine]
 
-        plt.figure()
-        f, ax = plt.subplots(1, 2)
-        ax[0].imshow(img_query)
-        ax[0].set_title(k + "_query")
-        ax[1].imshow(img_ref)
-        ax[1].set_title(l + "_ref")
-
-        if k == l:
-            output_path = os.path.join(correctly_classified, str(idx) + ".png")
+        if gt_label == predicted_medicine:
+            save_folder = correctly_classified
+            ref_label = gt_label
         else:
-            output_path = os.path.join(incorrectly_classified, str(idx) + ".png")
-        plt.savefig(output_path)
+            save_folder = incorrectly_classified
+            ref_label = gt_label
+
+        reference_images = [Image.open(path) for path in reference_image_paths[ref_label]]
+
+        query_image = Image.open(
+            query_images[i % len(query_images)])
+
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+        for j, ref_img in enumerate(reference_images):
+            axes[j].imshow(ref_img)
+            axes[j].axis('off')
+            axes[j].set_title(f'Reference Image {j + 1} ({ref_label})')
+
+        axes[2].imshow(query_image)
+        axes[2].axis('off')
+        axes[2].set_title(f'Query Image ({predicted_medicine})')
+
+        plt.subplots_adjust(top=0.85, bottom=0.05, hspace=0.2, wspace=0.3)
+
+        plot_filename = os.path.join(save_folder, f'{gt_label}_vs_{predicted_medicine}_query_{i}.png')
+        plt.savefig(plot_filename, dpi=100)
         plt.close()
 
-        plt.close("all")
-        plt.close()
-        gc.collect()
-
-
-def plot_confusion_matrix(gt: List[str], predictions: List[str], out_path: str) -> None:
-    """
-    Plots and saves the confusion matrix based on ground truth and predicted labels.
-
-    Args:
-        gt (List[str]): Ground truth labels.
-        predictions (List[str]): Predicted labels.
-        out_path (str): Path to the output directory to save the plot.
-
-    Returns:
-        None
-    """
-
-    # Get unique labels from ground truth and predictions
-    labels = list(set(gt + predictions))
-
-    # Create a mapping from labels to unique integers
-    label_to_int = {label: i for i, label in enumerate(labels)}
-
-    # Convert labels to integers using the mapping
-    true_labels = [label_to_int[label] for label in gt]
-    predicted_labels = [label_to_int[label] for label in predictions]
-
-    # Compute confusion matrix
-    cm = confusion_matrix(true_labels, predicted_labels)
-
-    # Sort labels based on unique integers
-    sorted_labels = [label for label, _ in sorted(label_to_int.items(), key=lambda x: x[1])]
-
-    # Create a heatmap
-    plt.figure(figsize=(20, 12))
-    sns.set(font_scale=1.2)  # Adjust the font size for better readability
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=sorted_labels, yticklabels=sorted_labels)
-
-    # Add labels and title
-    plt.xlabel("Predicted Labels")
-    plt.ylabel("True Labels")
-    plt.title("Confusion Matrix")
-
-    # Prevent label cutoff
-    plt.tight_layout()
-
-    # Show the plot
-    os.makedirs(out_path, exist_ok=True)
-    output_path = os.path.join(out_path, "confusion_matrix.png")
-    plt.savefig(output_path, dpi=600)
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# --------------------------------------- P R I N T   N E T W O R K   C O N F I G --------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def print_network_config(cfg):
-    """
-
-    :param cfg:
-    :return:
-    """
-
-    df = pd.DataFrame.from_dict(vars(cfg), orient='index', columns=['value'])
-    logging.info("Parameters of the selected %s:", cfg.type_of_net)
-    logging.info(df)
+    gc.collect()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -397,7 +255,7 @@ def use_gpu_if_available() -> torch.device:
     """
     Provides information about the currently available GPUs and returns a torch device for training and inference.
 
-    :return: A torch device for either "cuda" or "cpu".
+    Returns: A torch device for either "cuda" or "cpu".
     """
 
     if torch.cuda.is_available():
@@ -423,8 +281,8 @@ def measure_execution_time(func):
     """
     Decorator to measure the execution time.
 
-    :param func:
-    :return:
+        func:
+    Returns:
     """
 
     @wraps(func)
@@ -439,56 +297,16 @@ def measure_execution_time(func):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------- F I N D   L A T E S T   F I L E ------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def find_latest_file_in_directory(path: str, extension: str) -> str:
-    """
-    Finds the latest file in a directory with a given extension.
-
-    :param path: The path to the directory to search for files.
-    :param extension: The file extension to look for (e.g. "txt").
-    :return: The full path of the latest file with the given extension in the directory.
-    """
-
-    files = glob(os.path.join(path, "*.%s" % extension))
-    latest_file = max(files, key=os.path.getctime)
-    return latest_file
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------- F I N D   L A T E S T   S U B D ------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def find_latest_subdir(directory: str) -> Optional[str]:
-    """
-    Finds the latest subdirectory within the given directory.
-
-    Args:
-        directory (str): The path to the directory where we should look for the latest subdirectory.
-
-    Returns:
-        str or None: The path to the latest subdirectory if found, otherwise None.
-    """
-
-    subdirs = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
-
-    if not subdirs:
-        print(f"No subdirectories found in {directory}.")
-        return None
-
-    latest_subdir = max(subdirs, key=lambda d: os.path.getmtime(os.path.join(directory, d)))
-
-    return os.path.join(directory, latest_subdir)
-
-
-# ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------ P R O C E S S   T X T -----------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 def process_txt(txt_file: str) -> list:
     """
     Reads a .txt file and extracts a set of paths from its contents.
 
-    :param txt_file: The path to the .txt file.
-    :return: A set of paths extracted from the .txt file.
+        txt_file: The path to the .txt file.
+
+    Returns:
+        A set of paths extracted from the .txt file.
     """
 
     paths = []
@@ -508,8 +326,10 @@ def process_txt(txt_file: str) -> list:
 def mine_hard_triplets(latest_txt):
     """
 
-    :param latest_txt:
-    :return:
+        latest_txt:
+
+    Returns:
+
     """
 
     hardest_samples = process_txt(latest_txt)
@@ -518,3 +338,52 @@ def mine_hard_triplets(latest_txt):
         for a, p, n in zip(samples[0], samples[1], samples[2]):
             triplets.append((a, p, n))
     return list(set(triplets))
+
+
+def load_config_json(json_schema_filename: str, json_filename: str):
+    """
+    Args:
+        json_schema_filename:
+        json_filename:
+
+    Returns:
+
+    """
+
+    with open(json_schema_filename, "r") as schema_file:
+        schema = json.load(schema_file)
+
+    with open(json_filename, "r") as config_file:
+        config = json.load(config_file)
+
+    try:
+        validate(config, schema)
+        logging.info("JSON data is valid.")
+        return config
+    except jsonschema.exceptions.ValidationError as err:
+        logging.error(f"JSON data is invalid: {err}")
+
+
+def print_settings(file_name):
+    with open(file_name, "r") as f:
+        json_file = json.load(f)
+
+    for k, v in json_file.items():
+        if k not in ["networks", "streams"]:
+            logging.info(f"{k}: {v}")
+
+    type_of_net = json_file.get("type_of_net")
+    if type_of_net and type_of_net in json_file.get("networks", {}):
+        logging.info(f"\nNetwork ({type_of_net}) configuration:")
+        for k, v in json_file["networks"][type_of_net].items():
+            logging.info(f"  {k}: {v}")
+    else:
+        logging.info(f"\nNo configuration found for network type: {type_of_net}")
+
+    type_of_stream = json_file.get("type_of_stream")
+    if type_of_stream and type_of_stream in json_file.get("streams", {}):
+        logging.info(f"\nStream ({type_of_stream}) configuration:")
+        for k, v in json_file["streams"][type_of_stream].items():
+            logging.info(f"  {k}: {v}")
+    else:
+        logging.info(f"\nNo configuration found for stream type: {type_of_stream}")

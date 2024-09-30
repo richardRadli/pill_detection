@@ -1,10 +1,11 @@
 import os
+import numpy as np
 
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
 from tqdm import tqdm
 
-from config.const import DATASET_PATH
+from config.data_paths import DATASET_PATH
 
 
 def convert_and_save(src_directory, dst_directory, jpg_file):
@@ -13,7 +14,14 @@ def convert_and_save(src_directory, dst_directory, jpg_file):
 
     with Image.open(png_path) as img:
         img = img.convert('RGB')
-        img.save(jpg_path)
+        img_array = np.array(img)
+
+        if np.all(np.isin(img_array, [0, 255])):
+            img = Image.fromarray(img_array)
+        else:
+            img = img.convert('RGB')
+
+        img.save(jpg_path, quality=100)
 
 
 def convert_png_to_jpg(src_directory, dst_directory, num_threads=4):
@@ -30,6 +38,7 @@ def convert_png_to_jpg(src_directory, dst_directory, num_threads=4):
 
 
 if __name__ == "__main__":
-    input_directory = DATASET_PATH.get_data_path("ogyei_reference_mask_images")
-    output_directory = DATASET_PATH.get_data_path("ogyei_reference_mask_images")
+    directory = "ogyei_customer_images"
+    input_directory = DATASET_PATH.get_data_path(directory)
+    output_directory = DATASET_PATH.get_data_path(directory)
     convert_png_to_jpg(input_directory, output_directory, 6)

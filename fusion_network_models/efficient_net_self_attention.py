@@ -10,9 +10,48 @@ Description: The program implements the EfficientNet with Fusion Net.
 import torch
 import torch.nn as nn
 
-from config.config import ConfigStreamNetwork
-from stream_network_models.stream_network_selector import NetworkFactory
-from utils.utils import find_latest_file_in_latest_directory
+from config.json_config import json_config_selector
+from config.networks_paths_selector import substream_paths
+from stream_network_models.stream_network_selector import StreamNetworkFactory
+from utils.utils import find_latest_file_in_latest_directory, load_config_json
+
+
+class SelfAttention(nn.Module):
+    def __init__(self, input_dim: int):
+        """
+        Self-attention module.
+
+        Args:
+            input_dim: Dimension of the input feature.
+        """
+        super(SelfAttention, self).__init__()
+        self.query = nn.Linear(input_dim, input_dim)
+        self.key = nn.Linear(input_dim, input_dim)
+        self.value = nn.Linear(input_dim, input_dim)
+        self.softmax = nn.Softmax(dim=-1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass for the self-attention mechanism.
+
+        Args:
+            x: Input tensor of shape (batch_size, num_features).
+
+        Returns:
+            Tensor after applying self-attention.
+        """
+        query = self.query(x)
+        key = self.key(x)
+        value = self.value(x)
+
+        # Compute attention scores
+        attention_scores = torch.matmul(query, key.transpose(-2, -1)) / (x.size(-1) ** 0.5)
+        attention_weights = self.softmax(attention_scores)
+
+        # Apply attention weights to the values
+        attention_output = torch.matmul(attention_weights, value)
+
+        return attention_output
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -22,172 +61,136 @@ class EfficientNetSelfAttention(nn.Module):
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- __ I N I T __ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def __init__(self, type_of_net: str, network_cfg_contour: dict, network_cfg_lbp: dict,
-                 network_cfg_rgb: dict, network_cfg_texture: dict) -> None:
+    def __init__(self) -> None:
         """
         This is the initialization function of the EfficientNetSelfAttention class.
-
-        :param type_of_net: Type of network to create.
-        :param network_cfg_contour: Configuration for the contour network.
-        :param network_cfg_lbp: Configuration for the LBP network.
-        :param network_cfg_rgb: Configuration for the RGB network.
-        :param network_cfg_texture: Configuration for the texture network.
         """
 
         super(EfficientNetSelfAttention, self).__init__()
 
-        stream_net_cfg = ConfigStreamNetwork().parse()
+        stream_net_cfg = (
+            load_config_json(
+                json_schema_filename=json_config_selector("stream_net").get("schema"),
+                json_filename=json_config_selector("stream_net").get("config")
+            )
+        )
+
+        contour_substream_network_cfg = stream_net_cfg.get("streams").get("Contour")
+        lbp_substream_network_cfg = stream_net_cfg.get("streams").get("LBP")
+        rgb_substream_network_cfg = stream_net_cfg.get("streams").get("RGB")
+        texture_substream_network_cfg = stream_net_cfg.get("streams").get("Texture")
+
+        self.dataset_type = stream_net_cfg.get("dataset_type")
+        self.network_type = stream_net_cfg.get("type_of_net")
+
+        contour_weight_files_path = (
+            substream_paths().get("Contour").get(self.dataset_type).get(self.network_type).get("model_weights_dir")
+        )
+        lbp_weight_files_path = (
+            substream_paths().get("LBP").get(self.dataset_type).get(self.network_type).get("model_weights_dir")
+        )
+        rgb_weight_files_path = (
+            substream_paths().get("RGB").get(self.dataset_type).get(self.network_type).get("model_weights_dir")
+        )
+        texture_weight_files_path = (
+            substream_paths().get("Texture").get(self.dataset_type).get(self.network_type).get("model_weights_dir")
+        )
 
         latest_con_pt_file = find_latest_file_in_latest_directory(
-            path=(
-                network_cfg_contour
-                .get("model_weights_dir")
-                .get("EfficientNet")
-                .get(stream_net_cfg.dataset_type)
-            ),
-            type_of_loss=stream_net_cfg.type_of_loss_func
+            path=contour_weight_files_path
         )
         latest_lbp_pt_file = find_latest_file_in_latest_directory(
-            path=(
-                network_cfg_lbp
-                .get("model_weights_dir")
-                .get("EfficientNet")
-                .get(stream_net_cfg.dataset_type)
-            ),
-            type_of_loss=stream_net_cfg.type_of_loss_func
+            path=lbp_weight_files_path,
         )
         latest_rgb_pt_file = find_latest_file_in_latest_directory(
-            path=(
-                network_cfg_rgb
-                .get("model_weights_dir")
-                .get("EfficientNet")
-                .get(stream_net_cfg.dataset_type)
-            ),
-            type_of_loss=stream_net_cfg.type_of_loss_func
+            path=rgb_weight_files_path,
         )
         latest_tex_pt_file = find_latest_file_in_latest_directory(
-            path=(
-                network_cfg_texture
-                .get("model_weights_dir")
-                .get("EfficientNet")
-                .get(stream_net_cfg.dataset_type)
-            ),
-            type_of_loss=stream_net_cfg.type_of_loss_func
+            path=texture_weight_files_path,
         )
 
-        self.contour_network = NetworkFactory.create_network(type_of_net, network_cfg_contour)
-        self.lbp_network = NetworkFactory.create_network(type_of_net, network_cfg_lbp)
-        self.rgb_network = NetworkFactory.create_network(type_of_net, network_cfg_rgb)
-        self.texture_network = NetworkFactory.create_network(type_of_net, network_cfg_texture)
+        self.network_con = StreamNetworkFactory.create_network(self.network_type, contour_substream_network_cfg)
+        self.network_lbp = StreamNetworkFactory.create_network(self.network_type, lbp_substream_network_cfg)
+        self.network_rgb = StreamNetworkFactory.create_network(self.network_type, rgb_substream_network_cfg)
+        self.network_tex = StreamNetworkFactory.create_network(self.network_type, texture_substream_network_cfg)
 
-        self.contour_network.load_state_dict(torch.load(latest_con_pt_file))
-        self.lbp_network.load_state_dict(torch.load(latest_lbp_pt_file))
-        self.rgb_network.load_state_dict(torch.load(latest_rgb_pt_file))
-        self.texture_network.load_state_dict(torch.load(latest_tex_pt_file))
+        self.network_con.load_state_dict(torch.load(latest_con_pt_file))
+        self.network_lbp.load_state_dict(torch.load(latest_lbp_pt_file))
+        self.network_rgb.load_state_dict(torch.load(latest_rgb_pt_file))
+        self.network_tex.load_state_dict(torch.load(latest_tex_pt_file))
 
-        self.input_dim = (network_cfg_contour.get("embedded_dim") +
-                          network_cfg_lbp.get("embedded_dim") +
-                          network_cfg_rgb.get("embedded_dim") +
-                          network_cfg_texture.get("embedded_dim"))
+        self.freeze_networks(self.network_con)
+        self.freeze_networks(self.network_lbp)
+        self.freeze_networks(self.network_rgb)
+        self.freeze_networks(self.network_tex)
 
-        assert (network_cfg_contour.get("embedded_dim") ==
-                network_cfg_lbp.get("embedded_dim") ==
-                network_cfg_texture.get("embedded_dim"))
-        con_lbp_tex_dimension = network_cfg_contour.get("embedded_dim")
-        rgb_dimension = network_cfg_rgb.get("embedded_dim")
+        contour_dim = contour_substream_network_cfg.get("embedded_dim")
+        lbp_dim = lbp_substream_network_cfg.get("embedded_dim")
+        rgb_dim = rgb_substream_network_cfg.get("embedded_dim")
+        texture_dim = texture_substream_network_cfg.get("embedded_dim")
 
-        self.query = nn.Linear(con_lbp_tex_dimension, con_lbp_tex_dimension)
-        self.key = nn.Linear(con_lbp_tex_dimension, con_lbp_tex_dimension)
-        self.value = nn.Linear(con_lbp_tex_dimension, con_lbp_tex_dimension)
+        self.input_dim = (
+                contour_dim + lbp_dim + rgb_dim + texture_dim
+        )
 
-        self.query_rgb = nn.Linear(rgb_dimension, rgb_dimension)
-        self.key_rgb = nn.Linear(rgb_dimension, rgb_dimension)
-        self.value_rgb = nn.Linear(rgb_dimension, rgb_dimension)
+        self.attention_contour = SelfAttention(input_dim=contour_dim)
+        self.attention_lbp = SelfAttention(input_dim=lbp_dim)
+        self.attention_rgb = SelfAttention(input_dim=rgb_dim)
+        self.attention_texture = SelfAttention(input_dim=texture_dim)
 
         self.fc1 = nn.Linear(self.input_dim, self.input_dim)
+        self.bn = nn.BatchNorm1d(self.input_dim)
+        self.dropout = nn.Dropout(p=0.5)
+
         self.fc2 = nn.Linear(self.input_dim, self.input_dim)
+
+    @staticmethod
+    def freeze_networks(network):
+        """
+        Freeze the parameters of a given network.
+
+        Args:
+            network: The network whose parameters should be frozen.
+        """
+
+        for param in network.parameters():
+            param.requires_grad = False
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def forward(self, x1: torch.Tensor, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor) -> torch.Tensor:
+    def forward(self, x_contour: torch.Tensor, x_lbp: torch.Tensor, x_rgb: torch.Tensor, x_texture: torch.Tensor)\
+            -> torch.Tensor:
         """
         This is the forward function of the FusionNet.
 
-        :param x1: input tensor for contour stream, with shape [batch_size, 1, height, width]
-        :param x2: input tensor for RGB stream, with shape [batch_size, 3, height, width]
-        :param x3: input tensor for texture stream, with shape [batch_size, 1, height, width]
-        :param x4: input tensor for LBP stream, with shape [batch_size, 1, height, width]
+        Args:
+            x_contour: input tensor for contour stream, with shape [batch_size, 1, height, width]
+            x_lbp: input tensor for RGB stream, with shape [batch_size, 3, height, width]
+            x_rgb: input tensor for texture stream, with shape [batch_size, 1, height, width]
+            x_texture: input tensor for LBP stream, with shape [batch_size, 1, height, width]
 
-        :return: output tensor with shape [batch_size, 640] after passing through fully connected layer.
+        Returns:
+            output tensor with shape [batch_size, 640] after passing through fully connected layer.
         """
 
-        x1 = self.contour_network(x1)
-        x2 = self.lbp_network(x2)
-        x3 = self.rgb_network(x3)
-        x4 = self.texture_network(x4)
+        x_contour = self.network_con(x_contour)
+        x_lbp = self.network_lbp(x_lbp)
+        x_rgb = self.network_rgb(x_rgb)
+        x_texture = self.network_tex(x_texture)
 
-        x1 = self.self_attention(x1)
-        x2 = self.self_attention(x2)
-        x3 = self.self_attention_rgb(x3)
-        x4 = self.self_attention(x4)
+        contour_attention = self.attention_contour(x_contour)
+        lbp_attention = self.attention_lbp(x_lbp)
+        rgb_attention = self.attention_rgb(x_rgb)
+        texture_attention = self.attention_texture(x_texture)
 
-        x = torch.cat((x1, x2, x3, x4), dim=1)
-        x = self.fc1(x)
+        fusion_out = torch.cat([contour_attention, lbp_attention, rgb_attention, texture_attention], dim=1)
+
+        x = self.fc1(fusion_out)
+        x = self.bn1(x)
+        x = torch.relu(x)  
+        x = self.dropout1(x) 
+
         x = self.fc2(x)
 
         return x
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------- S E L F   A T T E N T I O N ------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def self_attention(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Apply self-attention mechanism to the input tensor.
-
-        :param x: Input tensor with shape [batch_size, embedded_dim].
-        :return: Output tensor after applying self-attention with shape [batch_size, embedded_dim].
-        """
-
-        queries = self.query(x)
-        keys = self.key(x)
-        values = self.value(x)
-
-        return self.self_attention_module(keys, values, queries)
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # --------------------------------------- S E L F   A T T E N T I O N   R G B --------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def self_attention_rgb(self, x: torch.Tensor):
-        """
-        Apply self-attention mechanism to the input tensor.
-
-        :param x: Input tensor with shape [batch_size, embedded_dim].
-        :return: Output tensor after applying self-attention with shape [batch_size, embedded_dim].
-        """
-
-        queries = self.query_rgb(x)
-        keys = self.key_rgb(x)
-        values = self.value_rgb(x)
-
-        return self.self_attention_module(keys, values, queries)
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------ S E L F   A T T E N T I O N   M O D U L E -----------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def self_attention_module(keys: torch.Tensor, values: torch.Tensor, queries: torch.Tensor) -> torch.Tensor:
-        """
-        Apply self-attention mechanism to the input tensors.
-
-        :param keys: Tensor with shape [batch_size, embedded_dim, 1].
-        :param values: Tensor with shape [batch_size, 1, embedded_dim].
-        :param queries: Tensor with shape [batch_size, 1, embedded_dim].
-        :return: Output tensor after applying self-attention with shape [batch_size, embedded_dim].
-        """
-
-        scores = torch.matmul(queries, keys.transpose(-2, -1))
-        attention_weights = torch.softmax(scores, dim=-1)
-        attended_values = torch.matmul(attention_weights, values)
-
-        return attended_values

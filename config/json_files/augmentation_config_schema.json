@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FCNN Configuration",
+  "type": "object",
+  "properties": {
+    "dataset_name": {
+      "type": "string",
+      "enum": ["cure", "ogyei"],
+      "description": "The name of the dataset to be used."
+    },
+    "wb_low_thr": {
+      "type": "number",
+      "description": "Minimum threshold value for Canny edge detector"
+    },
+    "wb_high_thr": {
+      "type": "number",
+      "description": "Maximum threshold value for Canny edge detector"
+    },
+    "kernel_size": {
+      "type": "integer",
+      "description": "Size of the kernel of the Gaussian filter."
+    },
+    "brightness_low_thr": {
+      "type": "number",
+      "description": "Minimum threshold value for brightness."
+    },
+    "brightness_high_thr": {
+      "type": "number",
+      "description": "Maximum threshold value for brightness."
+    },
+    "rotate_1": {
+      "type": "integer",
+      "description": "Angle of rotation to one direction."
+    },
+    "rotate_2": {
+      "type": "integer",
+      "description": "Angle of rotation to the other direction."
+    },
+    "shift_x": {
+      "type": "integer",
+      "description": "Shift by axis X."
+    },
+    "shift_y": {
+      "type": "integer",
+      "description": "Shift by axis Y."
+    },
+    "zoom": {
+      "type": "integer",
+      "description": "Amount of zoom."
+    },
+    "scale_pill_img": {
+      "type": "integer",
+      "description": "Amount of scale."
+    },
+    "max_workers": {
+      "type": "number",
+      "description": "Number of CPU threads to use."
+    }
+  },
+  "required": ["dataset_name", "scale_pill_img", "max_workers"]
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UNet Training Configuration",
+  "type": "object",
+  "properties": {
+    "dataset_name": {
+      "type": "string",
+      "enum": ["cure", "ogyei"]
+    },
+    "epochs": {
+      "type": "integer",
+      "description": "Number of epochs."
+    },
+    "batch_size": {
+      "type": "integer",
+      "description": "Batch size."
+    },
+    "learning_rate": {
+      "type": "number",
+      "description": "Learning rate."
+    },
+    "momentum": {
+      "type": "number",
+      "description": "Momentum for optimization."
+    },
+    "classes": {
+      "type": "integer",
+      "description": "Number of output classes for the segmentation."
+    },
+    "channels": {
+      "type": "integer",
+      "description": "Number of input channels (e.g., 3 for RGB, 1 for grayscale)."
+    },
+    "mask_threshold": {
+      "type": "number",
+      "description": "Minimum probability value to consider a mask pixel white."
+    },
+    "encoder_name": {
+      "type": "string"
+    },
+    "encoder_weights": {
+      "type": "string"
+    },
+    "seed": {
+      "type": "boolean"
+    },
+    "resized_img_size": {
+      "type": "integer"
+    }
+  },
+  "required": ["epochs", "batch_size", "learning_rate", "classes", "channels"]
+}

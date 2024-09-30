@@ -1,280 +1,238 @@
+import colorama
 import logging
+import numpy as np
 import os
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import segmentation_models_pytorch as smp
-import wandb
+import torch
 
-from torch import optim
-from torchsummary import summary
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
+from torchvision import transforms
 from tqdm import tqdm
+from typing import List
 
-from config.config import ConfigTrainingUnet
-from config.const import DATA_PATH, DATASET_PATH
-from data_loader_unet import BasicDataset, UNetDataLoader
-from utils.utils import multiclass_dice_coefficient, dice_coefficient, dice_loss, measure_execution_time
+from config.json_config import json_config_selector
+from config.dataset_paths_selector import dataset_images_path_selector
+from config.networks_paths_selector import unet_paths
+from data_loader_unet import UnetDataLoader
+from utils.utils import create_timestamp, load_config_json, use_gpu_if_available, setup_logger
 
 
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++ T R A I N   U N E T +++++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class TrainUnet:
-    # ------------------------------------------------------------------------------------------------------------------
-    # -------------------------------------------------- __I N I T__ ---------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
-        self.cfg = ConfigTrainingUnet().parse()
+        timestamp = create_timestamp()
+        colorama.init()
+        setup_logger()
 
-        self.dir_img = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_train_images")
-        self.dir_mask = DATASET_PATH.get_data_path("ogyei_v1_single_splitted_gt_train_masks")
-        self.dir_checkpoint = DATA_PATH.get_data_path("weights_unet")
-
-        # Create dataset
-        try:
-            self.dataset = UNetDataLoader(str(self.dir_img), str(self.dir_mask), self.cfg.img_scale)
-        except (AssertionError, RuntimeError, IndexError):
-            self.dataset = BasicDataset(str(self.dir_img), str(self.dir_mask), self.cfg.img_scale)
-
-        # Split into train / validation partitions
-        self.n_val = int(len(self.dataset) * self.cfg.val)
-        self.n_train = len(self.dataset) - self.n_val
-        train_set, val_set = random_split(self.dataset, [self.n_train, self.n_val],
-                                          generator=torch.Generator().manual_seed(0))
-
-        # Create data loaders
-        loader_args = dict(batch_size=self.cfg.batch_size, num_workers=1, pin_memory=True)
-        self.train_loader = DataLoader(train_set, shuffle=True, **loader_args)
-        self.val_loader = DataLoader(val_set, shuffle=False, drop_last=True, **loader_args)
-
-        # Initialize logging
-        self.experiment = wandb.init(project='U-Net', dir=DATA_PATH.get_data_path("logs_unet"), resume='allow',
-                                     anonymous='must')
-        self.experiment.config.update(
-            dict(epochs=self.cfg.epochs, batch_size=self.cfg.batch_size, learning_rate=self.cfg.learning_rate,
-                 val_percent=self.cfg.val, save_checkpoint=self.cfg.save_checkpoint, img_scale=self.cfg.img_scale,
-                 amp=self.cfg.amp))
-
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        logging.info(f'Using device {self.device}')
-
-        # Define the UNet model
-        self.model = smp.Unet(
-            encoder_name='resnet34',
-            encoder_weights='imagenet',
-            in_channels=self.cfg.channels,
-            classes=self.cfg.classes
+        self.cfg = (
+            load_config_json(
+                json_schema_filename=json_config_selector("unet").get("schema"),
+                json_filename=json_config_selector("unet").get("config")
+            )
         )
 
-        # Modify the last layer for fine-tuning
-        num_channels = self.model.segmentation_head[0].in_channels
-        self.model.segmentation_head[0] = \
-            nn.Conv2d(in_channels=num_channels, out_channels=self.cfg.classes, kernel_size=1).to(self.device)
+        if self.cfg.get("seed"):
+            torch.manual_seed(1234)
 
-        self.model = self.model.to(self.device)
+        self.device = (
+            use_gpu_if_available()
+        )
 
-        images = next(iter(self.train_loader))['image']
-        height, width = images.shape[2:]
-        summary(self.model, (self.cfg.channels, width, height))
+        self.model = (
+            self.create_segmentation_model().to(self.device)
+        )
 
-        logging.info(f'Network:\n'
-                     f'\t{self.cfg.channels} input channels\n'
-                     f'\t{self.cfg.classes} output channels (classes)\n'
-                     )
+        dataset_name = self.cfg.get("dataset_name")
 
-        # Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
-        self.optimizer = optim.RMSprop(self.model.parameters(),
-                                       lr=self.cfg.learning_rate, weight_decay=self.cfg.weight_decay,
-                                       momentum=self.cfg.momentum)
-        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 'max', patience=5)
-        self.grad_scaler = torch.cuda.amp.GradScaler(enabled=self.cfg.amp)
-        self.criterion = nn.CrossEntropyLoss() if self.cfg.classes > 1 else nn.BCEWithLogitsLoss()
-        self.global_step = 0
+        self.train_loader = (
+            self.create_segmentation_dataset(
+                images_dir=dataset_images_path_selector(dataset_name).get("train").get("images"),
+                masks_dir=dataset_images_path_selector(dataset_name).get("train").get("mask_images"),
+                batch_size=self.cfg.get("batch_size"),
+                shuffle=True)
+        )
 
-        logging.info(f'''Starting training:
-                    Epochs:          {self.cfg.epochs}
-                    Batch size:      {self.cfg.batch_size}
-                    Learning rate:   {self.cfg.learning_rate}
-                    Training size:   {self.n_train}
-                    Validation size: {self.n_val}
-                    Checkpoints:     {self.cfg.save_checkpoint}
-                    Device:          {self.device}
-                    Images scaling:  {self.cfg.img_scale}
-                    Mixed Precision: {self.cfg.amp}
-                ''')
+        self.valid_loader = self.create_segmentation_dataset(
+            images_dir=dataset_images_path_selector(dataset_name).get("valid").get("images"),
+            masks_dir=dataset_images_path_selector(dataset_name).get("valid").get("mask_images"),
+            batch_size=self.cfg.get("batch_size"),
+            shuffle=True)
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------------ E V A L U A T E -------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    @torch.inference_mode()
-    def evaluate(self) -> float:
+        self.optimizer = (
+            torch.optim.Adam(
+                self.model.parameters(),
+                lr=self.cfg.get("learning_rate")
+            )
+        )
+
+        self.criterion = (
+            torch.nn.BCEWithLogitsLoss()
+        )
+
+        unet_path = unet_paths(dataset_name)
+
+        # Tensorboard
+        tensorboard_log_dir = os.path.join(unet_path['logs_folder'], timestamp)
+        os.makedirs(tensorboard_log_dir, exist_ok=True)
+        self.writer = SummaryWriter(log_dir=str(tensorboard_log_dir))
+
+        # Create save directory
+        self.save_path = os.path.join(unet_path["weights_folder"], timestamp)
+        os.makedirs(self.save_path, exist_ok=True)
+
+    def create_segmentation_dataset(self, images_dir: str, masks_dir: str, batch_size: int, shuffle: bool) \
+            -> DataLoader:
         """
-        Evaluate the model on the validation set and compute the Dice score.
+        Creates a DataLoader for a segmentation task using a custom dataset.
 
-        This function sets the model to evaluation mode and computes the Dice score for each batch in the validation
-        set. The Dice score is a common evaluation metric for semantic segmentation tasks. It measures the overlap
-        between the predicted mask and the true mask.
+        Args:
+            images_dir (str): Directory containing input images.
+            masks_dir (str): Directory containing corresponding ground truth masks.
+            batch_size (int): Number of samples per batch.
+            shuffle (bool): Whether to shuffle the dataset.
 
         Returns:
-            float: Average Dice score across the validation set.
+            DataLoader: PyTorch DataLoader that provides batches of images and masks.
         """
 
-        self.model.eval()
-        num_val_batches = len(self.val_loader)
-        dice_score = 0
+        transform = transforms.Compose([
+            transforms.Resize((self.cfg.get("resized_img_size"), self.cfg.get("resized_img_size"))),
+            transforms.ToTensor(),
+        ])
 
-        # Iterate over the validation set
-        with torch.autocast(self.device.type if self.device.type != 'mps' else 'cpu', enabled=self.cfg.amp):
-            for batch in tqdm(self.val_loader, total=num_val_batches, desc='Validation round', unit='batch',
-                              leave=False):
-                image, mask_true = batch['image'], batch['mask']
+        dataset = UnetDataLoader(images_dir=images_dir,
+                                 masks_dir=masks_dir,
+                                 transform=transform)
 
-                # Move images and labels to correct device and type
-                image = image.to(device=self.device, dtype=torch.float32, memory_format=torch.channels_last)
-                mask_true = mask_true.to(device=self.device, dtype=torch.long)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
-                # Predict the mask
-                mask_pred = self.model(image)
+        return dataloader
 
-                if self.cfg.classes == 1:
-                    assert mask_true.min() >= 0 and mask_true.max() <= 1, \
-                        'True mask indices should be in [0, 1]'
-                    mask_pred = (F.sigmoid(mask_pred) > 0.5).float()
-
-                    # Compute the Dice score
-                    dice_score += dice_coefficient(mask_pred, mask_true, reduce_batch_first=False)
-                else:
-                    assert mask_true.min() >= 0 and mask_true.max() < self.cfg.classes, \
-                        'True mask indices should be in [0, n_classes['
-
-                    # Convert to one-hot format
-                    mask_true = F.one_hot(mask_true, self.cfg.classes).permute(0, 3, 1, 2).float()
-                    mask_pred = F.one_hot(mask_pred.argmax(dim=1), self.cfg.classes).permute(0, 3, 1, 2).float()
-
-                    # Compute the Dice score, ignoring background
-                    dice_score += multiclass_dice_coefficient(mask_pred[:, 1:], mask_true[:, 1:],
-                                                              reduce_batch_first=False)
-
-        self.model.train()
-        return dice_score / max(num_val_batches, 1)
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # ---------------------------------------------------- T R A I N ---------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    @measure_execution_time
-    def train(self) -> None:
+    def create_segmentation_model(self) -> smp.Unet:
         """
-        Train the model.
+        Creates and returns a U-Net model for segmentation tasks using the segmentation_models_pytorch library.
 
-        This function trains the model for the specified number of epochs.
-        It iterates over the training data and performs forward and backward passes to update the model's parameters.
-        After each epoch, it also performs model evaluation on the validation set and logs the results.
+        The configuration for the model is provided by the `self.cfg` dictionary, which includes:
+        - encoder_name (str): Name of the encoder (backbone) for the U-Net model.
+        - encoder_weights (str or None): Pre-trained weights for the encoder, or None for random initialization.
+        - channels (int): Number of input channels (e.g., 3 for RGB images).
+        - classes (int): Number of output segmentation classes.
 
-        The training process includes calculating the loss, optimizing the parameters using the optimizer,
-        logging the training loss and step, and saving checkpoints.
-
+        Returns:
+            smp.Unet: A U-Net model instance ready for training or inference.
         """
 
-        # Begin training
-        for epoch in range(1, self.cfg.epochs + 1):
+        model = (
+            smp.Unet(
+                encoder_name=self.cfg.get("encoder_name"),
+                encoder_weights=self.cfg.get("encoder_weights"),
+                in_channels=self.cfg.get("channels"),
+                classes=self.cfg.get("classes"))
+        )
+
+        return model
+
+    def train_loop(self, batch_images: torch.Tensor, batch_masks: torch.Tensor, train_losses: List[float]) -> None:
+        """
+        Executes one training step in the loop: performs forward pass, calculates loss, backpropagates gradients, and
+        updates model weights.
+
+        Args:
+            batch_images (torch.Tensor): A batch of input images (shape: [batch_size, channels, height, width]).
+            batch_masks (torch.Tensor): Corresponding ground truth masks (shape: [batch_size, classes, height, width]).
+            train_losses (List[float]): A list to track and store the training losses for each batch.
+
+        Returns:
+            None
+        """
+
+        batch_images, batch_masks = batch_images.to(self.device), batch_masks.to(self.device)
+        self.optimizer.zero_grad()
+        outputs = self.model(batch_images)
+        loss = self.criterion(outputs, batch_masks)
+        loss.backward()
+        self.optimizer.step()
+        train_losses.append(loss.item())
+
+    def valid_loop(self, batch_data: torch.Tensor, batch_masks: torch.Tensor, valid_losses: List[float]) -> None:
+        """
+        Executes one validation step: performs a forward pass, calculates the loss,
+        and tracks validation losses.
+
+        Args:
+            batch_data (torch.Tensor): A batch of validation images (shape: [batch_size, channels, height, width]).
+            batch_masks (torch.Tensor): Corresponding ground truth masks for validation
+                                        (shape: [batch_size, classes, height, width]).
+            valid_losses (List[float]): A list to track and store the validation losses for each batch.
+
+        Returns:
+            None
+        """
+
+        batch_data = batch_data.to(self.device)
+        batch_masks = batch_masks.to(self.device)
+
+        output = self.model(batch_data)
+
+        t_loss = self.criterion(output, batch_masks)
+        valid_losses.append(t_loss.item())
+
+    def fit(self) -> None:
+        """
+        Method to execute the training and validation loop.
+
+        Return:
+            None
+        """
+
+        best_valid_loss = float("inf")
+        best_model_path = None
+        epoch_without_improvement = 0
+
+        train_losses = []
+        valid_losses = []
+
+        for epoch in tqdm(range(self.cfg.get("epochs"))):
+
             self.model.train()
-            epoch_loss = 0
+            for batch_data, batch_masks in tqdm(self.train_loader, total=len(self.train_loader)):
+                self.train_loop(batch_data, batch_masks, train_losses)
 
-            with tqdm(total=self.n_train, desc=f'Epoch {epoch}/{self.cfg.epochs}', unit='img') as pbar:
-                for batch in self.train_loader:
-                    images, true_masks = batch['image'], batch['mask']
+            self.model.eval()
+            for batch_data, batch_masks in tqdm(self.valid_loader, total=len(self.train_loader)):
+                self.valid_loop(batch_data, batch_masks, valid_losses)
 
-                    assert images.shape[1] == self.cfg.channels, \
-                        f'Network has been defined with {self.cfg.channels} input channels, ' \
-                        f'but loaded images have {images.shape[1]} channels. Please check that ' \
-                        'the images are loaded correctly.'
+            train_loss = np.mean(train_losses)
+            valid_loss = np.mean(valid_losses)
 
-                    images = images.to(device=self.device, dtype=torch.float32, memory_format=torch.channels_last)
-                    true_masks = true_masks.to(device=self.device, dtype=torch.long)
+            logging.info(f'\ntrain_loss: {train_loss:.4f} ' + f'valid_loss: {valid_loss:.4f}')
 
-                    with torch.autocast(self.device.type if self.device.type != 'mps' else 'cpu', enabled=self.cfg.amp):
-                        masks_pred = self.model(images)
-                        if self.cfg.classes == 1:
-                            loss = self.criterion(masks_pred.squeeze(1), true_masks.float())
-                            loss += dice_loss(F.sigmoid(masks_pred.squeeze(1)), true_masks.float(), multiclass=False)
-                        else:
-                            loss = self.criterion(masks_pred, true_masks)
-                            loss += dice_loss(
-                                F.softmax(masks_pred, dim=1).float(),
-                                F.one_hot(true_masks, self.cfg.classes).permute(0, 3, 1, 2).float(),
-                                multiclass=True
-                            )
+            self.writer.add_scalars("Loss", {"train": train_loss, "validation": valid_loss}, epoch)
 
-                    self.optimizer.zero_grad(set_to_none=True)
-                    self.grad_scaler.scale(loss).backward()
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.cfg.gradient_clipping)
-                    self.grad_scaler.step(self.optimizer)
-                    self.grad_scaler.update()
+            train_losses.clear()
+            valid_losses.clear()
 
-                    pbar.update(images.shape[0])
-                    self.global_step += 1
-                    epoch_loss += loss.item()
-                    self.experiment.log({
-                        'train loss': loss.item(),
-                        'step': self.global_step,
-                        'epoch': epoch
-                    })
-                    pbar.set_postfix(**{'loss (batch)': loss.item()})
+            if valid_loss < best_valid_loss:
+                best_valid_loss = valid_loss
+                epoch_without_improvement = 0
+                if best_model_path is not None:
+                    os.remove(best_model_path)
+                best_model_path = os.path.join(self.save_path, f"best_model_epoch_{epoch}.pt")
+                torch.save(self.model.state_dict(), best_model_path)
+                logging.info(f'New weights have been saved at epoch {epoch} with value of {best_valid_loss:.4f}')
+            else:
+                logging.warning(f"No new weights have been saved. Best valid loss was {best_valid_loss:.5f},\n "
+                                f"current valid loss is {valid_loss:.5f}")
+                epoch_without_improvement += 1
+                if epoch_without_improvement >= self.cfg.get("patience"):
+                    logging.warning(f"Early stopping counter: {epoch_without_improvement}")
+                    logging.info(f"Early stopping at epoch {epoch}")
+                    break
 
-                    # Evaluation round
-                    division_step = (self.n_train // (5 * self.cfg.batch_size))
-                    if division_step > 0:
-                        if self.global_step % division_step == 0:
-                            histograms = {}
-                            for tag, value in self.model.named_parameters():
-                                tag = tag.replace('/', '.')
-                                if not (torch.isinf(value) | torch.isnan(value)).any():
-                                    histograms['Weights/' + tag] = wandb.Histogram(value.data.cpu())
-                                if value.grad is not None:
-                                    if not (torch.isinf(value.grad) | torch.isnan(value.grad)).any():
-                                        histograms['Gradients/' + tag] = wandb.Histogram(value.grad.data.cpu())
-
-                            val_score = self.evaluate()
-                            self.scheduler.step(val_score)
-
-                            logging.info('Validation Dice score: {}'.format(val_score))
-
-                            self.experiment.log({
-                                'learning rate': self.optimizer.param_groups[0]['lr'],
-                                'validation Dice': val_score,
-                                'images': wandb.Image(images[0].cpu()),
-                                'masks': {
-                                    'true': wandb.Image(true_masks[0].float().cpu()),
-                                    'pred': wandb.Image(masks_pred.argmax(dim=1)[0].float().cpu()),
-                                },
-                                'step': self.global_step,
-                                'epoch': epoch,
-                                **histograms
-                            })
-
-            # Save weights
-            if self.cfg.save_checkpoint:
-                state_dict = self.model.state_dict()
-                state_dict['mask_values'] = self.dataset.mask_values
-                torch.save(state_dict, os.path.join(self.dir_checkpoint, "epoch_" + str(epoch) + ".pt"))
-                logging.info(f'Checkpoint {epoch} saved!')
+        self.writer.close()
+        self.writer.flush()
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------------------- M A I N ------------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
     train_unet = TrainUnet()
-
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-
-    try:
-        train_unet.train()
-    except torch.cuda.OutOfMemoryError:
-        logging.error('Detected OutOfMemoryError! '
-                      'Enabling checkpointing to reduce memory usage, but this slows down training. '
-                      'Consider enabling AMP (--amp) for fast and memory efficient training')
-        torch.cuda.empty_cache()
-        train_unet.model.use_checkpointing()
-        train_unet.train()
+    train_unet.fit()

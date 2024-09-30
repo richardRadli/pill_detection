@@ -45,9 +45,10 @@ class BaseNetwork(ABC):
 # +++++++++++++++++++++++++++++++++++++ C N N   F U S I O N N E T   W R A P P E R ++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CNNFusionNetWrapper(BaseNetwork):
-    def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture):
+    def __init__(self):
         self.model = (
-            CNNFusionNet(type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture))
+            CNNFusionNet()
+        )
 
     def forward(self, x):
         return self.model(x)
@@ -57,10 +58,10 @@ class CNNFusionNetWrapper(BaseNetwork):
 # +++++++++++++++++++++++ E F F I C I E N T N E T   S E L F   A T T E N T I O N   W R A P P E R ++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class EfficientNetSelfAttentionWrapper(BaseNetwork):
-    def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture):
+    def __init__(self):
         self.model = (
-            EfficientNetSelfAttention(type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb,
-                                      network_cfg_texture))
+            EfficientNetSelfAttention()
+        )
 
     def forward(self, x):
         return self.model(x)
@@ -69,30 +70,25 @@ class EfficientNetSelfAttentionWrapper(BaseNetwork):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++ N E T   F A C T O R Y +++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class NetworkFactory:
+class FusionNetworkFactory:
     @staticmethod
-    def create_network(fusion_network_type: str, type_of_net: str, network_cfg_contour: dict, network_cfg_lbp: dict,
-                       network_cfg_rgb: dict, network_cfg_texture: dict, device: Optional[torch.device] = None) \
+    def create_network(fusion_network_type: str, device: Optional[torch.device] = None) \
             -> torch.nn.Module:
         """
         Create a fusion network model based on the given fusion network type.
 
-        :param fusion_network_type: The type of fusion network to create.
-        :param type_of_net: The type of network to use within the fusion network.
-        :param network_cfg_contour: Configuration for the contour network.
-        :param network_cfg_lbp: Configuration for the LBP network.
-        :param network_cfg_rgb: Configuration for the RGB network.
-        :param network_cfg_texture: Configuration for the texture network.
-        :param device: The device to use for the model (default: GPU if available, otherwise CPU).
-        :return: The created fusion network model.
+        Args:
+            fusion_network_type: The type of fusion network to create.
+            device: The device to use for the model (default: GPU if available, otherwise CPU).
+
+        Returns:
+            The created fusion network model.
         """
 
         if fusion_network_type == "CNNFusionNet":
-            model = CNNFusionNetWrapper(type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb,
-                                        network_cfg_texture).model
+            model = CNNFusionNetWrapper().model
         elif fusion_network_type == "EfficientNetSelfAttention":
-            model = EfficientNetSelfAttentionWrapper(type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb,
-                                                     network_cfg_texture).model
+            model = EfficientNetSelfAttentionWrapper().model
         else:
             raise ValueError("Wrong type was given!")
 

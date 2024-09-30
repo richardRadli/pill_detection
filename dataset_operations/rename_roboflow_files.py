@@ -15,7 +15,7 @@ from glob import glob
 from PIL import Image
 from tqdm import tqdm
 
-from config.const import DATASET_PATH
+from config.data_paths import DATASET_PATH
 
 
 # ----------------------------------------------------------------------------------------------------------------------

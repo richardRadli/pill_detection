@@ -2,7 +2,7 @@ import os
 import random
 import shutil
 
-from config.const import DATASET_PATH
+from config.data_paths import DATASET_PATH
 
 
 def split_images(directory_bbox, train_directory, valid_directory, test_directory, sr):

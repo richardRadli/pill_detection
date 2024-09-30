@@ -20,33 +20,29 @@ from torchsummary import summary
 from typing import List, Tuple
 from pytorch_metric_learning import losses, miners
 
-from config.config import ConfigStreamNetwork
-from config.config_selector import sub_stream_network_configs, dataset_images_path_selector
-from stream_network_models.stream_network_selector import NetworkFactory
+from config.json_config import json_config_selector
+from config.networks_paths_selector import substream_paths
+from stream_network_models.stream_network_selector import StreamNetworkFactory
 from dataloader_stream_network import DataLoaderStreamNet
-from utils.utils import (create_dataset, create_timestamp, measure_execution_time, print_network_config, setup_logger,
-                         use_gpu_if_available)
+from utils.utils import (create_dataset, create_timestamp, measure_execution_time, setup_logger,
+                         use_gpu_if_available, load_config_json)
 
 
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++ T R A I N   M O D E L +++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class TrainModel:
-    # ------------------------------------------------------------------------------------------------------------------
-    # --------------------------------------------------- _ I N I T _ --------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
         # Set up logger
         self.logger = setup_logger()
 
         # Set up configuration
-        self.cfg = ConfigStreamNetwork().parse()
+        self.cfg = (
+            load_config_json(
+                json_schema_filename=json_config_selector("stream_net").get("schema"),
+                json_filename=json_config_selector("stream_net").get("config")
+            )
+        )
 
         # Set up tqdm colour
         colorama.init()
-
-        # Print network configurations
-        print_network_config(self.cfg)
 
         # Create time stamp
         self.timestamp = create_timestamp()
@@ -55,63 +51,102 @@ class TrainModel:
         self.device = use_gpu_if_available()
 
         # Setup network config
-        if self.cfg.type_of_stream not in ["RGB", "Texture", "Contour", "LBP"]:
-            raise ValueError("Wrong type was given!")
-        network_config = sub_stream_network_configs(self.cfg)
-        network_cfg = network_config.get(self.cfg.type_of_stream)
+        self.dataset_type = self.cfg.get("dataset_type")
+
+        stream_type = self.cfg.get("type_of_stream")
+        self.type_of_net = self.cfg.get("type_of_net")
+
+        substream_network_cfg = self.cfg.get("streams").get(stream_type)
+        backbone_network_cfg = self.cfg.get("networks").get(self.type_of_net)
 
         # Load model and upload it to the GPU
-        self.model = NetworkFactory.create_network(self.cfg.type_of_net, network_cfg)
-        self.model.to(self.device)
+        self.model = StreamNetworkFactory.create_network(self.type_of_net, substream_network_cfg)
+        self.model = self.model.to(self.device)
 
         # Print model configuration
         summary(
             model=self.model,
-            input_size=(network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size"))
+            input_size=(
+                substream_network_cfg.get('channels')[0],
+                backbone_network_cfg.get("image_size"),
+                backbone_network_cfg.get("image_size")
+            )
         )
 
         # Create dataset
+        dataset_dirs_anchor = (
+            substream_paths().get(stream_type).get(self.dataset_type).get(self.type_of_net).get("train").get("anchor")
+        )
+        dataset_dir_pos_neg = (
+            substream_paths().get(stream_type).get(self.dataset_type).get(self.type_of_net).get("train").get("pos_neg")
+        )
         dataset = \
             DataLoaderStreamNet(
-                dataset_dirs_anchor=[network_cfg.get("train").get(self.cfg.dataset_type).get("anchor")],
-                dataset_dirs_pos_neg=[network_cfg.get("train").get(self.cfg.dataset_type).get("pos_neg")]
+                dataset_dirs_anchor=[dataset_dirs_anchor],
+                dataset_dirs_pos_neg=[dataset_dir_pos_neg]
             )
 
-        self.train_data_loader, self.valid_data_loader = create_dataset(dataset=dataset,
-                                                                        train_valid_ratio=self.cfg.train_valid_ratio,
-                                                                        batch_size=self.cfg.batch_size)
+        self.train_data_loader, self.valid_data_loader = (
+            create_dataset(
+                dataset=dataset,
+                train_valid_ratio=self.cfg.get("train_valid_ratio"),
+                batch_size=self.cfg.get("batch_size")
+            )
+        )
 
         # Set up loss and mining functions
-        self.criterion = losses.TripletMarginLoss(margin=self.cfg.margin)
-        self.mining_func = miners.TripletMarginMiner(
-            margin=self.cfg.margin, type_of_triplets=self.cfg.mining_type
+        self.criterion = (
+            losses.TripletMarginLoss(margin=self.cfg.get("margin"))
+        )
+        self.mining_func = (
+            miners.TripletMarginMiner(
+                margin=self.cfg.get("margin"),
+                type_of_triplets=self.cfg.get("mining_type")
+            )
         )
 
         # Specify optimizer
-        self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                          lr=network_cfg.get("learning_rate"),
-                                          weight_decay=network_cfg.get("weight_decay"))
+        self.optimizer = (
+            torch.optim.Adam(
+                self.model.parameters(),
+                lr=backbone_network_cfg.get("learning_rate")
+            )
+        )
 
         # LR scheduler
-        self.scheduler = StepLR(optimizer=self.optimizer,
-                                step_size=self.cfg.step_size,
-                                gamma=self.cfg.gamma)
+        self.scheduler = (
+            StepLR(
+                optimizer=self.optimizer,
+                step_size=self.cfg.get("step_size"),
+                gamma=self.cfg.get("gamma")
+            )
+        )
 
         # Tensorboard
-        tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
-        self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
-        dummy_input = torch.randn(1,
-                                  network_cfg.get('channels')[0],
-                                  network_cfg.get("image_size"),
-                                  network_cfg.get("image_size")
-                                  ).to(device=self.device)
-        self.writer.add_graph(self.model, dummy_input)
+        tensorboard_log_dir = (
+            self.create_save_dirs(
+                substream_paths().get(stream_type), "logs_dir"
+            )
+        )
+        self.writer = (
+            SummaryWriter(
+                log_dir=tensorboard_log_dir
+            )
+        )
 
         # Create save directory for model weights
-        self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))
+        self.save_path = (
+            self.create_save_dirs(
+                substream_paths().get(stream_type), "model_weights_dir"
+            )
+        )
 
         # Create save directory for hard samples
-        self.hard_samples_path = self.create_save_dirs(network_cfg.get('hardest_samples'))
+        self.hard_samples_path = (
+            self.create_save_dirs(
+                substream_paths().get(stream_type), "hardest_samples"
+            )
+        )
 
         # Variables to save only the best weights and model
         self.best_valid_loss = float('inf')
@@ -120,20 +155,20 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- C R E A T E   S A V E   D I R S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def create_save_dirs(self, network_cfg) -> str:
+    def create_save_dirs(self, network_cfg, subdir) -> str:
         """
         Creates and returns a directory path based on the provided network configuration.
 
         Args:
             network_cfg: A dictionary containing network configuration information.
-
+            subdir: The subdirectory to create the directory path for.
         Returns:
             directory_to_create (str): The path of the created directory.
         """
 
-        directory_path = network_cfg.get(self.cfg.type_of_net).get(self.cfg.dataset_type)
+        directory_path = network_cfg.get(self.dataset_type).get(self.type_of_net).get(subdir)
         directory_to_create = (
-            os.path.join(directory_path, f"{self.timestamp}_{self.cfg.type_of_loss_func}_{self.cfg.fold}")
+            os.path.join(directory_path, f"{self.timestamp}")
         )
         os.makedirs(directory_to_create, exist_ok=True)
         return directory_to_create
@@ -325,7 +360,7 @@ class TrainModel:
         # to track hard samples
         hard_samples = []
 
-        for epoch in tqdm(range(self.cfg.epochs), desc=colorama.Fore.GREEN + "Epochs"):
+        for epoch in tqdm(range(self.cfg.get("epochs")), desc=colorama.Fore.GREEN + "Epochs"):
             # Train loop
             train_losses, hard_samples = self.train_loop(train_losses, hard_samples)
 

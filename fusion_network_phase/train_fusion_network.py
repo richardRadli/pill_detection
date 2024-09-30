@@ -19,12 +19,12 @@ from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 from typing import Any, List
 
-from config.config import ConfigFusionNetwork, ConfigStreamNetwork
-from config.config_selector import (dataset_images_path_selector, sub_stream_network_configs, fusion_network_config)
+from config.json_config import json_config_selector
+from config.networks_paths_selector import fusion_network_paths
 from dataloader_fusion_network import FusionDataset
-from fusion_network_models.fusion_network_selector import NetworkFactory
-from utils.utils import (create_timestamp, print_network_config, use_gpu_if_available, setup_logger, create_dataset,
-                         measure_execution_time)
+from fusion_network_models.fusion_network_selector import FusionNetworkFactory
+from utils.utils import (create_timestamp, use_gpu_if_available, setup_logger, create_dataset,
+                         measure_execution_time, load_config_json)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -35,29 +35,26 @@ class TrainFusionNet:
     # --------------------------------------------------- __I N I T__ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
-        # Create time stamp
         self.timestamp = create_timestamp()
-
+        colorama.init()
         setup_logger()
 
         # Set up configuration
-        self.cfg_fusion_net = ConfigFusionNetwork().parse()
-        self.cfg_stream_net = ConfigStreamNetwork().parse()
+        self.cfg_fusion_net = (
+            load_config_json(
+                json_schema_filename=json_config_selector("fusion_net").get("schema"),
+                json_filename=json_config_selector("fusion_net").get("config")
+            )
+        )
+        self.cfg_stream_net = (
+            load_config_json(
+                json_schema_filename=json_config_selector("stream_net").get("schema"),
+                json_filename=json_config_selector("stream_net").get("config")
+            )
+        )
 
-        # Set up tqdm colours
-        colorama.init()
-
-        # Set up networks
-        network_type = self.cfg_fusion_net.type_of_net
-        main_network_config = fusion_network_config(network_type=network_type)
-        subnetwork_config = sub_stream_network_configs(self.cfg_stream_net)
-        network_cfg_contour = subnetwork_config.get("Contour")
-        network_cfg_lbp = subnetwork_config.get("LBP")
-        network_cfg_rgb = subnetwork_config.get("RGB")
-        network_cfg_texture = subnetwork_config.get("Texture")
-
-        # Print network configurations
-        print_network_config(self.cfg_fusion_net)
+        dataset_type = self.cfg_fusion_net.get("dataset_type")
+        type_of_net = self.cfg_fusion_net.get("type_of_net")
 
         # Select the GPU if possible
         self.device = use_gpu_if_available()
@@ -66,34 +63,54 @@ class TrainFusionNet:
         dataset = FusionDataset()
         self.train_data_loader, self.valid_data_loader = (
             create_dataset(dataset=dataset,
-                           train_valid_ratio=self.cfg_fusion_net.train_valid_ratio,
-                           batch_size=self.cfg_fusion_net.batch_size)
+                           train_valid_ratio=self.cfg_fusion_net.get("train_valid_ratio"),
+                           batch_size=self.cfg_fusion_net.get("batch_size"))
         )
 
         # Set up model
-        self.model = self.setup_model(network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture)
+        self.model = (
+            self.setup_model()
+        )
 
         # Set up loss function
-        self.criterion = torch.nn.TripletMarginLoss(margin=self.cfg_fusion_net.margin)
+        self.criterion = (
+            torch.nn.TripletMarginLoss(
+                margin=self.cfg_fusion_net.get("margin")
+            )
+        )
 
         # Specify optimizer
-        self.optimizer = torch.optim.Adam(
-            params=list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
-            lr=self.cfg_fusion_net.learning_rate,
-            weight_decay=self.cfg_fusion_net.weight_decay
+        self.optimizer = (
+            torch.optim.Adam(
+                params=list(self.model.fc1.parameters()) + list(self.model.fc2.parameters()),
+                lr=self.cfg_fusion_net.get("learning_rate"),
+                weight_decay=self.cfg_fusion_net.get("weight_decay")
+            )
         )
 
         # LR scheduler
         self.scheduler = StepLR(optimizer=self.optimizer,
-                                step_size=self.cfg_fusion_net.step_size,
-                                gamma=self.cfg_fusion_net.gamma)
+                                step_size=self.cfg_fusion_net.get("step_size"),
+                                gamma=self.cfg_fusion_net.get("gamma"))
 
         # Tensorboard
-        tensorboard_log_dir = self.create_save_dirs(main_network_config, "logs_folder")
-        self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
+        tensorboard_log_dir = (
+            self.create_save_dirs(
+                fusion_network_paths(dataset_type=dataset_type, network_type=type_of_net).get("logs_folder")
+            )
+        )
+        self.writer = (
+            SummaryWriter(
+                log_dir=tensorboard_log_dir
+            )
+        )
 
         # Create save path
-        self.save_path = self.create_save_dirs(main_network_config, "weights_folder")
+        self.save_path = (
+            self.create_save_dirs(
+                fusion_network_paths(dataset_type=dataset_type, network_type=type_of_net).get("weights_folder")
+            )
+        )
 
         # Variables to save only the best epoch
         self.best_valid_loss = float('inf')
@@ -102,72 +119,50 @@ class TrainFusionNet:
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------- S E T U P   M O D E L ----------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def setup_model(self, network_cfg_contour: dict, network_cfg_lbp: dict, network_cfg_rgb: dict,
-                    network_cfg_texture: dict) -> Any:
+    def setup_model(self) -> Any:
         """
         Initialize and set up the fusion network model.
-
-        Args:
-            network_cfg_contour: Configuration for the contour stream network.
-            network_cfg_lbp: Configuration for the LBP stream network.
-            network_cfg_rgb: Configuration for the RGB stream network.
-            network_cfg_texture: Configuration for the texture stream network.
 
         Returns:
             The initialized fusion network model.
         """
 
         # Initialize the fusion network
-        model = NetworkFactory.create_network(fusion_network_type=self.cfg_fusion_net.type_of_net,
-                                              type_of_net=self.cfg_stream_net.type_of_net,
-                                              network_cfg_contour=network_cfg_contour,
-                                              network_cfg_lbp=network_cfg_lbp,
-                                              network_cfg_rgb=network_cfg_rgb,
-                                              network_cfg_texture=network_cfg_texture)
+        model = (
+            FusionNetworkFactory.create_network(fusion_network_type=self.cfg_fusion_net.get("type_of_net"))
+        )
 
-        # Freeze the weights of the stream networks
-        for param in model.contour_network.parameters():
-            param.requires_grad = False
-        for param in model.lbp_network.parameters():
-            param.requires_grad = False
-        for param in model.rgb_network.parameters():
-            param.requires_grad = False
-        for param in model.texture_network.parameters():
-            param.requires_grad = False
+        img_size = 128 if self.cfg_fusion_net.get("type_of_net") == "CNNFusionNet" else 224
 
         # Load model and upload it to the GPU
         model.to(self.device)
 
-        # Display model
-        summary(model=model,
-                input_size=[(network_cfg_contour.get("channels")[0], network_cfg_contour.get("image_size"),
-                             network_cfg_contour.get("image_size")),
-                            (network_cfg_lbp.get("channels")[0], network_cfg_lbp.get("image_size"),
-                             network_cfg_lbp.get("image_size")),
-                            (network_cfg_rgb.get("channels")[0], network_cfg_rgb.get("image_size"),
-                             network_cfg_rgb.get("image_size")),
-                            (network_cfg_texture.get("channels")[0], network_cfg_texture.get("image_size"),
-                             network_cfg_texture.get("image_size"))]
-                )
+        summary(
+            model=model,
+            input_size=[
+                    (1, img_size, img_size),
+                    (1, img_size, img_size),
+                    (3, img_size, img_size),
+                    (1, img_size, img_size)
+            ]
+        )
 
         return model
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- C R E A T E   S A V E   D I R S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def create_save_dirs(self, main_network_config: dict, directory_type: str) -> str:
+    def create_save_dirs(self, directory_path: str) -> str:
         """
         Create and return directory path for saving files.
 
         Args:
-            main_network_config (dict): Main network configuration.
-            directory_type (str): Type of directory to create.
+            directory_path (str): Main network configuration.
 
         Returns:
             str: Directory path created.
         """
 
-        directory_path = main_network_config.get(directory_type).get(self.cfg_stream_net.dataset_type)
         directory_to_create = (
             os.path.join(directory_path,
                          f"{self.timestamp}_{self.cfg_fusion_net.type_of_loss_func}_{self.cfg_fusion_net.fold}")
@@ -219,7 +214,6 @@ class TrainFusionNet:
             negative_embedding = self.model(contour_negative, lbp_negative, rgb_negative, texture_negative)
 
             # Compute triplet loss
-
             train_loss = self.criterion(anchor=anchor_embedding,
                                         positive=positive_embedding,
                                         negative=negative_embedding)
@@ -282,7 +276,6 @@ class TrainFusionNet:
                                             positive=positive_embedding,
                                             negative=negative_embedding)
 
-
                 # Accumulate loss
                 valid_losses.append(valid_loss.item())
 
@@ -332,7 +325,7 @@ class TrainFusionNet:
         # To track the validation loss as the model trains
         valid_losses = []
 
-        for epoch in tqdm(range(self.cfg_fusion_net.epochs), desc=colorama.Fore.LIGHTGREEN_EX + "Epochs"):
+        for epoch in tqdm(range(self.cfg_fusion_net.get("epochs")), desc=colorama.Fore.LIGHTGREEN_EX + "Epochs"):
             # Train loop
             train_losses = self.train_loop(train_losses)
             valid_losses = self.valid_loop(valid_losses)

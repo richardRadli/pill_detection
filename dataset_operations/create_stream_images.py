@@ -10,7 +10,6 @@ Description: The program creates the different images (contour, lbp, rgb, textur
 import cv2
 import logging
 import numpy as np
-import pandas as pd
 import re
 import os
 import shutil
@@ -20,40 +19,39 @@ from skimage.feature import local_binary_pattern
 from tqdm import tqdm
 from typing import Tuple
 
-from config.config import ConfigStreamImages
-from config.config_selector import dataset_images_path_selector
-from utils.utils import file_reader, measure_execution_time, setup_logger
+from config.dataset_paths_selector import dataset_images_path_selector
+from config.json_config import json_config_selector
+from utils.utils import file_reader, measure_execution_time, setup_logger, load_config_json
 
 
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++ C R E A T E   S T R E A M   I M A G E S +++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CreateStreamImages:
     def __init__(self):
         setup_logger()
 
-        self.cfg = ConfigStreamImages().parse()
+        self.cfg = (
+            load_config_json(
+                json_schema_filename=json_config_selector("stream_images").get("schema"),
+                json_filename=json_config_selector("stream_images").get("config")
+            )
+        )
+
+        self.dataset_type = self.cfg.get('dataset_type')
+        self.operation = self.cfg.get("operation")
+        self.max_worker = self.cfg.get("max_worker")
 
         # Output paths
         self.contour_images_path = (
-        dataset_images_path_selector(
-            self.cfg.dataset_type).get("src_stream_images").get(self.cfg.operation).get("stream_images_contour")
+            dataset_images_path_selector(self.dataset_type).get("src_stream_images").get(self.operation).get("stream_images_contour")
         )
         self.lbp_images_path = (
-            dataset_images_path_selector(
-                self.cfg.dataset_type).get("src_stream_images").get(self.cfg.operation).get("stream_images_lbp")
+            dataset_images_path_selector(self.dataset_type).get("src_stream_images").get(self.operation).get("stream_images_lbp")
         )
         self.rgb_images_path = (
-            dataset_images_path_selector(
-                self.cfg.dataset_type).get("src_stream_images").get(self.cfg.operation).get("stream_images_rgb")
+            dataset_images_path_selector(self.dataset_type).get("src_stream_images").get(self.operation).get("stream_images_rgb")
         )
         self.texture_images_path = (
-        dataset_images_path_selector(
-            self.cfg.dataset_type).get("src_stream_images").get(self.cfg.operation).get("stream_images_texture")
+            dataset_images_path_selector(self.dataset_type).get("src_stream_images").get(self.operation).get("stream_images_texture")
         )
-
-        df = pd.DataFrame.from_dict(vars(self.cfg), orient='index', columns=['value'])
-        logging.info(df)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- D R A W   B O U N D I N G   B O X ---------------------------------------
@@ -62,11 +60,14 @@ class CreateStreamImages:
         """
         Draws bounding box over medicines. It draws only the biggest bounding box, small ones are terminated.
         After that it crops out the bounding box's content.
+        
+        Args:
+            in_img: input testing image
+            seg_map: output of the unet for the input testing image
+            output_path: where the file should be saved
 
-        :param in_img: input testing image
-        :param seg_map: output of the unet for the input testing image
-        :param output_path: where the file should be saved
-        :return: None
+        Returns:
+            None
         """
 
         n_objects, _, stats, _ = cv2.connectedComponentsWithStats(seg_map, connectivity=8, ltype=cv2.CV_32S)
@@ -76,7 +77,7 @@ class CreateStreamImages:
 
         for i in range(1, n_objects):
             x, y, w, h, area = stats[i]
-            if area > self.cfg.threshold_area and area > max_area:
+            if area > self.cfg.get("threshold_area") and area > max_area:
                 max_x, max_y, max_w, max_h = x, y, w, h
                 max_area = area
 
@@ -103,8 +104,8 @@ class CreateStreamImages:
         """
         Processes a single image by reading in the color and mask images, drawing the bounding box, and saving the
         result.
-        :param image_paths: tuple of paths to the color and mask images
-        :return: None
+            image_paths: tuple of paths to the color and mask images
+        Returns: None
         """
 
         color_path, mask_path = image_paths
@@ -120,31 +121,28 @@ class CreateStreamImages:
     def save_rgb_images(self) -> None:
         """
         Reads in the images, draws the bounding box, and saves the images in parallel.
-        :return: None
+        Returns: None
         """
 
         images = (
-            "customer_images" if self.cfg.operation == "customer"
-            else ("reference_images" if self.cfg.operation == "reference"
+            "customer_images" if self.operation == "customer"
+            else ("reference_images" if self.operation == "reference"
                   else None)
         )
-
-        if images is None:
-            raise ValueError("Invalid value for self.cfg.operation")
 
         masks = (
-            "customer_mask_images" if self.cfg.operation == "customer"
-            else ("reference_mask_images" if self.cfg.operation == "reference"
+            "customer_mask_images" if self.operation == "customer"
+            else ("reference_mask_images" if self.operation == "reference"
                   else None)
         )
 
-        color_images_dir = dataset_images_path_selector(self.cfg.dataset_type).get(self.cfg.operation).get(images)
-        mask_images_dir = dataset_images_path_selector(self.cfg.dataset_type).get(self.cfg.operation).get(masks)
+        color_images_dir = dataset_images_path_selector(self.dataset_type).get(self.operation).get(images)
+        mask_images_dir = dataset_images_path_selector(self.dataset_type).get(self.operation).get(masks)
 
         color_images = file_reader(color_images_dir, "jpg")
         mask_images = file_reader(mask_images_dir, "jpg")
 
-        with ThreadPoolExecutor(max_workers=self.cfg.max_worker) as executor:
+        with ThreadPoolExecutor(max_workers=self.max_worker) as executor:
             list(tqdm(executor.map(self.process_image, zip(color_images, mask_images)), total=len(color_images),
                       desc="RGB images"))
 
@@ -156,13 +154,13 @@ class CreateStreamImages:
         """
         Applies edge detection on an input image and saves the resulting edge map.
 
-        :param args: Tuple containing:
+            args: Tuple containing:
             - cropped_image (numpy.ndarray): The input image to apply edge detection on.
             - output_path (str): The path to save the output edge map.
             - kernel_size (int): The size of the kernel used in median blur.
             - canny_low_thr (int): The lower threshold for Canny edge detection.
             - canny_high_thr (int): The higher threshold for Canny edge detection.
-        :return: None
+        Returns: None
         """
 
         cropped_image, output_path, kernel_size, canny_low_thr, canny_high_thr = args
@@ -178,7 +176,7 @@ class CreateStreamImages:
         Loads RGB images from the designated directory and applies Canny edge detection algorithm to extract contours
         for each image. The resulting images are saved in a new directory designated for contour images.
 
-        :return: None
+        Returns: None
         """
 
         rgb_images = file_reader(self.rgb_images_path, "jpg")
@@ -188,10 +186,17 @@ class CreateStreamImages:
             output_name = "contour_" + os.path.basename(img_path)
             output_file = os.path.join(self.contour_images_path, output_name)
             bbox_images = cv2.imread(img_path, 0)
-            args_list.append((bbox_images, output_file, self.cfg.kernel_median_contour, self.cfg.canny_low_thr,
-                              self.cfg.canny_high_thr))
+            args_list.append(
+                (
+                    bbox_images,
+                    output_file,
+                    self.cfg.get("kernel_median_contour"),
+                    self.cfg.get("canny_low_thr"),
+                    self.cfg.get("canny_high_thr")
+                )
+            )
 
-        with ThreadPoolExecutor(max_workers=self.cfg.max_worker) as executor:
+        with ThreadPoolExecutor(max_workers=self.max_worker) as executor:
             futures = [executor.submit(self.create_contour_images, args) for args in args_list]
             wait(futures)
 
@@ -204,11 +209,15 @@ class CreateStreamImages:
         Given a cropped input image, this method applies a Gaussian blur, subtracts the blurred image from the original,
         normalizes the resulting image intensities between 0 and 255, and saves the resulting texture image to a
         given path.
-        :param args: A tuple containing the following elements:
+
+        Args:
+            A tuple containing the following elements:
             - cropped_image: A numpy array representing the cropped input image
             - output_path: A string representing the path to save the output texture image
             - kernel_size: An integer representing the size of the Gaussian blur kernel
-        :return: None
+
+        Returns:
+            None
         """
 
         cropped_image, output_path, kernel_size = args
@@ -224,7 +233,8 @@ class CreateStreamImages:
         """
         Save texture images using Gaussian Blur filter.
 
-        :return: None
+        Returns:
+            None
         """
 
         rgb_images = file_reader(self.rgb_images_path, "jpg")
@@ -235,9 +245,9 @@ class CreateStreamImages:
             output_file = os.path.join(self.texture_images_path, output_name)
             bbox_images = cv2.imread(img_path, 0)
             args_list.append((bbox_images, output_file,
-                              (self.cfg.kernel_gaussian_texture, self.cfg.kernel_gaussian_texture)))
+                              (self.cfg.get("kernel_gaussian_texture"), self.cfg.get("kernel_gaussian_texture"))))
 
-        with ThreadPoolExecutor(max_workers=self.cfg.max_worker) as executor:
+        with ThreadPoolExecutor(max_workers=self.max_worker) as executor:
             futures = [executor.submit(self.create_texture_images, args) for args in args_list]
             wait(futures)
 
@@ -249,9 +259,9 @@ class CreateStreamImages:
         """
         Process the LBP image for a given image file and save it to the destination directory.
 
-        :param img_gray: The BGR image as a numpy array.
-        :param dst_image_path: The destination path to save the LBP image.
-        :return: None.
+            img_gray: The BGR image as a numpy array.
+            dst_image_path: The destination path to save the LBP image.
+        Returns: None.
         """
 
         lbp_image = local_binary_pattern(image=img_gray, P=8, R=2, method="default")
@@ -264,12 +274,12 @@ class CreateStreamImages:
     def save_lbp_images(self) -> None:
         """
         Saves LBP images in parallel.
-        :return: None
+        Returns: None
         """
 
         rgb_images = file_reader(self.rgb_images_path, "jpg")
 
-        with ThreadPoolExecutor(max_workers=self.cfg.max_worker) as executor:
+        with ThreadPoolExecutor(max_workers=self.max_worker) as executor:
             futures = []
             for img_path in tqdm(rgb_images, desc="LBP images"):
                 output_name = "lbp_" + os.path.basename(img_path)
@@ -288,34 +298,29 @@ class CreateStreamImages:
         """
         Create labeled directories for image files based on the given dataset.
 
-        :param rgb_path: str, path to the directory containing RGB images.
-        :param contour_path: str, path to the directory containing contour images.
-        :param texture_path: str, path to the directory containing texture images.
-        :param lbp_path: str, path to the directory containing LBP images.
-        :return: None
+            rgb_path: str, path to the directory containing RGB images.
+            contour_path: str, path to the directory containing contour images.
+            texture_path: str, path to the directory containing texture images.
+            lbp_path: str, path to the directory containing LBP images.
+        Returns: None
         """
 
         files_rgb = os.listdir(rgb_path)
         files_contour = os.listdir(contour_path)
         files_texture = os.listdir(texture_path)
         files_lbp = os.listdir(lbp_path)
-        value = None
 
         for idx, (file_rgb, file_contour, file_texture, file_lbp) in \
                 tqdm(enumerate(zip(files_rgb, files_contour, files_texture, files_lbp)), desc="Copying image files"):
 
-            if self.cfg.dataset_type == 'ogyei':
-                if "s_" in file_rgb:
-                    match = re.search(r'^(.*?)_s_\d{3}\.jpg$', file_rgb)
-                elif "u_" in file_rgb:
-                    match = re.search(r'^(.*?)_u_\d{3}\.jpg$', file_rgb)
-                else:
-                    match = None
-
+            if self.dataset_type == 'ogyei':
+                match = re.search(r'id_\d+_(.+?)_\d+\.jpg', file_rgb)
                 if match:
                     value = match.group(1)
+                else:
+                    raise ValueError("The RGB image file is not in the correct format.")
 
-            elif self.cfg.dataset_type == 'cure':
+            elif self.dataset_type == 'cure':
                 value = os.path.basename(file_rgb).split("_")[0]
 
             else:
@@ -347,7 +352,7 @@ class CreateStreamImages:
         """
         Executes the functions to create the images.
 
-        :return: None
+        Returns: None
         """
 
         self.save_rgb_images()

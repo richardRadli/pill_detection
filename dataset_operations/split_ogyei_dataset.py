@@ -15,7 +15,7 @@ import shutil
 from tqdm import tqdm
 from typing import Dict, List, Tuple
 
-from config.const import DATASET_PATH
+from config.data_paths import DATASET_PATH
 from utils.utils import setup_logger
 
 

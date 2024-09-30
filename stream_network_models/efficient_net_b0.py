@@ -13,12 +13,13 @@ import torchvision.models as models
 
 
 class EfficientNet(nn.Module):
-    def __init__(self, num_out_feature: int = 128, grayscale=True):
+    def __init__(self, num_out_feature: int, grayscale: bool):
         """
         EfficientNet model with custom linear layer.
 
-        :param num_out_feature: Number of output features.
-        :param grayscale: Whether the input is grayscale or not. Defaults to True.
+        Args:
+            num_out_feature: Number of output features.
+            grayscale: Whether the input is grayscale or not. Defaults to True.
         """
 
         super(EfficientNet, self).__init__()
@@ -28,12 +29,17 @@ class EfficientNet(nn.Module):
         if self.grayscale:
             self.model.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
 
+        self._initialize_weights()
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Forward pass of the EfficientNet model.
 
-        :param x: Input tensor.
-        :return: Output tensor.
+        Args:
+            x: Input tensor.
+
+        Returns:
+             Output tensor.
         """
 
         if self.grayscale:
@@ -45,9 +51,20 @@ class EfficientNet(nn.Module):
         """
         Build the EfficientNet model with a custom linear layer.
 
-        :return: EfficientNet model with custom linear layer.
+        Returns:
+             EfficientNet model with custom linear layer.
         """
 
         model = models.efficientnet_b0(weights='DEFAULT')
         model.classifier[1] = nn.Linear(in_features=1280, out_features=self.num_out_feature)
         return model
+
+    def _initialize_weights(self):
+        """
+        Apply Xavier initialization to the custom linear layer.
+        """
+
+        # Apply Xavier initialization to the final linear layer
+        nn.init.xavier_uniform_(self.model.classifier[1].weight)
+        if self.model.classifier[1].bias is not None:
+            nn.init.zeros_(self.model.classifier[1].bias)
