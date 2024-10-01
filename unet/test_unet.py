@@ -10,7 +10,7 @@ import torch
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.transforms import ToPILImage, InterpolationMode
-from torchvision.transforms import functional as TF
+from torchvision.transforms import functional as tf
 from tqdm import tqdm
 from sklearn.metrics import jaccard_score
 
@@ -115,7 +115,8 @@ class TestUnet:
 
         return dataloader
 
-    def save_compare(self, filename, true_mask, pred_mask):
+    @staticmethod
+    def save_compare(filename, true_mask, pred_mask):
         """
 
         Args:
@@ -190,7 +191,7 @@ class TestUnet:
                     true_mask = masks[j].squeeze().cpu().numpy()
 
                     pred_mask_tensor = torch.from_numpy(pred_mask).unsqueeze(0)
-                    pred_mask_resized = TF.resize(
+                    pred_mask_resized = tf.resize(
                         pred_mask_tensor,
                         original_size,
                         interpolation=InterpolationMode.NEAREST

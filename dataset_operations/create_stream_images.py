@@ -19,7 +19,7 @@ from skimage.feature import local_binary_pattern
 from tqdm import tqdm
 from typing import Tuple
 
-from config.dataset_paths_selector import dataset_images_path_selector
+from config.dataset_paths_selector import dataset_images_path_selector as dips
 from config.json_config import json_config_selector
 from utils.utils import file_reader, measure_execution_time, setup_logger, load_config_json
 
@@ -41,16 +41,16 @@ class CreateStreamImages:
 
         # Output paths
         self.contour_images_path = (
-            dataset_images_path_selector(self.dataset_type).get("src_stream_images").get(self.operation).get("stream_images_contour")
+            dips(self.dataset_type).get("src_stream_images").get(self.operation).get("stream_images_contour")
         )
         self.lbp_images_path = (
-            dataset_images_path_selector(self.dataset_type).get("src_stream_images").get(self.operation).get("stream_images_lbp")
+            dips(self.dataset_type).get("src_stream_images").get(self.operation).get("stream_images_lbp")
         )
         self.rgb_images_path = (
-            dataset_images_path_selector(self.dataset_type).get("src_stream_images").get(self.operation).get("stream_images_rgb")
+            dips(self.dataset_type).get("src_stream_images").get(self.operation).get("stream_images_rgb")
         )
         self.texture_images_path = (
-            dataset_images_path_selector(self.dataset_type).get("src_stream_images").get(self.operation).get("stream_images_texture")
+            dips(self.dataset_type).get("src_stream_images").get(self.operation).get("stream_images_texture")
         )
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -136,8 +136,8 @@ class CreateStreamImages:
                   else None)
         )
 
-        color_images_dir = dataset_images_path_selector(self.dataset_type).get(self.operation).get(images)
-        mask_images_dir = dataset_images_path_selector(self.dataset_type).get(self.operation).get(masks)
+        color_images_dir = dips(self.dataset_type).get(self.operation).get(images)
+        mask_images_dir = dips(self.dataset_type).get(self.operation).get(masks)
 
         color_images = file_reader(color_images_dir, "jpg")
         mask_images = file_reader(mask_images_dir, "jpg")

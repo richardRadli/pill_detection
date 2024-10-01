@@ -140,7 +140,7 @@ class EfficientNetSelfAttention(nn.Module):
 
         self.fc1 = nn.Linear(self.input_dim, self.input_dim)
         self.bn = nn.BatchNorm1d(self.input_dim)
-        self.dropout = nn.Dropout(p=0.5)
+        self.dropout = nn.Dropout(p=0.2)
 
         self.fc2 = nn.Linear(self.input_dim, self.input_dim)
 
@@ -187,9 +187,9 @@ class EfficientNetSelfAttention(nn.Module):
         fusion_out = torch.cat([contour_attention, lbp_attention, rgb_attention, texture_attention], dim=1)
 
         x = self.fc1(fusion_out)
-        x = self.bn1(x)
+        x = self.bn(x)
         x = torch.relu(x)  
-        x = self.dropout1(x) 
+        x = self.dropout(x)
 
         x = self.fc2(x)
 

@@ -1,11 +1,11 @@
 {
   "dataset_type": "ogyei",
-  "type_of_net": "CNN",
+  "type_of_net": "EfficientNet",
   "mining_type": "semihard",
   "type_of_stream": "Texture",
   "margin": 0.2,
   "epochs": 20,
-  "batch_size": 32,
+  "batch_size": 64,
   "train_valid_ratio": 0.8,
   "weight_decay": 0.00001,
   "step_size": 5,

@@ -72,5 +72,5 @@ def main(operation="reference"):
 
 if __name__ == "__main__":
     operations = ["reference", "customer"]
-    for operation in operations:
-        main(operation)
+    for op in operations:
+        main(op)

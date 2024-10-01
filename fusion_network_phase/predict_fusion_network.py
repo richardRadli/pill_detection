@@ -158,7 +158,9 @@ class PredictFusionNetwork:
         """
 
         latest_con_pt_file = find_latest_file_in_latest_directory(
-            fusion_network_paths(dataset_type=self.dataset_type, network_type=self.fusion_network_type).get("weights_folder")
+            fusion_network_paths(
+                dataset_type=self.dataset_type, network_type=self.fusion_network_type
+            ).get("weights_folder")
         )
         network_fusion = FusionNetworkFactory.create_network(fusion_network_type=self.fusion_network_type)
         network_fusion.load_state_dict(torch.load(latest_con_pt_file))
