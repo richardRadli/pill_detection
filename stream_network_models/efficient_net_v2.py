@@ -12,7 +12,7 @@ import torch.nn as nn
 import torchvision.models as models
 
 
-class EfficientNetV2s(nn.Module):
+class EfficientNetV2(nn.Module):
     def __init__(self, num_out_feature: int, grayscale: bool):
         """
         EfficientNet model with custom linear layer.
@@ -25,7 +25,7 @@ class EfficientNetV2s(nn.Module):
             None
         """
 
-        super(EfficientNetV2s, self).__init__()
+        super(EfficientNetV2, self).__init__()
         self.num_out_feature = num_out_feature
         self.grayscale = grayscale
         self.model = self.build_model()
@@ -58,7 +58,16 @@ class EfficientNetV2s(nn.Module):
              EfficientNet model with custom linear layer.
         """
 
-        model = models.efficientnet_v2_s(weights="DEFAULT")
-        model.classifier[1] = nn.Linear(in_features=model.classifier[1].in_features,
-                                        out_features=self.num_out_feature)
+        model = (
+            models.efficientnet_v2_s(
+                weights="DEFAULT"
+            )
+        )
+        model.classifier[1] = (
+            nn.Linear(
+                in_features=model.classifier[1].in_features,
+                out_features=self.num_out_feature
+            )
+        )
+
         return model

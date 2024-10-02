@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Stream Images",
+  "type": "object",
+  "properties": {
+    "dataset_type": {
+      "type": "string",
+      "enum": ["cure", "ogyei"],
+      "description": "The type of dataset being used."
+    },
+    "operation": {
+      "type": "string",
+      "enum": ["reference", "customer"],
+      "description": "Type of operation being performed."
+    },
+    "threshold_area": {
+      "type": "integer",
+      "description": "Threshold area for the image processing."
+    },
+    "kernel_median_contour": {
+      "type": "integer",
+      "description": "Kernel size for the median filter applied to contours."
+    },
+    "canny_low_thr": {
+      "type": "integer",
+      "description": "Low threshold for Canny edge detection."
+    },
+    "canny_high_thr": {
+      "type": "integer",
+      "description": "High threshold for Canny edge detection."
+    },
+    "kernel_gaussian_texture": {
+      "type": "integer",
+      "description": "Kernel size for the Gaussian filter applied to textures."
+    },
+    "max_worker": {
+      "type": "integer",
+      "description": "Number of maximum workers (threads) to use. Typically set to half the CPU cores."
+    }
+  },
+  "required": ["dataset_type", "operation", "threshold_area", "kernel_median_contour", "canny_low_thr", "canny_high_thr", "kernel_gaussian_texture", "max_worker"]
+}

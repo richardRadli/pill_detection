@@ -13,7 +13,7 @@ import os
 from glob import glob
 from tqdm import tqdm
 
-from config.const import DATASET_PATH
+from config.data_paths import DATASET_PATH
 
 
 def crop_bounding_boxes(image_path: str, annotation_path: str, out_path: str):

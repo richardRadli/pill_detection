@@ -1,10 +1,10 @@
 """
-File: efficient_net_v2_s_multihead_attention.py
+File: efficient_net_self_attention.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
-Date: Jul 19, 2023
+Date: Apr 12, 2023
 
-Description: The program implements the EfficientNetV2 small multi-head attention with Fusion Net.
+Description: The program implements the EfficientNet with Fusion Net.
 """
 
 import torch
@@ -12,21 +12,61 @@ import torch.nn as nn
 
 from config.json_config import json_config_selector
 from config.networks_paths_selector import substream_paths
-from fusion_network_models.multihead_attention import MultiHeadAttention
 from stream_network_models.stream_network_selector import StreamNetworkFactory
 from utils.utils import find_latest_file_in_latest_directory, load_config_json
 
 
+class SelfAttention(nn.Module):
+    def __init__(self, input_dim: int):
+        """
+        Self-attention module.
+
+        Args:
+            input_dim: Dimension of the input feature.
+        """
+        super(SelfAttention, self).__init__()
+        self.query = nn.Linear(input_dim, input_dim)
+        self.key = nn.Linear(input_dim, input_dim)
+        self.value = nn.Linear(input_dim, input_dim)
+        self.softmax = nn.Softmax(dim=-1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass for the self-attention mechanism.
+
+        Args:
+            x: Input tensor of shape (batch_size, num_features).
+
+        Returns:
+            Tensor after applying self-attention.
+        """
+        query = self.query(x)
+        key = self.key(x)
+        value = self.value(x)
+
+        # Compute attention scores
+        attention_scores = torch.matmul(query, key.transpose(-2, -1)) / (x.size(-1) ** 0.5)
+        attention_weights = self.softmax(attention_scores)
+
+        # Apply attention weights to the values
+        attention_output = torch.matmul(attention_weights, value)
+
+        return attention_output
+
+
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++ E F F I C I E N T N E T V 2 M U L T I H E A D A T T E N T I O N +++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++ E F F I C I E N T N E T S E L F A T T E N T I O N +++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class EfficientNetV2MHAFMHA(nn.Module):
+class EfficientNetV2SelfAttention(nn.Module):
+    # ------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------- __ I N I T __ --------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     def __init__(self) -> None:
         """
-            This is the initialization function of the EfficientNetSelfAttention class.
-            """
+        This is the initialization function of the EfficientNetSelfAttention class.
+        """
 
-        super(EfficientNetV2MHAFMHA, self).__init__()
+        super(EfficientNetV2SelfAttention, self).__init__()
 
         stream_net_cfg = (
             load_config_json(
@@ -93,37 +133,10 @@ class EfficientNetV2MHAFMHA(nn.Module):
                 contour_dim + lbp_dim + rgb_dim + texture_dim
         )
 
-        self.multihead_attention_contour = (
-            MultiHeadAttention(
-                input_dim=contour_dim,
-                num_heads=4
-            )
-        )
-        self.multihead_attention_lbp = (
-            MultiHeadAttention(
-                input_dim=lbp_dim,
-                num_heads=4
-            )
-        )
-        self.multihead_attention_rgb = (
-            MultiHeadAttention(
-                input_dim=rgb_dim,
-                num_heads=4
-            )
-        )
-        self.multihead_attention_texture = (
-            MultiHeadAttention(
-                input_dim=texture_dim,
-                num_heads=4
-            )
-        )
-
-        self.multihead_attention = (
-            MultiHeadAttention(
-                input_dim=self.input_dim,
-                num_heads=4
-            )
-        )
+        self.attention_contour = SelfAttention(input_dim=contour_dim)
+        self.attention_lbp = SelfAttention(input_dim=lbp_dim)
+        self.attention_rgb = SelfAttention(input_dim=rgb_dim)
+        self.attention_texture = SelfAttention(input_dim=texture_dim)
 
         self.fc1 = nn.Linear(self.input_dim, self.input_dim)
         self.bn = nn.BatchNorm1d(self.input_dim)
@@ -134,11 +147,11 @@ class EfficientNetV2MHAFMHA(nn.Module):
     @staticmethod
     def freeze_networks(network):
         """
-            Freeze the parameters of a given network.
+        Freeze the parameters of a given network.
 
-            Args:
-                network: The network whose parameters should be frozen.
-            """
+        Args:
+            network: The network whose parameters should be frozen.
+        """
 
         for param in network.parameters():
             param.requires_grad = False
@@ -146,36 +159,34 @@ class EfficientNetV2MHAFMHA(nn.Module):
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def forward(self, x_contour: torch.Tensor, x_lbp: torch.Tensor, x_rgb: torch.Tensor, x_texture: torch.Tensor) \
+    def forward(self, x_contour: torch.Tensor, x_lbp: torch.Tensor, x_rgb: torch.Tensor, x_texture: torch.Tensor)\
             -> torch.Tensor:
         """
-            This is the forward function of the FusionNet.
+        This is the forward function of the FusionNet.
 
-            Args:
-                x_contour: input tensor for contour stream, with shape [batch_size, 1, height, width]
-                x_lbp: input tensor for RGB stream, with shape [batch_size, 3, height, width]
-                x_rgb: input tensor for texture stream, with shape [batch_size, 1, height, width]
-                x_texture: input tensor for LBP stream, with shape [batch_size, 1, height, width]
+        Args:
+            x_contour: input tensor for contour stream, with shape [batch_size, 1, height, width]
+            x_lbp: input tensor for RGB stream, with shape [batch_size, 3, height, width]
+            x_rgb: input tensor for texture stream, with shape [batch_size, 1, height, width]
+            x_texture: input tensor for LBP stream, with shape [batch_size, 1, height, width]
 
-            Returns:
-                output tensor with shape [batch_size, 640] after passing through fully connected layer.
-            """
+        Returns:
+            output tensor with shape [batch_size, 640] after passing through fully connected layer.
+        """
 
         x_contour = self.network_con(x_contour)
         x_lbp = self.network_lbp(x_lbp)
         x_rgb = self.network_rgb(x_rgb)
         x_texture = self.network_tex(x_texture)
 
-        contour_attention = self.multihead_attention_contour(x_contour)
-        lbp_attention = self.multihead_attention_lbp(x_lbp)
-        rgb_attention = self.multihead_attention_rgb(x_rgb)
-        texture_attention = self.multihead_attention_texture(x_texture)
+        contour_attention = self.attention_contour(x_contour)
+        lbp_attention = self.attention_lbp(x_lbp)
+        rgb_attention = self.attention_rgb(x_rgb)
+        texture_attention = self.attention_texture(x_texture)
 
         fusion_out = torch.cat([contour_attention, lbp_attention, rgb_attention, texture_attention], dim=1)
 
-        fusion_out_multihead_attention = self.multihead_attention(fusion_out)
-
-        x = self.fc1(fusion_out_multihead_attention)
+        x = self.fc1(fusion_out)
         x = self.bn(x)
         x = torch.relu(x)
         x = self.dropout(x)

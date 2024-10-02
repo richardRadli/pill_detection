@@ -11,8 +11,7 @@ import torch
 
 from abc import ABC, abstractmethod
 
-from stream_network_models.efficient_net_b0 import EfficientNet
-from stream_network_models.efficient_net_v2 import EfficientNetV2s
+from stream_network_models.efficient_net_v2 import EfficientNetV2
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -29,24 +28,12 @@ class BaseNetwork(ABC):
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++ E F F I C I E N T N E T   W R A P P E R +++++++++++++++++++++++++++++++++++++++
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class EfficientNetWrapper(BaseNetwork):
-    def __init__(self, network_cfg):
-        self.model = EfficientNet(num_out_feature=network_cfg.get('embedded_dim'),
-                                  grayscale=network_cfg.get('grayscale'))
-
-    def forward(self, x):
-        return self.model(x)
-
-
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++ E F F I C I E N T N E T V 2   W R A P P E R +++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class EfficientNetV2Wrapper(BaseNetwork):
     def __init__(self, network_cfg):
         self.model = \
-            EfficientNetV2s(
+            EfficientNetV2(
                 num_out_feature=network_cfg.get('embedded_dim'),
                 grayscale=network_cfg.get('grayscale')
             )
@@ -58,12 +45,10 @@ class EfficientNetV2Wrapper(BaseNetwork):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++ N E T   F A C T O R Y +++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class NetworkFactory:
+class StreamNetworkFactory:
     @staticmethod
     def create_network(network_type, network_cfg, device=None):
-        if network_type == "EfficientNet":
-            model = EfficientNetWrapper(network_cfg).model
-        elif network_type == "EfficientNetV2":
+        if network_type == "EfficientNetV2":
             model = EfficientNetV2Wrapper(network_cfg).model
         else:
             raise ValueError("Wrong type was given!")
@@ -72,4 +57,5 @@ class NetworkFactory:
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         model.to(device)
+
         return model
