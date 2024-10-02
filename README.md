@@ -1,3 +1,11 @@
+![Python](https://img.shields.io/badge/python-v3.11-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![PyTorch](https://img.shields.io/badge/PyTorch-v2.2.1-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit-v1.4.0--learn-%23F7931E.svg?style=for-the-badge&logo=scikit-learn&logoColor=white)
+![NumPy](https://img.shields.io/badge/numpy-v1.26-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white)
+![Pandas](https://img.shields.io/badge/pandas-v2.1.0-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white)
+![Matplotlib](https://img.shields.io/badge/Matplotlib-v3.7.1-%23ffffff.svg?style=for-the-badge&logo=Matplotlib&logoColor=black)
+![OpenCV](https://img.shields.io/badge/opencv-4.5.5-%23white.svg?style=for-the-badge&logo=opencv&logoColor=white)
+
 # Pill Metrics Learning with Multihead Attention
 In object recognition, especially, when new classes can easily appear during the application, few-shot learning has 
 great importance. Metrics learning is an important elementary technique for few-shot object recognition which can be 
@@ -47,16 +55,18 @@ The following configurations were evaluated:
 -  **EffNetV2+MHA+FMHA**: EfficientNetV2 S, separated multihead attention and multihead attention in the fusion network.
 -  **EffNetV2+MHA+FMHA+BA**: EfficientNetV2 S, separated multihead attention, multihead attention in the fusion network, and batch all (BA) strategy for the fusion network.
 
+This repository only implements EffNetV2+SA, EffNetV2+MHA and EffNetV2+MHA+FMHA. EffNetV1+SA can be found on the 
+`IDAACS2023` branch.
 
 
 
-## Datasets
+## 📚 Datasets
 We used two datasets, namely CURE [1] and our novel, custom-made one, entitled OGYEIv1 [3]. 
 CURE is available online via this link:
 
 https://drive.google.com/drive/folders/1dcqUaTSepplc4GAUC05mr9iReWVqaThN.
 
-Ours can be accessed if you contact me via my e-mail address: radli.richard@mik.uni-pannon.hu
+Ours can be accessed if you contact me via my e-mail address: [radli.richard@mik.uni-pannon.hu]()
 
 The comparison of the two datasets can be seen in the table below:
 
@@ -70,66 +80,72 @@ The comparison of the two datasets can be seen in the table below:
 | Backgrounds            | 6                   | 1         | 
 | Imprinted text labels  | yes                 | yes       |
 
-## Requirement
+## 📝 Requirements
 Make sure you have the following dependencies installed:
 
-```bash
+```
 colorama>=0.4.6
 colorlog>=6.7.0
-json>=2.0.9
+jsonschema~=4.23.0
 matplotlib>=3.7.1
 numpy>=1.23.5
 opencv-python>=4.5.5.64
-pandas>=2.0.0
+pandas>=2.1.0
 Pillow>=9.3.0
 seaborn>=0.12.2
-segmentation_models_pytorch>=0.3.3
-skimage>=0.20.0
+scikit-image>=0.20.0
 sklearn>=1.2.2
-tkinter>=8.6.12
-torch>=2.0.0+cu117
+torch>=2.2.1+cu121
 torchsummary>=1.5.1
-torchvision>=0.15.1+cu117
+torchvision>=0.17.1+cu121
 tqdm>=4.65.0
 ```
 
-## Installation
-First, clone/download this repository. In the const.py file you will find this:
+You can install the listed packages with the following command:
+
+```bash
+pip install -r requirements.txt
+```
+
+## 🚀 Installation
+
+### 1. Clone or download the repository
+Begin by cloning or downloading this repository to your local machine.
+
+### 2. Update configuration
+Open the _data_paths.py_ file. You will find the following dictionary:
 
 ```python
 root_mapping = {
-    'ricsi': {
-        "PROJECT_ROOT": 'D:/pill_detect/storage/',
-        "DATASET_ROOT": 'D:/pill_detect/datasets'
+    "ricsi": {
+        "STORAGE_ROOT ":
+            "D:/storage/pill_detection/KDIR2023",
+        "DATASET_ROOT":
+            "D:/storage/pill_detection/KDIR2023/datasets",
+        "PROJECT_ROOT":
+            "C:/Users/ricsi/Documents/project/IVM"
     }
 }
 ```
 
-- Update the designated username ('ricsi') to reflect the username associated with your logged-in operating system.
-- Utilize PROJECT_ROOT as the central repository for storing essential data.
-- Employ DATASET_ROOT as the designated directory for managing datasets integral to the functioning of the project.
-- const.py will create all the necessary folders.
-- Download the datasets and place them into the appropriate folders.
+You have to replace the username (in this case 'ricsi') with your own. Your username can be acquired by running the `whoami` command in your terminal to retrieve it.
 
+#### STORAGE_ROOT: 
+- Adjust this path to the location where you want to save project outputs and other data generated during the execution of the Python files.
 
-## Overview of the repository
-In the config.py file, key parameters and settings crucial for the training, testing, and data augmentation processes 
-are centrally stored. These configurations provide a streamlined and organized approach to manage various aspects 
-of the project, ensuring adaptability and ease of customization.
+#### DATASET_ROOT: 
+- Modify this path to point to the directory where your datasets are stored. This folder should contain all datasets necessary for the project.
 
-To create a dataset, we attached a couple of scripts for image capturing. Steps to create a dataset:
+#### PROJECT_ROOT
+- Update this path to the directory where the Python and JSON files of the project are located.
 
-- Use `take_calibration_images.py`, and capture images for camera calibration. The more images are taken, 
-better the results will be.
-- Use `camera_calibration.py` to calibrate the camera.
-- Use `camera_recording.py`, and create the image dataset.
-- Finally, use `undistort_images.py` to undistort the taken images.
+### 3. Create necessary folders
+Run the __data_paths.py__ script. This will create all the required folders based on the paths specified in the configuration.
 
-A couple of useful scripts are also part of this repository, these files can be found in the **dataset_operations** folder.
-These tools are handful, if you wish to make operations on the datasets, such as splitting, checking the balance and
-annotations, etc. Also, it is worth pointing out to the `utils.py` script, that has many useful functions.
+### 4. Download and place datasets
+Obtain the necessary datasets and place them into the DATASET_ROOT directory as specified in your updated configuration.
 
-## Usage
+## 💻 Usage
 
 If the repository is cloned/downloaded, the root paths are sorted out, the datasets are in place, and everything is 
 set up in the config files, the next step is to apply a trained YOLOv7 network for pill detection and use 
@@ -137,20 +153,20 @@ set up in the config files, the next step is to apply a trained YOLOv7 network f
 
 Alternatively, if you can use `draw_masks.py` to create the binary mask images.
 
-To create the images for the streams, run `create_stream_images.py`. Make sure you go through all the choices of 
-the argument called **dataset_operation** in the **ConfigStreamNetwork** class in the `config.py` file (train, valid, test).
+To create the images for the streams, run `create_stream_images.py`.
 
 Next step is to train the stream networks, this is Phase 1. 
-There are two kind of backbones are available for this, EfficientNet V1 b0 [2] and EfficientNet V2 s [4]. 
-Make sure you train all four streams. Also, two loss functions are provided:
-triplet loss and hard mining triplet loss. The later will save the hardest triplets, which can be utilized in Phase 2.
-To copy the hardest samples into a directory, run `mine_hard_samples.py`.
+There is one backbone available in this repository EfficientNet V2 Small [4]. 
+Make sure you train all four streams. Run `train_stream_network.py`.
 
 After the streams are trained, the last step is to train the fusion network, it is also called Phase 2.
-There are 5 choices for this, as listed above. If hard mining triplet loss was selected in Phase 1, 
-the network will be trained on only the hardest samples.
+There are 3 choices for this, as listed above. 
 
 To evaluate the models, use `predict_fusion_network.py`.
+
+## 📰 Link to paper
+
+For detailed insights, check out our [research paper](https://www.scitepress.org/Papers/2023/122355/122355.pdf).
 
 ## References
 [1] - Ling, S., Pastor, A., Li, J., Che, Z., Wang, J., Kim, J., & Callet, P. L. (2020). Few-shot pill recognition. 
