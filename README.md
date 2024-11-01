@@ -1,5 +1,13 @@
 # Pill Recognition Research Repository
 
+## ⚠️ Important Notice
+
+> **Branch Status Update**  
+> - `idaacs2023` and `kdir2023`: **Up to date**  
+> - Other branches: **Undergoing revision**  
+>   
+> Please use the specified branches for stable, current functionality. Changes in other branches may impact code stability until rewrites are complete.
+
 Welcome to the Pill Recognition Research Repository! This repository hosts code and resources related to 
 three articles focusing on advancing pill recognition techniques. Each article corresponds to a separate branch 
 in this repository, and they are briefly introduced below:
