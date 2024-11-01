@@ -6,7 +6,18 @@
 ![Matplotlib](https://img.shields.io/badge/Matplotlib-v3.7.1-%23ffffff.svg?style=for-the-badge&logo=Matplotlib&logoColor=black)
 ![OpenCV](https://img.shields.io/badge/opencv-4.5.5-%23white.svg?style=for-the-badge&logo=opencv&logoColor=white)
 
+
 # Pill Metrics Learning with Multihead Attention
+
+## ⚠️ Important Notice
+
+> **Branch Status Update**  
+> - `idaacs2023` and `kdir2023`: **Up to date**  
+> - Other branches: **Undergoing revision**  
+>   
+> Please use the specified branches for stable, current functionality. Changes in other branches may impact code stability until rewrites are complete.
+
+
 In object recognition, especially, when new classes can easily appear during the application, few-shot learning has 
 great importance. Metrics learning is an important elementary technique for few-shot object recognition which can be 
 applied successfully for pill recognition. To enforce the exploitation of different object features we use 
