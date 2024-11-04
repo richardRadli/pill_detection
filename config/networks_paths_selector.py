@@ -34,7 +34,7 @@ def substream_paths() -> Dict:
                 }
             },
             "ogyei": {
-                "EfficientNet": {
+                "EfficientNetV2": {
                     "train": {
                         "anchor": IMAGES_PATH.get_data_path("contour_stream_ogyei_anchor"),
                         "pos_neg": IMAGES_PATH.get_data_path("contour_stream_ogyei_pos_neg")
@@ -73,7 +73,7 @@ def substream_paths() -> Dict:
                 }
             },
             "ogyei": {
-                "EfficientNet": {
+                "EfficientNetV2": {
                     "train": {
                         "anchor": IMAGES_PATH.get_data_path("lbp_stream_ogyei_anchor"),
                         "pos_neg": IMAGES_PATH.get_data_path("lbp_stream_ogyei_pos_neg")
@@ -133,7 +133,7 @@ def substream_paths() -> Dict:
         # -------------------------------------------- T E X T U R E ------------------------------------------------
         "Texture": {
             "cure": {
-                "EfficientNet": {
+                "EfficientNetV2": {
                     "train": {
                         "anchor": IMAGES_PATH.get_data_path("texture_stream_cure_anchor"),
                         "pos_neg": IMAGES_PATH.get_data_path("texture_stream_cure_pos_neg")
@@ -148,7 +148,7 @@ def substream_paths() -> Dict:
                 }
             },
             "ogyei": {
-                "EfficientNet": {
+                "EfficientNetV2": {
                     "train": {
                         "anchor": IMAGES_PATH.get_data_path("texture_stream_ogyei_anchor"),
                         "pos_neg": IMAGES_PATH.get_data_path("texture_stream_ogyei_pos_neg")
@@ -178,7 +178,7 @@ def stream_network_backbone_paths(dataset_type, network_type) -> Dict:
 
     Args:
         dataset_type (str): The type of dataset to use.
-        network_type (str): The type of network, e.g., 'CNN' or 'EfficientNet'.
+        network_type (str): The type of network, e.g., 'CNN' or 'EfficientNetV2'.
 
     Returns:
          dict: Dictionary containing the prediction, plotting, and reference vectors folder paths.
@@ -186,7 +186,7 @@ def stream_network_backbone_paths(dataset_type, network_type) -> Dict:
 
     network_configs = {
         'cure': {
-            'EfficientNet': {
+            'EfficientNetV2': {
                 'prediction_folder': DATA_PATH.get_data_path("predictions_efficient_net_v2_cure"),
                 'plotting_folder': IMAGES_PATH.get_data_path("plotting_efficient_net_v2_cure"),
                 'ref_vectors_folder': DATA_PATH.get_data_path("reference_vectors_efficient_net_v2_cure"),
@@ -199,7 +199,7 @@ def stream_network_backbone_paths(dataset_type, network_type) -> Dict:
             }
         },
         'ogyei': {
-            'EfficientNet': {
+            'EfficientNetV2': {
                 'prediction_folder': DATA_PATH.get_data_path("predictions_efficient_net_v2_ogyei"),
                 'plotting_folder': IMAGES_PATH.get_data_path("plotting_efficient_net_v2_ogyei"),
                 'ref_vectors_folder': DATA_PATH.get_data_path("reference_vectors_efficient_net_v2_ogyei"),

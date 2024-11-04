@@ -1,6 +1,6 @@
 {
   "dataset_type": "ogyei",
-  "type_of_net": "EfficientNetV2SelfAttention",
+  "type_of_net": "EfficientNetV2MHAFMHA",
   "margin": 0.5,
   "train_valid_ratio": 0.8,
   "epochs": 20,

@@ -5,7 +5,7 @@
   "type_of_stream": "Texture",
   "margin": 0.2,
   "epochs": 20,
-  "batch_size": 64,
+  "batch_size": 32,
   "train_valid_ratio": 0.8,
   "weight_decay": 0.00001,
   "step_size": 5,

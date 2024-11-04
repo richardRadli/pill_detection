@@ -159,10 +159,10 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
         x_rgb = self.network_rgb(x_rgb)
         x_texture = self.network_tex(x_texture)
 
-        contour_attention = self.multihead_attention_contour(x_contour)
-        lbp_attention = self.multihead_attention_lbp(x_lbp)
-        rgb_attention = self.multihead_attention_rgb(x_rgb)
-        texture_attention = self.multihead_attention_texture(x_texture)
+        contour_attention = self.multihead_attention_contour(x_contour).squeeze(1)
+        lbp_attention = self.multihead_attention_lbp(x_lbp).squeeze(1)
+        rgb_attention = self.multihead_attention_rgb(x_rgb).squeeze(1)
+        texture_attention = self.multihead_attention_texture(x_texture).squeeze(1)
 
         fusion_out = torch.cat([contour_attention, lbp_attention, rgb_attention, texture_attention], dim=1)
 
