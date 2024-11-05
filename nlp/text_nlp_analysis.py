@@ -14,7 +14,7 @@ from scipy.spatial.distance import pdist, squareform
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 
-from config.config_selector import nlp_configs
+from config.nlp_paths_selector import nlp_configs
 from utils.utils import create_timestamp, measure_execution_time, setup_logger
 
 

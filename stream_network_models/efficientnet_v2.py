@@ -30,7 +30,11 @@ class EfficientNetV2(nn.Module):
         self.grayscale = grayscale
         self.model = self.build_model()
         if self.grayscale:
-            self.model.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=2, bias=False)
+            self.model.conv1 = (
+                nn.Conv2d(
+                    in_channels=1, out_channels=32, kernel_size=3, stride=2, bias=False
+                )
+            )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -55,7 +59,17 @@ class EfficientNetV2(nn.Module):
              EfficientNet V2 s model with custom linear layer.
         """
 
-        model = models.efficientnet_v2_s(weights="DEFAULT")
-        model.classifier[1] = nn.Linear(in_features=model.classifier[1].in_features,
-                                        out_features=self.num_out_feature)
+        model = (
+            models.efficientnet_v2_s(
+                weights="DEFAULT"
+            )
+        )
+
+        model.classifier[1] = (
+            nn.Linear(
+                in_features=model.classifier[1].in_features,
+                out_features=self.num_out_feature
+            )
+        )
+
         return model

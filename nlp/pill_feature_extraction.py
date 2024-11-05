@@ -12,7 +12,7 @@ from glob import glob
 from fuzzysearch import find_near_matches
 from tqdm import tqdm
 
-from config.config_selector import nlp_configs
+from config.nlp_paths_selector import nlp_configs
 from utils.utils import create_timestamp, setup_logger
 
 

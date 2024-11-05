@@ -9,7 +9,7 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 from yellowbrick.cluster import SilhouetteVisualizer
 
-from config.config_selector import nlp_configs
+from config.nlp_paths_selector import nlp_configs
 from text_nlp_analysis import TextNLPAnalysis
 from utils.utils import create_timestamp,  setup_logger
 

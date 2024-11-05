@@ -68,9 +68,6 @@ class FusionDataset(Dataset):
 
         hard_samples = self.hard_samples[index]
 
-        rgb_positive_img_path = hard_samples[7]
-        rgb_negative_img_path = hard_samples[8]
-
         contour_anchor = self.grayscale_transform(Image.open(hard_samples[0]))
         contour_positive = self.grayscale_transform(Image.open(hard_samples[1]))
         contour_negative = self.grayscale_transform(Image.open(hard_samples[2]))
@@ -87,8 +84,7 @@ class FusionDataset(Dataset):
         return (contour_anchor, contour_positive, contour_negative,
                 lbp_anchor, lbp_positive, lbp_negative,
                 rgb_anchor, rgb_positive, rgb_negative,
-                texture_anchor, texture_positive, texture_negative,
-                rgb_positive_img_path, rgb_negative_img_path)
+                texture_anchor, texture_positive, texture_negative)
 
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- __ L E N __ --------------------------------------------------

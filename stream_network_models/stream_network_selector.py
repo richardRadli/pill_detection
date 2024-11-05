@@ -46,7 +46,7 @@ class EfficientNetWrapper(BaseNetwork):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++ N E T   F A C T O R Y +++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class NetworkFactory:
+class StreamNetworkFactory:
     @staticmethod
     def create_network(network_type, network_cfg, device=None):
         if network_type == "EfficientNetV2":
