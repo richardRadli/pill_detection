@@ -15,7 +15,7 @@ class DataLoaderStreamNet(Dataset):
     def __init__(self, dataset_dirs_anchor: List[str], dataset_dirs_pos_neg: List[str]) -> None:
         """
         Initialize the DataLoaderStreamNet class.
-        
+
         Args:
             dataset_dirs_anchor: A list of directory paths containing the anchor dataset.
             dataset_dirs_pos_neg: A list of directory paths containing the positive and negative dataset
@@ -37,18 +37,18 @@ class DataLoaderStreamNet(Dataset):
         self.image_size = network_cfg.get("image_size")
 
         # Load datasets
-        self.query_images, self.query_labels = (
-            self.load_dataset(dataset_dirs_anchor)
+        self.query_images, self.query_labels, _ = (
+            self.load_dataset(dataset_dirs_pos_neg)
         )
 
-        self.reference_images, self.reference_labels = (
-            self.load_dataset(dataset_dirs_pos_neg)
+        self.reference_images, self.reference_labels, self.reference_encoding_map = (
+            self.load_dataset(dataset_dirs_anchor)
         )
 
         self.transform = self.get_transform()
 
     @staticmethod
-    def load_dataset(dataset_dirs: List[str]) -> Tuple[List[str], np.ndarray]:
+    def load_dataset(dataset_dirs: List[str]) -> Tuple[List[str], np.ndarray, dict]:
         """
         Load the dataset from the provided directories and encode labels.
 
@@ -59,8 +59,9 @@ class DataLoaderStreamNet(Dataset):
             Tuple[List[str], np.ndarray]: A list of image file paths and an array of encoded labels.
         """
 
-        dataset = []
+        images = []
         labels = []
+        encoding_map = {}
 
         for dataset_path in dataset_dirs:
             for label_name in os.listdir(dataset_path):
@@ -70,13 +71,18 @@ class DataLoaderStreamNet(Dataset):
                 label = label_name
                 for image_name in os.listdir(label_path):
                     image_path = os.path.join(label_path, image_name)
-                    dataset.append(image_path)
+                    images.append(image_path)
                     labels.append(label)
 
         # Initialize label encoder
         label_encoder = LabelEncoder()
         encoded_labels = label_encoder.fit_transform(labels)
-        return dataset, encoded_labels
+
+        for original_label, encoded_label in zip(labels, encoded_labels):
+            if original_label not in encoding_map:
+                encoding_map[original_label] = encoded_label
+
+        return images, encoded_labels, encoding_map
 
     def get_transform(self) -> transforms.Compose:
         """
@@ -111,7 +117,7 @@ class DataLoaderStreamNet(Dataset):
             int: The total number of query images.
         """
 
-        return len(self.reference_images)
+        return len(self.query_images)
 
     def __getitem__(self, index: int) -> Tuple[Any, np.ndarray, str, Any, np.ndarray, str]:
         """
@@ -126,21 +132,24 @@ class DataLoaderStreamNet(Dataset):
                 and reference image path.
         """
 
-        # Reference image path
-        reference_image_path = self.reference_images[index]
+        # Reference image
+        reference_index = index % len(self.reference_images)
+        reference_image_path = self.reference_images[reference_index]
         reference_image = self.transform(Image.open(reference_image_path))
-        reference_label = self.reference_labels[index]
+        reference_label = self.reference_labels[reference_index]
 
-        # Query images
-        query_label = reference_label
-        query_indices = np.where(np.array(self.query_labels) == query_label)[0]
+        # Find a query image with the same label as the reference image
+        query_indices = np.where(np.array(self.query_labels) == reference_label)[0]
 
         if len(query_indices) == 0:
-            query_image_path = self.query_images[-1]
+            # If no matching query image, fall back to a random query image
+            query_index = np.random.randint(len(self.query_images))
         else:
+            # Randomly choose a query image with the same label
             query_index = np.random.choice(query_indices)
-            query_image_path = self.query_images[query_index]
 
+        query_image_path = self.query_images[query_index]
         query_image = self.transform(Image.open(query_image_path))
+        query_label = self.query_labels[query_index]
 
         return query_image, query_label, query_image_path, reference_image, reference_label, reference_image_path
