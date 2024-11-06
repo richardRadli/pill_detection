@@ -1,7 +1,8 @@
 {
   "dataset_type": "ogyeiv2",
   "type_of_net": "EfficientNetV2MultiHeadAttention",
-  "type_of_loss_func": "hmtl",
+  "type_of_loss_func": "dmtl",
+  "upper_norm_limit": 0.2,
   "margin": 0.5,
   "train_valid_ratio": 0.8,
   "epochs": 20,

@@ -15,6 +15,9 @@
       "type": "string",
       "enum": ["hmtl", "dmtl"]
     },
+    "upper_norm_limit": {
+      "type": "number"
+    },
     "margin": {
       "type": "number",
       "default": 0.5

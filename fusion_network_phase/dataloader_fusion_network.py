@@ -84,7 +84,7 @@ class FusionDataset(Dataset):
         return (contour_anchor, contour_positive, contour_negative,
                 lbp_anchor, lbp_positive, lbp_negative,
                 rgb_anchor, rgb_positive, rgb_negative,
-                texture_anchor, texture_positive, texture_negative)
+                texture_anchor, texture_positive, texture_negative, hard_samples[7], hard_samples[8])
 
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- __ L E N __ --------------------------------------------------

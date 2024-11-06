@@ -58,7 +58,7 @@ class TrainFusionNet:
 
         self.dataset_type = self.cfg_fusion_net.get("dataset_type")
         self.type_of_net = self.cfg_fusion_net.get("type_of_net")
-        type_of_loss = self.cfg_fusion_net.get("type_of_loss_func")
+        self.type_of_loss = self.cfg_fusion_net.get("type_of_loss_func")
 
         # Select the GPU if possible
         self.device = use_gpu_if_available()
@@ -79,7 +79,7 @@ class TrainFusionNet:
         )
 
         # Specify loss function
-        if type_of_loss == "dmtl":
+        if self.type_of_loss == "dmtl":
             path_to_excel_file = nlp_configs().get("vector_distances")
             df = get_embedded_text_matrix(path_to_excel_file)
             self.criterion = DynamicMarginTripletLoss(
@@ -87,10 +87,10 @@ class TrainFusionNet:
                 upper_norm_limit=self.cfg_fusion_net.get("upper_norm_limit"),
                 margin=self.cfg_fusion_net.get("margin")
             )
-        elif type_of_loss == "hmtl":
+        elif self.type_of_loss == "hmtl":
             self.criterion = torch.nn.TripletMarginLoss(margin=self.cfg_fusion_net.get("margin"))
         else:
-            raise ValueError(f"Wrong loss function: {type_of_loss}")
+            raise ValueError(f"Wrong loss function: {self.type_of_loss}")
 
         # Specify optimizer
         self.optimizer = (
@@ -115,7 +115,7 @@ class TrainFusionNet:
             self.create_save_dirs(
                 network_cfg=fusion_network_paths(dataset_type=self.dataset_type, network_type=self.type_of_net),
                 subdir="logs_folder",
-                loss=type_of_loss
+                loss=self.type_of_loss
             )
         )
         self.writer = (
@@ -129,7 +129,7 @@ class TrainFusionNet:
             self.create_save_dirs(
                 network_cfg=fusion_network_paths(dataset_type=self.dataset_type, network_type=self.type_of_net),
                 subdir="weights_folder",
-                loss=type_of_loss
+                loss=self.type_of_loss
             )
         )
 
@@ -183,7 +183,7 @@ class TrainFusionNet:
             directory_to_create (str): The path of the created directory.
         """
 
-        directory_path = network_cfg.get(self.dataset_type).get(self.type_of_net).get(subdir).get(loss)
+        directory_path = network_cfg.get(subdir).get(loss)
         directory_to_create = (
             os.path.join(directory_path, f"{self.timestamp}")
         )
@@ -234,11 +234,11 @@ class TrainFusionNet:
             negative_embedding = self.model(contour_negative, lbp_negative, rgb_negative, texture_negative)
 
             # Compute triplet loss
-            if self.cfg_fusion_net.type_of_loss_func == "hmtl":
+            if self.type_of_loss == "hmtl":
                 train_loss = self.criterion(anchor=anchor_embedding,
                                             positive=positive_embedding,
                                             negative=negative_embedding)
-            elif self.cfg_fusion_net.type_of_loss_func == "dmtl":
+            elif self.type_of_loss == "dmtl":
                 train_loss = self.criterion(anchor_tensor=anchor_embedding,
                                             positive_tensor=positive_embedding,
                                             negative_tensor=negative_embedding,
@@ -301,11 +301,11 @@ class TrainFusionNet:
                 negative_embedding = self.model(contour_negative, lbp_negative, rgb_negative, texture_negative)
 
                 # Compute triplet loss
-                if self.cfg_fusion_net.type_of_loss_func == "hmtl":
+                if self.type_of_loss == "hmtl":
                     valid_loss = self.criterion(anchor=anchor_embedding,
                                                 positive=positive_embedding,
                                                 negative=negative_embedding)
-                elif self.cfg_fusion_net.type_of_loss_func == "dmtl":
+                elif self.type_of_loss == "dmtl":
                     valid_loss = self.criterion(anchor_tensor=anchor_embedding,
                                                 positive_tensor=positive_embedding,
                                                 negative_tensor=negative_embedding,
@@ -363,7 +363,7 @@ class TrainFusionNet:
         # To track the validation loss as the model trains
         valid_losses = []
 
-        for epoch in tqdm(range(self.cfg_fusion_net.epochs), desc=colorama.Fore.LIGHTGREEN_EX + "Epochs"):
+        for epoch in tqdm(range(self.cfg_fusion_net.get("epochs")), desc=colorama.Fore.LIGHTGREEN_EX + "Epochs"):
             # Train loop
             train_losses = self.train_loop(train_losses)
             valid_losses = self.valid_loop(valid_losses)

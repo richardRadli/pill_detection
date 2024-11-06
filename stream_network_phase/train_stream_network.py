@@ -275,9 +275,9 @@ class TrainModel:
 
             anchor_indices, positive_indices, negative_indices = indices_tuple
 
-            anchor_filenames = [cp[i] for i in anchor_indices]
-            positive_filenames = [rp[i] for i in positive_indices]
-            negative_filenames = [rp[i] for i in negative_indices]
+            anchor_filenames = [rp[i] for i in anchor_indices]
+            positive_filenames = [cp[i] for i in positive_indices]
+            negative_filenames = [cp[i] for i in negative_indices]
 
             hard_sample = [anchor_filenames, positive_filenames, negative_filenames]
             hard_samples.append(hard_sample)

@@ -127,8 +127,8 @@ class PredictStreamNetwork:
                 ]
             )
 
-        self.plot_dir_folder = self.main_network_config.get('plotting_folder').get("type_of_loss_func")
-        self.results_folder = self.main_network_config.get('prediction_folder').get("type_of_loss_func")
+        self.plot_dir_folder = self.main_network_config.get('plotting_folder').get(self.cfg.get("type_of_loss_func"))
+        self.results_folder = self.main_network_config.get('prediction_folder').get(self.cfg.get("type_of_loss_func"))
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
@@ -147,29 +147,29 @@ class PredictStreamNetwork:
         texture_substream_network_cfg = self.cfg.get("streams").get("Texture")
 
         contour_weight_files_path = (
-            substream_paths().get("Contour").get(self.dataset_type).get(self.network_type).get("model_weights_dir")
+            substream_paths().get("Contour").get(self.dataset_type).get(self.network_type).get("model_weights_dir").get(self.cfg.get("type_of_loss_func"))
         )
         lbp_weight_files_path = (
-            substream_paths().get("LBP").get(self.dataset_type).get(self.network_type).get("model_weights_dir")
+            substream_paths().get("LBP").get(self.dataset_type).get(self.network_type).get("model_weights_dir").get(self.cfg.get("type_of_loss_func"))
         )
         rgb_weight_files_path = (
-            substream_paths().get("RGB").get(self.dataset_type).get(self.network_type).get("model_weights_dir")
+            substream_paths().get("RGB").get(self.dataset_type).get(self.network_type).get("model_weights_dir").get(self.cfg.get("type_of_loss_func"))
         )
         texture_weight_files_path = (
-            substream_paths().get("Texture").get(self.dataset_type).get(self.network_type).get("model_weights_dir")
+            substream_paths().get("Texture").get(self.dataset_type).get(self.network_type).get("model_weights_dir").get(self.cfg.get("type_of_loss_func"))
         )
 
         latest_con_pt_file = find_latest_file_in_latest_directory(
             path=contour_weight_files_path
         )
         latest_lbp_pt_file = find_latest_file_in_latest_directory(
-            path=lbp_weight_files_path,
+            path=lbp_weight_files_path
         )
         latest_rgb_pt_file = find_latest_file_in_latest_directory(
-            path=rgb_weight_files_path,
+            path=rgb_weight_files_path
         )
         latest_tex_pt_file = find_latest_file_in_latest_directory(
-            path=texture_weight_files_path,
+            path=texture_weight_files_path
         )
 
         network_con = StreamNetworkFactory.create_network(self.network_type, contour_substream_network_cfg)

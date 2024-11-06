@@ -35,6 +35,9 @@
         }
       }
     },
+    "upper_norm_limit": {
+      "type": "number"
+    },
     "mining_type": {
       "type": "string",
       "enum": ["semihard", "hard", "easy"]
@@ -137,7 +140,7 @@
       "type": "boolean"
     }
   },
-  "required": ["dataset_type", "type_of_net", "type_of_stream", "type_of_loss_func", ,"networks", "mining_type",
+  "required": ["dataset_type", "type_of_net", "type_of_stream", "type_of_loss_func", "networks", "mining_type",
     "margin", "epochs", "batch_size", "train_valid_ratio", "weight_decay", "step_size", "gamma", "load_ref_vector",
     "streams"]
 }

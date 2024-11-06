@@ -32,7 +32,11 @@ class EfficientNetV2(nn.Module):
         if self.grayscale:
             self.model.conv1 = (
                 nn.Conv2d(
-                    in_channels=1, out_channels=32, kernel_size=3, stride=2, bias=False
+                    in_channels=1,
+                    out_channels=32,
+                    kernel_size=3,
+                    stride=2,
+                    bias=False
                 )
             )
 

@@ -25,7 +25,7 @@ class _Const(object):
     user = os.getlogin()
     root_mapping = {
         "ricsi": {
-            "STORAGE_ROOT ":
+            "STORAGE_ROOT":
                 "D:/storage/pill_detection/VISAPP2024",
             "DATASET_ROOT":
                 "D:/storage/pill_detection/VISAPP2024/datasets",

@@ -42,31 +42,32 @@ class EfficientNetV2MultiHeadAttention(nn.Module):
 
         self.dataset_type = stream_net_cfg.get("dataset_type")
         self.network_type = stream_net_cfg.get("type_of_net")
+        self.loss_type = stream_net_cfg.get("type_of_loss_func")
 
         contour_weight_files_path = (
-            substream_paths().get("Contour").get(self.dataset_type).get(self.network_type).get("model_weights_dir")
+            substream_paths().get("Contour").get(self.dataset_type).get(self.network_type).get("model_weights_dir").get(self.loss_type)
         )
         lbp_weight_files_path = (
-            substream_paths().get("LBP").get(self.dataset_type).get(self.network_type).get("model_weights_dir")
+            substream_paths().get("LBP").get(self.dataset_type).get(self.network_type).get("model_weights_dir").get(self.loss_type)
         )
         rgb_weight_files_path = (
-            substream_paths().get("RGB").get(self.dataset_type).get(self.network_type).get("model_weights_dir")
+            substream_paths().get("RGB").get(self.dataset_type).get(self.network_type).get("model_weights_dir").get(self.loss_type)
         )
         texture_weight_files_path = (
-            substream_paths().get("Texture").get(self.dataset_type).get(self.network_type).get("model_weights_dir")
+            substream_paths().get("Texture").get(self.dataset_type).get(self.network_type).get("model_weights_dir").get(self.loss_type)
         )
 
         latest_con_pt_file = find_latest_file_in_latest_directory(
             path=contour_weight_files_path
         )
         latest_lbp_pt_file = find_latest_file_in_latest_directory(
-            path=lbp_weight_files_path,
+            path=lbp_weight_files_path
         )
         latest_rgb_pt_file = find_latest_file_in_latest_directory(
-            path=rgb_weight_files_path,
+            path=rgb_weight_files_path
         )
         latest_tex_pt_file = find_latest_file_in_latest_directory(
-            path=texture_weight_files_path,
+            path=texture_weight_files_path
         )
 
         self.network_con = StreamNetworkFactory.create_network(self.network_type, contour_substream_network_cfg)

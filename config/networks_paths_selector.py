@@ -212,7 +212,7 @@ def fusion_network_paths(dataset_type: str, network_type: str) -> Dict:
                         DATA_PATH.get_data_path(
                             "weights_fusion_network_efficient_net_v2_multihead_attention_ogyei_v2_hmtl"
                         ),
-                    "dmtt":
+                    "dmtl":
                         DATA_PATH.get_data_path(
                             "weights_fusion_network_efficient_net_v2_multihead_attention_ogyei_v2_dmtl"
                         )

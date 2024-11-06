@@ -98,25 +98,25 @@ def get_hardest_samples():
 
     latest_hard_samples_contour = (
         find_latest_file_in_latest_directory(
-            path=hard_sample_paths.get("hard_sample").get("loss_type").get("Contour")
+            path=hard_sample_paths.get("hard_sample").get(loss_type).get("Contour")
         )
     )
 
     latest_hard_samples_lbp = (
         find_latest_file_in_latest_directory(
-            path=hard_sample_paths.get("hard_sample").get("loss_type").get("LBP")
+            path=hard_sample_paths.get("hard_sample").get(loss_type).get("LBP")
         )
     )
 
     latest_hard_samples_rgb = (
         find_latest_file_in_latest_directory(
-            path=hard_sample_paths.get("hard_sample").get("loss_type").get("RGB")
+            path=hard_sample_paths.get("hard_sample").get(loss_type).get("RGB")
         )
     )
 
     latest_hard_samples_texture = (
         find_latest_file_in_latest_directory(
-            path=hard_sample_paths.get("hard_sample").get("loss_type").get("Texture")
+            path=hard_sample_paths.get("hard_sample").get(loss_type).get("Texture")
         )
     )
 
@@ -159,10 +159,13 @@ def get_hardest_samples():
     class_id_n = None
 
     for file_name in common_triplets:
-        if dataset_type != 'ogyeiv2':
-            raise ValueError(f"Unknown dataset type: {dataset_type}")
         for idx, file in enumerate(file_name):
-            match = re.search(r'id_\d+_(.+?)_\d+\.jpg', file)
+            if "_s_" in file:
+                match = re.search(r'^(.*?)_s_\d{3}\.jpg$', file)
+            elif "_u_" in file:
+                match = re.search(r'^(.*?)_u_\d{3}\.jpg$', file)
+            else:
+                raise ValueError(f"Unrecognized file: {file}")
             if match:
                 value = match.group(1)
                 if idx == 0:

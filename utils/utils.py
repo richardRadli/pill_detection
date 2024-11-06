@@ -115,13 +115,12 @@ def find_latest_file_in_directory(path: str, extension: str) -> str:
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------- F I N D   L A T E S T   F I L E   I N   L A T E S T   D I R E C T O R Y ----------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) -> str:
+def find_latest_file_in_latest_directory(path: str) -> str:
     """
     Finds the latest file in the latest directory within the given path.
 
     Args:
         path (str): The path to the directory where we should look for the latest file.
-        type_of_loss (str, optional): The type of loss to filter directories. Defaults to None.
 
     Returns:
         str: The path to the latest file.
@@ -135,7 +134,6 @@ def find_latest_file_in_latest_directory(path: str, type_of_loss: str = None) ->
     if len(dirs) == 0:
         raise ValueError(f"No directories found in {path}")
 
-    dirs = [path for path in dirs if type_of_loss in path.lower()]
     dirs.sort(key=lambda x: os.path.getmtime(x), reverse=True)
     latest_dir = dirs[0]
     files = [os.path.join(latest_dir, f) for f in os.listdir(latest_dir) if

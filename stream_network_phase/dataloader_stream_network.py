@@ -38,11 +38,11 @@ class DataLoaderStreamNet(Dataset):
 
         # Load datasets
         self.query_images, self.query_labels, _ = (
-            self.load_dataset(dataset_dirs_anchor)
+            self.load_dataset(dataset_dirs_pos_neg)
         )
 
         self.reference_images, self.reference_labels, self.reference_encoding_map = (
-            self.load_dataset(dataset_dirs_pos_neg)
+            self.load_dataset(dataset_dirs_anchor)
         )
 
         self.transform = self.get_transform()
@@ -117,7 +117,7 @@ class DataLoaderStreamNet(Dataset):
             int: The total number of query images.
         """
 
-        return len(self.reference_images)
+        return len(self.query_images)
 
     def __getitem__(self, index: int) -> Tuple[Any, np.ndarray, str, Any, np.ndarray, str]:
         """
@@ -132,21 +132,24 @@ class DataLoaderStreamNet(Dataset):
                 and reference image path.
         """
 
-        # Reference image path
-        reference_image_path = self.reference_images[index]
+        # Reference image
+        reference_index = index % len(self.reference_images)
+        reference_image_path = self.reference_images[reference_index]
         reference_image = self.transform(Image.open(reference_image_path))
-        reference_label = self.reference_labels[index]
+        reference_label = self.reference_labels[reference_index]
 
-        # Query images
-        query_label = reference_label
-        query_indices = np.where(np.array(self.query_labels) == query_label)[0]
+        # Find a query image with the same label as the reference image
+        query_indices = np.where(np.array(self.query_labels) == reference_label)[0]
 
         if len(query_indices) == 0:
-            query_image_path = self.query_images[-1]
+            # If no matching query image, fall back to a random query image
+            query_index = np.random.randint(len(self.query_images))
         else:
+            # Randomly choose a query image with the same label
             query_index = np.random.choice(query_indices)
-            query_image_path = self.query_images[query_index]
 
+        query_image_path = self.query_images[query_index]
         query_image = self.transform(Image.open(query_image_path))
+        query_label = self.query_labels[query_index]
 
         return query_image, query_label, query_image_path, reference_image, reference_label, reference_image_path

@@ -313,13 +313,17 @@ class CreateStreamImages:
         for idx, (file_rgb, file_contour, file_texture, file_lbp) in \
                 tqdm(enumerate(zip(files_rgb, files_contour, files_texture, files_lbp)), desc="Copying image files"):
 
-            if self.dataset_type == 'ogyeiv2':
-                match = re.search(r'id_\d+_(.+?)_\d+\.jpg', file_rgb)
-                if not match:
-                    raise ValueError("The RGB image file is not in the correct format.")
+            if "_s_" in file_rgb:
+                match = re.search(r'^(.*?)_s_\d{3}\.jpg$', file_rgb)
+            elif "_u_" in file_rgb:
+                match = re.search(r'^(.*?)_u_\d{3}\.jpg$', file_rgb)
+            else:
+                match = None
+
+            if match:
                 value = match.group(1)
             else:
-                raise ValueError("Wrong dataset type has given!")
+                raise ValueError(f"Wrong file name: {file_rgb}")
 
             out_path_rgb = os.path.join(rgb_path, value)
             out_path_contour = os.path.join(contour_path, value)
