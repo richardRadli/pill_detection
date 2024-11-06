@@ -36,7 +36,7 @@ class _Const(object):
 
     if user in root_mapping:
         root_info = root_mapping[user]
-        STORAGE_ROOT = root_info["STORAGE_ROOT "]
+        STORAGE_ROOT = root_info["STORAGE_ROOT"]
         DATASET_ROOT = root_info["DATASET_ROOT"]
         PROJECT_ROOT = root_info["PROJECT_ROOT"]
     else:
@@ -93,12 +93,7 @@ class ConfigFilePaths(_Const):
         "config_streamnet":
             "config/json_files/streamnet_config.json",
         "config_schema_streamnet":
-            "config/json_files/streamnet_config_schema.json",
-
-        "config_unet":
-            "config/json_files/unet_config.json",
-        "config_schema_unet":
-            "config/json_files/unet_config_schema.json"
+            "config/json_files/streamnet_config_schema.json"
     }
 
     # ------------------------------------------------------------------------------------------------------------------
