@@ -4,6 +4,7 @@ import gc
 import random
 
 from tqdm import tqdm
+from typing import Tuple, List
 
 from augmentation_utils import (change_brightness, gaussian_smooth, rotate_image_segmentation, shift_image_segmentation,
                                 zoom_in_object_segmentation, change_white_balance, change_background_dtd)
@@ -13,26 +14,27 @@ from utils.utils import file_reader, load_config_json
 
 
 class AugmentCUREDataset:
-    def __init__(self, operation):
+    def __init__(self):
         colorama.init()
+
+        # Load configuration for augmentation settings
         self.cfg_aug = (
             load_config_json(
                 json_schema_filename=json_config_selector("augmentation").get("schema"),
                 json_filename=json_config_selector("augmentation").get("config")
             )
         )
-        self.operation = operation
+
+        # Load dataset paths
         dataset_name = self.cfg_aug.get("dataset_name")
-        
-        # Train data paths
-        self.training_images = (
-            dataset_images_path_selector(dataset_name=dataset_name).get("train").get("images")
+        self.training_images_path = (
+            dataset_images_path_selector(dataset_name=dataset_name).get("reference").get("reference_images")
         )
-        self.training_annotations = (
-            dataset_images_path_selector(dataset_name=dataset_name).get("train").get("segmentation_labels")
+        self.train_masks_path = (
+            dataset_images_path_selector(dataset_name=dataset_name).get("reference").get("reference_mask_images")
         )
-        self.train_masks = (
-            dataset_images_path_selector(dataset_name=dataset_name).get("train").get("mask_images")
+        self.training_annotations_path = (
+            dataset_images_path_selector(dataset_name=dataset_name).get("reference").get("reference_labels")
         )
         self.train_aug_img_path = (
             dataset_images_path_selector(dataset_name=dataset_name).get("train").get("aug_images")
@@ -43,170 +45,188 @@ class AugmentCUREDataset:
         self.train_aug_mask_path = (
             dataset_images_path_selector(dataset_name=dataset_name).get("train").get("aug_mask_images")
         )
-
-        # Valid data paths
-        self.valid_images = (
-            dataset_images_path_selector(dataset_name=dataset_name).get("valid").get("images")
-        )
-        self.valid_annotations = (
-            dataset_images_path_selector(dataset_name=dataset_name).get("valid").get("segmentation_labels")
-        )
-        self.valid_masks = (
-            dataset_images_path_selector(dataset_name=dataset_name).get("valid").get("mask_images")
-        )
-        self.valid_aug_img_path = (
-            dataset_images_path_selector(dataset_name=dataset_name).get("valid").get("aug_images")
-        )
-        self.valid_aug_annotation_path = (
-            dataset_images_path_selector(dataset_name=dataset_name).get("valid").get("aug_yolo_labels")
-        )
-        self.valid_aug_mask_path = (
-            dataset_images_path_selector(dataset_name=dataset_name).get("valid").get("aug_mask_images")
-        )
-
         self.background_images = (
-            dataset_images_path_selector(dataset_name="dtd").get("dataset_path"))
+            dataset_images_path_selector(dataset_name="dtd").get("dataset_path")
+        )
 
-    def path_select(self, operation):
+    @staticmethod
+    def path_select(training_images, training_annotations, train_masks)  -> Tuple[List[str], List[str], List[str]]:
         """
-        
-        Args
-             operation:
-        
+        Selects and returns paths for images, annotations, and masks.
+
+        Args:
+            training_images (str): Path to the directory containing image files.
+            training_annotations (str): Path to the directory containing annotation files.
+            train_masks (str): Path to the directory containing mask files.
+
         Returns:
-        
+            Tuple[List[str], List[str], List[str]]: Lists of file paths for images, annotations, and masks.
         """
 
-        image = self.training_images if operation == "train" else self.valid_images
-        anno = self.training_annotations if operation == "train" else self.valid_annotations
-        mask = self.train_masks if operation == "train" else self.valid_masks
+        image_files = file_reader(training_images, "jpg")
+        annotation_files = file_reader(training_annotations, "txt")
+        mask_files = file_reader(train_masks, "jpg")
 
-        aug_image = self.train_aug_img_path if operation == "train" else self.valid_aug_img_path
-        aug_anno = self.train_aug_annotation_path if operation == "train" else self.valid_aug_annotation_path
-        aug_mask = self.train_aug_mask_path if operation == "train" else self.valid_aug_mask_path
-
-        image_files = file_reader(image, "jpg")
-        annotation_files = file_reader(anno, "txt")
-        mask_files = file_reader(mask, "jpg")
-
-        return image_files, annotation_files, mask_files, aug_image, aug_anno, aug_mask
+        return image_files, annotation_files, mask_files
 
     def process_image(self, image_path: str, anno_path: str, mask_path: str, aug_image_path: str, aug_anno_path: str,
                       aug_mask_path: str) -> None:
         """
-        This function executes the various image augmentation operations.
+        Perform augmentations like white balance, Gaussian smoothing, brightness, rotation, shift, and zoom
+        Each function call should have unique parameters or randomized values per round for variation
 
         Args:
-             image_path: Path to the images.
+             image_path: Path to the image.
              anno_path: Path to the annotations.
              mask_path: Path to the mask images.
-             aug_image_path: Path to the augmented images.
-             aug_anno_path: Path to the augmented annotations.
-             aug_mask_path: Path to the augmented mask images.
-
-        Returns:
-             None
+             aug_image_path: Path to save augmented images.
+             aug_anno_path: Path to save augmented annotations.
+             aug_mask_path: Path to save augmented mask images.
         """
 
-        change_white_balance(image_path=image_path,
-                             annotation_path=anno_path,
-                             mask_path=mask_path,
-                             aug_img_path=aug_image_path,
-                             aug_annotation_path=aug_anno_path,
-                             aug_mask_path=aug_mask_path,
-                             domain=(self.cfg_aug.get("wb_low_thr"), self.cfg_aug.get("wb_high_thr")))
-        gaussian_smooth(image_path=image_path,
-                        annotation_path=anno_path,
-                        mask_path=mask_path,
-                        aug_img_path=aug_image_path,
-                        aug_annotation_path=aug_anno_path,
-                        aug_mask_path=aug_mask_path,
-                        kernel=(self.cfg_aug.get("kernel_size"), self.cfg_aug.get("kernel_size")))
-        change_brightness(image_path=image_path,
-                          annotation_path=anno_path,
-                          mask_path=mask_path,
-                          aug_img_path=aug_image_path,
-                          aug_annotation_path=aug_anno_path,
-                          aug_mask_path=aug_mask_path,
-                          exposure_factor=random.uniform(
-                              self.cfg_aug.get("brightness_low_thr"), self.cfg_aug.get("brightness_high_thr")
-                          ))
-        rotate_image_segmentation(image_path=image_path,
-                                  annotation_path=anno_path,
-                                  mask_path=mask_path,
-                                  aug_img_path=aug_image_path,
-                                  aug_annotation_path=aug_anno_path,
-                                  aug_mask_path=aug_mask_path,
-                                  angle=self.cfg_aug.get("rotate_1"))
-        rotate_image_segmentation(image_path=image_path,
-                                  annotation_path=anno_path,
-                                  mask_path=mask_path,
-                                  aug_img_path=aug_image_path,
-                                  aug_annotation_path=aug_anno_path,
-                                  aug_mask_path=aug_mask_path,
-                                  angle=self.cfg_aug.get("rotate_2"))
-        shift_image_segmentation(image_path=image_path,
-                                 annotation_path=anno_path,
-                                 mask_path=mask_path,
-                                 aug_img_path=aug_image_path,
-                                 aug_annotation_path=aug_anno_path,
-                                 aug_mask_path=aug_mask_path,
-                                 shift_x=self.cfg_aug.get("shift_x"),
-                                 shift_y=self.cfg_aug.get("shift_y")
-                                 )
-        zoom_in_object_segmentation(image_path=image_path,
-                                    annotation_path=anno_path,
-                                    mask_path=mask_path,
-                                    aug_img_path=aug_image_path,
-                                    aug_annotation_path=aug_anno_path,
-                                    aug_mask_path=aug_mask_path,
-                                    crop_size=self.cfg_aug.get("zoom"))
+        change_white_balance(
+            image_path=image_path,
+            annotation_path=anno_path,
+            mask_path=mask_path,
+            aug_img_path=aug_image_path,
+            aug_annotation_path=aug_anno_path,
+            aug_mask_path=aug_mask_path,
+            domain=(self.cfg_aug.get("wb_low_thr"), self.cfg_aug.get("wb_high_thr"))
+        )
+        gaussian_smooth(
+            image_path=image_path,
+            annotation_path=anno_path,
+            mask_path=mask_path,
+            aug_img_path=aug_image_path,
+            aug_annotation_path=aug_anno_path,
+            aug_mask_path=aug_mask_path,
+            kernel=random.randint(self.cfg_aug.get("kernel_size_1"), self.cfg_aug.get("kernel_size_2"))
+        )
+        change_brightness(
+            image_path=image_path,
+            annotation_path=anno_path,
+            mask_path=mask_path,
+            aug_img_path=aug_image_path,
+            aug_annotation_path=aug_anno_path,
+            aug_mask_path=aug_mask_path,
+            exposure_factor=random.uniform(
+                self.cfg_aug.get("brightness_low_thr"), self.cfg_aug.get("brightness_high_thr")
+            )
+        )
+        rotate_image_segmentation(
+            image_path=image_path,
+            annotation_path=anno_path,
+            mask_path=mask_path,
+            aug_img_path=aug_image_path,
+            aug_annotation_path=aug_anno_path,
+            aug_mask_path=aug_mask_path,
+            angle=random.randint(self.cfg_aug.get("rotate_1"), self.cfg_aug.get("rotate_2"))
+        ),
+        shift_image_segmentation(
+            image_path=image_path,
+            annotation_path=anno_path,
+            mask_path=mask_path,
+            aug_img_path=aug_image_path,
+            aug_annotation_path=aug_anno_path,
+            aug_mask_path=aug_mask_path,
+            shift_x=random.randint(self.cfg_aug.get("shift_x_1"), self.cfg_aug.get("shift_x_2")),
+            shift_y=random.randint(self.cfg_aug.get("shift_y_1"), self.cfg_aug.get("shift_y_2")),
+        )
+        zoom_in_object_segmentation(
+            image_path=image_path,
+            annotation_path=anno_path,
+            mask_path=mask_path,
+            aug_img_path=aug_image_path,
+            aug_annotation_path=aug_anno_path,
+            aug_mask_path=aug_mask_path,
+            crop_size=random.randint(self.cfg_aug.get("zoom_1"), self.cfg_aug.get("zoom_2"))
+        )
 
-    def change_bg(self, image_path, anno_path, mask_path, aug_img_path, aug_anno_path):
+    def change_bg(self, image_path: str, anno_path: str, mask_path: str) -> None:
         """
+        Changes the background of the given image based on the specified mask.
+
         Args:
-             image_path:
-             anno_path:
-             mask_path:
-             aug_img_path:
-             aug_anno_path:
-             
-        Returns:
+            image_path (str): Path to the input image file.
+            anno_path (str): Path to the annotation file associated with the image.
+            mask_path (str): Path to the mask file to be used for background change.
 
+        Returns:
+            None
         """
 
         change_background_dtd(image_path=image_path,
                               mask_path=mask_path,
                               annotation_path=anno_path,
-                              aug_image_path=aug_img_path,
-                              aug_annotation_path=aug_anno_path,
                               backgrounds_path=self.background_images)
 
-    def main(self):
-        image_files, annotation_files, mask_files, aug_image, aug_anno, aug_mask = self.path_select(self.operation)
+    def aug(self) -> None:
+        """
+         Augments images by applying transformations to increase dataset size.
+
+         Loads image, annotation, and mask files, calculates the required number
+         of augmentations, and applies them using concurrent processing.
+
+         Returns:
+             None
+         """
+
+        image_files, annotation_files, mask_files = (
+            self.path_select(self.training_images_path, self.training_annotations_path, self.train_masks_path)
+        )
 
         assert len(image_files) == len(annotation_files) == len(mask_files)
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.cfg_aug.get("max_workers")) as executor:
+        original_images_count = len(image_files)
+        target_augmentations = self.cfg_aug.get("number_of_aug_images")
+
+        assert original_images_count < target_augmentations
+
+        augmentations_per_image = target_augmentations // original_images_count
+        total_augmentations = original_images_count * augmentations_per_image
+
+        completed_augmentations = 0
+
+        with concurrent.futures.ProcessPoolExecutor(max_workers=self.cfg_aug.get("max_workers")) as executor:
             futures = []
             for image_path, annotation_path, mask_path in zip(image_files, annotation_files, mask_files):
-                future = \
-                    executor.submit(
-                        self.process_image, image_path, annotation_path, mask_path, aug_image, aug_anno, aug_mask
+                for i in range(augmentations_per_image):
+                    future = executor.submit(
+                        self.process_image, image_path, annotation_path, mask_path,
+                        self.train_aug_img_path, self.train_aug_annotation_path, self.train_aug_mask_path
                     )
-                futures.append(future)
+                    futures.append(future)
 
-            for _ in tqdm(concurrent.futures.as_completed(futures),
-                          total=len(futures),
-                          desc=colorama.Fore.BLUE + "Augmenting images"):
-                pass
+            for _ in tqdm(concurrent.futures.as_completed(futures), total=total_augmentations, desc="Aug. images"):
+                completed_augmentations += 1
+                if completed_augmentations >= target_augmentations:
+                    break
 
-        assert len(image_files) == len(annotation_files) == len(mask_files)
+    def change_background(self) -> None:
+        """
+        Changes the backgrounds of all augmented images using masks.
+
+        Loads augmented image, annotation, and mask files, and applies
+        background change using concurrent processing.
+
+        Returns:
+            None
+        """
+
+        aug_image_files, aug_annotation_files, aug_mask_files = (
+            self.path_select(
+                self.train_aug_img_path,
+                self.train_aug_annotation_path,
+                self.train_aug_mask_path
+            )
+        )
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.cfg_aug.get("max_workers")) as executor:
             futures = []
-            for image_path, annotation_path, mask_path in zip(image_files, annotation_files, mask_files):
-                future = executor.submit(self.change_bg, image_path, annotation_path, mask_path, aug_image, aug_anno)
+            for image_path, annotation_path, mask_path in zip(aug_image_files, aug_annotation_files, aug_mask_files):
+                future = executor.submit(
+                    self.change_bg, image_path, annotation_path, mask_path
+                )
                 futures.append(future)
                 gc.collect()
 
@@ -215,7 +235,22 @@ class AugmentCUREDataset:
                           desc=colorama.Fore.CYAN + "Changing backgrounds"):
                 pass
 
+    def main(self) -> None:
+        """
+        Executes the main processing pipeline: image augmentation followed by background change.
+
+        This function first calls the `aug` method to augment images, then
+        calls `change_background` to alter the backgrounds of the augmented images.
+
+        Returns:
+            None
+        """
+
+        self.aug()
+        self.change_background()
+
 
 if __name__ == "__main__":
-    aug_cure = AugmentCUREDataset(operation="train")
+    aug_cure = AugmentCUREDataset()
     aug_cure.main()
+

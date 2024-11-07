@@ -10,13 +10,17 @@
     },
     "wb_low_thr": {
       "type": "number",
-      "description": "Minimum threshold value for Canny edge detector"
+      "description": "Minimum threshold value for temperature"
     },
     "wb_high_thr": {
       "type": "number",
-      "description": "Maximum threshold value for Canny edge detector"
+      "description": "Maximum threshold value for temperature"
     },
-    "kernel_size": {
+    "kernel_size_1": {
+      "type": "integer",
+      "description": "Size of the kernel of the Gaussian filter."
+    },
+    "kernel_size_2": {
       "type": "integer",
       "description": "Size of the kernel of the Gaussian filter."
     },
@@ -36,21 +40,36 @@
       "type": "integer",
       "description": "Angle of rotation to the other direction."
     },
-    "shift_x": {
+    "shift_x_1": {
       "type": "integer",
       "description": "Shift by axis X."
     },
-    "shift_y": {
+    "shift_y_1": {
       "type": "integer",
       "description": "Shift by axis Y."
     },
-    "zoom": {
+    "shift_x_2": {
+      "type": "integer",
+      "description": "Shift by axis X."
+    },
+    "shift_y_2": {
+      "type": "integer",
+      "description": "Shift by axis Y."
+    },
+    "zoom1": {
+      "type": "integer",
+      "description": "Amount of zoom."
+    },
+    "zoom2": {
       "type": "integer",
       "description": "Amount of zoom."
     },
     "scale_pill_img": {
-      "type": "integer",
+      "type": "number",
       "description": "Amount of scale."
+    },
+    "number_of_aug_images": {
+      "type": "integer"
     },
     "max_workers": {
       "type": "number",

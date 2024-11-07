@@ -521,50 +521,19 @@ class Datasets(_Const):
             "cure/Reference/mask_images",
         "cure_reference_segmentation_labels":
             "cure/Reference/segmentation_labels",
-        "cure_reference_yolo_labels":
-            "cure/Reference/yolo_labels",
-
-        # CUSTOMER SPLITTED
-        "cure_train_images":
-            "cure/Customer_splitted/train_dir/images",
-        "cure_train_mask_images":
-            "cure/Customer_splitted/train_dir/mask_images",
-        "cure_train_segmentation_labels":
-            "cure/Customer_splitted/train_dir/segmentation_labels",
-
-        "cure_valid_images":
-            "cure/Customer_splitted/valid_dir/images",
-        "cure_valid_mask_images":
-            "cure/Customer_splitted/valid_dir/mask_images",
-        "cure_valid_segmentation_labels":
-            "cure/Customer_splitted/valid_dir/segmentation_labels",
-
-        "cure_test_images":
-            "cure/Customer_splitted/test_dir/images",
-        "cure_test_mask_images":
-            "cure/Customer_splitted/test_dir/mask_images",
-        "cure_test_segmentation_labels":
-            "cure/Customer_splitted/test_dir/segmentation_labels",
 
         # CUSTOMER SPLITTED AUGMENTED
         "cure_train_aug_images":
-            "cure/Customer_splitted_aug/train_dir/images",
+            "cure/Augmented/train_dir/images",
         "cure_train_aug_yolo_labels":
-            "cure/Customer_splitted_aug/train_dir/yolo_labels",
+            "cure/Augmented/train_dir/yolo_labels",
         "cure_train_aug_mask_images":
-            "cure/Customer_splitted_aug/train_dir/mask_images",
-
-        "cure_valid_aug_images":
-            "cure/Customer_splitted_aug/valid_dir/images",
-        "cure_valid_aug_yolo_labels":
-            "cure/Customer_splitted_aug/valid_dir/yolo_labels",
-        "cure_valid_aug_mask_images":
-            "cure/Customer_splitted_aug/valid_dir/mask_images",
+            "cure/Augmented/train_dir/mask_images",
 
         "cure_test_aug_images":
-            "cure/Customer_splitted_aug/test_dir/images",
+            "cure/Augmented/test_dir/images",
         "cure_test_aug_yolo_labels":
-            "cure/Customer_splitted_aug/test_dir/yolo_labels",
+            "cure/Augmented/test_dir/yolo_labels",
 
         # ------------------------------------------------- O G Y E I --------------------------------------------------
         # CUSTOMER

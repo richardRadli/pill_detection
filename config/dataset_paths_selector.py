@@ -30,16 +30,10 @@ def dataset_images_path_selector(dataset_name: str):
                 "reference_mask_images":
                     DATASET_PATH.get_data_path("cure_reference_mask_images"),
                 "reference_labels":
-                    DATASET_PATH.get_data_path("cure_reference_yolo_labels"),
+                    DATASET_PATH.get_data_path("cure_reference_segmentation_labels"),
             },
 
             "train": {
-                "images":
-                    DATASET_PATH.get_data_path("cure_train_images"),
-                "mask_images":
-                    DATASET_PATH.get_data_path("cure_train_mask_images"),
-                "segmentation_labels":
-                    DATASET_PATH.get_data_path("cure_train_segmentation_labels"),
                 "aug_images":
                     DATASET_PATH.get_data_path("cure_train_aug_images"),
                 "aug_yolo_labels":
@@ -48,28 +42,7 @@ def dataset_images_path_selector(dataset_name: str):
                     DATASET_PATH.get_data_path("cure_train_aug_mask_images"),
             },
 
-            "valid": {
-                "images":
-                    DATASET_PATH.get_data_path("cure_valid_images"),
-                "mask_images":
-                    DATASET_PATH.get_data_path("cure_valid_mask_images"),
-                "segmentation_labels":
-                    DATASET_PATH.get_data_path("cure_valid_segmentation_labels"),
-                "aug_images":
-                    DATASET_PATH.get_data_path("cure_valid_aug_images"),
-                "aug_yolo_labels":
-                    DATASET_PATH.get_data_path("cure_valid_aug_yolo_labels"),
-                "aug_mask_images":
-                    DATASET_PATH.get_data_path("cure_valid_aug_mask_images"),
-            },
-
             "test": {
-                "images":
-                    DATASET_PATH.get_data_path("cure_test_images"),
-                "mask_images":
-                    DATASET_PATH.get_data_path("cure_test_mask_images"),
-                "segmentation_labels":
-                    DATASET_PATH.get_data_path("cure_test_segmentation_labels"),
                 "aug_images":
                     DATASET_PATH.get_data_path("cure_test_aug_images"),
                 "aug_yolo_labels":

@@ -12,14 +12,10 @@ import logging
 import numpy as np
 import os
 import random
+import threading
 import shutil
 
-from typing import Tuple
 
-
-# ----------------------------------------------------------------------------------------------------------------------
-# --------------------------------------------- R E N A M E   F I L E --------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
 def rename_file(src_path: str, dst_path: str, op: str) -> str:
     """
     Rename the file by appending the operation name and a counter to the filename.
@@ -51,54 +47,65 @@ def rename_file(src_path: str, dst_path: str, op: str) -> str:
     return final_file_name
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# ---------------------------------------- U N I Q U E   C O U N T   A P P ---------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def unique_count_app(img: np.ndarray) -> tuple:
+def save_data(
+        image_path: str,
+        aug_img_path: str,
+        mask_path: str,
+        aug_mask_path: str,
+        annotation_path: str,
+        aug_annotation_path: str,
+        image,
+        mask,
+        filename: str,
+        txt_op: str,
+        annotation=None
+):
     """
-    Get the most common color in the image based on unique color counts.
+    Saves augmented images, masks, and annotations to specified paths,
+    with options to copy, overwrite, or handle segmentation annotations.
 
     Args:
-        img (np.ndarray): The input image.
+        image_path (str): Path to the original image file.
+        aug_img_path (str): Path to save the augmented image file.
+        mask_path (str): Path to the original mask file.
+        aug_mask_path (str): Path to save the augmented mask file.
+        annotation_path (str): Path to the original annotation file.
+        aug_annotation_path (str): Path to save the augmented annotation file.
+        image: Augmented image data to save (compatible with `cv2.imwrite`).
+        mask: Augmented mask data to save (compatible with `cv2.imwrite`).
+        filename (str): Base filename for saving augmented files.
+        txt_op (str): Operation to perform on the annotation file; options are
+                      "copy", "overwrite", or "segmentation".
+        annotation (Optional[List[str]]): New annotation content for "overwrite"
+                                          or "segmentation" modes.
 
     Returns:
-        tuple: The most common color in the image as a tuple of (R, G, B) values.
+        None
     """
 
-    img = cv2.resize(img, (img.shape[1] // 4, img.shape[0] // 4))
-    colors, count = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
-    return tuple(colors[count.argmax()])
+    with threading.Lock():
+        new_image_file_name = rename_file(src_path=image_path, dst_path=aug_img_path, op=filename)
+        cv2.imwrite(new_image_file_name, image)
+
+        new_mask_file_name = rename_file(src_path=mask_path, dst_path=aug_mask_path, op=filename)
+        cv2.imwrite(new_mask_file_name, mask)
+
+        new_annotation_file_name = rename_file(src_path=annotation_path, dst_path=aug_annotation_path, op=filename)
+        if txt_op == "copy":
+            shutil.copy(annotation_path, new_annotation_file_name)
+        elif txt_op == "overwrite":
+            with open(new_annotation_file_name, 'w') as f:
+                f.write('\n'.join(annotation))
+        elif txt_op == "segmentation":
+            with open(new_annotation_file_name, 'w') as f:
+                f.write(annotation)
+        else:
+            raise ValueError(f"Wrong txt operation: {txt_op}")
 
 
-def save_data(
-        image_path, aug_img_path, mask_path, aug_mask_path, annotation_path, aug_annotation_path, image, mask, filename,
-        txt_op, annotation=None
-):
-    new_image_file_name = rename_file(src_path=image_path, dst_path=aug_img_path, op=filename)
-    cv2.imwrite(new_image_file_name, image)
-
-    new_mask_file_name = rename_file(src_path=mask_path, dst_path=aug_mask_path, op=filename)
-    cv2.imwrite(new_mask_file_name, mask)
-
-    new_annotation_file_name = rename_file(src_path=annotation_path, dst_path=aug_annotation_path, op=filename)
-    if txt_op == "copy":
-        shutil.copy(annotation_path, new_annotation_file_name)
-    elif txt_op == "overwrite":
-        with open(new_annotation_file_name, 'w') as f:
-            f.write('\n'.join(annotation))
-    elif txt_op == "segmentation":
-        with open(new_annotation_file_name, 'w') as f:
-            f.write(annotation)
-    else:
-        raise ValueError(f"Wrong txt operation: {txt_op}")
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ---------------------------------------------- D I S T O R T   C O L O R ---------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
 def change_white_balance(image_path: str, annotation_path: str, mask_path: str,
                          aug_img_path: str, aug_annotation_path: str, aug_mask_path: str,
-                         domain: Tuple[float, float] = (0.7, 1.2)) -> None:
+                         domain: tuple) -> None:
     """
     Apply white balance distortion to an image and save the distorted image.
 
@@ -117,13 +124,10 @@ def change_white_balance(image_path: str, annotation_path: str, mask_path: str,
     mask = cv2.imread(mask_path)
     filename = "distorted_colour"
 
-    # Generate random scaling factors for each color channel
     scale_factors = np.random.uniform(low=domain[0], high=domain[1], size=(3,))
 
-    # Apply the scaling factors to the image
     adjusted_image = image * scale_factors
 
-    # Clip the pixel values to the valid range [0, 255]
     adjusted_image = np.clip(adjusted_image, 0, 255)
     adjusted_image = adjusted_image.astype(np.uint8)
 
@@ -133,11 +137,8 @@ def change_white_balance(image_path: str, annotation_path: str, mask_path: str,
     )
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------- G A U S S I A N   S M O O T H --------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
 def gaussian_smooth(image_path: str, annotation_path: str, mask_path: str, aug_img_path: str,
-                    aug_annotation_path: str, aug_mask_path: str, kernel: tuple) -> None:
+                    aug_annotation_path: str, aug_mask_path: str, kernel: int) -> None:
     """
     Apply Gaussian smoothing to an image and save the smoothed image.
 
@@ -148,23 +149,20 @@ def gaussian_smooth(image_path: str, annotation_path: str, mask_path: str, aug_i
         aug_img_path (str): Path to the augmented image.
         aug_annotation_path (str): Path to the augmented annotation file.
         aug_mask_path (str): Path to the augmented mask image.
-        kernel (tuple): Kernel size for Gaussian smoothing in the form of (width, height).
+        kernel (int): Kernel size for Gaussian smoothing.
     """
 
     image = cv2.imread(image_path)
     mask = cv2.imread(mask_path)
-    filename = "gaussian_%s" % str(kernel[0])
+    filename = "gaussian_%s" % str(kernel)
 
-    smoothed_image = cv2.GaussianBlur(image, kernel, 0)
+    smoothed_image = cv2.GaussianBlur(image, (kernel, kernel), 0)
 
     save_data(image_path, aug_img_path, mask_path, aug_mask_path, annotation_path, aug_annotation_path,
               smoothed_image, mask, filename, txt_op="copy"
               )
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# ----------------------------------------- C H A N G E   B R I G H T N E S S ------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
 def change_brightness(image_path: str, annotation_path: str, mask_path: str, aug_img_path: str,
                       aug_annotation_path: str, aug_mask_path: str, exposure_factor: float) -> None:
     """
@@ -195,7 +193,24 @@ def change_brightness(image_path: str, annotation_path: str, mask_path: str, aug
               )
 
 
-def rotate_operation(image_path, mask_path, angle):
+def rotate_operation(image_path: str, mask_path: str, angle: float) -> tuple:
+    """
+    Rotates the specified image and mask by a given angle and returns the original
+    and rotated images, rotated mask, and rotation center.
+
+    Args:
+        image_path (str): Path to the image file to rotate.
+        mask_path (str): Path to the mask file to rotate.
+        angle (float): Angle in degrees by which to rotate the image and mask.
+
+    Returns:
+        Tuple: A tuple containing:
+            - original_image: The original unrotated image.
+            - rotated_image: The rotated image.
+            - rotated_mask: The rotated mask.
+            - center: The center point of rotation as a tuple (x, y).
+    """
+
     # Read the original image and mask
     original_image = cv2.imread(image_path)
     mask = cv2.imread(mask_path)
@@ -209,66 +224,6 @@ def rotate_operation(image_path, mask_path, angle):
     rotated_mask = cv2.warpAffine(mask, rotation_matrix, (mask.shape[1], mask.shape[0]))
 
     return original_image, rotated_image, rotated_mask, center
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ---------------------------------------------- R O T A T E   I M A G E -----------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def rotate_image(image_path: str, annotation_path: str, mask_path: str, aug_img_path: str,
-                 aug_annotation_path: str, aug_mask_path: str, angle: int) -> None:
-    """
-    Rotate an image and save the rotated image.
-
-    Args:
-        image_path (str): Path to the input image.
-        annotation_path (str): Path to the annotation file.
-        mask_path (str): Path to save the rotated image.
-        aug_img_path (str): Path to the augmented image.
-        aug_annotation_path (str): Path to the augmented annotation file.
-        aug_mask_path (str): Path to the augmented mask image.
-        angle (int): Angle of rotation in degrees.
-    """
-    filename = f"rotated_{angle}"
-
-    original_image, rotated_image, rotated_mask, center = rotate_operation(image_path, mask_path, angle)
-
-    # Read the annotations file
-    with open(annotation_path, 'r') as f:
-        annotations = f.readlines()
-
-    rotated_annotations = []
-    for annotation in annotations:
-        class_id, x_center, y_center, width, height = map(float, annotation.strip().split())
-
-        # Convert angles to radians
-        angle_rad = np.radians(angle)
-
-        # Rotate the center coordinates
-        x_center_rotated = (x_center * original_image.shape[1] - center[0]) * np.cos(angle_rad) - \
-                           (y_center * original_image.shape[0] - center[1]) * np.sin(angle_rad) + center[0]
-
-        y_center_rotated = (x_center * original_image.shape[1] - center[0]) * np.sin(angle_rad) + \
-                           (y_center * original_image.shape[0] - center[1]) * np.cos(angle_rad) + center[1]
-
-        width_rotated = width * original_image.shape[1]
-        height_rotated = height * original_image.shape[0]
-
-        rotated_box = (
-            x_center_rotated,
-            y_center_rotated,
-            x_center_rotated + width_rotated,
-            y_center_rotated + height_rotated
-        )
-
-        rotated_annotation = f"{int(class_id)} {rotated_box[0] / rotated_image.shape[1]:.6f} " \
-                             f"{rotated_box[1] / rotated_image.shape[0]:.6f} " \
-                             f"{(rotated_box[2] - rotated_box[0]) / rotated_image.shape[1]:.6f} " \
-                             f"{(rotated_box[3] - rotated_box[1]) / rotated_image.shape[0]:.6f}"
-
-        rotated_annotations.append(rotated_annotation)
-
-    save_data(image_path, aug_img_path, mask_path, aug_mask_path, annotation_path, aug_annotation_path,
-              rotated_image, rotated_mask, filename, txt_op="overwrite", annotation=rotated_annotations)
 
 
 def rotate_image_segmentation(image_path: str, annotation_path: str, mask_path: str, aug_img_path: str,
@@ -285,6 +240,7 @@ def rotate_image_segmentation(image_path: str, annotation_path: str, mask_path: 
         aug_mask_path (str): Path to the augmented mask image.
         angle (int): Angle of rotation in degrees.
     """
+
     filename = f"rotated_{angle}"
     original_image, rotated_image, rotated_mask, center = rotate_operation(image_path, mask_path, angle)
 
@@ -323,78 +279,6 @@ def rotate_image_segmentation(image_path: str, annotation_path: str, mask_path: 
               rotated_image, rotated_mask, filename, txt_op="overwrite", annotation=rotated_annotations)
 
 
-def shift_image_operation(image_path, mask_path, aug_img_path, aug_mask_path, shift_x, shift_y):
-    """
-
-    :param image_path:
-    :param mask_path:
-    :param aug_img_path:
-    :param aug_mask_path:
-    :param shift_x:
-    :param shift_y:
-    :return:
-    """
-
-    image = cv2.imread(image_path)
-    mask = cv2.imread(mask_path)
-
-    # Shift image in x and y directions
-    rows, cols, _ = image.shape
-    mtx = np.float32([[1, 0, shift_x], [0, 1, shift_y]])
-    shifted_image = cv2.warpAffine(image, mtx, (cols, rows))
-    shifted_mask = cv2.warpAffine(mask, mtx, (cols, rows))
-
-    # Write the shifted image and mask
-    cv2.imwrite(aug_img_path, shifted_image)
-    cv2.imwrite(aug_mask_path, shifted_mask)
-
-    return shifted_image, shifted_mask, rows, cols
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ----------------------------------------------- S H I F T   I M A G E ------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def shift_image(image_path: str, annotation_path: str, mask_path: str, aug_img_path: str,
-                aug_annotation_path: str, aug_mask_path: str, shift_x: int = 50, shift_y: int = 100) -> None:
-    """
-    Shift an image and save the shifted image.
-
-    Args:
-        image_path (str): Path to the input image.
-        annotation_path (str): Path to the annotation file.
-        mask_path (str): Path to save the mask image.
-        aug_img_path (str): Path to the augmented image.
-        aug_annotation_path (str): Path to the augmented annotation file.
-        aug_mask_path (str): Path to the augmented mask image.
-        shift_x (int, optional): Amount of horizontal shift. Defaults to 50.
-        shift_y (int, optional): Amount of vertical shift. Defaults to 100.
-    """
-
-    shifted_image, shifted_mask, rows, cols = shift_image_operation(
-        image_path,
-        mask_path,
-        aug_img_path,
-        aug_mask_path,
-        shift_x,
-        shift_y
-    )
-    filename = f"shifting_{shift_x}_{shift_y}"
-
-    with open(annotation_path, 'r') as f:
-        annotations = f.readlines()
-
-    shifted_annotations = []
-    for annotation in annotations:
-        class_id, x_center, y_center, width, height = map(float, annotation.strip().split())
-        shifted_annotation = (int(class_id), x_center + shift_x / cols, y_center + shift_y / rows, width, height)
-        shifted_annotations.append(shifted_annotation)
-
-    shifted_annotations = [f"{anno[0]} {anno[1]} {anno[2]} {anno[3]} {anno[4]}" for anno in shifted_annotations]
-
-    save_data(image_path, aug_img_path, mask_path, aug_mask_path, annotation_path, aug_annotation_path, shifted_image,
-              shifted_mask, filename, txt_op="overwrite", annotation=shifted_annotations)
-
-
 def shift_image_segmentation(image_path: str, annotation_path: str, mask_path: str, aug_img_path: str,
                              aug_annotation_path: str, aug_mask_path: str, shift_x: int = 50,
                              shift_y: int = 100) -> None:
@@ -412,14 +296,15 @@ def shift_image_segmentation(image_path: str, annotation_path: str, mask_path: s
         shift_y (int, optional): Amount of vertical shift. Defaults to 100.
     """
 
-    shifted_image, shifted_mask, rows, cols = shift_image_operation(
-        image_path,
-        mask_path,
-        aug_img_path,
-        aug_mask_path,
-        shift_x,
-        shift_y
-    )
+    image = cv2.imread(image_path)
+    mask = cv2.imread(mask_path)
+
+    # Shift image in x and y directions
+    rows, cols, _ = image.shape
+    mtx = np.float32([[1, 0, shift_x], [0, 1, shift_y]])
+    shifted_image = cv2.warpAffine(image, mtx, (cols, rows))
+    shifted_mask = cv2.warpAffine(mask, mtx, (cols, rows))
+
     filename = f"shifting_{shift_x}_{shift_y}"
 
     # Modify annotations
@@ -448,13 +333,19 @@ def shift_image_segmentation(image_path: str, annotation_path: str, mask_path: s
               shifted_mask, filename, txt_op="segmentation", annotation=shifted_annotation_str)
 
 
-def zoom_operation(image_path, mask_path, crop_size):
+def zoom_in_object_segmentation(image_path: str, annotation_path: str, mask_path: str, aug_img_path: str,
+                                aug_annotation_path: str, aug_mask_path: str, crop_size: int) -> None:
     """
+    Zoom in on an object in an image and save the zoomed image.
 
-    :param image_path:
-    :param mask_path:
-    :param crop_size:
-    :return:
+    Args:
+        image_path (str): Path to the input image.
+        annotation_path (str): Path to the annotation file.
+        mask_path (str): Path to the mask image.
+        aug_img_path (str): Path to the augmented image.
+        aug_annotation_path (str): Path to the augmented annotation file.
+        aug_mask_path (str): Path to the augmented mask image.
+        crop_size (int): Size of the crop to zoom in on.
     """
 
     image = cv2.imread(image_path)
@@ -473,65 +364,6 @@ def zoom_operation(image_path, mask_path, crop_size):
     cropped_mask = mask[start_y:end_y, start_x:end_x]
     zoomed_mask = cv2.resize(cropped_mask, (width, height), interpolation=cv2.INTER_LINEAR)
 
-    return zoomed_image, zoomed_mask, width, height, start_x, start_y
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# --------------------------------------------- Z O O M   I N   O B J E C T --------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def zoom_in_object(image_path: str, annotation_path: str, mask_path: str, aug_img_path: str,
-                   aug_annotation_path: str, aug_mask_path: str, crop_size: int) -> None:
-    """
-    Zoom in on an object in an image and save the zoomed image.
-
-    Args:
-        image_path (str): Path to the input image.
-        annotation_path (str): Path to the annotation file.
-        mask_path (str): Path to the mask image.
-        aug_img_path (str): Path to the augmented image.
-        aug_annotation_path (str): Path to the augmented annotation file.
-        aug_mask_path (str): Path to the augmented mask image.
-        crop_size (int): Size of the crop to zoom in on.
-    """
-
-    zoomed_image, zoomed_mask, width, height, start_x, start_y = zoom_operation(image_path, mask_path, crop_size)
-    filename = "zoomed"
-
-    with open(annotation_path, "r") as file:
-        annotations = file.readlines()
-
-    adjusted_annotations = []
-    for annotation in annotations:
-        class_id, x_center, y_center, obj_width, obj_height = map(float, annotation.strip().split())
-
-        x_center = ((x_center * width) - start_x) / crop_size
-        y_center = ((y_center * height) - start_y) / crop_size
-
-        obj_width /= (crop_size / width)
-        obj_height /= (crop_size / height)
-
-        adjusted_annotations.append(f"{int(class_id)} {x_center} {y_center} {obj_width} {obj_height}")
-
-    save_data(image_path, aug_img_path, mask_path, aug_mask_path, annotation_path, aug_annotation_path,
-              zoomed_image, zoomed_mask, filename, txt_op="overwrite", annotation=adjusted_annotations)
-
-
-def zoom_in_object_segmentation(image_path: str, annotation_path: str, mask_path: str, aug_img_path: str,
-                                aug_annotation_path: str, aug_mask_path: str, crop_size: int) -> None:
-    """
-    Zoom in on an object in an image and save the zoomed image.
-
-    Args:
-        image_path (str): Path to the input image.
-        annotation_path (str): Path to the annotation file.
-        mask_path (str): Path to the mask image.
-        aug_img_path (str): Path to the augmented image.
-        aug_annotation_path (str): Path to the augmented annotation file.
-        aug_mask_path (str): Path to the augmented mask image.
-        crop_size (int): Size of the crop to zoom in on.
-    """
-
-    zoomed_image, zoomed_mask, width, height, start_x, start_y = zoom_operation(image_path, mask_path, crop_size)
     filename = "zoomed"
 
     with open(annotation_path, "r") as file:
@@ -556,36 +388,7 @@ def zoom_in_object_segmentation(image_path: str, annotation_path: str, mask_path
               zoomed_image, zoomed_mask, filename, txt_op="overwrite", annotation=adjusted_annotations)
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# --------------------------------------------- Z O O M   I N   O B J E C T --------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-def copy_original_images(image_path: str, mask_path: str, annotation_path: str, aug_image_path: str, aug_mask_path: str,
-                         aug_annotation_path: str) -> None:
-    """
-    Copies files from one directory to another
-
-    Args:
-        image_path:
-        mask_path:
-        annotation_path:
-        aug_image_path:
-        aug_mask_path:
-        aug_annotation_path:
-
-    Returns:
-        None
-    """
-
-    shutil.copy(image_path, aug_image_path)
-    shutil.copy(mask_path, aug_mask_path)
-    shutil.copy(annotation_path, aug_annotation_path)
-
-
-# ------------------------------------------------------------------------------------------------------------------
-# ---------------------------------------- C H A N G E   B A C K G R O U N D ---------------------------------------
-# ------------------------------------------------------------------------------------------------------------------
-def change_background_dtd(image_path: str, mask_path: str, annotation_path: str, aug_image_path: str,
-                          aug_annotation_path: str, backgrounds_path: str) -> None:
+def change_background_dtd(image_path: str, mask_path: str, annotation_path: str, backgrounds_path: str) -> None:
     """
     Change the background of an image using images from a specified directory.
 
@@ -593,8 +396,6 @@ def change_background_dtd(image_path: str, mask_path: str, annotation_path: str,
         image_path (str): Path to the input image.
         mask_path (str): Path to the mask image.
         annotation_path (str): Path to the annotation file.
-        aug_image_path (str): Path to the augmented image.
-        aug_annotation_path (str): Path to the augmented annotation files.
         backgrounds_path (str): Path to the directory containing background images.
 
     Returns:
@@ -621,12 +422,32 @@ def change_background_dtd(image_path: str, mask_path: str, annotation_path: str,
 
             output_image = cv2.add(foreground, background)
 
-            new_image_file_name = rename_file(src_path=image_path, dst_path=aug_image_path, op="changed_background")
+            new_image_file_name = (
+                rename_file(
+                    src_path=image_path,
+                    dst_path=os.path.dirname(image_path),
+                    op="changed_background")
+            )
             cv2.imwrite(new_image_file_name, output_image)
 
-            new_annotation_file_name = rename_file(src_path=annotation_path, dst_path=aug_annotation_path,
-                                                   op="changed_background")
+            new_annotation_file_name = (
+                rename_file(
+                    src_path=annotation_path,
+                    dst_path=os.path.dirname(annotation_path),
+                    op="changed_background"
+                )
+            )
             shutil.copy(annotation_path, new_annotation_file_name)
+
+            # Save the original mask file in the new path
+            new_mask_file_name = (
+                rename_file(
+                    src_path=mask_path,
+                    dst_path=os.path.dirname(mask_path),
+                    op="changed_background"
+                )
+            )
+            shutil.copy(mask_path, new_mask_file_name)
         else:
             logging.info(f"The background image {os.path.basename(background_image_path)} is empty.")
     except AttributeError:
