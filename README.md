@@ -5,14 +5,14 @@
 ![Pandas](https://img.shields.io/badge/pandas-v2.1.0-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white)
 ![Matplotlib](https://img.shields.io/badge/Matplotlib-v3.7.1-%23ffffff.svg?style=for-the-badge&logo=Matplotlib&logoColor=black)
 
-# Multi-Stream Pill Recognition with Attention
+# 🩹 Multi-Stream Pill Recognition with Attention
 We address the challenge of pill recognition by proposing a novel approach that utilizes a multi-stream network 
 with EfficientNet-B0 and a self-attention mechanism. To get rid of the explicit training of printed or embossed 
 patterns we used LBP features. For evaluation two datasets were utilized. In the test scenarios our proposed 
 model outperformed the previous models in Top-1 and Top-5 accuracy, also the YOLOv7 network in a reference-quality 
 use-case. 
 
-## Architecture of the model
+## 📐 Architecture of the model
 
 The training process is composed of two phases. First, each sub-stream is independently trained for metrics embedding
 following the batch-all strategy, when any regular triplet can be used [1]. During the training of the high-level 
@@ -30,8 +30,9 @@ then concatenated the output of the
 four streams. Finally, we added two dense layers, as in [1].
 
 <figure align="center">
-  <figcaption>Phase 1</figcaption>
   <img src="poc_images/overview.png" alt="phase_1" width="800"/>
+  <figcaption>Figure 1. Overview of the proposed architecture. The output hidden layer represents the input image in
+the learned metrics space</figcaption>
 </figure>
 
 
@@ -46,32 +47,69 @@ EfficientNet-B0 was used in all sub-streams but with smaller number of parameter
 That is the reason why we omitted OCR sub-streams in our implementations but computed the LBP images of the grayscale inputs.
 
 <figure align="center">
-  <figcaption>Phase 2</figcaption>
   <img src="poc_images/overview_sub.png" alt="phase_2" width="800"/>
+  <figcaption>Figure 2. General overview of training sub-streams in Siamese
+network structure. The size of EfficientNet-B0 feature vectors
+is 128 for all streams except the RGB stream where it is 256.</figcaption>
 </figure>
 
 
-## Datasets
-We used two datasets, namely CURE [1] and our novel, custom-made one, entitled OGYEIv1 [3]. CURE is available online via this
-link:
-
-https://drive.google.com/drive/folders/1dcqUaTSepplc4GAUC05mr9iReWVqaThN.
-
-Ours can be accessed if you contact me via my e-mail address: radli.richard@mik.uni-pannon.hu
+## 📊 Datasets
+We used two datasets, namely:
+* CURE [1], that is available  [online](https://drive.google.com/drive/folders/1dcqUaTSepplc4GAUC05mr9iReWVqaThN).
+* Our custom-made one, entitled OGYEIV1 [3]. It can be accessed if you contact me via my e-mail address:[ radli.richard@mik.uni-pannon.hu]()
 
 The comparison of the two datasets can be seen in the table below:
 
-|                        | CURE                | OGYEIv1   |
-|------------------------|---------------------|-----------|
-| Number of pill classes | 196                 | 78        |
-| Number of images       | 8973                | 3154      |
-| Image resolution       | 800×800 - 2448×2448 | 2465×1683 |
-| Instance per class     | 40-50               | 40-60     |
-| Segmentation labels    | no                  | fully     |
-| Backgrounds            | 6                   | 1         | 
-| Imprinted text labels  | yes                 | yes       |
+<table>
+    <thead>
+    <tr style="background-color: #00000f">
+      <th></th>
+      <th>CURE</th>
+      <th>OGYEIV1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Number of pill classes</td>
+      <td>196</td>
+      <td>78</td>
+    </tr>
+    <tr>
+      <td>Number of images</td>
+      <td>8973</td>
+      <td>3154</td>
+    </tr>
+    <tr>
+      <td>Image resolution</td>
+      <td>800×800 - 2448×2448</td>
+      <td>2465×1683</td>
+    </tr>
+    <tr>
+      <td>Instance per class</td>
+      <td>40-50</td>
+      <td>40-60</td>
+    </tr>
+    <tr>
+      <td>Segmentation labels</td>
+      <td>no</td>
+      <td>fully</td>
+    </tr>
+    <tr>
+      <td>Backgrounds</td>
+      <td>6</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>Imprinted text labels</td>
+      <td>yes</td>
+      <td>yes</td>
+    </tr>
+  </tbody>
+</table>
 
-## Requirement
+
+## 📋 Requirement
 Make sure you have the following dependencies installed:
 
 ```bash
@@ -93,67 +131,111 @@ torchvision>=0.15.1+cu117
 tqdm>=4.65.0
 ```
 
-## Installation
-First, clone/download this repository. In the const.py file you will find this:
+Install dependencies with:
+```bash
+pip install -r requirements.txt
+```
+
+## 🚀 Installation
+
+### 1. Clone or download the repository
+
+Begin by cloning or downloading this repository to your local machine.
+
+```bash
+git clone https://github.com/richardRadli/pill_detection/tree/idaacs2023
+```
+
+### 2. Update configuration
+
+Open the _data_paths.py_ file. You will find the following dictionary:
 
 ```python
 root_mapping = {
-    'ricsi': {
-        "PROJECT_ROOT": 'D:/pill_detect/storage/',
-        "DATASET_ROOT": 'D:/pill_detect/datasets'
+    "your_username": {
+        "STORAGE_ROOT ":
+            "D:/storage/pill_detection/IDAACS23",
+        "DATASET_ROOT":
+            "D:/storage/pill_detection/IDAACS23/datasets",
+        "PROJECT_ROOT":
+            "C:/Users/ricsi/Documents/project/IVM",
     }
 }
 ```
 
-- Update the designated username ('ricsi') to reflect the username associated with your logged-in operating system.
-- Utilize PROJECT_ROOT as the central repository for storing essential data.
-- Employ DATASET_ROOT as the designated directory for managing datasets integral to the functioning of the project.
-- const.py will create all the necessary folders.
-- Download the datasets and place them into the appropriate folders.
+Replace "your_username" with your actual username. Run the following command in your terminal to confirm it:
+
+```bash
+whoami
+```
+
+Then update these paths:
+
+#### STORAGE_ROOT:
+* Adjust this path to the location where you want to save project outputs and other data generated during the execution 
+of the Python files.
+
+#### DATASET_ROOT:
+* Modify this path to point to the directory where your datasets are stored. This folder should contain all datasets 
+necessary for the project. It should look like this:
+
+* D:\storage\pill_detection\IDAACS23\dataset
+  * ogyei_v1
+    * Customer
+    * Reference
+    * etc.
+
+#### PROJECT_ROOT:
+* Update this path to the directory where the Python and JSON files of the project are located.
+
+### 3. Create necessary folders
+Run the data_paths.py script. This will create all the required folders based on the paths specified in the 
+configuration.
+
+### 4. Download and place datasets
+Obtain the necessary datasets and place them into the DATASET_ROOT directory as specified in your updated configuration.
+
+## 💻 Usage
+
+### Setting Up Configuration Files
+
+Before running the Python scripts, you can configure your settings in the following JSON files:
+
+* `augmentation_config.json` - Configuration for augmentation
+* `fusion_net_config.json` - Configuration for training the fusion network
+* `streamnet_config.json` - Configuration for training the stream networks
+* `stream_images_config.json` - Configuration for image manipulation for the stream images
+* `unet_config.json` - Configuration for training the UNET
+
+### Running the Pipeline
+After updating paths and placing datasets, follow these steps to complete setup and training:
+ 
+1. **Generate Augmented Images**
+   * Run `augment_images.py` to create augmented image versions for training.
+ 
+2. **Train UNet Segmentation**
+   * Train the UNet model with the augmented images and masks using train_unet.py.
+ 
+3. **Generate Test Mask Images**
+   * Use `test_unet.py` to create mask images for testing.
+ 
+4. **Generate Mask Images for Stream Training**
+   * Run `draw_masks.py` to generate mask images needed for training stream networks.
+ 
+5. **Create Stream Images** 
+   * Generate RGB, contour, LBP, and texture stream images with `create_stream_images.py`.
+   
+6. **Train Stream Networks** 
+   * Train each of the four stream networks by running `train_stream_network.py`.
+   
+7. **Train Fusion Network**
+   * After all stream networks are trained, use `train_fusion_network.py` to train the final fusion network.
+
+9. **Evaluate Results** 
+   * Run `predict_fusion_network.py` to evaluate the model and view the results.
 
 
-## Overview of the repository
-In the config.py file, key parameters and settings crucial for the training, testing, and data augmentation processes 
-are centrally stored. These configurations provide a streamlined and organized approach to manage various aspects 
-of the project, ensuring adaptability and ease of customization.
-
-To create a dataset, we attached a couple of scripts for image capturing. Steps to create a dataset:
-
-- Use `take_calibration_images.py`, and capture images for camera calibration. The more images are taken, 
-better the results will be.
-- Use `camera_calibration.py` to calibrate the camera.
-- Use `camera_recording.py`, and create the image dataset.
-- Finally, use `undistort_images.py` to undistort the taken images.
-
-A couple of useful scripts are also part of this repository, these files can be found in the **dataset_operations** folder.
-These tools are handful, if you wish to make operations on the datasets, such as splitting, checking the balance and
-annotations, etc. Also, it is worth pointing out to the `utils.py` script, that has many useful functions.
-
-## Usage
-
-If the repository is cloned/downloaded, the root paths are sorted out, the datasets are in place, and everything is 
-set up in the config files, the next step is to train the UNet, in order to detect pills on the images. For this, use the 
-`train_unet.py` file. After training, you can test the ability of the network, but most importantly, make predictions
-on the images. These images will be used later on.
-
-Alternatively, if you can use `draw_masks.py` to create the binary mask images.
-
-To create the images for the streams, run `create_stream_images.py`. Make sure you go through all the choices of 
-the argument called **dataset_operation** in the **ConfigStreamNetwork** class in the `config.py` file (train, valid, test).
-
-Next step is to train the stream networks, this is Phase 1. 
-There are two kind of backbones are available for this, the one published by 
-Ling et al. [1] and EfficientNet V1 b0 [2]. Make sure you train all four streams. Also, two loss functions are provided:
-triplet loss and hard mining triplet loss. The later will save the hardest triplets, which can be utilized in Phase 2.
-To copy the hardest samples into a directory, run `mine_hard_samples.py`.
-
-After the streams are trained, the last step is to train the fusion network, it is also called Phase 2.
-Still, there are two choices here: CNN or EfficientNet, but only one loss function: triplet loss. If hard mining triplet
-loss was selected in Phase 1, the network will be trained on only the hardest samples.
-
-To evaluate the models, use `predict_fusion_network.py`
-
-## References
+## 📝 References
 [1] - Ling, S., Pastor, A., Li, J., Che, Z., Wang, J., Kim, J., & Callet, P. L. (2020). Few-shot pill recognition. 
 In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (pp. 9789-9798).
 

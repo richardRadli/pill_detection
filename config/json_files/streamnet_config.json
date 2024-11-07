@@ -2,7 +2,7 @@
   "dataset_type": "ogyei",
   "type_of_net": "EfficientNet",
   "mining_type": "semihard",
-  "type_of_stream": "Texture",
+  "type_of_stream": "Contour",
   "margin": 0.2,
   "epochs": 20,
   "batch_size": 64,

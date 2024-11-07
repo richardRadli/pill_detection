@@ -1,0 +1,16 @@
+colorama>=0.4.6
+colorlog>=6.7.0
+json>=2.0.9
+matplotlib>=3.7.1
+numpy>=1.26
+opencv-python>=4.5.5.64
+pandas>=2.1.0
+Pillow>=9.3.0
+seaborn>=0.12.2
+segmentation_models_pytorch>=0.3.3
+skimage>=0.20.0
+sklearn>=1.4.0
+torch>=2.2.1
+torchsummary>=1.5.1
+torchvision>=0.15.1+cu117
+tqdm>=4.65.0
