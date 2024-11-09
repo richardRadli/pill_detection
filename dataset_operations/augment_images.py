@@ -1,8 +1,9 @@
 import colorama
 import concurrent.futures
-import gc
+import numpy as np
 import random
 
+from PIL import Image
 from tqdm import tqdm
 from typing import Tuple, List
 
@@ -50,7 +51,7 @@ class AugmentCUREDataset:
         )
 
     @staticmethod
-    def path_select(training_images, training_annotations, train_masks)  -> Tuple[List[str], List[str], List[str]]:
+    def path_select(training_images, training_annotations, train_masks) -> Tuple[List[str], List[str], List[str]]:
         """
         Selects and returns paths for images, annotations, and masks.
 
@@ -100,7 +101,7 @@ class AugmentCUREDataset:
             aug_img_path=aug_image_path,
             aug_annotation_path=aug_anno_path,
             aug_mask_path=aug_mask_path,
-            kernel=random.randint(self.cfg_aug.get("kernel_size_1"), self.cfg_aug.get("kernel_size_2"))
+            kernel=random.choice([3, 5, 7])
         )
         change_brightness(
             image_path=image_path,
@@ -162,15 +163,13 @@ class AugmentCUREDataset:
 
     def aug(self) -> None:
         """
-         Augments images by applying transformations to increase dataset size.
+        Augments images by applying transformations to reach a target number of augmented images.
+        Loads image, annotation, and mask files, calculates the required number of augmentation cycles,
+        and applies augmentations using concurrent processing.
 
-         Loads image, annotation, and mask files, calculates the required number
-         of augmentations, and applies them using concurrent processing.
-
-         Returns:
-             None
-         """
-
+        Returns:
+            None
+        """
         image_files, annotation_files, mask_files = (
             self.path_select(self.training_images_path, self.training_annotations_path, self.train_masks_path)
         )
@@ -179,28 +178,34 @@ class AugmentCUREDataset:
 
         original_images_count = len(image_files)
         target_augmentations = self.cfg_aug.get("number_of_aug_images")
+        augmentations_per_image = 6
+        num_aug_images_one_cycle = original_images_count * augmentations_per_image
 
-        assert original_images_count < target_augmentations
+        total_augmentation_cycles = int(np.round(target_augmentations / num_aug_images_one_cycle))
+        final_image_count = original_images_count * augmentations_per_image * total_augmentation_cycles
 
-        augmentations_per_image = target_augmentations // original_images_count
-        total_augmentations = original_images_count * augmentations_per_image
-
-        completed_augmentations = 0
+        print(f"Total number of images in the end: {final_image_count * 2}")
 
         with concurrent.futures.ProcessPoolExecutor(max_workers=self.cfg_aug.get("max_workers")) as executor:
             futures = []
-            for image_path, annotation_path, mask_path in zip(image_files, annotation_files, mask_files):
-                for i in range(augmentations_per_image):
-                    future = executor.submit(
-                        self.process_image, image_path, annotation_path, mask_path,
-                        self.train_aug_img_path, self.train_aug_annotation_path, self.train_aug_mask_path
-                    )
-                    futures.append(future)
 
-            for _ in tqdm(concurrent.futures.as_completed(futures), total=total_augmentations, desc="Aug. images"):
-                completed_augmentations += 1
-                if completed_augmentations >= target_augmentations:
-                    break
+            for image_path, annotation_path, mask_path in zip(image_files, annotation_files, mask_files):
+                for i in range(total_augmentation_cycles):
+                    futures.append(
+                        executor.submit(
+                            self.process_image,
+                            image_path=image_path,
+                            anno_path=annotation_path,
+                            mask_path=mask_path,
+                            aug_image_path=self.train_aug_img_path,
+                            aug_anno_path=self.train_aug_annotation_path,
+                            aug_mask_path=self.train_aug_mask_path
+                        )
+                    )
+
+            # Wait for all tasks to complete
+            for future in tqdm(futures, desc="Augmenting"):
+                future.result()
 
     def change_background(self) -> None:
         """
@@ -221,19 +226,39 @@ class AugmentCUREDataset:
             )
         )
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.cfg_aug.get("max_workers")) as executor:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=self.cfg_aug.get("max_workers")) as executor:
             futures = []
             for image_path, annotation_path, mask_path in zip(aug_image_files, aug_annotation_files, aug_mask_files):
+                if not self.is_valid_image(image_path):
+                    print(f"Skipping corrupt image: {image_path}")
+                    continue
+
                 future = executor.submit(
                     self.change_bg, image_path, annotation_path, mask_path
                 )
                 futures.append(future)
-                gc.collect()
 
             for _ in tqdm(concurrent.futures.as_completed(futures),
                           total=len(futures),
                           desc=colorama.Fore.CYAN + "Changing backgrounds"):
                 pass
+
+    @staticmethod
+    def is_valid_image(image_path: str) -> bool:
+        """
+        Check if the image is a valid, non-corrupt JPEG.
+
+        Args:
+            image_path: Path of the image.
+
+        """
+
+        try:
+            with Image.open(image_path) as img:
+                img.verify()
+            return True
+        except (IOError, SyntaxError) as e:
+            return False
 
     def main(self) -> None:
         """
@@ -251,6 +276,8 @@ class AugmentCUREDataset:
 
 
 if __name__ == "__main__":
-    aug_cure = AugmentCUREDataset()
-    aug_cure.main()
-
+    try:
+        aug_cure = AugmentCUREDataset()
+        aug_cure.main()
+    except KeyboardInterrupt:
+        print(f"Caught keyboard interrupt. Exiting...")

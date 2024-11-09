@@ -16,8 +16,8 @@ from sklearn.metrics import jaccard_score
 
 from config.json_config import json_config_selector
 from config.dataset_paths_selector import dataset_images_path_selector
-from config.networks_paths_selector import unet_paths
-from data_loader_unet import UnetDataLoader
+from config.networks_paths_selector import segmentation_paths
+from data_loader_segmentation_net import SegmentationDataLoader
 from utils.utils import (create_timestamp, load_config_json, find_latest_file_in_latest_directory, use_gpu_if_available,
                          setup_logger)
 
@@ -36,13 +36,13 @@ class TestUnet:
         )
         dataset_name = self.cfg.get("dataset_name")
 
-        self.weight_files_dir = unet_paths(dataset_name).get("weights_folder")
+        self.weight_files_dir = segmentation_paths(dataset_name).get("weights_folder")
 
-        compare_dir = unet_paths(dataset_name).get("prediction_folder").get("compare")
+        compare_dir = segmentation_paths(dataset_name).get("prediction_folder").get("compare")
         self.unet_compare_dir = os.path.join(compare_dir, timestamp)
         os.makedirs(self.unet_compare_dir, exist_ok=True)
 
-        out_dir = unet_paths(dataset_name).get("prediction_folder").get("out")
+        out_dir = segmentation_paths(dataset_name).get("prediction_folder").get("out")
         self.unet_out_dir = os.path.join(out_dir, timestamp)
         os.makedirs(self.unet_out_dir, exist_ok=True)
 
@@ -107,9 +107,9 @@ class TestUnet:
             transforms.ToTensor(),
         ])
 
-        dataset = UnetDataLoader(images_dir=images_dir,
-                                 masks_dir=masks_dir,
-                                 transform=transform)
+        dataset = SegmentationDataLoader(images_dir=images_dir,
+                                         masks_dir=masks_dir,
+                                         transform=transform)
 
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 

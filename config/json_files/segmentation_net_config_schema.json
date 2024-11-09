@@ -3,6 +3,10 @@
   "title": "UNet Training Configuration",
   "type": "object",
   "properties": {
+    "network_type": {
+      "type": "string",
+      "enum": ["W2Net", "UNet"]
+    },
     "dataset_name": {
       "type": "string",
       "enum": ["cure", "ogyei"]
@@ -46,6 +50,18 @@
     },
     "resized_img_size": {
       "type": "integer"
+    },
+    "train_ratio": {
+      "type": "number"
+    },
+    "patience": {
+      "type": "integer"
+    },
+    "step_size": {
+      "type": "integer"
+    },
+    "gamma": {
+      "type": "number"
     }
   },
   "required": ["epochs", "batch_size", "learning_rate", "classes", "channels"]

@@ -14,3 +14,4 @@ torch>=2.2.1
 torchsummary>=1.5.1
 torchvision>=0.15.1+cu117
 tqdm>=4.65.0
+torchinfo>=1.8.0

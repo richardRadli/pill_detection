@@ -15,6 +15,6 @@
   "zoom_1": 1300,
   "zoom_2": 1500,
   "scale_pill_img": 0.3,
-  "number_of_aug_images": 370,
+  "number_of_aug_images": 4400,
   "max_workers": 6
 }

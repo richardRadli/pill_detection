@@ -384,34 +384,63 @@ def fusion_network_paths(dataset_type: str, network_type: str) -> Dict:
     return network_configs[dataset_type][network_type]
 
 
-def unet_paths(dataset_name):
+def segmentation_paths(network_type, dataset_name):
     network_paths = {
-        "cure": {
-            'logs_folder':
-                DATA_PATH.get_data_path("logs_unet_cure"),
-            'weights_folder':
-                DATA_PATH.get_data_path("weights_unet_cure"),
-            'prediction_folder':
-                {
-                    "out":
-                        IMAGES_PATH.get_data_path("unet_out_cure"),
-                    "compare":
-                        IMAGES_PATH.get_data_path("unet_compare_cure"),
-                }
-        },
-        "ogyei": {
-            'logs_folder':
-                DATA_PATH.get_data_path("logs_unet_ogyei"),
-            'weights_folder':
-                DATA_PATH.get_data_path("weights_unet_ogyei"),
-            'prediction_folder':
+        "UNet": {
+            "cure": {
+                'logs_folder':
+                    DATA_PATH.get_data_path("logs_unet_cure"),
+                'weights_folder':
+                    DATA_PATH.get_data_path("weights_unet_cure"),
+                'prediction_folder':
+                    {
+                        "out":
+                            IMAGES_PATH.get_data_path("unet_out_cure"),
+                        "compare":
+                            IMAGES_PATH.get_data_path("unet_compare_cure"),
+                    }
+            },
+            "ogyei": {
+                'logs_folder':
+                    DATA_PATH.get_data_path("logs_unet_ogyei"),
+                'weights_folder':
+                    DATA_PATH.get_data_path("weights_unet_ogyei"),
+                'prediction_folder':
                 {
                     "out":
                         IMAGES_PATH.get_data_path("unet_out_ogyei"),
                     "compare":
                         IMAGES_PATH.get_data_path("unet_compare_ogyei"),
                 }
+            }
+        },
+        "W2Net": {
+            "cure": {
+                'logs_folder':
+                    DATA_PATH.get_data_path("logs_w2net_cure"),
+                'weights_folder':
+                    DATA_PATH.get_data_path("weights_w2net_cure"),
+                'prediction_folder':
+                {
+                    "out":
+                        IMAGES_PATH.get_data_path("w2net_out_cure"),
+                    "compare":
+                        IMAGES_PATH.get_data_path("w2net_compare_cure"),
+                }
+            },
+            "ogyei": {
+                'logs_folder':
+                    DATA_PATH.get_data_path("logs_w2net_ogyei"),
+                'weights_folder':
+                    DATA_PATH.get_data_path("weights_w2net_ogyei"),
+                'prediction_folder':
+                {
+                    "out":
+                        IMAGES_PATH.get_data_path("w2net_out_ogyei"),
+                    "compare":
+                        IMAGES_PATH.get_data_path("w2net_compare_ogyei"),
+                }
+            }
         }
     }
-
-    return network_paths[dataset_name]
+    return network_paths[network_type][dataset_name]

@@ -4,7 +4,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 
 
-class UnetDataLoader(Dataset):
+class SegmentationDataLoader(Dataset):
     def __init__(self, images_dir: str, masks_dir: str, transform=None):
         self.images_dir = images_dir
         self.mask_dir = masks_dir

@@ -19,9 +19,9 @@ def json_config_selector(operation):
             "config": JSON_FILES_PATHS.get_data_path("config_streamnet"),
             "schema": JSON_FILES_PATHS.get_data_path("config_schema_streamnet")
         },
-        "unet": {
-            "config": JSON_FILES_PATHS.get_data_path("config_unet"),
-            "schema": JSON_FILES_PATHS.get_data_path("config_schema_unet")
+        "segmentation_net": {
+            "config": JSON_FILES_PATHS.get_data_path("config_segmentation_net"),
+            "schema": JSON_FILES_PATHS.get_data_path("config_schema_segmentation_net")
         }
     }
 

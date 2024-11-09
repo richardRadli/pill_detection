@@ -91,10 +91,10 @@ class ConfigFilePaths(_Const):
         "config_schema_streamnet":
             "config/json_files/streamnet_config_schema.json",
 
-        "config_unet":
-            "config/json_files/unet_config.json",
-        "config_schema_unet":
-            "config/json_files/unet_config_schema.json"
+        "config_segmentation_net":
+            "config/json_files/segmentation_net_config.json",
+        "config_schema_segmentation_net":
+            "config/json_files/segmentation_net_config_schema.json"
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -241,13 +241,23 @@ class Images(_Const):
 
         # -------------------------------------------------- U N E T ---------------------------------------------------
         "unet_out_ogyei":
-            "images/ogyei/unet/predictions",
+            "images/ogyei/segmentation/unet/predictions",
         "unet_compare_ogyei":
-            "images/ogyei/unet/compare",
+            "images/ogyei/segmentation/unet/compare",
         "unet_out_cure":
-            "images/cure/unet/predictions",
+            "images/cure/segmentation/unet/predictions",
         "unet_compare_cure":
-            "images/cure/unet/compare"
+            "images/cure/segmentation/unet/compare",
+
+            # -----------------------------------------------W 2 N E T -------------------------------------------------
+        "w2net_out_ogyei":
+            "images/ogyei/segmentation/w2net/predictions",
+        "w2net_compare_ogyei":
+            "images/ogyei/segmentation/w2net/compare",
+        "w2net_out_cure":
+            "images/cure/segmentation/w2net/predictions",
+        "w2net_compare_cure":
+            "images/cure/segmentation/w2net/compare"
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -269,23 +279,28 @@ class Images(_Const):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Data(_Const):
     dirs_data = {
-        # --------------------------------------------------- U N E T --------------------------------------------------
-        # ----------------------------------------------- W E I G H T S ------------------------------------------------
-        # UNet
-        "weights_unet_ogyei":
-            "data/ogyei/weights/unet",
-
-        # -------------------------------------------------- L O G S ---------------------------------------------------
-        # UNet
-        "logs_unet_ogyei":
-            "data/ogyei/logs/unet",
-
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # +++++++++++++++++++++++++++++++++++++++++++++++++++ C U R E ++++++++++++++++++++++++++++++++++++++++++++++++++
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # --------------------------------------------------- U N E T --------------------------------------------------
+        # ----------------------------------------------- W E I G H T S ------------------------------------------------
         # UNET
         "weights_unet_cure":
-            "data/cure/weights/unet",
+            "data/cure/weights/segmentation/unet",
+        # -------------------------------------------------- L O G S ---------------------------------------------------
+        # UNet
+        "logs_unet_cure":
+            "data/cure/logs/segmentation/unet",
+
+        # ------------------------------------------------- W 2 N E T --------------------------------------------------
+        # ----------------------------------------------- W E I G H T S ------------------------------------------------
+        # UNET
+        "weights_w2net_cure":
+            "data/cure/weights/segmentation/w2net",
+        # -------------------------------------------------- L O G S ---------------------------------------------------
+        # UNet
+        "logs_w2net_cure":
+            "data/cure/logs/segmentation/w2net",
 
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
         # CNN - StreamNetwork
@@ -313,11 +328,6 @@ class Data(_Const):
             "data/cure/weights/fusion_net/cnn",
         "weights_fusion_network_efficient_net_self_attention_cure":
             "data/cure/weights/fusion_net/efficient_net_self_attention",
-
-        # -------------------------------------------- L O G S   U N E T -----------------------------------------------
-        # UNET
-        "logs_unet_cure":
-            "data/ogyei/logs/cure",
 
         # --------------------------------------- L O G S   S T R E A M   N E T ----------------------------------------
         # CNN
@@ -392,6 +402,22 @@ class Data(_Const):
             "data/cure/hardest_samples/efficient_net/texture",
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++ O G Y E I +++++++++++++++++++++++++++++++++++++++++++++++++
+        # UNet
+        "weights_unet_ogyei":
+            "data/ogyei/weights/segmentation/unet",
+        # W2Net
+        "weights_w2net_ogyei":
+            "data/ogyei/weights/segmentation/w2net",
+
+        # -------------------------------------------- L O G S   U N E T -----------------------------------------------
+        # UNET
+        "logs_unet_ogyei":
+            "data/ogyei/logs/segmentation/unet",
+
+        # W2NET
+        "logs_w2net_ogyei":
+            "data/ogyei/logs/segmentation/w2net",
+
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
         # CNN - StreamNetwork
         "weights_cnn_contour_ogyei":

@@ -2,10 +2,11 @@ import colorama
 import logging
 import numpy as np
 import os
-import segmentation_models_pytorch as smp
 import torch
 
-from torch.utils.data import DataLoader
+from torchinfo import summary
+from torch.optim.lr_scheduler import StepLR
+from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms
 from tqdm import tqdm
@@ -13,12 +14,13 @@ from typing import List
 
 from config.json_config import json_config_selector
 from config.dataset_paths_selector import dataset_images_path_selector
-from config.networks_paths_selector import unet_paths
-from data_loader_unet import UnetDataLoader
+from config.networks_paths_selector import segmentation_paths
+from data_loader_segmentation_net import SegmentationDataLoader
+from segmentation_network_models.segmentation_network_selector import SegmentationNetworkFactory
 from utils.utils import create_timestamp, load_config_json, use_gpu_if_available, setup_logger
 
 
-class TrainUnet:
+class TrainSegmentation:
     def __init__(self):
         timestamp = create_timestamp()
         colorama.init()
@@ -26,42 +28,61 @@ class TrainUnet:
 
         self.cfg = (
             load_config_json(
-                json_schema_filename=json_config_selector("unet").get("schema"),
-                json_filename=json_config_selector("unet").get("config")
+                json_schema_filename=json_config_selector("segmentation_net").get("schema"),
+                json_filename=json_config_selector("segmentation_net").get("config")
             )
         )
 
         if self.cfg.get("seed"):
-            torch.manual_seed(1234)
+            seed_number = 1234
+            torch.manual_seed(seed_number)
+            torch.cuda.manual_seed(seed_number)
 
         self.device = (
             use_gpu_if_available()
         )
 
+        network_type = self.cfg["network_type"]
+        dataset_name = self.cfg["dataset_name"]
+        batch_size = self.cfg["batch_size"]
+        learning_rate = self.cfg["learning_rate"]
+
         self.model = (
-            self.create_segmentation_model().to(self.device)
-        )
+            SegmentationNetworkFactory().create_model(
+                network_type=network_type,
+                cfg=self.cfg
+            )
+        ).to(self.device)
+        summary(self.model)
 
-        dataset_name = self.cfg.get("dataset_name")
-
-        self.train_loader = (
+        train_dataset, valid_dataset = (
             self.create_segmentation_dataset(
-                images_dir=dataset_images_path_selector(dataset_name).get("train").get("images"),
-                masks_dir=dataset_images_path_selector(dataset_name).get("train").get("mask_images"),
-                batch_size=self.cfg.get("batch_size"),
-                shuffle=True)
+                images_dir=dataset_images_path_selector(dataset_name).get("train").get("aug_images"),
+                masks_dir=dataset_images_path_selector(dataset_name).get("train").get("aug_mask_images")
+            )
         )
-
-        self.valid_loader = self.create_segmentation_dataset(
-            images_dir=dataset_images_path_selector(dataset_name).get("valid").get("images"),
-            masks_dir=dataset_images_path_selector(dataset_name).get("valid").get("mask_images"),
-            batch_size=self.cfg.get("batch_size"),
-            shuffle=True)
+        logging.info(
+            f"{dataset_name} train dataset size: {len(train_dataset)}, validation dataset size: {len(valid_dataset)}"
+        )
+        self.train_loader = (
+            DataLoader(
+                train_dataset,
+                batch_size=batch_size,
+                shuffle=True
+            )
+        )
+        self.valid_loader = (
+            DataLoader(
+                valid_dataset,
+                batch_size=batch_size,
+                shuffle=False
+            )
+        )
 
         self.optimizer = (
             torch.optim.Adam(
                 self.model.parameters(),
-                lr=self.cfg.get("learning_rate")
+                lr=learning_rate
             )
         )
 
@@ -69,30 +90,36 @@ class TrainUnet:
             torch.nn.BCEWithLogitsLoss()
         )
 
-        unet_path = unet_paths(dataset_name)
+        # LR scheduler
+        self.scheduler = (
+            StepLR(
+                optimizer=self.optimizer,
+                step_size=self.cfg.get("step_size"),
+                gamma=self.cfg.get("gamma")
+            )
+        )
+
+        seg_net_path = segmentation_paths(network_type, dataset_name)
 
         # Tensorboard
-        tensorboard_log_dir = os.path.join(unet_path['logs_folder'], timestamp)
+        tensorboard_log_dir = os.path.join(seg_net_path['logs_folder'], timestamp)
         os.makedirs(tensorboard_log_dir, exist_ok=True)
         self.writer = SummaryWriter(log_dir=str(tensorboard_log_dir))
 
         # Create save directory
-        self.save_path = os.path.join(unet_path["weights_folder"], timestamp)
+        self.save_path = os.path.join(seg_net_path["weights_folder"], timestamp)
         os.makedirs(self.save_path, exist_ok=True)
 
-    def create_segmentation_dataset(self, images_dir: str, masks_dir: str, batch_size: int, shuffle: bool) \
-            -> DataLoader:
+    def create_segmentation_dataset(self, images_dir: str, masks_dir: str):
         """
         Creates a DataLoader for a segmentation task using a custom dataset.
 
         Args:
             images_dir (str): Directory containing input images.
             masks_dir (str): Directory containing corresponding ground truth masks.
-            batch_size (int): Number of samples per batch.
-            shuffle (bool): Whether to shuffle the dataset.
 
         Returns:
-            DataLoader: PyTorch DataLoader that provides batches of images and masks.
+            Dataset: PyTorch DataLoader that provides batches of images and masks.
         """
 
         transform = transforms.Compose([
@@ -100,37 +127,16 @@ class TrainUnet:
             transforms.ToTensor(),
         ])
 
-        dataset = UnetDataLoader(images_dir=images_dir,
-                                 masks_dir=masks_dir,
-                                 transform=transform)
+        dataset = SegmentationDataLoader(images_dir=images_dir,
+                                         masks_dir=masks_dir,
+                                         transform=transform)
 
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+        train_size = int(self.cfg.get("train_ratio") * len(dataset))
+        val_size = len(dataset) - train_size
 
-        return dataloader
+        train_set, val_set = random_split(dataset, [train_size, val_size])
 
-    def create_segmentation_model(self) -> smp.Unet:
-        """
-        Creates and returns a U-Net model for segmentation tasks using the segmentation_models_pytorch library.
-
-        The configuration for the model is provided by the `self.cfg` dictionary, which includes:
-        - encoder_name (str): Name of the encoder (backbone) for the U-Net model.
-        - encoder_weights (str or None): Pre-trained weights for the encoder, or None for random initialization.
-        - channels (int): Number of input channels (e.g., 3 for RGB images).
-        - classes (int): Number of output segmentation classes.
-
-        Returns:
-            smp.Unet: A U-Net model instance ready for training or inference.
-        """
-
-        model = (
-            smp.Unet(
-                encoder_name=self.cfg.get("encoder_name"),
-                encoder_weights=self.cfg.get("encoder_weights"),
-                in_channels=self.cfg.get("channels"),
-                classes=self.cfg.get("classes"))
-        )
-
-        return model
+        return train_set, val_set
 
     def train_loop(self, batch_images: torch.Tensor, batch_masks: torch.Tensor, train_losses: List[float]) -> None:
         """
@@ -192,14 +198,18 @@ class TrainUnet:
         train_losses = []
         valid_losses = []
 
-        for epoch in tqdm(range(self.cfg.get("epochs"))):
+        for epoch in tqdm(range(self.cfg.get("epochs")), desc=colorama.Fore.LIGHTYELLOW_EX + "Epochs"):
 
             self.model.train()
-            for batch_data, batch_masks in tqdm(self.train_loader, total=len(self.train_loader)):
+            for batch_data, batch_masks in tqdm(
+                    self.train_loader, total=len(self.train_loader), desc=colorama.Fore.LIGHTRED_EX + "Training"
+            ):
                 self.train_loop(batch_data, batch_masks, train_losses)
 
             self.model.eval()
-            for batch_data, batch_masks in tqdm(self.valid_loader, total=len(self.train_loader)):
+            for batch_data, batch_masks in tqdm(
+                    self.valid_loader, total=len(self.train_loader), desc=colorama.Fore.LIGHTBLUE_EX + "Validation"
+            ):
                 self.valid_loop(batch_data, batch_masks, valid_losses)
 
             train_loss = np.mean(train_losses)
@@ -229,10 +239,19 @@ class TrainUnet:
                     logging.info(f"Early stopping at epoch {epoch}")
                     break
 
+            self.scheduler.step()
+
         self.writer.close()
         self.writer.flush()
 
 
 if __name__ == '__main__':
-    train_unet = TrainUnet()
-    train_unet.fit()
+    try:
+        tm = TrainSegmentation()
+        try:
+            tm.fit()
+        except torch.cuda.OutOfMemoryError:
+            logging.error('Detected OutOfMemoryError!')
+            torch.cuda.empty_cache()
+    except KeyboardInterrupt as kbe:
+        logging.error("Keyboard interrupt, program has been shut down!")
