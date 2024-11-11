@@ -4,6 +4,11 @@
 ![NumPy](https://img.shields.io/badge/numpy-v1.26-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white)
 ![Pandas](https://img.shields.io/badge/pandas-v2.1.0-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white)
 ![Matplotlib](https://img.shields.io/badge/Matplotlib-v3.7.1-%23ffffff.svg?style=for-the-badge&logo=Matplotlib&logoColor=black)
+![Colorama](https://img.shields.io/badge/colorama-v0.4.6-%23FFD700.svg?style=for-the-badge&logo=python&logoColor=white)
+![Colorlog](https://img.shields.io/badge/colorlog-v6.7.0-%23FFD700.svg?style=for-the-badge&logo=python&logoColor=white)
+![Pillow](https://img.shields.io/badge/Pillow-v9.3.0-%23FFD700.svg?style=for-the-badge&logo=python&logoColor=white)
+![Seaborn](https://img.shields.io/badge/Seaborn-v0.12.2-%2355A3B2.svg?style=for-the-badge&logo=python&logoColor=white)
+![Segmentation Models PyTorch](https://img.shields.io/badge/segmentation--models--pytorch-v0.3.3-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white)
 
 # 🩹 Multi-Stream Pill Recognition with Attention
 We address the challenge of pill recognition by proposing a novel approach that utilizes a multi-stream network 
