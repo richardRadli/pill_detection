@@ -548,6 +548,30 @@ class Datasets(_Const):
         "cure_reference_segmentation_labels":
             "cure/Reference/segmentation_labels",
 
+        # STREAM - Customer
+        "stream_images_cure_customer":
+            "cure/Customer/stream_images",
+        "stream_images_cure_customer_contour":
+            "cure/Customer/stream_images/contour",
+        "stream_images_cure_customer_lbp":
+            "cure/Customer/stream_images/lbp",
+        "stream_images_cure_customer_rgb":
+            "cure/Customer/stream_images/rgb",
+        "stream_images_cure_customer_texture":
+            "cure/Customer/stream_images/texture",
+
+        # STREAM - Reference
+        "stream_images_cure_reference":
+            "cure/Reference/stream_images",
+        "stream_images_cure_reference_contour":
+            "cure/Reference/stream_images/contour",
+        "stream_images_cure_reference_lbp":
+            "cure/Reference/stream_images/lbp",
+        "stream_images_cure_reference_rgb":
+            "cure/Reference/stream_images/rgb",
+        "stream_images_cure_reference_texture":
+            "ogyei_v2/Reference/stream_images/texture",
+        
         # CUSTOMER SPLITTED AUGMENTED
         "cure_train_aug_images":
             "cure/Augmented/train_dir/images",
