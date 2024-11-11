@@ -4,13 +4,13 @@ import logging
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import segmentation_models_pytorch as smp
 import torch
 
+from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from torchvision.transforms import ToPILImage, InterpolationMode
-from torchvision.transforms import functional as tf
+from torchvision.transforms import ToPILImage
+from torchinfo import summary
 from tqdm import tqdm
 from sklearn.metrics import jaccard_score
 
@@ -18,6 +18,7 @@ from config.json_config import json_config_selector
 from config.dataset_paths_selector import dataset_images_path_selector
 from config.networks_paths_selector import segmentation_paths
 from data_loader_segmentation_net import SegmentationDataLoader
+from segmentation_network_models.segmentation_network_selector import SegmentationNetworkFactory
 from utils.utils import (create_timestamp, load_config_json, find_latest_file_in_latest_directory, use_gpu_if_available,
                          setup_logger)
 
@@ -30,54 +31,92 @@ class TestUnet:
 
         self.cfg = (
             load_config_json(
-                json_schema_filename=json_config_selector("unet").get("schema"),
-                json_filename=json_config_selector("unet").get("config")
+                json_schema_filename=json_config_selector("segmentation_net").get("schema"),
+                json_filename=json_config_selector("segmentation_net").get("config")
             )
         )
+
+        network_type = self.cfg.get("network_type")
         dataset_name = self.cfg.get("dataset_name")
+        self.threshold = self.cfg.get("mask_threshold")
 
-        self.weight_files_dir = segmentation_paths(dataset_name).get("weights_folder")
+        self.weight_files_dir = segmentation_paths(network_type, dataset_name).get("weights_folder")
 
-        compare_dir = segmentation_paths(dataset_name).get("prediction_folder").get("compare")
-        self.unet_compare_dir = os.path.join(compare_dir, timestamp)
-        os.makedirs(self.unet_compare_dir, exist_ok=True)
+        self.compare_dir = (
+            self.create_folder(
+                network_type, 
+                dataset_name, 
+                "prediction_folder", 
+                "compare", 
+                timestamp
+            )
+        )
 
-        out_dir = segmentation_paths(dataset_name).get("prediction_folder").get("out")
-        self.unet_out_dir = os.path.join(out_dir, timestamp)
-        os.makedirs(self.unet_out_dir, exist_ok=True)
+        self.out_dir = (
+            self.create_folder(
+                network_type, 
+                dataset_name, 
+                "prediction_folder", 
+                "out", 
+                timestamp
+            )
+        )
 
         if self.cfg.get("seed"):
-            torch.manual_seed(1234)
+            seed_number = 1234
+            torch.manual_seed(seed_number)
+            torch.cuda.manual_seed(seed_number)
 
         self.device = (
             use_gpu_if_available()
         )
 
         self.model = (
-            self.load_model()
+            self.load_model(network_type)
         )
 
         self.test_dataset = (
             self.create_segmentation_dataset(
-                images_dir=dataset_images_path_selector(dataset_name).get("test").get("images"),
-                masks_dir=dataset_images_path_selector(dataset_name).get("test").get("mask_images"),
+                images_dir=dataset_images_path_selector(dataset_name).get("test").get("test_images"),
+                masks_dir=dataset_images_path_selector(dataset_name).get("test").get("test_masks"),
                 batch_size=self.cfg.get("batch_size"),
                 shuffle=False
             )
         )
+    
+    @staticmethod
+    def create_folder(network_type, dataset_name, dir1, dir2, timestamp):
+        """
 
-    def load_model(self):
+        Args:
+            network_type: 
+            dataset_name: 
+            dir1: 
+            dir2:
+            timestamp
+
+        Returns:
+
+        """
+        
+        directory = segmentation_paths(network_type, dataset_name).get(dir1).get(dir2)
+        directory = os.path.join(directory, timestamp)
+        os.makedirs(directory, exist_ok=True)
+        return directory
+        
+    def load_model(self, network_type):
         """
 
         Return:
         """
 
-        model = smp.Unet(
-            encoder_name=self.cfg.get("encoder_name"),
-            encoder_weights=self.cfg.get("encoder_weights"),
-            in_channels=self.cfg.get("channels"),
-            classes=self.cfg.get("classes")
-        )
+        model = (
+            SegmentationNetworkFactory().create_model(
+                network_type=network_type,
+                cfg=self.cfg
+            )
+        ).to(self.device)
+        summary(model)
 
         latest_file = find_latest_file_in_latest_directory(path=self.weight_files_dir)
         model.load_state_dict(
@@ -86,7 +125,6 @@ class TestUnet:
             )
         )
 
-        model = model.to(self.device)
         model.eval()
 
         return model
@@ -107,11 +145,21 @@ class TestUnet:
             transforms.ToTensor(),
         ])
 
-        dataset = SegmentationDataLoader(images_dir=images_dir,
-                                         masks_dir=masks_dir,
-                                         transform=transform)
+        dataset = (
+            SegmentationDataLoader(
+                images_dir=images_dir,
+                masks_dir=masks_dir,
+                transform=transform
+            )
+        )
 
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+        dataloader = (
+            DataLoader(
+                dataset,
+                batch_size=batch_size,
+                shuffle=shuffle
+            )
+        )
 
         return dataloader
 
@@ -175,47 +223,50 @@ class TestUnet:
     def make_prediction(self):
         jaccard_scores = []
         to_pil = ToPILImage()
-        original_size = [1683, 2465]
 
-        with torch.no_grad():
-            for i, (images, masks) in enumerate(tqdm(self.test_dataset)):
+        with (torch.no_grad()):
+            for i, (images, masks, image_size) in tqdm(enumerate(self.test_dataset),
+                                                       total=len(self.test_dataset),
+                                                       desc="Evaluation"):
                 images = images.to(self.device)
                 masks = masks.to(self.device)
+
                 prediction = self.model(images)
                 prediction = torch.sigmoid(prediction)
-                prediction = (prediction > 0.5).float()
-                masks = (masks > 0.5).float()
+                prediction = (prediction > self.threshold).float()
+                masks = (masks > self.threshold).float()
 
-                for j in range(images.size(0)):  # Iterate over each image in the batch
-                    pred_mask = prediction[j].squeeze().cpu().numpy()
-                    true_mask = masks[j].squeeze().cpu().numpy()
+                for j in range(images.size(0)):
+                    original_size = (image_size[0][j].item(), image_size[1][j].item())
+                    pred_mask = F.interpolate(
+                        prediction[j].unsqueeze(0), size=original_size, mode='nearest'
+                    ).squeeze().cpu().numpy()
 
-                    pred_mask_tensor = torch.from_numpy(pred_mask).unsqueeze(0)
-                    pred_mask_resized = tf.resize(
-                        pred_mask_tensor,
-                        original_size,
-                        interpolation=InterpolationMode.NEAREST
-                    )
+                    true_mask = F.interpolate(
+                        masks[j].unsqueeze(0), size=original_size, mode='nearest'
+                    ).squeeze().cpu().numpy()
 
-                    pred_mask_resized_image = to_pil(pred_mask_resized.squeeze())
+                    pred_mask_image = to_pil(torch.from_numpy(pred_mask).float())
 
                     self.save_prediction(
-                        save_filename=f"{self.unet_out_dir}/{i}_{j}.jpg",
-                        predicted_image=pred_mask_resized_image
+                        save_filename=f"{self.out_dir}/{i}_{j}.jpg",
+                        predicted_image=pred_mask_image
                     )
 
                     self.save_compare(
-                        filename=f"{self.unet_compare_dir}/{i}_{j}.jpg",
+                        filename=f"{self.compare_dir}/{i}_{j}.jpg",
                         true_mask=true_mask,
                         pred_mask=pred_mask
                     )
 
-                    jaccard_scores = (
+                    jc = (
                         self.calculate_jaccard_score(
                             jaccard_scores, i, j, images, true_mask, pred_mask
                         )
                     )
+                    jaccard_scores.append(jc)
 
+        # Calculate and log the average Jaccard score
         avg_jaccard = np.mean(jaccard_scores) if jaccard_scores else 0
         logging.info(f"Average Jaccard Score: {avg_jaccard:.4f}")
 

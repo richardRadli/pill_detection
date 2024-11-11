@@ -43,10 +43,10 @@ def dataset_images_path_selector(dataset_name: str):
             },
 
             "test": {
-                "aug_images":
-                    DATASET_PATH.get_data_path("cure_test_aug_images"),
-                "aug_yolo_labels":
-                    DATASET_PATH.get_data_path("cure_test_aug_yolo_labels"),
+                "test_images":
+                    DATASET_PATH.get_data_path("cure_test_images"),
+                "test_masks":
+                    DATASET_PATH.get_data_path("cure_test_masks"),
             },
 
             "src_stream_images": {

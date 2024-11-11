@@ -22,8 +22,10 @@ class SegmentationDataLoader(Dataset):
         image = Image.open(image_path).convert('RGB')
         mask = Image.open(mask_path).convert('L')
 
+        image_size = image.size
+
         if self.transform:
             image = self.transform(image)
             mask = self.transform(mask)
 
-        return image, mask
+        return image, mask, image_size

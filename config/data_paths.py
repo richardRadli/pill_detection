@@ -556,10 +556,10 @@ class Datasets(_Const):
         "cure_train_aug_mask_images":
             "cure/Augmented/train_dir/mask_images",
 
-        "cure_test_aug_images":
+        "cure_test_images":
             "cure/Augmented/test_dir/images",
-        "cure_test_aug_yolo_labels":
-            "cure/Augmented/test_dir/yolo_labels",
+        "cure_test_masks":
+            "cure/Augmented/test_dir/masks",
 
         # ------------------------------------------------- O G Y E I --------------------------------------------------
         # CUSTOMER

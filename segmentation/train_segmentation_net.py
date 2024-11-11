@@ -127,13 +127,16 @@ class TrainSegmentation:
             transforms.ToTensor(),
         ])
 
-        dataset = SegmentationDataLoader(images_dir=images_dir,
-                                         masks_dir=masks_dir,
-                                         transform=transform)
+        dataset = (
+            SegmentationDataLoader(
+                images_dir=images_dir,
+                masks_dir=masks_dir,
+                transform=transform
+            )
+        )
 
         train_size = int(self.cfg.get("train_ratio") * len(dataset))
         val_size = len(dataset) - train_size
-
         train_set, val_set = random_split(dataset, [train_size, val_size])
 
         return train_set, val_set
@@ -208,7 +211,7 @@ class TrainSegmentation:
 
             self.model.eval()
             for batch_data, batch_masks in tqdm(
-                    self.valid_loader, total=len(self.train_loader), desc=colorama.Fore.LIGHTBLUE_EX + "Validation"
+                    self.valid_loader, total=len(self.valid_loader), desc=colorama.Fore.LIGHTBLUE_EX + "Validation"
             ):
                 self.valid_loop(batch_data, batch_masks, valid_losses)
 
