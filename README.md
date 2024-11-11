@@ -28,11 +28,11 @@ Each paper corresponds to a separate branch in this repository, and they are bri
 <!-- TOC -->
 
 ## 🚨 Repository Status
-As of 2024.11.09.:
+As of 2024.11.11.:
 
 | Branch Name  | Status         | Description |
 |--------------|----------------|---|
-| `idaacs2023` | Under revision |  Multi-Stream Pill Recognition with Attention  |   
+| `idaacs2023` | Up-to-date     |  Multi-Stream Pill Recognition with Attention  |   
 | `kdir2023`   | Under revision |  Pill Metrics Learning with Multihead Attention |  
 | `visapp2024` | Under revision |  Word and Image Embeddings in Pill Recognition |  
 | `wiley`      | Under revision |  Metric-based pill recognition with the help of textual and visual cues | 
