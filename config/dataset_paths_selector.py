@@ -175,7 +175,7 @@ def dataset_images_path_selector(dataset_name: str):
                     IMAGES_PATH.get_data_path("stream_images_ogyei_anchor"),
                 "stream_images_pos_neg":
                     IMAGES_PATH.get_data_path("stream_images_ogyei_pos_neg"),
-                'ref':
+                'reference':
                     IMAGES_PATH.get_data_path("ref_ogyei"),
                 'query':
                     IMAGES_PATH.get_data_path("query_ogyei")
