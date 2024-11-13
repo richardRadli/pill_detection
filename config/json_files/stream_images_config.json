@@ -1,6 +1,6 @@
 {
   "dataset_type": "ogyei",
-  "operation": "reference",
+  "operation": "customer",
   "threshold_area": 100,
   "kernel_median_contour": 7,
   "canny_low_thr": 10,

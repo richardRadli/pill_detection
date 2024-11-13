@@ -10,26 +10,28 @@ Description: Crop images based on bounding box annotations and save the cropped 
 import cv2
 import os
 
-from glob import glob
 from tqdm import tqdm
 
 from config.data_paths import DATASET_PATH
+from utils.utils import file_reader
 
 
 def crop_bounding_boxes(image_path: str, annotation_path: str, out_path: str):
     """
     Crop images based on bounding box annotations and save the cropped images.
+    
+    Args:
+        image_path: Path to the directory containing the images.
+        annotation_path: Path to the directory containing the annotation files.
+        out_path: Path to the directory where the cropped images will be saved.
 
-    :param image_path: Path to the directory containing the images.
-    :param annotation_path: Path to the directory containing the annotation files.
-    :param out_path: Path to the directory where the cropped images will be saved.
-    :return: None
+    Returns:
+         None
     """
 
-    images = sorted(glob(image_path + "/*.png"))
+    images = file_reader(image_path, ".png")
 
     for img in tqdm(images, total=len(images)):
-        # Get the corresponding annotation file
         img_name = os.path.splitext(os.path.basename(img))[0]
         ann = os.path.join(annotation_path, img_name + ".txt")
 

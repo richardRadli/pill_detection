@@ -25,7 +25,7 @@ class _Const(object):
     user = os.getlogin()
     root_mapping = {
         "ricsi": {
-            "STORAGE_ROOT ":
+            "STORAGE_ROOT":
                 "D:/storage/pill_detection/KDIR2023",
             "DATASET_ROOT":
                 "D:/storage/pill_detection/KDIR2023/datasets",
@@ -73,6 +73,9 @@ class _Const(object):
                 logging.info(f"Directory {dir_path} has been created")
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++ C O N F I G +++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class ConfigFilePaths(_Const):
     dirs_config_paths = {
         "config_augmentation":
@@ -464,120 +467,102 @@ class Datasets(_Const):
         "stream_images_cure_reference_rgb":
             "cure/Reference/stream_images/rgb",
         "stream_images_cure_reference_texture":
-            "ogyei_v2/Reference/stream_images/texture",
-
-        # CUSTOMER SPLITTED
-        "cure_train_images":
-            "cure/Customer_splitted/train_dir/images",
-        "cure_train_mask_images":
-            "cure/Customer_splitted/train_dir/mask_images",
-        "cure_train_segmentation_labels":
-            "cure/Customer_splitted/train_dir/segmentation_labels",
-
-        "cure_valid_images":
-            "cure/Customer_splitted/valid_dir/images",
-        "cure_valid_mask_images":
-            "cure/Customer_splitted/valid_dir/mask_images",
-        "cure_valid_segmentation_labels":
-            "cure/Customer_splitted/valid_dir/segmentation_labels",
-
-        "cure_test_images":
-            "cure/Customer_splitted/test_dir/images",
-        "cure_test_mask_images":
-            "cure/Customer_splitted/test_dir/mask_images",
-        "cure_test_segmentation_labels":
-            "cure/Customer_splitted/test_dir/segmentation_labels",
+            "ogyei/Reference/stream_images/texture",
 
         # CUSTOMER SPLITTED AUGMENTED
+        # Train
         "cure_train_aug_images":
-            "cure/Customer_splitted_aug/train_dir/images",
+            "cure/Augmented/train_dir/images",
         "cure_train_aug_yolo_labels":
-            "cure/Customer_splitted_aug/train_dir/yolo_labels",
+            "cure/Augmented/train_dir/yolo_labels",
         "cure_train_aug_mask_images":
-            "cure/Customer_splitted_aug/train_dir/mask_images",
+            "cure/Augmented/train_dir/mask_images",
 
+        # Valid
         "cure_valid_aug_images":
-            "cure/Customer_splitted_aug/valid_dir/images",
+            "cure/Augmented/valid_dir/images",
         "cure_valid_aug_yolo_labels":
-            "cure/Customer_splitted_aug/valid_dir/yolo_labels",
+            "cure/Augmented/valid_dir/yolo_labels",
         "cure_valid_aug_mask_images":
-            "cure/Customer_splitted_aug/valid_dir/mask_images",
+            "cure/Augmented/valid_dir/mask_images",
 
-        "cure_test_aug_images":
-            "cure/Customer_splitted_aug/test_dir/images",
-        "cure_test_aug_yolo_labels":
-            "cure/Customer_splitted_aug/test_dir/yolo_labels",
+        "cure_test_images":
+            "cure/Augmented/test_dir/images",
+        "cure_test_yolo_labels":
+            "cure/Augmented/test_dir/yolo_labels",
+        "cure_test_mask_images":
+            "cure/Augmented/test_dir/masks",
 
         # ------------------------------------------------- O G Y E I --------------------------------------------------
         # CUSTOMER
         "ogyei_customer_images":
-            "ogyei_v2/Customer/images",
+            "ogyei/Customer/images",
         "ogyei_customer_segmentation_labels":
-            "ogyei_v2/Customer/segmentation_labels",
+            "ogyei/Customer/segmentation_labels",
         "ogyei_customer_mask_images":
-            "ogyei_v2/Customer/mask_images",
+            "ogyei/Customer/mask_images",
 
         # REFERENCE
         "ogyei_reference_images":
-            "ogyei_v2/Reference/images",
+            "ogyei/Reference/images",
         "ogyei_reference_segmentation_labels":
-            "ogyei_v2/Reference/segmentation_labels",
+            "ogyei/Reference/segmentation_labels",
         "ogyei_reference_mask_images":
-            "ogyei_v2/Reference/mask_images",
+            "ogyei/Reference/mask_images",
 
         # STREAM - Customer
         "stream_images_ogyei_customer":
-            "ogyei_v2/Customer/stream_images",
+            "ogyei/Customer/stream_images",
         "stream_images_ogyei_customer_contour":
-            "ogyei_v2/Customer/stream_images/contour",
+            "ogyei/Customer/stream_images/contour",
         "stream_images_ogyei_customer_lbp":
-            "ogyei_v2/Customer/stream_images/lbp",
+            "ogyei/Customer/stream_images/lbp",
         "stream_images_ogyei_customer_rgb":
-            "ogyei_v2/Customer/stream_images/rgb",
+            "ogyei/Customer/stream_images/rgb",
         "stream_images_ogyei_customer_texture":
-            "ogyei_v2/Customer/stream_images/texture",
+            "ogyei/Customer/stream_images/texture",
 
         # STREAM - Reference
         "stream_images_ogyei_reference":
-            "ogyei_v2/Reference/stream_images",
+            "ogyei/Reference/stream_images",
         "stream_images_ogyei_reference_contour":
-            "ogyei_v2/Reference/stream_images/contour",
+            "ogyei/Reference/stream_images/contour",
         "stream_images_ogyei_reference_lbp":
-            "ogyei_v2/Reference/stream_images/lbp",
+            "ogyei/Reference/stream_images/lbp",
         "stream_images_ogyei_reference_rgb":
-            "ogyei_v2/Reference/stream_images/rgb",
+            "ogyei/Reference/stream_images/rgb",
         "stream_images_ogyei_reference_texture":
-            "ogyei_v2/Reference/stream_images/texture",
+            "ogyei/Reference/stream_images/texture",
 
         # UNSPLITTED
         "ogyei_images":
-            "ogyei_v2/unsplitted/images",
+            "ogyei/unsplitted/images",
         "ogyei_mask_images":
-            "ogyei_v2/unsplitted/gt_masks",
-        "ogyei_segmentation_labels":
-            "ogyei_v2/unsplitted/labels",
+            "ogyei/unsplitted/gt_masks",
+        "ogyei_yolo_labels":
+            "ogyei/unsplitted/labels",
 
         # SPLITTED
         "ogyei_train_images":
-            "ogyei_v2/splitted/train/images",
+            "ogyei/splitted/train/images",
         "ogyei_train_mask_images":
-            "ogyei_v2/splitted/train/gt_train_masks",
-        "ogyei_train_segmentation_labels":
-            "ogyei_v2/splitted/train/labels",
+            "ogyei/splitted/train/gt_train_masks",
+        "ogyei_train_yolo_labels":
+            "ogyei/splitted/train/labels",
 
         "ogyei_valid_images":
-            "ogyei_v2/splitted/valid/images",
+            "ogyei/splitted/valid/images",
         "ogyei_valid_mask_images":
-            "ogyei_v2/splitted/valid/gt_valid_masks",
-        "ogyei_valid_segmentation_labels":
-            "ogyei_v2/splitted/valid/labels",
+            "ogyei/splitted/valid/gt_valid_masks",
+        "ogyei_valid_yolo_labels":
+            "ogyei/splitted/valid/labels",
 
         "ogyei_test_images":
-            "ogyei_v2/splitted/test/images",
+            "ogyei/splitted/test/images",
         "ogyei_test_mask_images":
-            "ogyei_v2/splitted/test/gt_test_masks",
-        "ogyei_test_segmentation_labels":
-            "ogyei_v2/splitted/test/labels",
+            "ogyei/splitted/test/gt_test_masks",
+        "ogyei_test_yolo_labels":
+            "ogyei/splitted/test/labels",
 
         "dtd":
             "dtd_images"

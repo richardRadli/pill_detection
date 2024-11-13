@@ -16,6 +16,7 @@ from PIL import Image
 from tqdm import tqdm
 
 from config.data_paths import DATASET_PATH
+from utils.utils import file_reader
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -30,8 +31,8 @@ def rename_files(images_dir: str, labels_dir: str) -> None:
     :return: None
     """
 
-    images = sorted(glob(images_dir + "/*.jpg"))
-    text = sorted(glob(labels_dir + "/*.txt"))
+    images = file_reader(images_dir, "jpg")
+    text = file_reader(labels_dir, "txt")
 
     existing_files = os.listdir(images_dir)
 

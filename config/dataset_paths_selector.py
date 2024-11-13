@@ -35,32 +35,20 @@ def dataset_images_path_selector(dataset_name: str):
 
             "train": {
                 "images":
-                    DATASET_PATH.get_data_path("cure_train_images"),
-                "mask_images":
-                    DATASET_PATH.get_data_path("cure_train_mask_images"),
-                "segmentation_labels":
-                    DATASET_PATH.get_data_path("cure_train_segmentation_labels"),
-                "aug_images":
                     DATASET_PATH.get_data_path("cure_train_aug_images"),
-                "aug_yolo_labels":
-                    DATASET_PATH.get_data_path("cure_train_aug_yolo_labels"),
-                "aug_mask_images":
+                "mask_images":
                     DATASET_PATH.get_data_path("cure_train_aug_mask_images"),
+                "yolo_labels":
+                    DATASET_PATH.get_data_path("cure_train_aug_yolo_labels"),
             },
 
             "valid": {
                 "images":
-                    DATASET_PATH.get_data_path("cure_valid_images"),
-                "mask_images":
-                    DATASET_PATH.get_data_path("cure_valid_mask_images"),
-                "segmentation_labels":
-                    DATASET_PATH.get_data_path("cure_valid_segmentation_labels"),
-                "aug_images":
                     DATASET_PATH.get_data_path("cure_valid_aug_images"),
-                "aug_yolo_labels":
-                    DATASET_PATH.get_data_path("cure_valid_aug_yolo_labels"),
-                "aug_mask_images":
+                "mask_images":
                     DATASET_PATH.get_data_path("cure_valid_aug_mask_images"),
+                "yolo_labels":
+                    DATASET_PATH.get_data_path("cure_valid_aug_yolo_labels"),
             },
 
             "test": {
@@ -68,12 +56,8 @@ def dataset_images_path_selector(dataset_name: str):
                     DATASET_PATH.get_data_path("cure_test_images"),
                 "mask_images":
                     DATASET_PATH.get_data_path("cure_test_mask_images"),
-                "segmentation_labels":
-                    DATASET_PATH.get_data_path("cure_test_segmentation_labels"),
-                "aug_images":
-                    DATASET_PATH.get_data_path("cure_test_aug_images"),
-                "aug_yolo_labels":
-                    DATASET_PATH.get_data_path("cure_test_aug_yolo_labels"),
+                "yolo_labels":
+                    DATASET_PATH.get_data_path("cure_test_yolo_labels"),
             },
 
             "src_stream_images": {
@@ -108,7 +92,7 @@ def dataset_images_path_selector(dataset_name: str):
                     IMAGES_PATH.get_data_path("stream_images_cure_anchor"),
                 "stream_images_pos_neg":
                     IMAGES_PATH.get_data_path("stream_images_cure_pos_neg"),
-                'ref':
+                'reference':
                     IMAGES_PATH.get_data_path("test_ref_cure"),
                 'query':
                     IMAGES_PATH.get_data_path("test_query_cure")
@@ -140,7 +124,7 @@ def dataset_images_path_selector(dataset_name: str):
                 "mask_images":
                     DATASET_PATH.get_data_path("ogyei_mask_images"),
                 "segmentation_labels":
-                    DATASET_PATH.get_data_path("ogyei_segmentation_labels")
+                    DATASET_PATH.get_data_path("ogyei_yolo_labels")
             },
 
             "train": {
@@ -148,8 +132,8 @@ def dataset_images_path_selector(dataset_name: str):
                     DATASET_PATH.get_data_path("ogyei_train_images"),
                 "mask_images":
                     DATASET_PATH.get_data_path("ogyei_train_mask_images"),
-                "segmentation_labels":
-                    DATASET_PATH.get_data_path("ogyei_train_segmentation_labels")
+                "yolo_labels":
+                    DATASET_PATH.get_data_path("ogyei_train_yolo_labels")
             },
 
             "valid": {
@@ -157,8 +141,8 @@ def dataset_images_path_selector(dataset_name: str):
                     DATASET_PATH.get_data_path("ogyei_valid_images"),
                 "mask_images":
                     DATASET_PATH.get_data_path("ogyei_valid_mask_images"),
-                "segmentation_labels":
-                    DATASET_PATH.get_data_path("ogyei_valid_segmentation_labels")
+                "yolo_labels":
+                    DATASET_PATH.get_data_path("ogyei_valid_yolo_labels")
             },
 
             "test": {
@@ -166,8 +150,8 @@ def dataset_images_path_selector(dataset_name: str):
                     DATASET_PATH.get_data_path("ogyei_test_images"),
                 "mask_images":
                     DATASET_PATH.get_data_path("ogyei_test_mask_images"),
-                "segmentation_labels":
-                    DATASET_PATH.get_data_path("ogyei_test_segmentation_labels"),
+                "yolo_labels":
+                    DATASET_PATH.get_data_path("ogyei_test_yolo_labels"),
             },
 
             "src_stream_images": {
@@ -202,7 +186,7 @@ def dataset_images_path_selector(dataset_name: str):
                     IMAGES_PATH.get_data_path("stream_images_ogyei_anchor"),
                 "stream_images_pos_neg":
                     IMAGES_PATH.get_data_path("stream_images_ogyei_pos_neg"),
-                'ref':
+                'reference':
                     IMAGES_PATH.get_data_path("ref_ogyei"),
                 'query':
                     IMAGES_PATH.get_data_path("query_ogyei")
