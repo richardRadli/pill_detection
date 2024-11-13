@@ -5,9 +5,13 @@
 ![Pandas](https://img.shields.io/badge/pandas-v2.1.0-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white)
 ![Matplotlib](https://img.shields.io/badge/Matplotlib-v3.7.1-%23ffffff.svg?style=for-the-badge&logo=Matplotlib&logoColor=black)
 ![OpenCV](https://img.shields.io/badge/opencv-4.5.5-%23white.svg?style=for-the-badge&logo=opencv&logoColor=white)
+![Colorama](https://img.shields.io/badge/colorama-v0.4.6-%23FFD700.svg?style=for-the-badge&logo=python&logoColor=white)
+![Colorlog](https://img.shields.io/badge/colorlog-v6.7.0-%23FFD700.svg?style=for-the-badge&logo=python&logoColor=white)
+![Pillow](https://img.shields.io/badge/Pillow-v9.3.0-%23FFD700.svg?style=for-the-badge&logo=python&logoColor=white)
+![Seaborn](https://img.shields.io/badge/Seaborn-v0.12.2-%2355A3B2.svg?style=for-the-badge&logo=python&logoColor=white)
 
 
-# Pill Metrics Learning with Multihead Attention
+# 🩹 Pill Metrics Learning with Multihead Attention
 
 In object recognition, especially, when new classes can easily appear during the application, few-shot learning has 
 great importance. Metrics learning is an important elementary technique for few-shot object recognition which can be 
@@ -16,7 +20,7 @@ multi-stream metrics learning networks for pill recognition in our article. We i
 multihead attention layers at different parts of the network. The performance is analyzed on two datasets with 
 superior results to a state-of-the-art multi-stream pill recognition network.
 
-## Architecture of the model
+## 📐 Architecture of the model
 
 The main idea behind multi-stream processing is to persuade the sub-networks to focus on different kinds of features. For this reason different pre-processing steps are done in the streams:
 
@@ -51,47 +55,80 @@ and only the top layers were trained.
 
 The following configurations were evaluated:
 
--  **EffNetV1+SA**: EfficientNet-B0 and separated self-attention. 
 -  **EffNetV2+SA**: EfficientNetV2 S and separated self-attention.
 -  **EffNetV2+MHA**: EfficientNetV2 S and separated multihead attention.
 -  **EffNetV2+MHA+FMHA**: EfficientNetV2 S, separated multihead attention and multihead attention in the fusion network.
--  **EffNetV2+MHA+FMHA+BA**: EfficientNetV2 S, separated multihead attention, multihead attention in the fusion network, and batch all (BA) strategy for the fusion network.
 
 This repository only implements EffNetV2+SA, EffNetV2+MHA and EffNetV2+MHA+FMHA. EffNetV1+SA can be found on the 
 `IDAACS2023` branch.
 
 
-
-## 📚 Datasets
-We used two datasets, namely CURE [1] and our novel, custom-made one, entitled OGYEIv1 [3]. 
-CURE is available online via this link:
-
-https://drive.google.com/drive/folders/1dcqUaTSepplc4GAUC05mr9iReWVqaThN.
-
-Ours can be accessed if you contact me via my e-mail address: [radli.richard@mik.uni-pannon.hu]()
+## 📊 Datasets
+We used two datasets, namely:
+* CURE [1], that is available  [online](https://drive.google.com/drive/folders/1dcqUaTSepplc4GAUC05mr9iReWVqaThN).
+* Our custom-made one, entitled OGYEIV1 [3]. It can be accessed if you contact me via my e-mail address:[ radli.richard@mik.uni-pannon.hu]()
 
 The comparison of the two datasets can be seen in the table below:
 
-|                        | CURE                | OGYEIv1   |
-|------------------------|---------------------|-----------|
-| Number of pill classes | 196                 | 78        |
-| Number of images       | 8973                | 3154      |
-| Image resolution       | 800×800 - 2448×2448 | 2465×1683 |
-| Instance per class     | 40-50               | 40-60     |
-| Segmentation labels    | no                  | fully     |
-| Backgrounds            | 6                   | 1         | 
-| Imprinted text labels  | yes                 | yes       |
+<table>
+    <thead>
+    <tr style="background-color: #00000f">
+      <th></th>
+      <th>CURE</th>
+      <th>OGYEIV1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Number of pill classes</td>
+      <td>196</td>
+      <td>78</td>
+    </tr>
+    <tr>
+      <td>Number of images</td>
+      <td>8973</td>
+      <td>3154</td>
+    </tr>
+    <tr>
+      <td>Image resolution</td>
+      <td>800×800 - 2448×2448</td>
+      <td>2465×1683</td>
+    </tr>
+    <tr>
+      <td>Instance per class</td>
+      <td>40-50</td>
+      <td>40-60</td>
+    </tr>
+    <tr>
+      <td>Segmentation labels</td>
+      <td>no</td>
+      <td>fully</td>
+    </tr>
+    <tr>
+      <td>Backgrounds</td>
+      <td>6</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>Imprinted text labels</td>
+      <td>yes</td>
+      <td>yes</td>
+    </tr>
+  </tbody>
+</table>
 
-## 📝 Requirements
+
+## 📋 Requirement
 Make sure you have the following dependencies installed:
 
-```
+```bash
 colorama>=0.4.6
 colorlog>=6.7.0
-jsonschema~=4.23.0
+json>=2.0.9
+jsonschema>=4.23.0
 matplotlib>=3.7.1
 numpy>=1.23.5
-opencv-python>=4.5.5.64
+opencv-python>=4.9.0
 pandas>=2.1.0
 Pillow>=9.3.0
 seaborn>=0.12.2
@@ -103,8 +140,7 @@ torchvision>=0.17.1+cu121
 tqdm>=4.65.0
 ```
 
-You can install the listed packages with the following command:
-
+Install dependencies with:
 ```bash
 pip install -r requirements.txt
 ```
@@ -112,59 +148,105 @@ pip install -r requirements.txt
 ## 🚀 Installation
 
 ### 1. Clone or download the repository
+
 Begin by cloning or downloading this repository to your local machine.
 
+```bash
+git clone https://github.com/richardRadli/pill_detection/tree/idaacs2023
+```
+
 ### 2. Update configuration
+
 Open the _data_paths.py_ file. You will find the following dictionary:
 
 ```python
 root_mapping = {
-    "ricsi": {
+    "your_username": {
         "STORAGE_ROOT ":
-            "D:/storage/pill_detection/KDIR2023",
+            "D:/storage/pill_detection/IDAACS23",
         "DATASET_ROOT":
-            "D:/storage/pill_detection/KDIR2023/datasets",
+            "D:/storage/pill_detection/IDAACS23/datasets",
         "PROJECT_ROOT":
-            "C:/Users/ricsi/Documents/project/IVM"
+            "C:/Users/ricsi/Documents/project/IVM",
     }
 }
 ```
 
-You have to replace the username (in this case 'ricsi') with your own. Your username can be acquired by running the `whoami` command in your terminal to retrieve it.
+Replace "your_username" with your actual username. Run the following command in your terminal to confirm it:
 
-#### STORAGE_ROOT: 
-- Adjust this path to the location where you want to save project outputs and other data generated during the execution of the Python files.
+```bash
+whoami
+```
 
-#### DATASET_ROOT: 
-- Modify this path to point to the directory where your datasets are stored. This folder should contain all datasets necessary for the project.
+Then update these paths:
 
-#### PROJECT_ROOT
-- Update this path to the directory where the Python and JSON files of the project are located.
+#### STORAGE_ROOT:
+* Adjust this path to the location where you want to save project outputs and other data generated during the execution 
+of the Python files.
+
+#### DATASET_ROOT:
+* Modify this path to point to the directory where your datasets are stored. This folder should contain all datasets 
+necessary for the project. It should look like this:
+
+* D:\storage\pill_detection\IDAACS23\dataset
+  * ogyei
+    * Customer
+    * Reference
+    * etc.
+
+#### PROJECT_ROOT:
+* Update this path to the directory where the Python and JSON files of the project are located.
 
 ### 3. Create necessary folders
-Run the __data_paths.py__ script. This will create all the required folders based on the paths specified in the configuration.
+Run the data_paths.py script. This will create all the required folders based on the paths specified in the 
+configuration.
 
 ### 4. Download and place datasets
 Obtain the necessary datasets and place them into the DATASET_ROOT directory as specified in your updated configuration.
 
 ## 💻 Usage
 
-If the repository is cloned/downloaded, the root paths are sorted out, the datasets are in place, and everything is 
-set up in the config files, the next step is to apply a trained YOLOv7 network for pill detection and use 
-`crop_yolo_detected_images.py` on the detected images. For more details read our article [3]. 
+### Setting Up Configuration Files
 
-Alternatively, if you can use `draw_masks.py` to create the binary mask images.
+Before running the Python scripts, you can configure your settings in the following JSON files:
 
-To create the images for the streams, run `create_stream_images.py`.
+* `augmentation_config.json` - Configuration for augmentation
+* `fusion_net_config.json` - Configuration for training the fusion network
+* `streamnet_config.json` - Configuration for training the stream networks
+* `stream_images_config.json` - Configuration for image manipulation for the stream images
 
-Next step is to train the stream networks, this is Phase 1. 
-There is one backbone available in this repository EfficientNet V2 Small [4]. 
-Make sure you train all four streams. Run `train_stream_network.py`.
+### Running the Pipeline
+After updating paths and placing datasets, follow these steps to complete setup and training:
+ 
+1. **Generate Augmented Images**
+   * Run `augment_images.py` to create augmented image versions for training.
 
-After the streams are trained, the last step is to train the fusion network, it is also called Phase 2.
-There are 3 choices for this, as listed above. 
+2. **Train YOLO network for object detection**
+   * Train an arbitrary YOLO model with the augmented images for binary object detection. It should detect only the presence of a pill on the image.
+ 
+3. **Generate Test Mask Images**
+   * Do prediction on the test images with the trained YOLO network. Make sure to generate labels. After that use the
+   `crop_yolo_detected_images.py` file to crop the detected bounding boxes.
+ 
+4. **Generate Mask Images for Stream Training**
+   * Run `draw_masks.py` to generate mask images needed for training stream networks.
+ 
+5. **Create Stream Images** 
+   * Generate RGB, contour, LBP, and texture stream images with `create_stream_images.py`.
+   
+6. **Split Images**
+    * Split images by using the `copy_images_to_triplets.py` file. It will split images into _train/test_, 
+   _anchor/pos_neg_, _ref/query_ folders.    
 
-To evaluate the models, use `predict_fusion_network.py`.
+7. **Train Stream Networks** 
+   * Train each of the four stream networks by running `train_stream_network.py`.
+   
+8. **Train Fusion Network**
+   * After all stream networks are trained, use `train_fusion_network.py` to train the final fusion network.
+
+9. **Evaluate Results** 
+   * Run `predict_fusion_network.py` to evaluate the model and view the results.
+
 
 ## 📰 Link to paper
 

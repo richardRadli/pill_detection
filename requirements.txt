@@ -1,9 +1,10 @@
 colorama>=0.4.6
 colorlog>=6.7.0
+json>=2.0.9
 jsonschema~=4.23.0
 matplotlib>=3.7.1
 numpy>=1.23.5
-opencv-python>=4.5.5.64
+opencv-python>=4.9.0
 pandas>=2.1.0
 Pillow>=9.3.0
 seaborn>=0.12.2
