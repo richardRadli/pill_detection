@@ -9,21 +9,20 @@ Description: This code implements the inference for the stream network phase.
 
 import colorama
 import logging
-import numpy as np
 import os
 import pandas as pd
 import torch
 
 from torchvision import transforms
 from tqdm import tqdm
-from typing import List, Tuple
+from typing import Tuple
 from PIL import Image
 
-from config.config import ConfigStreamNetwork
-from config.config_selector import sub_stream_network_configs, stream_network_config, dataset_images_path_selector
-from stream_network_models.stream_network_selector import NetworkFactory
-from utils.utils import create_timestamp, find_latest_file_in_latest_directory, plot_confusion_matrix, \
-    plot_ref_query_images, use_gpu_if_available, setup_logger
+from config.json_config import json_config_selector
+from config.networks_paths_selector import substream_paths
+from stream_network_models.stream_network_selector import StreamNetworkFactory
+from utils.utils import (use_gpu_if_available, create_timestamp, find_latest_file_in_latest_directory,
+                         plot_ref_query_images, setup_logger, load_config_json)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -34,66 +33,77 @@ class PredictStreamNetwork:
     # --------------------------------------------------- __I N I T__ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
-        # Setup logger
+        self.timestamp = create_timestamp()
         setup_logger()
-
-        # Load config
-        self.cfg = ConfigStreamNetwork().parse()
-
-        # Set up tqdm colours
         colorama.init()
 
-        # Create time stamp
-        self.timestamp = create_timestamp()
-
-        self.preprocess_rgb = None
-        self.preprocess_con_tex = None
-
-        self.accuracy_top5 = None
-        self.accuracy_top1 = None
-        self.num_correct_top1 = 0
-        self.num_correct_top5 = 0
         self.top5_indices = []
         self.confidence_percentages = None
+        self.accuracy_top5 = None
+        self.accuracy_top1 = None
+        self.num_correct_top5 = 0
+        self.num_correct_top1 = 0
 
-        # Load configs
-        self.main_network_config = stream_network_config(self.cfg)
-        self.sub_network_config = sub_stream_network_configs(self.cfg)
+        # Set up class variables
+        self.preprocess_rgb = None
+        self.preprocess_con_tex_lbp = None
+        self.query_image_tex = None
+        self.query_image_rgb = None
+        self.query_image_con = None
+
+        # Load config
+        self.cfg = (
+            load_config_json(
+                json_schema_filename=json_config_selector("stream_net").get("schema"),
+                json_filename=json_config_selector("stream_net").get("config")
+            )
+        )
+
+        self.dataset_type = self.cfg.get("dataset_type")
+        self.type_of_net = self.cfg.get("type_of_net")
+        self.stream_network_type = self.cfg.get("type_of_stream")
+        self.loss_type = self.cfg.get("type_of_loss_func")
+        self.dmtl_type = self.cfg.get("type_of_dmtl")
 
         # Load networks
         self.network_con, self.network_lbp, self.network_rgb, self.network_tex = self.load_networks()
-        self.network_con.eval()
-        self.network_lbp.eval()
-        self.network_rgb.eval()
-        self.network_tex.eval()
 
         # Preprocess images
+        image_size = self.cfg.get("networks").get(self.cfg.get("type_of_net")).get("image_size")
         self.preprocess_rgb = \
             transforms.Compose(
                 [
-                    transforms.Resize((
-                        self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
-                        self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))
+                    transforms.Resize(
+                        (
+                            image_size,
+                            image_size
+                        )
                     ),
-                    transforms.CenterCrop((
-                    self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
-                    self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))
+                    transforms.CenterCrop(
+                        (
+                            image_size,
+                            image_size
+                        )
                     ),
                     transforms.ToTensor(),
                     transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
                 ]
             )
 
-        self.preprocess_con_tex = \
+        self.preprocess_con_tex_lbp = \
             transforms.Compose(
                 [
-                    transforms.Resize((
-                        self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
-                        self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))
+                    transforms.Resize(
+                        (
+                            image_size,
+                            image_size
+                        )
                     ),
-                    transforms.CenterCrop((
-                    self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"),
-                    self.sub_network_config.get(self.cfg.type_of_stream).get("image_size"))
+                    transforms.CenterCrop(
+                        (
+                            image_size,
+                            image_size
+                        )
                     ),
                     transforms.Grayscale(),
                     transforms.ToTensor(),
@@ -102,6 +112,57 @@ class PredictStreamNetwork:
 
         # Select device
         self.device = use_gpu_if_available()
+
+        self.plot_dir = (
+            self.create_save_dirs(
+                network_cfg=substream_paths().get(self.stream_network_type),
+                subdir="plotting_folder",
+                loss=self.loss_type,
+                dmtl_type=self.dmtl_type
+            )
+        )
+
+        self.prediction_dir = (
+            self.create_save_dirs(
+                network_cfg=substream_paths().get(self.stream_network_type),
+                subdir="prediction_folder",
+                loss=self.loss_type,
+                dmtl_type=self.dmtl_type
+            )
+        )
+
+        self.ref_save_dir = (
+            self.create_save_dirs(
+                network_cfg=substream_paths().get(self.stream_network_type),
+                subdir="ref_vectors_folder",
+                loss=self.loss_type,
+                dmtl_type=self.dmtl_type
+            )
+        )
+
+    def create_save_dirs(self, network_cfg, subdir, loss, dmtl_type) -> str:
+        """
+        Creates and returns a directory path based on the provided network configuration.
+
+        Args:
+            network_cfg: A dictionary containing network configuration information.
+            subdir: The subdirectory to create the directory path for.
+            loss: Loss type
+            dmtl_type: Only set it when dmtl is used
+        Returns:
+            directory_to_create (str): The path of the created directory.
+        """
+
+        if loss == "hmtl":
+            directory_path = network_cfg.get(subdir).get(loss)
+        else:
+            directory_path = network_cfg.get(subdir).get(loss).get(dmtl_type)
+
+        directory_to_create = (
+            os.path.join(directory_path, f"{self.timestamp}")
+        )
+        os.makedirs(directory_to_create, exist_ok=True)
+        return directory_to_create
 
     # ------------------------------------------------------------------------------------------------------------------
     # -------------------------------------------- L O A D   N E T W O R K S -------------------------------------------
@@ -115,32 +176,37 @@ class PredictStreamNetwork:
                 Contour, LBP, RGB, and Texture networks.
         """
 
-        con_config = self.sub_network_config.get("Contour")
-        lbp_config = self.sub_network_config.get("LBP")
-        rgb_config = self.sub_network_config.get("RGB")
-        tex_config = self.sub_network_config.get("Texture")
+        contour_substream_network_cfg = self.cfg.get("streams").get("Contour")
+        lbp_substream_network_cfg = self.cfg.get("streams").get("LBP")
+        rgb_substream_network_cfg = self.cfg.get("streams").get("RGB")
+        texture_substream_network_cfg = self.cfg.get("streams").get("Texture")
 
         latest_con_pt_file = find_latest_file_in_latest_directory(
-            path=con_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+            path=contour_substream_network_cfg.get("model_weights_dir").get(self.loss_type) if self.loss_type == "hmtl"
+            else contour_substream_network_cfg.get("model_weights_dir").get(self.loss_type).get(self.dmtl_type),
             type_of_loss=self.cfg.type_of_loss_func
         )
         latest_lbp_pt_file = find_latest_file_in_latest_directory(
-            path=lbp_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+            path=lbp_substream_network_cfg.get("model_weights_dir").get(self.loss_type) if self.loss_type == "hmtl" else
+            lbp_substream_network_cfg.get("model_weights_dir").get(self.loss_type).get(self.dmtl_type),
             type_of_loss=self.cfg.type_of_loss_func
         )
         latest_rgb_pt_file = find_latest_file_in_latest_directory(
-            path=rgb_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+            path=rgb_substream_network_cfg.get("model_weights_dir").get(self.loss_type) if self.loss_type == "hmtl" else
+            rgb_substream_network_cfg.get("model_weights_dir").get(self.loss_type).get(self.dmtl_type),
             type_of_loss=self.cfg.type_of_loss_func
         )
         latest_tex_pt_file = find_latest_file_in_latest_directory(
-            path=tex_config.get("model_weights_dir").get(self.cfg.type_of_net).get(self.cfg.dataset_type),
+            path=texture_substream_network_cfg.get("model_weights_dir").get(
+                self.loss_type) if self.loss_type == "hmtl" else
+            texture_substream_network_cfg.get("model_weights_dir").get(self.loss_type).get(self.dmtl_type),
             type_of_loss=self.cfg.type_of_loss_func
         )
 
-        network_con = NetworkFactory.create_network(self.cfg.type_of_net, con_config)
-        network_lbp = NetworkFactory.create_network(self.cfg.type_of_net, lbp_config)
-        network_rgb = NetworkFactory.create_network(self.cfg.type_of_net, rgb_config)
-        network_tex = NetworkFactory.create_network(self.cfg.type_of_net, tex_config)
+        network_con = StreamNetworkFactory.create_network(self.type_of_net, contour_substream_network_cfg)
+        network_lbp = StreamNetworkFactory.create_network(self.type_of_net, lbp_substream_network_cfg)
+        network_rgb = StreamNetworkFactory.create_network(self.type_of_net, rgb_substream_network_cfg)
+        network_tex = StreamNetworkFactory.create_network(self.type_of_net, texture_substream_network_cfg)
 
         network_con.load_state_dict(torch.load(latest_con_pt_file))
         network_lbp.load_state_dict(torch.load(latest_lbp_pt_file))
@@ -152,84 +218,90 @@ class PredictStreamNetwork:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------------- G E T   V E C T O R S ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def get_vectors(self, contour_dir: str, lbp_dir: str, rgb_dir: str, texture_dir: str, operation: str) \
-            -> Tuple[List[torch.Tensor], List[str], List[str]]:
+    def get_vectors(self, images_dirs: dict, operation: str):
         """
-        Process images and obtain feature vectors.
-
-        Parameters:
-            contour_dir (str): Path to the directory containing contour images.
-            lbp_dir (str): Path to the directory containing LBP images.
-            rgb_dir (str): Path to the directory containing RGB images.
-            texture_dir (str): Path to the directory containing texture images.
-            operation (str): Name of the operation being performed.
+        Args:
+            images_dirs:
+                dictionary containing paths to the query/reference images for contour, LBP, RGB, and texture streams.
+            operation:
+                string indicating the type of operation ('query' or 'reference').
 
         Returns:
-            Tuple[List[torch.Tensor], List[str], List[str]]:
-                A tuple containing three lists - vectors, labels, and images_path.
+            tuple containing dictionaries - vectors, labels, and image_paths.
         """
 
-        logging.info("Processing %s images" % operation)
+        logging.info(f"Processing {operation} images")
+        color = colorama.Fore.BLUE if operation == "query" else colorama.Fore.RED
+        medicine_classes = os.listdir(images_dirs["rgb"])
 
-        color = colorama.Fore.BLUE if operation == "query" else colorama.Fore.LIGHTYELLOW_EX
-        medicine_classes = os.listdir(rgb_dir)
-        vectors = []
-        labels = []
-        images_path = []
+        vectors = {}
+        labels = {}
+        images_path = {}
+        ground_truth_labels = []
 
-        # Move the model to the GPU
-        self.network_con = self.network_con.to(self.device)
-        self.network_lbp = self.network_lbp.to(self.device)
-        self.network_rgb = self.network_rgb.to(self.device)
-        self.network_tex = self.network_tex.to(self.device)
+        for image_name in tqdm(medicine_classes, desc=color + f"\nProcessing {operation} images"):
+            # Collecting image paths for each stream
 
-        for image_name in tqdm(medicine_classes, desc=color + "\nProcess %s images" % operation):
-            # Collecting images
-            image_paths_con = os.listdir(os.path.join(contour_dir, image_name))
-            image_paths_lbp = os.listdir(os.path.join(lbp_dir, image_name))
-            image_paths_rgb = os.listdir(os.path.join(rgb_dir, image_name))
-            image_paths_tex = os.listdir(os.path.join(texture_dir, image_name))
+            image_paths = {
+                'con': os.listdir(os.path.join(images_dirs['con'], image_name)),
+                'lbp': os.listdir(os.path.join(images_dirs['lbp'], image_name)),
+                'rgb': os.listdir(os.path.join(images_dirs['rgb'], image_name)),
+                'tex': os.listdir(os.path.join(images_dirs['tex'], image_name))
+            }
+
+            vectors[image_name] = []
+            labels[image_name] = []
+            images_path[image_name] = []
 
             for idx, (con, lbp, rgb, tex) in enumerate(zip(
-                    image_paths_con, image_paths_lbp, image_paths_rgb, image_paths_tex)
+                    image_paths['con'], image_paths['lbp'], image_paths['rgb'], image_paths['tex'])
             ):
-                # Open images and convert them to tensors
-                con_image = Image.open(os.path.join(contour_dir, image_name, con))
-                con_image = self.preprocess_con_tex(con_image)
 
-                lbp_image = Image.open(os.path.join(lbp_dir, image_name, lbp))
-                lbp_image = self.preprocess_con_tex(lbp_image)
+                # Load images and preprocess them
+                contour_image = (
+                    self.preprocess_con_tex_lbp(
+                        Image.open(os.path.join(images_dirs['con'], image_name, con))
+                    )
+                )
+                lbp_image = (
+                    self.preprocess_con_tex_lbp(
+                        Image.open(os.path.join(images_dirs['lbp'], image_name, lbp))
+                    )
+                )
+                rgb_image = (
+                    self.preprocess_rgb(
+                        Image.open(os.path.join(images_dirs['rgb'], image_name, rgb))
+                    )
+                )
+                tex_image = (
+                    self.preprocess_con_tex_lbp(
+                        Image.open(os.path.join(images_dirs['tex'], image_name, tex))
+                    )
+                )
 
-                rgb_image = Image.open(os.path.join(rgb_dir, image_name, rgb))
-                images_path.append(os.path.join(rgb_dir, image_name, rgb))
-                rgb_image = self.preprocess_rgb(rgb_image)
+                # Move to device
+                contour_image, lbp_image, rgb_image, tex_image = [
+                    img.unsqueeze(0).to(self.device) for img in
+                    [contour_image, lbp_image, rgb_image, tex_image]
+                ]
 
-                tex_image = Image.open(os.path.join(texture_dir, image_name, tex))
-                tex_image = self.preprocess_con_tex(tex_image)
-
-                # Make prediction
+                # Forward pass through the networks (Query embeddings)
                 with torch.no_grad():
-                    # Move input to GPU
-                    con_image = con_image.unsqueeze(0).to(self.device)
-                    lbp_image = lbp_image.unsqueeze(0).to(self.device)
-                    rgb_image = rgb_image.unsqueeze(0).to(self.device)
-                    tex_image = tex_image.unsqueeze(0).to(self.device)
+                    contour_vector = self.network_con(contour_image)
+                    lbp_vector = self.network_lbp(lbp_image)
+                    rgb_vector = self.network_rgb(rgb_image)
+                    texture_vector = self.network_tex(tex_image)
 
-                    # Perform computation on GPU and move result back to CPU
-                    contour_vector = self.network_con(con_image).squeeze().cpu()
-                    lbp_vector = self.network_lbp(lbp_image).squeeze().cpu()
-                    rgb_vector = self.network_rgb(rgb_image).squeeze().cpu()
-                    texture_vector = self.network_tex(tex_image).squeeze().cpu()
+                # Concatenate the embeddings into one vector
+                concatenated_vector = torch.cat([contour_vector, lbp_vector, rgb_vector, texture_vector], dim=1).cpu()
 
-                concatenated = torch.cat((contour_vector, lbp_vector, rgb_vector, texture_vector), dim=0)
-                vectors.append(concatenated)
-                labels.append(image_name)
+                # Append results to the dictionary
+                vectors[image_name].append(concatenated_vector)
+                images_path[image_name].append(os.path.join(images_dirs['rgb'], image_name, image_paths['rgb'][idx]))
+                ground_truth_labels.append(image_name)
 
-            if operation == "reference":
-                self.save_reference_vector(vectors, labels, images_path)
-
-        logging.info("Processing of %s images is done" % operation)
-        return vectors, labels, images_path
+        logging.info(f"Processing of {operation} images is complete")
+        return vectors, images_path, ground_truth_labels
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------ S A V E   R E F E R E N C E   V E C T O R -----------------------------------
@@ -245,143 +317,147 @@ class PredictStreamNetwork:
             None
         """
 
-        ref_save_dir = (
-            os.path.join(
-                self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type),
-                f"{self.timestamp}_{self.cfg.type_of_loss_func}"
-            )
-        )
-        os.makedirs(ref_save_dir, exist_ok=True)
+        os.makedirs(self.ref_save_dir, exist_ok=True)
         torch.save({'vectors': vectors,
                     'labels': labels,
                     'images_path': images_path},
-                   os.path.join(ref_save_dir, "ref_vectors.pt"))
+                   os.path.join(self.ref_save_dir, "ref_vectors.pt"))
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------- M E A S U R E   C O S S I M   A N D   E U C D I S T ------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def compare_query_and_reference_vectors(self, q_labels: list[str], r_labels: list[str], reference_vectors: list,
-                                            query_vectors: list) -> Tuple[List[str], List[str], List[int]]:
+    def compare_query_and_reference_vectors(self, reference_vectors: dict, query_vectors: dict):
         """
-        This method measures the similarity and distance between two sets of labels (q_labels and r_labels) and their
-        corresponding embedded vectors (query_vectors and reference_vectors) using Euclidean distance.
-        It returns the original query labels, predicted medicine labels, indices of the most similar medicines in the
-        reference set.
+        This method measures the similarity and distance between the query_vectors and all reference_vectors using
+        Euclidean distance. It returns the predicted medicine labels based on the closest reference vector, and
+        calculates top-1 and top-5 accuracy.
 
-        Parameters:
-            q_labels (List[str]): A list of ground truth medicine names.
-            r_labels (List[str]): A list of reference medicine names.
-            reference_vectors (List): A list of embedded vectors for the reference set.
-            query_vectors (List): A list of embedded vectors for the query set.
+        Args:
+            reference_vectors: a dictionary of embedded vectors for the reference set.
+            query_vectors: a dictionary of embedded vectors for the query set.
 
         Returns:
-            Tuple[List[str], List[str], List[int]]:
-                A tuple containing the original query labels, predicted medicine labels, and indices of the most
-                similar medicines in the reference set.
+            predicted_medicine_euc_dist: List of predicted labels for each query vector.
+            similarity_scores_euc_dist: List of similarity scores for each query vector.
+            most_similar_indices_euc_dist: List of indices of the most similar reference vectors.
+            accuracy_top1: The top-1 accuracy.
+            accuracy_top5: The top-5 accuracy.
         """
 
         logging.info("Comparing query and reference vectors")
 
         similarity_scores_euc_dist = []
         predicted_medicine_euc_dist = []
-        corresp_sim_euc_dist = []
         most_similar_indices_euc_dist = []
 
-        # Move vectors to GPU
-        reference_vectors_tensor = torch.stack([torch.as_tensor(vec).to(self.device) for vec in reference_vectors])
-        query_vectors_tensor = torch.stack([torch.as_tensor(vec).to(self.device) for vec in query_vectors])
+        # Flatten all reference vectors into one tensor and track labels
+        all_reference_vectors = []
+        all_reference_labels = []
 
-        for idx_query, query_vector in tqdm(enumerate(query_vectors_tensor),
-                                            total=len(query_vectors_tensor),
-                                            desc="Comparing process"):
-            scores_euclidean_distance = torch.norm(query_vector - reference_vectors_tensor, dim=1)
+        for label, vectors in reference_vectors.items():
+            all_reference_vectors.extend([vec.squeeze(0) for vec in vectors])
+            all_reference_labels.extend([label] * len(vectors))  # Track the label for each vector
 
-            # Move scores to CPU for further processing
-            similarity_scores_euc_dist.append(scores_euclidean_distance.cpu().tolist())
+        all_reference_vectors_tensor = torch.stack(
+            [torch.as_tensor(vec).to(self.device) for vec in all_reference_vectors])
 
-            # Calculate and store the most similar reference vector, predicted medicine label, and corresponding
-            # minimum Euclidean distance for each query vector
-            most_similar_indices_euc_dist = [scores.index(min(scores)) for scores in similarity_scores_euc_dist]
-            predicted_medicine = r_labels[most_similar_indices_euc_dist[idx_query]]
-            predicted_medicine_euc_dist.append(predicted_medicine)
+        total_queries = 0
 
-            most_similar_indices_and_scores_e = [(i, min(scores)) for i, scores in
-                                                 enumerate(similarity_scores_euc_dist)]
+        for image_name, query_vector_list in tqdm(query_vectors.items(), desc="Comparing process"):
 
-            corresp_sim_euc_dist.append(most_similar_indices_and_scores_e[idx_query][1])
+            total_queries += len(query_vector_list)
+            query_vectors_tensor = torch.stack(
+                [torch.as_tensor(vec).squeeze(0).to(self.device) for vec in query_vector_list]
+            )
 
-            # Calculate top-1 accuracy
-            if predicted_medicine == q_labels[idx_query]:
-                self.num_correct_top1 += 1
+            for idx_query, query_vector in enumerate(query_vectors_tensor):
+                scores_euclidean_distance = torch.norm(query_vector - all_reference_vectors_tensor, dim=1)
 
-            # Calculate top-5 accuracy
-            top5_predicted_medicines = [r_labels[i] for i in torch.argsort(scores_euclidean_distance)[:5]]
-            if q_labels[idx_query] in top5_predicted_medicines:
-                self.num_correct_top5 += 1
+                # Get the index of the most similar reference vector
+                most_similar_index = scores_euclidean_distance.argmin().item()
+                most_similar_indices_euc_dist.append(most_similar_index)
 
-        self.accuracy_top1 = self.num_correct_top1 / len(query_vectors)
-        self.accuracy_top5 = self.num_correct_top5 / len(query_vectors)
+                # Get the predicted medicine label (top-1 prediction)
+                predicted_medicine = all_reference_labels[most_similar_index]
+                predicted_medicine_euc_dist.append(predicted_medicine)
 
-        # Calculate confidence
-        confidence_percentages = [1 - (score / max(scores)) for score, scores in
-                                  zip(corresp_sim_euc_dist, similarity_scores_euc_dist)]
-        self.confidence_percentages = [cp * 100 for cp in confidence_percentages]
+                # Check if the top-1 prediction is correct
+                if predicted_medicine == image_name:
+                    self.num_correct_top1 += 1
 
-        # Find index position of the ground truth medicine
-        for idx_query, query_label in enumerate(q_labels):
-            top5_predicted_medicines = [r_labels[i] for i in np.argsort(similarity_scores_euc_dist[idx_query])[:5]]
-            if query_label in top5_predicted_medicines:
-                index = top5_predicted_medicines.index(query_label)
-            else:
-                index = -1
-            self.top5_indices.append(index)
+                # Get the top-5 predicted medicines
+                top5_indices = torch.argsort(scores_euclidean_distance)[:5]
+                top5_predicted_medicines = [all_reference_labels[i] for i in top5_indices]
 
-        return q_labels, predicted_medicine_euc_dist, most_similar_indices_euc_dist
+                # Check if the correct label is in the top-5 predictions
+                if image_name in top5_predicted_medicines:
+                    self.num_correct_top5 += 1
+
+                # Track the similarity scores for analysis if needed
+                similarity_scores_euc_dist.append(scores_euclidean_distance.cpu().tolist())
+
+        # Calculate accuracies
+        self.accuracy_top1 = self.num_correct_top1 / total_queries
+        self.accuracy_top5 = self.num_correct_top5 / total_queries
+
+        return predicted_medicine_euc_dist
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------- D I S P L A Y   R E S U L T S ------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def display_results(self, ground_truth_labels, predicted_labels, query_vectors) -> None:
+    def display_results(self, query_vectors: dict, predicted_labels: list) -> None:
         """
         Display the results of the prediction.
 
-        Parameters:
-            ground_truth_labels (List[str]): Ground truth labels for the queries.
-            predicted_labels (List[str]): Predicted labels for the queries.
-            query_vectors (List): Vectors representing the queries.
+        Args:
+            query_vectors: dict, containing the query vectors (ground truth labels are the keys of the dictionary).
+            predicted_labels: list, predicted labels for the queries.
 
         Returns:
             None
         """
 
-        # Create dataframe
-        df = pd.DataFrame(list(zip(ground_truth_labels, predicted_labels)),
-                          columns=['GT Medicine Name', 'Predicted Medicine Name (ED)'])
-        df['Confidence Percentage'] = self.confidence_percentages
-        df['Position of the correct label in the list'] = self.top5_indices
+        # Extract the ground truth labels from the query_vectors dictionary keys
+        ground_truth_labels = [label for label, vectors in query_vectors.items() for _ in vectors]
 
+        # Ensure the number of ground truth labels matches the predicted labels
+        if len(ground_truth_labels) != len(predicted_labels):
+            raise ValueError("The number of ground truth labels and predicted labels must match!")
+
+        # Create dataframe with the results
+        df = (
+            pd.DataFrame(
+                list(zip(ground_truth_labels, predicted_labels)),
+                columns=['GT Medicine Name', 'Predicted Medicine Name (ED)']
+            )
+        )
+
+        # Create statistics dataframe
         df_stat = [
             ["Correctly predicted (Top-1):", f'{self.num_correct_top1}'],
             ["Correctly predicted (Top-5):", f'{self.num_correct_top5}'],
-            ["Miss predicted top 1:", f'{len(query_vectors) - self.num_correct_top1}'],
-            ["Miss predicted top 5:", f'{len(query_vectors) - self.num_correct_top5}'],
+            ["Miss predicted top 1:", f'{len(ground_truth_labels) - self.num_correct_top1}'],
+            ["Miss predicted top 5:", f'{len(ground_truth_labels) - self.num_correct_top5}'],
             ['Accuracy (Top-1):', f'{self.accuracy_top1:.4%}'],
             ['Accuracy (Top-5):', f'{self.accuracy_top5:.4%}']
         ]
         df_stat = pd.DataFrame(df_stat, columns=['Metric', 'Value'])
 
+        # Set Pandas options for better visibility in logs or console
         pd.set_option('display.max_rows', None)
         pd.set_option('display.max_columns', None)
         pd.set_option('display.width', None)
         pd.set_option('display.max_colwidth', None)
 
+        # Log and print the result
         logging.info(df)
         logging.info(df_stat)
 
+        # Combine dataframes and save to a file
         df_combined = pd.concat([df, df_stat], ignore_index=True)
         df_combined.to_csv(
-            os.path.join(self.main_network_config.get('prediction_folder').get(self.cfg.dataset_type),
-                         f"{self.timestamp}_{self.cfg.type_of_loss_func}_stream_network_prediction.txt"),
+            os.path.join(self.prediction_dir,
+                         f"{self.timestamp}_stream_network_prediction.txt"),
             sep='\t', index=True
         )
 
@@ -396,64 +472,42 @@ class PredictStreamNetwork:
              None
         """
 
-        # Calculate query vectors
-        query_vecs, q_labels, q_images_path = (
-            self.get_vectors(
-                contour_dir=self.sub_network_config.get("Contour").get("query").get(self.cfg.dataset_type),
-                lbp_dir=self.sub_network_config.get("LBP").get("query").get(self.cfg.dataset_type),
-                rgb_dir=self.sub_network_config.get("RGB").get("query").get(self.cfg.dataset_type),
-                texture_dir=self.sub_network_config.get("Texture").get("query").get(self.cfg.dataset_type),
-                operation="query"
-            )
-        )
+        query_dirs = {
+            "con":
+                substream_paths().get("Contour").get(self.dataset_type).get(self.type_of_net).get("test").get("query"),
+            "lbp":
+                substream_paths().get("LBP").get(self.dataset_type).get(self.type_of_net).get("test").get("query"),
+            "rgb":
+                substream_paths().get("RGB").get(self.dataset_type).get(self.type_of_net).get("test").get("query"),
+            "tex":
+                substream_paths().get("Texture").get(self.dataset_type).get(self.type_of_net).get("test").get("query")
+        }
 
-        # Calculate reference vectors
-        if self.cfg.load_ref_vector:
-            latest_ref_vec_pt_file = (
-                find_latest_file_in_latest_directory(
-                    path=self.main_network_config.get('ref_vectors_folder').get(self.cfg.dataset_type),
-                    type_of_loss=self.cfg.type_of_loss_func
-                )
-            )
-            data = torch.load(latest_ref_vec_pt_file)
+        reference_dirs = {
+            "con":
+                substream_paths().get("Contour").get(self.dataset_type).get(self.type_of_net).get("test").get("ref"),
+            "lbp":
+                substream_paths().get("LBP").get(self.dataset_type).get(self.type_of_net).get("test").get("ref"),
+            "rgb":
+                substream_paths().get("RGB").get(self.dataset_type).get(self.type_of_net).get("test").get("ref"),
+            "tex":
+                substream_paths().get("Texture").get(self.dataset_type).get(self.type_of_net).get("test").get("ref")
+        }
 
-            ref_vecs = data['vectors']
-            r_labels = data['labels']
-            r_images_path = data['images_path']
-            logging.info("Reference vectors has been loaded!")
-        else:
-            if self.cfg.reference_set == "full":
-                ref_vecs, r_labels, r_images_path = \
-                    self.get_vectors(
-                        dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_contour"),
-                        dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_lbp"),
-                        dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb"),
-                        dataset_images_path_selector(self.cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_texture"),
-                        operation="reference")
-            elif self.cfg.reference_set == "partial":
-                ref_vecs, r_labels, r_images_path = \
-                    self.get_vectors(
-                        self.sub_network_config.get("Contour").get("ref").get(self.cfg.dataset_type),
-                        self.sub_network_config.get("LBP").get("ref").get(self.cfg.dataset_type),
-                        self.sub_network_config.get("RGB").get("ref").get(self.cfg.dataset_type),
-                        self.sub_network_config.get("Texture").get("ref").get(self.cfg.dataset_type),
-                        operation="reference")
-            else:
-                raise ValueError(f"Wrong reference set: {self.cfg.reference_set}")
+        query_vecs, query_image_paths, gt_labels = self.get_vectors(query_dirs, "query")
+        reference_vecs, reference_image_paths, _ = self.get_vectors(reference_dirs, "reference")
 
-        gt, pred_ed, indices = self.compare_query_and_reference_vectors(q_labels, r_labels, ref_vecs, query_vecs)
-        self.display_results(gt, pred_ed, query_vecs)
+        predicted_medicines = self.compare_query_and_reference_vectors(reference_vecs, query_vecs)
+        self.display_results(query_vecs, predicted_medicines)
 
         # Plot query and reference medicines
-        plot_dir = os.path.join(self.main_network_config.get('plotting_folder').get(self.cfg.dataset_type),
-                                f"{self.timestamp}_{self.cfg.type_of_loss_func}")
-        plot_ref_query_images(indices, q_images_path, r_images_path, gt, pred_ed, plot_dir)
-
-        plot_confusion_matrix(
-            gt=gt,
-            predictions=pred_ed,
-            out_path=self.main_network_config.get("confusion_matrix").get(self.cfg.dataset_type)
+        plot_dir = (
+            os.path.join(
+                self.plot_dir,
+                f"{self.timestamp}"
+            )
         )
+        plot_ref_query_images(gt_labels, predicted_medicines, query_image_paths, reference_image_paths, plot_dir)
 
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -1,166 +1,177 @@
 """
-File: efficient_net_multihead_attention.py
+File: efficient_net_v2_s_multihead_attention.py
 Author: Richárd Rádli
 E-mail: radli.richard@mik.uni-pannon.hu
 Date: Jul 19, 2023
 
-Description: The program implements the EfficientNet b0 multi-head attention with Fusion Net.
+Description: The program implements the EfficientNetV2 small multi-head attention with Fusion Net.
 """
 
 import torch
 import torch.nn as nn
 
-from config.config import ConfigStreamNetwork
-from stream_network_models.stream_network_selector import NetworkFactory
-from utils.utils import find_latest_file_in_latest_directory
+from config.json_config import json_config_selector
+from config.networks_paths_selector import substream_paths
+from fusion_network_models.multihead_attention import MultiHeadAttention
+from stream_network_models.stream_network_selector import StreamNetworkFactory
+from utils.utils import find_latest_file_in_latest_directory, load_config_json
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++ E F F I C I E N T N E T V 2 M U L T I H E A D A T T E N T I O N +++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class EfficientNetMultiHeadAttention(nn.Module):
-    def __init__(self, type_of_net, network_cfg_contour, network_cfg_lbp, network_cfg_rgb, network_cfg_texture) -> None:
+class EfficientNetV2MultiHeadAttention(nn.Module):
+    def __init__(self) -> None:
         """
-        This is the initialization function of the EfficientNetMultiHeadAttention class.
+            This is the initialization function of the EfficientNetSelfAttention class.
+            """
 
-        :param type_of_net: Type of network to create.
-        :param network_cfg_contour: Configuration for the contour network.
-        :param network_cfg_lbp: Configuration for the LBP network.
-        :param network_cfg_rgb: Configuration for the RGB network.
-        :param network_cfg_texture: Configuration for the texture network.
-        """
+        super(EfficientNetV2MultiHeadAttention, self).__init__()
 
-        super(EfficientNetMultiHeadAttention, self).__init__()
+        stream_net_cfg = (
+            load_config_json(
+                json_schema_filename=json_config_selector("stream_net").get("schema"),
+                json_filename=json_config_selector("stream_net").get("config")
+            )
+        )
 
-        stream_net_cfg = ConfigStreamNetwork().parse()
+        contour_substream_network_cfg = stream_net_cfg.get("streams").get("Contour")
+        lbp_substream_network_cfg = stream_net_cfg.get("streams").get("LBP")
+        rgb_substream_network_cfg = stream_net_cfg.get("streams").get("RGB")
+        texture_substream_network_cfg = stream_net_cfg.get("streams").get("Texture")
+
+        self.dataset_type = stream_net_cfg.get("dataset_type")
+        self.network_type = stream_net_cfg.get("type_of_net")
+        self.loss_type = stream_net_cfg.get("type_of_loss_func")
+
+        contour_weight_files_path = (
+            substream_paths().get("Contour").get(self.dataset_type).get(self.network_type).get("model_weights_dir").get(self.loss_type)
+        )
+        lbp_weight_files_path = (
+            substream_paths().get("LBP").get(self.dataset_type).get(self.network_type).get("model_weights_dir").get(self.loss_type)
+        )
+        rgb_weight_files_path = (
+            substream_paths().get("RGB").get(self.dataset_type).get(self.network_type).get("model_weights_dir").get(self.loss_type)
+        )
+        texture_weight_files_path = (
+            substream_paths().get("Texture").get(self.dataset_type).get(self.network_type).get("model_weights_dir").get(self.loss_type)
+        )
 
         latest_con_pt_file = find_latest_file_in_latest_directory(
-            path=(
-                network_cfg_contour
-                .get("model_weights_dir")
-                .get("EfficientNet")
-                .get(stream_net_cfg.dataset_type)
-            ),
-            type_of_loss=stream_net_cfg.type_of_loss_func
+            path=contour_weight_files_path
         )
         latest_lbp_pt_file = find_latest_file_in_latest_directory(
-            path=(
-                network_cfg_lbp
-                .get("model_weights_dir")
-                .get("EfficientNet")
-                .get(stream_net_cfg.dataset_type)
-            ),
-            type_of_loss=stream_net_cfg.type_of_loss_func
+            path=lbp_weight_files_path
         )
         latest_rgb_pt_file = find_latest_file_in_latest_directory(
-            path=(
-                network_cfg_rgb
-                .get("model_weights_dir")
-                .get("EfficientNet")
-                .get(stream_net_cfg.dataset_type)
-            ),
-            type_of_loss=stream_net_cfg.type_of_loss_func
+            path=rgb_weight_files_path
         )
         latest_tex_pt_file = find_latest_file_in_latest_directory(
-            path=(
-                network_cfg_texture
-                .get("model_weights_dir")
-                .get("EfficientNet")
-                .get(stream_net_cfg.dataset_type)
-            ),
-            type_of_loss=stream_net_cfg.type_of_loss_func
+            path=texture_weight_files_path
         )
 
-        self.contour_network = NetworkFactory.create_network(type_of_net, network_cfg_contour)
-        self.lbp_network = NetworkFactory.create_network(type_of_net, network_cfg_lbp)
-        self.rgb_network = NetworkFactory.create_network(type_of_net, network_cfg_rgb)
-        self.texture_network = NetworkFactory.create_network(type_of_net, network_cfg_texture)
+        self.network_con = StreamNetworkFactory.create_network(self.network_type, contour_substream_network_cfg)
+        self.network_lbp = StreamNetworkFactory.create_network(self.network_type, lbp_substream_network_cfg)
+        self.network_rgb = StreamNetworkFactory.create_network(self.network_type, rgb_substream_network_cfg)
+        self.network_tex = StreamNetworkFactory.create_network(self.network_type, texture_substream_network_cfg)
 
-        self.contour_network.load_state_dict(torch.load(latest_con_pt_file))
-        self.lbp_network.load_state_dict(torch.load(latest_lbp_pt_file))
-        self.rgb_network.load_state_dict(torch.load(latest_rgb_pt_file))
-        self.texture_network.load_state_dict(torch.load(latest_tex_pt_file))
+        self.network_con.load_state_dict(torch.load(latest_con_pt_file))
+        self.network_lbp.load_state_dict(torch.load(latest_lbp_pt_file))
+        self.network_rgb.load_state_dict(torch.load(latest_rgb_pt_file))
+        self.network_tex.load_state_dict(torch.load(latest_tex_pt_file))
 
-        self.multi_head_con = nn.MultiheadAttention(embed_dim=network_cfg_contour.get("embedded_dim"), num_heads=4)
-        self.multi_head_lbp = nn.MultiheadAttention(embed_dim=network_cfg_lbp.get("embedded_dim"), num_heads=4)
-        self.multi_head_rgb = nn.MultiheadAttention(embed_dim=network_cfg_rgb.get("embedded_dim"), num_heads=4)
-        self.multi_head_tex = nn.MultiheadAttention(embed_dim=network_cfg_texture.get("embedded_dim"), num_heads=4)
+        self.freeze_networks(self.network_con)
+        self.freeze_networks(self.network_lbp)
+        self.freeze_networks(self.network_rgb)
+        self.freeze_networks(self.network_tex)
 
-        self.multi_head_modules = {
-            "contour": self.multi_head_con,
-            "lbp": self.multi_head_lbp,
-            "rgb": self.multi_head_rgb,
-            "texture": self.multi_head_tex
-        }
+        contour_dim = contour_substream_network_cfg.get("embedded_dim")
+        lbp_dim = lbp_substream_network_cfg.get("embedded_dim")
+        rgb_dim = rgb_substream_network_cfg.get("embedded_dim")
+        texture_dim = texture_substream_network_cfg.get("embedded_dim")
 
-        input_dim = (network_cfg_contour.get("embedded_dim") +
-                     network_cfg_lbp.get("embedded_dim") +
-                     network_cfg_rgb.get("embedded_dim") +
-                     network_cfg_texture.get("embedded_dim"))
+        self.input_dim = (
+                contour_dim + lbp_dim + rgb_dim + texture_dim
+        )
 
-        self.fc1 = nn.Linear(input_dim, input_dim)
-        self.fc2 = nn.Linear(input_dim, input_dim)
-        self.relu = nn.ReLU()
+        self.multihead_attention_contour = (
+            MultiHeadAttention(
+                input_dim=contour_dim,
+                num_heads=4
+            )
+        )
+        self.multihead_attention_lbp = (
+            MultiHeadAttention(
+                input_dim=lbp_dim,
+                num_heads=4
+            )
+        )
+        self.multihead_attention_rgb = (
+            MultiHeadAttention(
+                input_dim=rgb_dim,
+                num_heads=4
+            )
+        )
+        self.multihead_attention_texture = (
+            MultiHeadAttention(
+                input_dim=texture_dim,
+                num_heads=4
+            )
+        )
+
+        self.fc1 = nn.Linear(self.input_dim, self.input_dim)
+        self.bn = nn.BatchNorm1d(self.input_dim)
+        self.dropout = nn.Dropout(p=0.2)
+
+        self.fc2 = nn.Linear(self.input_dim, self.input_dim)
+
+    @staticmethod
+    def freeze_networks(network):
+        """
+            Freeze the parameters of a given network.
+
+            Args:
+                network: The network whose parameters should be frozen.
+            """
+
+        for param in network.parameters():
+            param.requires_grad = False
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- F O R W A R D --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def forward(self, contour_tensor: torch.Tensor, lbp_tensor: torch.Tensor, rgb_tensor: torch.Tensor, texture_tensor: torch.Tensor):
+    def forward(self, x_contour: torch.Tensor, x_lbp: torch.Tensor, x_rgb: torch.Tensor, x_texture: torch.Tensor) \
+            -> torch.Tensor:
         """
-        This is the forward function of the FusionNet.
+            This is the forward function of the FusionNet.
 
-        :param contour_tensor: input tensor for contour stream, with shape [batch_size, 1, height, width]
-        :param lbp_tensor: input tensor for LBP stream, with shape [batch_size, 1, height, width]
-        :param rgb_tensor: input tensor for RGB stream, with shape [batch_size, 3, height, width]
-        :param texture_tensor: input tensor for texture stream, with shape [batch_size, 1, height, width]
+            Args:
+                x_contour: input tensor for contour stream, with shape [batch_size, 1, height, width]
+                x_lbp: input tensor for RGB stream, with shape [batch_size, 3, height, width]
+                x_rgb: input tensor for texture stream, with shape [batch_size, 1, height, width]
+                x_texture: input tensor for LBP stream, with shape [batch_size, 1, height, width]
 
-        :return: output tensor with shape [batch_size, 640] after passing through fully connected layers.
-        """
+            Returns:
+                output tensor with shape [batch_size, 640] after passing through fully connected layer.
+            """
 
-        contour_tensor = self.contour_network(contour_tensor)
-        lbp_tensor = self.lbp_network(lbp_tensor)
-        rgb_tensor = self.rgb_network(rgb_tensor)
-        texture_tensor = self.texture_network(texture_tensor)
+        x_contour = self.network_con(x_contour)
+        x_lbp = self.network_lbp(x_lbp)
+        x_rgb = self.network_rgb(x_rgb)
+        x_texture = self.network_tex(x_texture)
 
-        contour_tensor = self.multi_head_attention(contour_tensor, sub_stream="contour")
-        lbp_tensor = self.multi_head_attention(lbp_tensor, sub_stream="lbp")
-        rgb_tensor = self.multi_head_attention(rgb_tensor, sub_stream="rgb")
-        texture_tensor = self.multi_head_attention(texture_tensor, sub_stream="texture")
+        contour_attention = self.multihead_attention_contour(x_contour).squeeze(1)
+        lbp_attention = self.multihead_attention_lbp(x_lbp).squeeze(1)
+        rgb_attention = self.multihead_attention_rgb(x_rgb).squeeze(1)
+        texture_attention = self.multihead_attention_texture(x_texture).squeeze(1)
 
-        x = torch.cat((contour_tensor, lbp_tensor, rgb_tensor, texture_tensor), dim=1)
-        x = self.fc1(x)
+        fusion_out = torch.cat([contour_attention, lbp_attention, rgb_attention, texture_attention], dim=1)
+
+        x = self.fc1(fusion_out)
+        x = self.bn(x)
+        x = torch.relu(x)
+        x = self.dropout(x)
+
         x = self.fc2(x)
-        x = self.relu(x)
 
         return x
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # -------------------------------------- M U L T I H E A D A T T E N T I O N ---------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def multi_head_attention(self, x: torch.Tensor, sub_stream: str):
-        """
-        This function implements the multi-head attention
-
-        :param x: Input tensor
-        :param sub_stream: type of sub stream
-        :return:
-        """
-
-        if len(x.shape) == 2:
-            x = x.unsqueeze(2).unsqueeze(3)
-
-        batch_size, _, height, width = x.size()
-        x = x.view(batch_size, height * width, -1)
-        x = x.permute(1, 0, 2)
-        queries = x
-        keys = x
-        values = x
-
-        multi_head_module = self.multi_head_modules.get(sub_stream)
-        if multi_head_module is None:
-            raise ValueError("Invalid sub_stream value. I")
-
-        attention_output, _ = multi_head_module(queries, keys, values)
-        attention_output = attention_output.permute(1, 0, 2)
-
-        return attention_output.squeeze(1)

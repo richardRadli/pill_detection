@@ -5,16 +5,22 @@ import random
 
 from tqdm import tqdm
 
-from config.config import ConfigStreamNetwork
-from config.config_selector import dataset_images_path_selector
-from utils.utils import create_timestamp, find_latest_file_in_directory
+from config.dataset_paths_selector import dataset_images_path_selector
+from config.json_config import json_config_selector
+from utils.utils import create_timestamp, find_latest_file_in_directory, load_config_json
 
 
 class KFoldSort:
     def __init__(self, load_folds, erase):
-        self.stream_cfg = ConfigStreamNetwork().parse()
+        self.stream_cfg = (
+            load_config_json(
+                json_schema_filename=json_config_selector("stream_net").get("schema"),
+                json_filename=json_config_selector("stream_net").get("config")
+            )
+        )
+
         self.load_folds = load_folds
-        self.fold_name = self.stream_cfg.fold
+        self.fold_name = self.stream_cfg.get("fold")
         self.erase = erase
 
         logging.info(f"{self.fold_name} selected")
@@ -34,9 +40,10 @@ class KFoldSort:
 
         if not load:
             timestamp = create_timestamp()
-            data_list = os.listdir(
-                dataset_images_path_selector(
-                    self.stream_cfg.dataset_type).get("src_stream_images").get("reference").get("stream_images_rgb")
+            data_list = (
+                os.listdir(
+                    dataset_images_path_selector(self.stream_cfg.get("dataset_type")).get("src_stream_images").get("reference").get("stream_images_rgb")
+                )
             )
 
             k_folds = {f"fold{i + 1}": [] for i in range(num_folds)}
@@ -49,18 +56,22 @@ class KFoldSort:
             for fold_name, class_names in k_folds.items():
                 logging.info(f"{fold_name}: {class_names}")
 
-            path_to_save = os.path.join(
-                dataset_images_path_selector(self.stream_cfg.dataset_type).get("other").get("k_fold"),
-                f"{timestamp}_k_folds.txt"
+            path_to_save = (
+                os.path.join(
+                    dataset_images_path_selector(self.stream_cfg.get("dataset_type")).get("other").get("k_fold"),
+                    f"{timestamp}_k_folds.txt"
+                )
             )
             with open(path_to_save, "w") as file:
                 for fold_name, class_names in k_folds.items():
                     file.write(f"{fold_name}: {', '.join(class_names)}\n")
         else:
             k_folds = {}
-            latest_txt_file = find_latest_file_in_directory(
-                path=dataset_images_path_selector(self.stream_cfg.dataset_type).get("other").get("k_fold"),
-                extension="txt"
+            latest_txt_file = (
+                find_latest_file_in_directory(
+                    path=dataset_images_path_selector(self.stream_cfg.get("dataset_type")).get("other").get("k_fold"),
+                    extension="txt"
+                )
             )
 
             logging.info(latest_txt_file)
@@ -102,8 +113,7 @@ class KFoldSort:
             raise ValueError(f"{classes_data_role} value is None")
 
         source_root = (
-            dataset_images_path_selector(self.stream_cfg.dataset_type).get("src_stream_images").get(
-                operation).get("stream_images")
+            dataset_images_path_selector(self.stream_cfg.get("dataset_type")).get("src_stream_images").get(operation).get("stream_images")
         )
 
         if data_role == "train":
@@ -119,7 +129,7 @@ class KFoldSort:
             raise ValueError(f"{stream_images_dir} value is None")
 
         destination_root = (
-            dataset_images_path_selector(self.stream_cfg.dataset_type).get("dst_stream_images").get(stream_images_dir)
+            dataset_images_path_selector(self.stream_cfg.get("dataset_type")).get("dst_stream_images").get(stream_images_dir)
         )
 
         src_subdirectories = ['contour', 'lbp', 'rgb', 'texture']
@@ -156,7 +166,7 @@ class KFoldSort:
         """
 
         root = (
-            dataset_images_path_selector(self.stream_cfg.dataset_type).get("dst_stream_images")
+            dataset_images_path_selector(self.stream_cfg.get("dataset_type")).get("dst_stream_images")
         )
 
         for _, value in root.items():
@@ -185,6 +195,11 @@ class KFoldSort:
 
 
 if __name__ == "__main__":
-    k_fold_sort = KFoldSort(load_folds=True,
-                            erase=True)
+    k_fold_sort = (
+        KFoldSort(
+            load_folds=True,
+            erase=True
+        )
+    )
+
     k_fold_sort.main()

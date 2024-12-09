@@ -18,37 +18,48 @@ from PIL import Image, ImageDraw
 from tqdm import tqdm
 from typing import Tuple, List, Dict
 
-from config.config import ConfigStreamImages
-from config.config_selector import dataset_images_path_selector
-from utils.utils import file_reader, setup_logger
+from config.dataset_paths_selector import dataset_images_path_selector
+from config.json_config import json_config_selector
+from utils.utils import file_reader, setup_logger, load_config_json
 
-cfg = ConfigStreamImages().parse()
+cfg = (
+    load_config_json(
+        json_schema_filename=json_config_selector("stream_images").get("schema"),
+        json_filename=json_config_selector("stream_images").get("config")
+    )
+)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------- P A T H   S E L E C T O R -----------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def path_selector(operation: str):
+def path_selector(operation: str) -> dict:
     """
     Selects the correct directory paths based on the given operation string.
 
-    :param operation: A string indicating the operation mode (train or test).
-    :return: A dictionary containing directory paths for images, masks, and other related files.
-    :raises ValueError: If the operation string is not "train", "valid", "test" or "whole".
+    Args:
+        operation: A string indicating the operation mode (train or test).
+
+    Returns:
+        A dictionary containing directory paths for images, masks, and other related files.
+
+    Raises ValueError:
+        If the operation string is not "train", "valid", "test" or "whole".
     """
+
+    dataset_type = cfg.get("dataset_type")
 
     if operation.lower() == "customer":
         path_to_images = {
-            "images": dataset_images_path_selector(cfg.dataset_type).get(operation).get("customer_images"),
-            "labels": dataset_images_path_selector(cfg.dataset_type).get(operation).get("customer_segmentation_labels"),
-            "masks": dataset_images_path_selector(cfg.dataset_type).get(operation).get("customer_mask_images")
-
+            "images": dataset_images_path_selector(dataset_type).get(operation).get("customer_images"),
+            "labels": dataset_images_path_selector(dataset_type).get(operation).get("customer_segmentation_labels"),
+            "masks": dataset_images_path_selector(dataset_type).get(operation).get("customer_mask_images")
         }
     elif operation.lower() == "reference":
         path_to_images = {
-            "images": dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_images"),
-            "labels":  dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_segmentation_labels"),
-            "masks": dataset_images_path_selector(cfg.dataset_type).get(operation).get("reference_mask_images")
+            "images": dataset_images_path_selector(dataset_type).get(operation).get("reference_images"),
+            "labels": dataset_images_path_selector(dataset_type).get(operation).get("reference_segmentation_labels"),
+            "masks": dataset_images_path_selector(dataset_type).get(operation).get("reference_mask_images")
         }
     else:
         raise ValueError("Wrong operation!")
@@ -62,9 +73,12 @@ def path_selector(operation: str):
 def load_files(images_dir: str, labels_dir: str) -> Tuple[List[str], List[str]]:
     """
     This function loads the image and label files from two directories: train_dir and labels_dir.
-    :param images_dir: it is the path to the directory containing the image files.
-    :param labels_dir: it is the path to the directory containing the corresponding label files for each image
-    :return: two lists of file paths: image_files and text_files.
+    Args:
+        images_dir: it is the path to the directory containing the image files.
+        labels_dir: it is the path to the directory containing the corresponding label files for each image
+
+    Returns:
+         two lists of file paths: image_files and text_files.
     """
 
     if not os.path.isdir(images_dir):
@@ -95,12 +109,14 @@ def process_data(img_files: str, txt_files: str):
     Given the file paths to an image file and a corresponding text file with object coordinates in YOLO format,
     loads the image, extracts the object coordinates, and creates a binary mask indicating where the object is.
 
-    :param img_files: A string specifying the path to an image file.
-    :param txt_files: A string specifying the path to a text file with YOLO object coordinates.
+    Args:
+        img_files: A string specifying the path to an image file.
+        txt_files: A string specifying the path to a text file with YOLO object coordinates.
 
-    :return: A tuple of (img, mask), where img is a PIL Image object representing the loaded image,
-             and mask is a numpy array representing a binary mask indicating the object location.
-             Returns (None, None) if either file path is invalid.
+    Returns:
+        A tuple of (img, mask), where img is a PIL Image object representing the loaded image,
+        and mask is a numpy array representing a binary mask indicating the object location.
+        Returns (None, None) if either file path is invalid.
     """
 
     try:
@@ -141,10 +157,13 @@ def save_masks(mask: np.ndarray, img_file: str, path_to_files: Dict[str, str]) -
     """
     This function saves the mask to a given path.
 
-    :param mask: Mask image.
-    :param img_file: path of the image file.
-    :param path_to_files: path to the files.
-    :return: None
+    Args:
+        mask: Mask image.
+        img_file: path of the image file.
+        path_to_files: path to the files.
+
+    Returns:
+        None
     """
 
     name = os.path.basename(img_file)
@@ -159,7 +178,9 @@ def save_masks(mask: np.ndarray, img_file: str, path_to_files: Dict[str, str]) -
 def main(operation: str = "train", batch_size: int = 10) -> None:
     """
     Runs the main processing pipeline.
-    :return: None
+
+    Returns:
+        None
     """
 
     setup_logger()
@@ -170,7 +191,7 @@ def main(operation: str = "train", batch_size: int = 10) -> None:
     total_files = len(img_files)
     num_batches = (total_files + batch_size - 1) // batch_size
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=cfg.max_worker) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=cfg.get("max_workers")) as executor:
         for i in range(num_batches):
             start_idx = i * batch_size
             end_idx = min((i + 1) * batch_size, total_files)
@@ -196,7 +217,7 @@ def main(operation: str = "train", batch_size: int = 10) -> None:
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     try:
-        operations = ["customer", "reference"]
+        operations = ["reference", "customer"]
         for op in operations:
             main(operation=op)
     except KeyboardInterrupt as kie:

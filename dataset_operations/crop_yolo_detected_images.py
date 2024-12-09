@@ -83,7 +83,7 @@ def display_annotations(image_path: str, annotation_path: str, out_path: str):
                     cropped_image_array = image[upper:lower, left:right]
 
                     # Save the cropped image
-                    cv2.imwrite(os.path.join(out_path, img_name + ".png"), cropped_image_array)
+                    cv2.imwrite(os.path.join(out_path, img_name + ".jpg"), cropped_image_array)
                 else:
                     print(f"Invalid crop coordinates for image: {os.path.basename(img)}")
         else:
@@ -91,7 +91,7 @@ def display_annotations(image_path: str, annotation_path: str, out_path: str):
 
 
 if __name__ == "__main__":
-    img_path = "D:/storage/pill_detection/datasets/nih/Customer/images"
-    ann_path = "D:/storage/pill_detection/datasets/nih/Customer/yolo_labels"
-    out_path = "D:/storage/pill_detection/datasets/nih/Customer/stream_images/rgb"
+    img_path = "path/to/images"
+    ann_path = "path/to/yolo/annotations"
+    out_path = "path/to/save/directory"
     display_annotations(img_path, ann_path, out_path)

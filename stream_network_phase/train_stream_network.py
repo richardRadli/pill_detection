@@ -18,15 +18,17 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 from typing import List, Tuple
-from pytorch_metric_learning import losses, miners
+from pytorch_metric_learning import miners
 
-from config.config import ConfigStreamNetwork
-from config.config_selector import sub_stream_network_configs, nlp_configs, dataset_images_path_selector
+from config.json_config import json_config_selector
+from config.networks_paths_selector import substream_paths
+from config.networks_paths_selector import word_embedding_paths
+from config.nlp_paths_selector import nlp_configs
+from stream_network_models.stream_network_selector import StreamNetworkFactory
 from loss_functions.dynamic_margin_triplet_loss_stream import DynamicMarginTripletLoss
-from stream_network_models.stream_network_selector import NetworkFactory
 from dataloader_stream_network import DataLoaderStreamNet
 from utils.utils import (create_dataset, create_timestamp, get_embedded_text_matrix, measure_execution_time,
-                         print_network_config, use_gpu_if_available, setup_logger)
+                         use_gpu_if_available, setup_logger, load_config_json)
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -37,100 +39,167 @@ class TrainModel:
     # --------------------------------------------------- _ I N I T _ --------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
+        # Create time stamp
+        self.timestamp = create_timestamp()
+
         # Set up logger
         self.logger = setup_logger()
 
         # Set up configuration
-        self.cfg = ConfigStreamNetwork().parse()
+        self.cfg = (
+            load_config_json(
+                json_schema_filename=json_config_selector("stream_net").get("schema"),
+                json_filename=json_config_selector("stream_net").get("config")
+            )
+        )
 
         # Set up tqdm colour
         colorama.init()
-
-        # Print network configurations
-        print_network_config(self.cfg)
-
-        # Create time stamp
-        self.timestamp = create_timestamp()
 
         # Select the GPU if possible
         self.device = use_gpu_if_available()
 
         # Setup network config
-        if self.cfg.type_of_stream not in ["RGB", "Texture", "Contour", "LBP"]:
-            raise ValueError("Wrong type was given!")
-        network_config = sub_stream_network_configs(self.cfg)
-        network_cfg = network_config.get(self.cfg.type_of_stream)
+        self.dataset_type = self.cfg.get("dataset_type")
+
+        stream_type = self.cfg.get("type_of_stream")
+        self.type_of_net = self.cfg.get("type_of_net")
+
+        substream_network_cfg = self.cfg.get("streams").get(stream_type)
+        backbone_network_cfg = self.cfg.get("networks").get(self.type_of_net)
+
+        # Extract variables
+        self.dataset_type = self.cfg.get("dataset_type")
+        self.type_of_net = self.cfg.get("type_of_net")
+        self.type_of_loss = self.cfg.get("type_of_loss_func")
+        self.dmtl_type = self.cfg.get("dmtl_type")
+
+        batch_size = self.cfg.get("batch_size")
+        learning_rate = self.cfg.get("learning_rate")
+        weight_decay = self.cfg.get("weight_decay")
+        train_valid_ratio = self.cfg.get("train_valid_ratio")
+        margin = self.cfg.get("margin")
+        step_size = self.cfg.get("step_size")
+        gamma = self.cfg.get("gamma")
+        upper_norm_limit = self.cfg.get("upper_norm_limit")
+        mining_type = self.cfg.get("mining_type")
 
         # Load model and upload it to the GPU
-        self.model = NetworkFactory.create_network(self.cfg.type_of_net, network_cfg)
-        self.model.to(self.device)
+        self.model = StreamNetworkFactory.create_network(self.type_of_net, substream_network_cfg)
+        self.model = self.model.to(self.device)
 
         # Print model configuration
         summary(
             model=self.model,
-            input_size=(network_cfg.get('channels')[0], network_cfg.get("image_size"), network_cfg.get("image_size"))
+            input_size=(
+                substream_network_cfg.get('channels')[0],
+                backbone_network_cfg.get("image_size"),
+                backbone_network_cfg.get("image_size")
+            )
         )
 
         # Create dataset
+        dataset_dirs_anchor = (
+            substream_paths().get(stream_type).get(self.dataset_type).get(self.type_of_net).get("train").get("anchor")
+        )
+        dataset_dir_pos_neg = (
+            substream_paths().get(stream_type).get(self.dataset_type).get(self.type_of_net).get("train").get("pos_neg")
+        )
         dataset = \
             DataLoaderStreamNet(
-                dataset_dirs_anchor=[network_cfg.get("train").get(self.cfg.dataset_type).get("anchor")],
-                dataset_dirs_pos_neg=[network_cfg.get("train").get(self.cfg.dataset_type).get("pos_neg")]
+                dataset_dirs_anchor=[dataset_dirs_anchor],
+                dataset_dirs_pos_neg=[dataset_dir_pos_neg]
             )
+
         self.mapping = dataset.reference_encoding_map
-        self.train_data_loader, self.valid_data_loader = create_dataset(dataset=dataset,
-                                                                        train_valid_ratio=self.cfg.train_valid_ratio,
-                                                                        batch_size=self.cfg.batch_size)
+        self.train_data_loader, self.valid_data_loader = (
+            create_dataset(
+                dataset=dataset,
+                train_valid_ratio=train_valid_ratio,
+                batch_size=batch_size
+            )
+        )
 
         # Set up loss and mining functions
-        if self.cfg.type_of_loss_func == "dmtl":
-            if self.cfg.dmtl_type == "nlp":
-                path_to_excel_file = nlp_configs().get("vector_distances")
-            elif self.cfg.dmtl_type == "feature":
+        if self.type_of_loss == "dmtl":
+            if self.dmtl_type == "textual":
                 path_to_excel_file = (
-                    dataset_images_path_selector(self.cfg.dataset_type).get("dynamic_margin").get("euc_mtx_xlsx")
+                    nlp_configs().get("vector_distances")
                 )
             else:
-                raise ValueError(f"Wrong DMTL type: {self.cfg.dmtl_type}")
+                path_to_excel_file = (
+                    word_embedding_paths(self.dataset_type).get("emb_euc_mtx")
+                )
 
             df = get_embedded_text_matrix(path_to_excel_file)
             self.criterion = (
                 DynamicMarginTripletLoss(
-                    margin=self.cfg.margin,
-                    triplets_per_anchor="all",
                     euc_dist_mtx=df,
-                    upper_norm_limit=self.cfg.upper_norm_limit,
-                    mapping_table=self.mapping
+                    upper_norm_limit=upper_norm_limit,
+                    margin=margin
                 )
             )
-        elif self.cfg.type_of_loss_func == "hmtl":
-            self.criterion = losses.TripletMarginLoss(margin=self.cfg.margin)
         else:
-            raise ValueError(f"Wrong loss function: {self.cfg.type_of_loss_func}")
+            self.criterion = torch.nn.TripletMarginLoss(margin=margin)
 
-        self.mining_func = miners.TripletMarginMiner(
-            margin=self.cfg.margin, type_of_triplets=self.cfg.mining_type
+        self.mining_func = (
+            miners.TripletMarginMiner(
+                margin=margin,
+                type_of_triplets=mining_type
+            )
         )
 
         # Specify optimizer
-        self.optimizer = torch.optim.Adam(self.model.parameters(),
-                                          lr=network_cfg.get("learning_rate"),
-                                          weight_decay=1e-5)
+        self.optimizer = (
+            torch.optim.Adam(
+                self.model.parameters(),
+                lr=backbone_network_cfg.get("learning_rate")
+            )
+        )
 
         # LR scheduler
-        self.scheduler = StepLR(optimizer=self.optimizer,
-                                step_size=self.cfg.step_size,
-                                gamma=self.cfg.gamma)
+        self.scheduler = (
+            StepLR(
+                optimizer=self.optimizer,
+                step_size=step_size,
+                gamma=gamma
+            )
+        )
 
         # Tensorboard
-        tensorboard_log_dir = self.create_save_dirs(network_cfg.get('logs_dir'))
-        self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
-
-        # Create save directory for model weights
-        self.save_path = self.create_save_dirs(network_cfg.get('model_weights_dir'))
+        tensorboard_log_dir = (
+            self.create_save_dirs(
+                network_cfg=substream_paths().get(stream_type),
+                subdir="logs_dir",
+                loss=self.type_of_loss,
+                dmtl_type=self.dmtl_type
+            )
+        )
+        self.writer = (
+            SummaryWriter(
+                log_dir=tensorboard_log_dir
+            )
+        )
 
         # Create save directory for hard samples
-        self.hard_samples_path = self.create_save_dirs(network_cfg.get('hardest_samples'))
+        self.hard_samples_path = (
+            self.create_save_dirs(
+                network_cfg=substream_paths().get(stream_type),
+                subdir="hardest_samples",
+                loss=self.type_of_loss,
+                dmtl_type=self.dmtl_type
+            )
+        )
+
+        # Create save path
+        self.save_path = (
+            self.create_save_dirs(
+                network_cfg=substream_paths().get(stream_type),
+                subdir="weights_folder",
+                loss=self.type_of_loss,
+                dmtl_type=self.dmtl_type
+            )
+        )
 
         # Variables to save only the best weights and model
         self.best_valid_loss = float('inf')
@@ -139,20 +208,26 @@ class TrainModel:
     # ------------------------------------------------------------------------------------------------------------------
     # ---------------------------------------- C R E A T E   S A V E   D I R S -----------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    def create_save_dirs(self, network_cfg) -> str:
+    def create_save_dirs(self, network_cfg, subdir, loss, dmtl_type) -> str:
         """
         Creates and returns a directory path based on the provided network configuration.
 
         Args:
             network_cfg: A dictionary containing network configuration information.
-
+            subdir: The subdirectory to create the directory path for.
+            loss: Loss type
+            dmtl_type: Only set it when dmtl is used
         Returns:
             directory_to_create (str): The path of the created directory.
         """
 
-        directory_path = network_cfg.get(self.cfg.type_of_net).get(self.cfg.dataset_type)
+        if loss == "hmtl":
+            directory_path = network_cfg.get(subdir).get(loss)
+        else:
+            directory_path = network_cfg.get(subdir).get(loss).get(dmtl_type)
+
         directory_to_create = (
-            os.path.join(directory_path, f"{self.timestamp}_{self.cfg.type_of_loss_func}_{self.cfg.fold}")
+            os.path.join(directory_path, f"{self.timestamp}")
         )
         os.makedirs(directory_to_create, exist_ok=True)
         return directory_to_create
@@ -210,10 +285,14 @@ class TrainModel:
             reference_embeddings = self.model(reference_images)
 
             # Get hard samples
-            indices_tuple = self.mining_func(embeddings=consumer_embeddings,
-                                             labels=consumer_labels,
-                                             ref_emb=reference_embeddings,
-                                             ref_labels=reference_labels)
+            indices_tuple = (
+                self.mining_func(
+                    embeddings=consumer_embeddings,
+                    labels=consumer_labels,
+                    ref_emb=reference_embeddings,
+                    ref_labels=reference_labels
+                )
+            )
 
             anchor_indices, positive_indices, negative_indices = indices_tuple
 
@@ -225,10 +304,14 @@ class TrainModel:
             hard_samples.append(hard_sample)
 
             # Compute loss
-            train_loss = self.criterion(embeddings=consumer_embeddings,
-                                        labels=consumer_labels,
-                                        ref_emb=reference_embeddings,
-                                        ref_labels=reference_labels)
+            train_loss = (
+                self.criterion(
+                    embeddings=consumer_embeddings,
+                    labels=consumer_labels,
+                    ref_emb=reference_embeddings,
+                    ref_labels=reference_labels
+                )
+            )
 
             # Backward pass, optimize
             train_loss.backward()
@@ -253,7 +336,7 @@ class TrainModel:
             valid_losses (list): Updated list of validation losses.
         """
 
-        with torch.no_grad():
+        with (torch.no_grad()):
             for idx, (consumer_images, consumer_labels, _, reference_images, reference_labels, _) \
                     in tqdm(enumerate(self.valid_data_loader),
                             total=len(self.valid_data_loader),
@@ -270,10 +353,14 @@ class TrainModel:
                 reference_labels = self.convert_labels(reference_labels)
 
                 # Compute triplet loss
-                val_loss = self.criterion(embeddings=consumer_embeddings,
-                                          labels=consumer_labels,
-                                          ref_emb=reference_embeddings,
-                                          ref_labels=reference_labels)
+                val_loss = (
+                    self.criterion(
+                        embeddings=consumer_embeddings,
+                        labels=consumer_labels,
+                        ref_emb=reference_embeddings,
+                        ref_labels=reference_labels
+                    )
+                )
 
                 # Accumulate loss
                 valid_losses.append(val_loss.item())

@@ -10,6 +10,7 @@ Description: This code holds different functions used all around the project fil
 import colorlog
 import gc
 import json
+import jsonschema
 import logging
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,6 +25,7 @@ import plotly.graph_objs as go
 from datetime import datetime
 from functools import wraps
 from glob import glob
+from jsonschema import validate
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from pathlib import Path
@@ -311,6 +313,30 @@ def get_embedded_text_matrix(path_to_excel_file: str) -> pd.DataFrame:
     return pd.read_excel(excel_file_path, sheet_name=0, index_col=0)
 
 
+def load_config_json(json_schema_filename: str, json_filename: str):
+    """
+    Args:
+        json_schema_filename:
+        json_filename:
+
+    Returns:
+
+    """
+
+    with open(json_schema_filename, "r") as schema_file:
+        schema = json.load(schema_file)
+
+    with open(json_filename, "r") as config_file:
+        config = json.load(config_file)
+
+    try:
+        validate(config, schema)
+        logging.info("JSON data is valid.")
+        return config
+    except jsonschema.exceptions.ValidationError as err:
+        logging.error(f"JSON data is invalid: {err}")
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------- M E A S U R E   E X E C U T I O N   T I M E ------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -549,56 +575,64 @@ def plot_euclidean_distances(vectors: dict, dataset_name: str, filename: str, no
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------- P L O T   R E F   Q U E R Y   I M G S ---------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-def plot_ref_query_images(indices: List[int], q_images_path: List[str], r_images_path: List[str],
-                          gt: List[str], predicted_labels: List[str], output_folder: str) -> None:
+def plot_ref_query_images(gt_labels: List[str], predicted_medicines: List[str],
+                          query_image_paths: dict, reference_image_paths: dict,
+                          output_folder: str) -> None:
     """
-    Plots the reference and query images with their corresponding ground truth and predicted class labels.
 
     Args:
-        indices (List[int]): List of indices representing the matched reference images for each query image.
-        q_images_path (List[str]): List of file paths to query images.
-        r_images_path (List[str]): List of file paths to reference images.
-        gt (List[str]): List of ground truth class labels for each query image.
-        predicted_labels (List[str]): List of predicted class labels for each query image.
-        output_folder (str): Path to the output folder where the images will be saved.
+        gt_labels:
+        predicted_medicines:
+        query_image_paths:
+        reference_image_paths:
+        output_folder:
 
     Returns:
-        None
-    """
 
-    new_list = [i for i in range(len(indices))]
+    """
 
     correctly_classified = os.path.join(output_folder, "correctly_classified")
     incorrectly_classified = os.path.join(output_folder, "incorrectly_classified")
-
     os.makedirs(correctly_classified, exist_ok=True)
     os.makedirs(incorrectly_classified, exist_ok=True)
 
-    for idx, (i, j, k, l) in tqdm(enumerate(zip(indices, new_list, gt, predicted_labels)), total=len(new_list),
-                                  desc="Plotting ref and query images"):
-        img_path_query = q_images_path[j]
-        img_query = Image.open(img_path_query)
+    # Loop through ground truth and predicted labels
+    for i, (gt_label, predicted_medicine) in tqdm(enumerate(zip(gt_labels, predicted_medicines)),
+                                                  total=len(gt_labels),
+                                                  desc="Plotting images"):
 
-        img_path_ref = r_images_path[int(i)]
-        img_ref = Image.open(img_path_ref)
+        query_images = query_image_paths[predicted_medicine]
 
-        plt.figure()
-        f, ax = plt.subplots(1, 2)
-        ax[0].imshow(img_query)
-        ax[0].set_title(k + "_query")
-        ax[1].imshow(img_ref)
-        ax[1].set_title(l + "_ref")
-
-        if k == l:
-            output_path = os.path.join(correctly_classified, str(idx) + ".png")
+        if gt_label == predicted_medicine:
+            save_folder = correctly_classified
+            ref_label = gt_label
         else:
-            output_path = os.path.join(incorrectly_classified, str(idx) + ".png")
-        plt.savefig(output_path)
+            save_folder = incorrectly_classified
+            ref_label = gt_label
+
+        reference_images = [Image.open(path) for path in reference_image_paths[ref_label]]
+
+        query_image = Image.open(
+            query_images[i % len(query_images)])
+
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+        for j, ref_img in enumerate(reference_images):
+            axes[j].imshow(ref_img)
+            axes[j].axis('off')
+            axes[j].set_title(f'Reference Image {j + 1} ({ref_label})')
+
+        axes[2].imshow(query_image)
+        axes[2].axis('off')
+        axes[2].set_title(f'Query Image ({predicted_medicine})')
+
+        plt.subplots_adjust(top=0.85, bottom=0.05, hspace=0.2, wspace=0.3)
+
+        plot_filename = os.path.join(save_folder, f'{gt_label}_vs_{predicted_medicine}_query_{i}.png')
+        plt.savefig(plot_filename, dpi=100)
         plt.close()
 
-        plt.close("all")
-        plt.close()
-        gc.collect()
+    gc.collect()
 
 
 # ----------------------------------------------------------------------------------------------------------------------

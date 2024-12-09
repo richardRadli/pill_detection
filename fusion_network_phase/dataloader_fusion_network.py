@@ -13,7 +13,6 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 
-from config.config import ConfigStreamNetwork
 from fusion_network_phase.mine_hard_samples import get_hardest_samples
 
 
@@ -34,8 +33,6 @@ class FusionDataset(Dataset):
         Returns:
              None
         """
-
-        self.cfg = ConfigStreamNetwork().parse()
 
         # Transforms for each dataset
         self.grayscale_transform = transforms.Compose([
@@ -66,13 +63,10 @@ class FusionDataset(Dataset):
             index (int): An integer representing the index of the sample to retrieve from the dataset.
 
         Returns:
-            A tuple of 14 elements, where each element corresponds to an image with a specific transformation and paths.
+            A tuple of 12 elements, where each element corresponds to an image with a specific transformation.
         """
 
         hard_samples = self.hard_samples[index]
-
-        rgb_positive_img_path = hard_samples[7]
-        rgb_negative_img_path = hard_samples[8]
 
         contour_anchor = self.grayscale_transform(Image.open(hard_samples[0]))
         contour_positive = self.grayscale_transform(Image.open(hard_samples[1]))
@@ -90,8 +84,7 @@ class FusionDataset(Dataset):
         return (contour_anchor, contour_positive, contour_negative,
                 lbp_anchor, lbp_positive, lbp_negative,
                 rgb_anchor, rgb_positive, rgb_negative,
-                texture_anchor, texture_positive, texture_negative,
-                rgb_positive_img_path, rgb_negative_img_path)
+                texture_anchor, texture_positive, texture_negative, hard_samples[7], hard_samples[8])
 
     # ------------------------------------------------------------------------------------------------------------------
     # --------------------------------------------------- __ L E N __ --------------------------------------------------

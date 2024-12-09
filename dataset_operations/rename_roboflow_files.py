@@ -5,13 +5,17 @@ E-mail: radli.richard@mik.uni-pannon.hu
 Date: May 23, 2023
 
 Description: Roboflow tends to add name extensions to image files, also, it converts images to .jpg format. This program
-chops off the name extensions.
+chops off the name extensions, and converts back the files to .png files.
 """
 
 import os
 
-from config.const import DATASET_PATH
-from utils.utils import file_reader
+from concurrent.futures import ThreadPoolExecutor
+from glob import glob
+from PIL import Image
+from tqdm import tqdm
+
+from config.data_paths import DATASET_PATH
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -26,28 +30,28 @@ def rename_files(images_dir: str, labels_dir: str) -> None:
     :return: None
     """
 
-    images = file_reader(images_dir, "jpg")
-    text = file_reader(labels_dir, "txt")
+    images = sorted(glob(images_dir + "/*.jpg"))
+    text = sorted(glob(labels_dir + "/*.txt"))
 
     existing_files = os.listdir(images_dir)
 
     for idx, (img, txt) in enumerate(zip(images, text)):
         image_file_name = os.path.basename(img)
-        image_file_name = image_file_name.replace("_jpg", ".jpg")
+        image_file_name = image_file_name.replace("_png", ".png")
         image_file_name = '_'.join(image_file_name.split('.')[:2])
-        image_file_name = image_file_name.replace("_jpg", ".jpg")
+        image_file_name = image_file_name.replace("_png", ".png")
 
         txt_file_name = os.path.basename(txt)
-        txt_file_name = txt_file_name.replace("_jpg", ".jpg")
+        txt_file_name = txt_file_name.replace("_png", ".png")
         txt_file_name = '_'.join(txt_file_name.split('.')[:2])
-        txt_file_name = txt_file_name.replace("_jpg", ".txt")
+        txt_file_name = txt_file_name.replace("_png", ".txt")
 
         # Check if the image file name already exists
         original_file_name = image_file_name
         index = 0
         while image_file_name in existing_files:
             index += 1
-            image_file_name = "{}_{:d}.jpg".format(original_file_name.rsplit('_', 1)[0], index)
+            image_file_name = "{}_{:d}.png".format(original_file_name.rsplit('_', 1)[0], index)
 
         existing_files.append(image_file_name)
 
@@ -66,6 +70,37 @@ def rename_files(images_dir: str, labels_dir: str) -> None:
 
         # Print the updated file names
         print("Image file:", image_file_name)
+        print("Text file:", txt_file_name)
+
+
+def convert_image_to_png(image_path: str) -> None:
+    """
+    Converts a single image file to PNG format.
+
+    :param image_path: Path to the image file.
+    """
+
+    img = Image.open(image_path)
+    img = img.convert("RGB")
+    img.save(image_path, 'PNG')
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------------- C O N V E R T   I M A G E S   T O   P N G -------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+def convert_images_to_png(directory: str) -> None:
+    """
+    Convert all image files in the specified directory to PNG format using ThreadPoolExecutor.
+
+    :param directory: Path to the image files.
+    :return: None
+    """
+
+    image_files = [os.path.join(directory, file_name) for file_name in os.listdir(directory)
+                   if file_name.lower().endswith('.png')]
+
+    with ThreadPoolExecutor() as executor:
+        list(tqdm(executor.map(convert_image_to_png, image_files), total=len(image_files), desc="Processing images"))
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -77,10 +112,11 @@ def main() -> None:
     :return: None
     """
 
-    images_dir = DATASET_PATH.get_data_path("cure_one_sided_reference_images")
-    labels_dir = DATASET_PATH.get_data_path("cure_one_sided_reference_segmentation_labels")
+    images_dir = DATASET_PATH.get_data_path("")
+    labels_dir = DATASET_PATH.get_data_path("")
 
     rename_files(images_dir, labels_dir)
+    convert_images_to_png(images_dir)
 
 
 # ----------------------------------------------------------------------------------------------------------------------

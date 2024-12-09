@@ -1,8 +1,11 @@
 import os
+import numpy as np
 
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
 from tqdm import tqdm
+
+from config.data_paths import DATASET_PATH
 
 
 def convert_and_save(src_directory, dst_directory, jpg_file):
@@ -11,13 +14,20 @@ def convert_and_save(src_directory, dst_directory, jpg_file):
 
     with Image.open(png_path) as img:
         img = img.convert('RGB')
-        img.save(jpg_path)
+        img_array = np.array(img)
+
+        if np.all(np.isin(img_array, [0, 255])):
+            img = Image.fromarray(img_array)
+        else:
+            img = img.convert('RGB')
+
+        img.save(jpg_path, quality=100)
 
 
 def convert_png_to_jpg(src_directory, dst_directory, num_threads=4):
     os.makedirs(dst_directory, exist_ok=True)
 
-    png_files = [file for file in os.listdir(src_directory) if file.lower().endswith('.bmp')]
+    png_files = [file for file in os.listdir(src_directory) if file.lower().endswith('.png')]
 
     with (ThreadPoolExecutor(max_workers=num_threads) as executor):
         futures = \
@@ -28,7 +38,7 @@ def convert_png_to_jpg(src_directory, dst_directory, num_threads=4):
 
 
 if __name__ == "__main__":
-    input_directory = "D:/storage/pill_detection/datasets/cure_one_sided/Reference/images"
-    output_directory = "D:/storage/pill_detection/datasets/cure_one_sided/Reference/images"
+    directory = "ogyei_customer_images"
+    input_directory = DATASET_PATH.get_data_path(directory)
+    output_directory = DATASET_PATH.get_data_path(directory)
     convert_png_to_jpg(input_directory, output_directory, 6)
-    print("Conversion completed.")

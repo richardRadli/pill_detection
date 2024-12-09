@@ -1,57 +1,62 @@
-"""
-File: dataloader_stream_network.py
-Author: Richárd Rádli
-E-mail: radli.richard@mik.uni-pannon.hu
-Date: March 01, 2024
-
-Description: This code implements the dataloader class for the stream network phase.
-"""
-
-import numpy as np
 import os
+import numpy as np
 
 from PIL import Image
 from sklearn.preprocessing import LabelEncoder
-from typing import List, Tuple
+from typing import Any, List, Tuple
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 
-from config.config import ConfigStreamNetwork
+from config.json_config import json_config_selector
+from utils.utils import load_config_json
 
 
 class DataLoaderStreamNet(Dataset):
     def __init__(self, dataset_dirs_anchor: List[str], dataset_dirs_pos_neg: List[str]) -> None:
         """
-        Initialize the StreamDataset class.
-
+        Initialize the DataLoaderStreamNet class.
+        
         Args:
             dataset_dirs_anchor: A list of directory paths containing the anchor dataset.
             dataset_dirs_pos_neg: A list of directory paths containing the positive and negative dataset
+
+        Returns:
+            None
         """
 
-        self.cfg = ConfigStreamNetwork().parse()
+        self.cfg = (
+            load_config_json(
+                json_schema_filename=json_config_selector("stream_net").get("schema"),
+                json_filename=json_config_selector("stream_net").get("config")
+            )
+        )
+
+        network_type = self.cfg.get("type_of_net")
+        network_cfg = self.cfg.get("networks").get(network_type)
+
+        self.image_size = network_cfg.get("image_size")
 
         # Load datasets
-        self.query_images, self.query_labels, _ =\
-            self.load_dataset(dataset_dirs_anchor)
-        self.reference_images, self.reference_labels, self.reference_encoding_map =\
+        self.query_images, self.query_labels, _ = (
             self.load_dataset(dataset_dirs_pos_neg)
+        )
+
+        self.reference_images, self.reference_labels, self.reference_encoding_map = (
+            self.load_dataset(dataset_dirs_anchor)
+        )
 
         self.transform = self.get_transform()
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # -------------------------------------------- L O A D   D A T A S E T ---------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     @staticmethod
-    def load_dataset(dataset_dirs: List[str]) -> Tuple[List[str], List[int], dict]:
+    def load_dataset(dataset_dirs: List[str]) -> Tuple[List[str], np.ndarray, dict]:
         """
-        Load images from multiple directories and encode the labels.
+        Load the dataset from the provided directories and encode labels.
 
         Args:
-            dataset_dirs (List[str]): List of directories containing the dataset.
+            dataset_dirs: A list of directory paths for the dataset.
 
         Returns:
-            Tuple[List[str], List[int]]: A tuple containing a list of image paths and a list of encoded labels.
+            Tuple[List[str], np.ndarray]: A list of image file paths and an array of encoded labels.
         """
 
         images = []
@@ -79,77 +84,72 @@ class DataLoaderStreamNet(Dataset):
 
         return images, encoded_labels, encoding_map
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------- G E T   T R A N S F O R M --------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     def get_transform(self) -> transforms.Compose:
         """
-        Get the appropriate transformation based on the type of stream.
+        Get the appropriate transformation pipeline for the images based on the stream type.
 
         Returns:
-            transforms.Compose: A composition of image transformations.
+            transforms.Compose: A transformation pipeline for the images.
         """
 
-        if self.cfg.type_of_stream == "RGB":
+        if self.cfg.get("type_of_stream") == "RGB":
             return transforms.Compose([
-                transforms.Resize(self.cfg.img_size_en),
-                transforms.CenterCrop(self.cfg.img_size_en),
+                transforms.Resize(self.image_size),
+                transforms.CenterCrop(self.image_size),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
             ])
-        elif self.cfg.type_of_stream in ["Contour", "Texture", "LBP"]:
+        elif self.cfg.get("type_of_stream") in ["Contour", "Texture", "LBP"]:
             return transforms.Compose([
-                transforms.Resize(self.cfg.img_size_en),
-                transforms.CenterCrop(self.cfg.img_size_en),
+                transforms.Resize(self.image_size),
+                transforms.CenterCrop(self.image_size),
                 transforms.Grayscale(),
                 transforms.ToTensor(),
             ])
         else:
             raise ValueError("Wrong kind of network")
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ---------------------------------------------------- __L E N__ ---------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
     def __len__(self) -> int:
         """
-        Get the length of the dataset.
+        Get the total number of query images in the dataset.
 
         Returns:
-            int: The number of query images in the dataset.
+            int: The total number of query images.
         """
 
         return len(self.query_images)
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ------------------------------------------------ __G E T I T E M__ -----------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> Tuple[Any, np.ndarray, str, Any, np.ndarray, str]:
         """
-        Retrieve a sample from the dataset at the given index.
+        Get a query image and a reference image with their corresponding labels.
 
         Args:
-            index (int): Index of the sample to retrieve.
+            index (int): The index of the query image.
 
         Returns:
-            Tuple: A tuple containing query image, query label, query image path,
-            reference image, reference label, and reference image path.
+            Tuple[Any, np.ndarray, str, Any, np.ndarray, str]:
+                A tuple containing the query image, query label, query image path, reference image, reference label,
+                and reference image path.
         """
 
-        # Query (consumer) images
-        query_image_path = self.query_images[index]
-        query_image = self.transform(Image.open(query_image_path))
-        query_label = self.query_labels[index]
-
-        # Reference images
-        reference_label = query_label
-        reference_indices = np.where(np.array(self.reference_labels) == reference_label)[0]
-
-        if len(reference_indices) == 0:
-            reference_image_path = self.reference_images[-1]
-        else:
-            reference_index = np.random.choice(reference_indices)
-            reference_image_path = self.reference_images[reference_index]
-
+        # Reference image
+        reference_index = index % len(self.reference_images)
+        reference_image_path = self.reference_images[reference_index]
         reference_image = self.transform(Image.open(reference_image_path))
+        reference_label = self.reference_labels[reference_index]
+
+        # Find a query image with the same label as the reference image
+        query_indices = np.where(np.array(self.query_labels) == reference_label)[0]
+
+        if len(query_indices) == 0:
+            # If no matching query image, fall back to a random query image
+            query_index = np.random.randint(len(self.query_images))
+        else:
+            # Randomly choose a query image with the same label
+            query_index = np.random.choice(query_indices)
+
+        query_image_path = self.query_images[query_index]
+        query_image = self.transform(Image.open(query_image_path))
+        query_label = self.query_labels[query_index]
 
         return query_image, query_label, query_image_path, reference_image, reference_label, reference_image_path
