@@ -10,10 +10,11 @@ from torch.optim import Adam
 from torch.optim.lr_scheduler import StepLR
 from tqdm import tqdm
 
-from config.config import ConfigWordEmbedding
-from config.config_selector import word_embedded_network_configs, dataset_images_path_selector
+from config.dataset_paths_selector import dataset_images_path_selector
+from config.networks_paths_selector import word_embedding_paths
+from config.json_config import json_config_selector
 from utils.utils import (create_dataset, use_gpu_if_available, create_timestamp, setup_logger,
-                         find_latest_file_in_directory)
+                         find_latest_file_in_directory, load_config_json)
 from word_embedding_network.fully_connected_network import FullyConnectedNetwork
 from word_embedding_network.dataloader_word_embedding_network import DataLoaderWordEmbeddingNetwork
 
@@ -22,46 +23,69 @@ class TrainWordEmbeddingNetwork:
     def __init__(self):
         self.timestamp = create_timestamp()
         self.logger = setup_logger()
-        self.cfg = ConfigWordEmbedding().parse()
-        self.device = use_gpu_if_available()
-
-        word_emb_model_confing = word_embedded_network_configs(self.cfg.dataset_type)
-        dataset_paths = dataset_images_path_selector(self.cfg.dataset_type)
-
-        json_file_path = (
-            find_latest_file_in_directory(path=dataset_paths.get("dynamic_margin").get("concatenated_vectors"),
-                                          extension="json")
+        self.cfg = load_config_json(
+            json_schema_filename=json_config_selector("word_embedding").get("schema"),
+            json_filename=json_config_selector("word_embedding").get("config")
         )
 
-        dataset = DataLoaderWordEmbeddingNetwork(json_file_path, word_emb_model_confing.get("neuron_split"))
+        self.device = use_gpu_if_available()
+
+        word_emb_model_confing = word_embedding_paths(self.cfg.get("dataset_type"))
+        dataset_paths = dataset_images_path_selector(self.cfg.get("dataset_type"))
+
+        json_file_path = (
+            find_latest_file_in_directory(
+                path=dataset_paths.get("dynamic_margin").get("concatenated_vectors"),
+                extension="json"
+            )
+        )
+
+        dataset = DataLoaderWordEmbeddingNetwork(json_file_path, self.cfg.get("neuron_split"))
         self.train_dataloader, self.valid_dataloader = (
-            create_dataset(dataset=dataset,
-                           train_valid_ratio=self.cfg.train_valid_ratio,
-                           batch_size=self.cfg.batch_size)
+            create_dataset(
+                dataset=dataset,
+                train_valid_ratio=self.cfg.get("train_valid_ratio"),
+                batch_size=self.cfg.get("batch_size")
+            )
         )
 
         self.criterion = losses.NTXentLoss(temperature=0.10)
 
         self.model = (
-            FullyConnectedNetwork(neurons=word_emb_model_confing.get("neurons"))
+            FullyConnectedNetwork(
+                neurons=self.cfg.get("neurons")
+            )
         )
 
         self.model.to(self.device)
-        summary(self.model, input_size=(self.cfg.batch_size, word_emb_model_confing.get("neurons")[0]))
+        summary(
+            model=self.model,
+            input_size=(
+                self.cfg.get("batch_size"),
+                self.cfg.get("neurons")[0]
+            )
+        )
 
-        self.optimizer = Adam(self.model.parameters(),
-                              lr=self.cfg.learning_rate)
+        self.optimizer = (
+            Adam(
+                self.model.parameters(),
+                lr=self.cfg.get("learning_rate")
+            )
+        )
 
-        self.scheduler = StepLR(optimizer=self.optimizer,
-                                step_size=1,
-                                gamma=0.01)
+        self.scheduler = (
+            StepLR(
+                optimizer=self.optimizer,
+                step_size=1,
+                gamma=0.01
+            )
+        )
 
-        tensorboard_log_dir = self.create_save_dir(word_emb_model_confing.get("logs_dir"))
+        tensorboard_log_dir = self.create_save_dir(word_emb_model_confing.get("logs"))
         self.writer = SummaryWriter(log_dir=tensorboard_log_dir)
 
-        self.save_path = self.create_save_dir(word_emb_model_confing.get("model_weights_dir"))
+        self.save_path = self.create_save_dir(word_emb_model_confing.get("weights"))
 
-        # Variables to save only the best weights and model
         self.best_valid_loss = float('inf')
         self.best_model_path = None
 
@@ -108,27 +132,21 @@ class TrainWordEmbeddingNetwork:
         """
 
         for original, augmented in tqdm(self.train_dataloader, total=len(self.train_dataloader), desc="Training"):
-            # Zero out gradients
             self.optimizer.zero_grad()
 
-            # Upload data to GPU
             original = original.to(self.device)
             augmented = augmented.to(self.device)
 
-            # Forward pass
             embeddings_original = self.model(original)
             embeddings_augmented = self.model(augmented)
             embeddings = torch.cat((embeddings_original, embeddings_augmented))
             indices = torch.arange(0, embeddings_original.size(0), device=self.device)
             labels = torch.cat((indices, indices))
 
-            # Apply loss
             train_loss = self.criterion(embeddings, labels)
 
-            # Backward pass
             train_loss.backward()
 
-            # Call optimizer
             self.optimizer.step()
             train_losses.append(train_loss.item())
 
@@ -136,18 +154,15 @@ class TrainWordEmbeddingNetwork:
 
     def valid_loop(self, valid_losses):
         for original, augmented in tqdm(self.valid_dataloader, total=len(self.valid_dataloader), desc="Validation"):
-            # Upload data to GPU
             original = original.to(self.device)
             augmented = augmented.to(self.device)
 
-            # Forward pass
             embeddings_original = self.model(original)
             embeddings_augmented = self.model(augmented)
             embeddings = torch.cat((embeddings_original, embeddings_augmented))
             indices = torch.arange(0, embeddings_original.size(0), device=self.device)
             labels = torch.cat((indices, indices))
 
-            # Apply loss
             valid_loss = self.criterion(embeddings, labels)
             valid_losses.append(valid_loss.item())
 
@@ -157,7 +172,7 @@ class TrainWordEmbeddingNetwork:
         train_losses = []
         valid_losses = []
 
-        for epoch in tqdm(range(self.cfg.epochs), desc="Epochs"):
+        for epoch in tqdm(range(self.cfg.get("epochs")), desc="Epochs"):
             self.train_loop(train_losses)
             self.valid_loop(valid_losses)
 

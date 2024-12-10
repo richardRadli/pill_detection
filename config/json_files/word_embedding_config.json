@@ -1,39 +1,18 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "WordEmbedding",
-  "type": "object",
-  "properties": {
-    "dataset_name": {
-      "type": "string",
-      "enum": [
-        "ogyeiv2",
-        "cure_one_sided",
-        "cure_two_sided"
-      ],
-      "description": "The name of the dataset to be used."
-    },
-    "train_valid_ratio": {
-      "type": "number",
-      "description": "Percentage value of the size of the train set."
-    },
-    "batch_size": {
-      "type": "integer",
-      "description": "Size of the batch."
-    },
-    "learning_rate": {
-      "type": "number",
-      "description": "Value of the learning rate."
-    },
-    "weight_decay": {
-      "type": "number",
-      "description": "Value of the weight decay."
-    },
-    "epochs": {
-      "type": "integer",
-      "description": "Number of epochs."
-    }
+  "dataset_name": "ogyeiv2",
+  "train_valid_ratio": 0.8,
+  "batch_size": 64,
+  "learning_rate": 2e-4,
+  "weight_decay": 1e-5,
+  "epochs": 10,
+  "neurons": {
+    "ogyeiv2": [61, 100, 80, 60, 10],
+    "cure_one_sided": [ 49, 100, 80, 60, 10],
+    "cure_two_sided": [61, 100, 80, 60, 10]
   },
-  "required": [
-    "dataset_name"
-  ]
+  "neuron_split": {
+    "ogyeiv2": [12, 49, 61],
+    "cure_one_sided": [6, 43, 49],
+    "cure_two_sided": [12, 49, 61]
+  }
 }

@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class FullyConnectedNetwork(nn.Module):
-    def __init__(self, neurons):
+    def __init__(self, neurons: list):
         super(FullyConnectedNetwork, self).__init__()
 
         self.fc1 = nn.Linear(neurons[0], neurons[1])
