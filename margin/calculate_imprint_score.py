@@ -6,9 +6,9 @@ import openpyxl
 
 from typing import Dict, List
 
-from config.config import ConfigStreamImages
-from config.config_selector import dataset_images_path_selector
-from utils.utils import create_timestamp, NumpyEncoder
+from config.json_config import json_config_selector
+from config.dataset_paths_selector import dataset_images_path_selector
+from utils.utils import create_timestamp, NumpyEncoder, load_config_json
 
 
 def encoding(words: List[str], feature_type: str) -> Dict[str, List[float]]:
@@ -64,7 +64,7 @@ def create_feature_vectors(sheet, words: list, feature_type: str, dataset_name) 
             encoded_feature = encoded_dict.get(selected_column)
             feature_dict[pill_id].append(encoded_feature)
 
-    elif dataset_name == "cure_two_sided" or dataset_name == "ogyei":
+    elif dataset_name == "cure_two_sided" or dataset_name == "ogyeiv2":
         for row in sheet.iter_rows(min_row=2, values_only=True):
             pill_id = row[0]
             selected_column_1 = row[3] if feature_type == "imprint_vectors" else row[7]
@@ -119,21 +119,27 @@ def main() -> None:
     Returns:
          None
     """
-    
-    cfg = ConfigStreamImages().parse()
     timestamp = create_timestamp()
 
+    cfg = (
+        load_config_json(
+            json_schema_filename=json_config_selector("stream_images").get("schema"),
+            json_filename=json_config_selector("stream_images").get("config")
+        )
+    )
+
+    dataset_type = cfg.get('dataset_type')
     imprint_words = ['EMBOSSED', 'PRINTED', 'NOTHING']
     score_words = [1, 2, 4]
 
-    pill_desc_path = dataset_images_path_selector(cfg.dataset_type).get("dynamic_margin").get("pill_desc_xlsx")
-    pill_desc_file = os.path.join(pill_desc_path, f"pill_desc_{cfg.dataset_type}.xlsx")
+    pill_desc_path = dataset_images_path_selector(dataset_type).get("dynamic_margin").get("pill_desc_xlsx")
+    pill_desc_file = os.path.join(pill_desc_path, f"pill_desc_{dataset_type}.xlsx")
 
     workbook = openpyxl.load_workbook(pill_desc_file)
     sheet = workbook['Sheet1']
 
-    process_vectors(sheet, imprint_words, cfg.dataset_type, timestamp, "imprint_vectors")
-    process_vectors(sheet, score_words, cfg.dataset_type, timestamp, "score_vectors")
+    process_vectors(sheet, imprint_words, dataset_type, timestamp, "imprint_vectors")
+    process_vectors(sheet, score_words, dataset_type, timestamp, "score_vectors")
 
 
 if __name__ == '__main__':

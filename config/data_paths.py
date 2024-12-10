@@ -196,6 +196,13 @@ class Images(_Const):
         "emb_tsne_word_embedded_network_ogyei_v2":
             "images/ogyei_v2/plotting/word_embedded_network/emb_tsne_vis",
 
+        # ------------------------------------------- F O U R I E R ----------------------------------------------------
+        "Fourier_euclidean_distance_ogyei_v2":
+            "images/ogyei_v2/dynamic_margin/Fourier/euclidean_distance",
+        "Fourier_collected_images_by_shape_ogyei_v2":
+            "images/ogyei_v2/dynamic_margin/Fourier/collected_images",
+        "combined_vectors_euc_dst_ogyei_v2":
+            "images/ogyei_v2/dynamic_margin/Fourier/combined_vectors_euc_dst",
 
         # ++++++++++++++++++++++++++++++++++++++++++ C U R E   O N E   S I D E D +++++++++++++++++++++++++++++++++++++++
         "stream_images_cure_one_sided_anchor":
@@ -271,6 +278,14 @@ class Images(_Const):
         "emb_tsne_word_embedded_network_cure_one_sided":
             "images/cure_one_sided/plotting/word_embedded_network/emb_tsne_vis",
 
+        # ------------------------------------------- F O U R I E R ----------------------------------------------------
+        "Fourier_euclidean_distance_cure_one_sided":
+            "images/cure_one_sided/dynamic_margin/Fourier/euclidean_distance",
+        "Fourier_collected_images_by_shape_cure_one_sided":
+            "images/cure_one_sided/dynamic_margin/Fourier/collected_images",
+        "combined_vectors_euc_dst_cure_one_sided":
+            "images/cure_one_sided/dynamic_margin/Fourier/combined_vectors_euc_dst",
+
         # ++++++++++++++++++++++++++++++++++++++++++ C U R E   T W O   S I D E D +++++++++++++++++++++++++++++++++++++++
         "stream_images_cure_two_sided_anchor":
             "images/cure_two_sided/stream_images/anchor",
@@ -343,7 +358,15 @@ class Images(_Const):
 
         # ---------------------------------------- E M B E D D I N G   T S N E -----------------------------------------
         "emb_tsne_word_embedded_network_cure_two_sided":
-            "images/cure_two_sided/plotting/word_embedded_network/emb_tsne_vis"
+            "images/cure_two_sided/plotting/word_embedded_network/emb_tsne_vis",
+
+        # ------------------------------------------- F O U R I E R ----------------------------------------------------
+        "Fourier_euclidean_distance_cure_two_sided":
+            "images/cure_two_sided/dynamic_margin/Fourier/euclidean_distance",
+        "Fourier_collected_images_by_shape_cure_two_sided":
+            "images/cure_two_sided/dynamic_margin/Fourier/collected_images",
+        "combined_vectors_euc_dst_cure_two_sided":
+            "images/cure_two_sided/dynamic_margin/Fourier/combined_vectors_euc_dst",
     }
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -517,6 +540,22 @@ class Data(_Const):
         "predictions_word_embedded_network_ogyei_v2":
             "data/ogyei_v2/predictions/word_embedded_network",
 
+        # ----------------------------------------- D Y N A M I C   M A R G I N ----------------------------------------
+        "pill_desc_xlsx_ogyei_v2":
+            "data/ogyei_v2/dynamic_margin/pill_desc_xlsx",
+        "Fourier_saved_mean_vectors_ogyei_v2":
+            "data/ogyei_v2/dynamic_margin/Fourier_saved_mean_vectors",
+        "colour_vectors_ogyei_v2":
+            "data/ogyei_v2/dynamic_margin/colour_vectors",
+        "imprint_vectors_ogyei_v2":
+            "data/ogyei_v2/dynamic_margin/imprint_vectors",
+        "score_vectors_ogyei_v2":
+            "data/ogyei_v2/dynamic_margin/score_vectors",
+        "concatenated_vectors_ogyei_v2":
+            "data/ogyei_v2/dynamic_margin/concatenated_vectors",
+        "euc_mtx_xlsx_ogyei_v2":
+            "data/ogyei_v2/dynamic_margin/euc_mtx_xlsx",
+
         # +++++++++++++++++++++++++++++++++++++++++++++++ C U R E   O N E ++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
         # EfficientNetV2 - StreamNetwork
@@ -668,6 +707,22 @@ class Data(_Const):
         "predictions_word_embedded_network_cure_one_sided":
             "data/cure_one_sided/predictions/word_embedded_network",
 
+        # ----------------------------------------- D Y N A M I C   M A R G I N ----------------------------------------
+        "pill_desc_xlsx_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/pill_desc_xlsx",
+        "Fourier_saved_mean_vectors_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/Fourier_saved_mean_vectors",
+        "colour_vectors_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/colour_vectors",
+        "imprint_vectors_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/imprint_vectors",
+        "score_vectors_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/score_vectors",
+        "concatenated_vectors_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/concatenated_vectors",
+        "euc_mtx_xlsx_cure_one_sided":
+            "data/cure_one_sided/dynamic_margin/euc_mtx_xlsx",
+
         # +++++++++++++++++++++++++++++++++++++++++++++++ C U R E   T W O ++++++++++++++++++++++++++++++++++++++++++++++
         # ------------------------------------- W E I G H T S   S T R E A M   N E T ------------------------------------
         # EfficientNetV2 - StreamNetwork
@@ -817,7 +872,24 @@ class Data(_Const):
         # ------------------------------ P R E D I C T I O N S    W O R D   E M B E D E D ------------------------------
         # Predictions
         "predictions_word_embedded_network_cure_two_sided":
-            "data/cure_two_sided/predictions/word_embedded_network"
+            "data/cure_two_sided/predictions/word_embedded_network",
+
+        # ----------------------------------------- D Y N A M I C   M A R G I N ----------------------------------------
+        "pill_desc_xlsx_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/pill_desc_xlsx",
+        "Fourier_saved_mean_vectors_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/Fourier_saved_mean_vectors",
+        "colour_vectors_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/colour_vectors",
+        "imprint_vectors_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/imprint_vectors",
+        "score_vectors_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/score_vectors",
+        "concatenated_vectors_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/concatenated_vectors",
+        "euc_mtx_xlsx_cure_two_sided":
+            "data/cure_two_sided/dynamic_margin/euc_mtx_xlsx",
+
     }
 
     def __init__(self):
@@ -914,6 +986,8 @@ class Datasets(_Const):
             "ogyei_v2/Reference/stream_images/rgb",
         "stream_images_ogyei_v2_reference_texture":
             "ogyei_v2/Reference/stream_images/texture",
+        "stream_images_ogyei_v2_reference_masks":
+            "ogyei_v2/Reference/stream_images/masks",
 
         # UNSPLITTED
         "ogyei_v2_images":
@@ -944,6 +1018,116 @@ class Datasets(_Const):
             "ogyei_v2/splitted/test/gt_test_masks",
         "ogyei_v2_test_segmentation_labels":
             "ogyei_v2/splitted/test/labels",
+
+        # ----------------------------------------- C U R E   O N E   S I D E D ----------------------------------------
+        # CUSTOMER
+        "cure_one_sided_customer_images":
+            "cure_one_sided/Customer/images",
+        "cure_one_sided_customer_segmentation_labels":
+            "cure_one_sided/Customer/segmentation_labels",
+        "cure_one_sided_customer_mask_images":
+            "cure_one_sided/Customer/mask_images",
+
+        # REFERENCE
+        "cure_one_sided_reference_images":
+            "cure_one_sided/Reference/images",
+        "cure_one_sided_reference_segmentation_labels":
+            "cure_one_sided/Reference/segmentation_labels",
+        "cure_one_sided_reference_mask_images":
+            "cure_one_sided/Reference/mask_images",
+
+        # STREAM - Customer
+        "stream_images_cure_one_sided_customer":
+            "cure_one_sided/Customer/stream_images",
+        "stream_images_cure_one_sided_customer_contour":
+            "cure_one_sided/Customer/stream_images/contour",
+        "stream_images_cure_one_sided_customer_lbp":
+            "cure_one_sided/Customer/stream_images/lbp",
+        "stream_images_cure_one_sided_customer_rgb":
+            "cure_one_sided/Customer/stream_images/rgb",
+        "stream_images_cure_one_sided_customer_texture":
+            "cure_one_sided/Customer/stream_images/texture",
+
+        # STREAM - Reference
+        "stream_images_cure_one_sided_reference":
+            "cure_one_sided/Reference/stream_images",
+        "stream_images_cure_one_sided_reference_contour":
+            "cure_one_sided/Reference/stream_images/contour",
+        "stream_images_cure_one_sided_reference_lbp":
+            "cure_one_sided/Reference/stream_images/lbp",
+        "stream_images_cure_one_sided_reference_rgb":
+            "cure_one_sided/Reference/stream_images/rgb",
+        "stream_images_cure_one_sided_reference_texture":
+            "cure_one_sided/Reference/stream_images/texture",
+        "stream_images_cure_one_sided_reference_masks":
+            "cure_one_sided/Reference/stream_images/masks",
+
+        # ----------------------------------------- C U R E   T W O   S I D E D ----------------------------------------
+        # CUSTOMER
+        "cure_two_sided_customer_images":
+            "cure_two_sided/Customer/images",
+        "cure_two_sided_customer_segmentation_labels":
+            "cure_two_sided/Customer/segmentation_labels",
+        "cure_two_sided_customer_mask_images":
+            "cure_two_sided/Customer/mask_images",
+
+        # REFERENCE
+        "cure_two_sided_reference_images":
+            "cure_two_sided/Reference/images",
+        "cure_two_sided_reference_segmentation_labels":
+            "cure_two_sided/Reference/segmentation_labels",
+        "cure_two_sided_reference_mask_images":
+            "cure_two_sided/Reference/mask_images",
+
+        # STREAM - Customer
+        "stream_images_cure_two_sided_customer":
+            "cure_two_sided/Customer/stream_images",
+        "stream_images_cure_two_sided_customer_contour":
+            "cure_two_sided/Customer/stream_images/contour",
+        "stream_images_cure_two_sided_customer_lbp":
+            "cure_two_sided/Customer/stream_images/lbp",
+        "stream_images_cure_two_sided_customer_rgb":
+            "cure_two_sided/Customer/stream_images/rgb",
+        "stream_images_cure_two_sided_customer_texture":
+            "cure_two_sided/Customer/stream_images/texture",
+
+        # STREAM - Reference
+        "stream_images_cure_two_sided_reference":
+            "cure_two_sided/Reference/stream_images",
+        "stream_images_cure_two_sided_reference_contour":
+            "cure_two_sided/Reference/stream_images/contour",
+        "stream_images_cure_two_sided_reference_lbp":
+            "cure_two_sided/Reference/stream_images/lbp",
+        "stream_images_cure_two_sided_reference_rgb":
+            "cure_two_sided/Reference/stream_images/rgb",
+        "stream_images_cure_two_sided_reference_texture":
+            "cure_two_sided/Reference/stream_images/texture",
+        "stream_images_cure_two_sided_reference_masks":
+            "cure_two_sided/Reference/stream_images/masks",
+
+        # CUSTOMER SPLITTED AUGMENTED
+        # Train
+        "cure_train_aug_images":
+            "cure/Augmented/train_dir/images",
+        "cure_train_aug_yolo_labels":
+            "cure/Augmented/train_dir/yolo_labels",
+        "cure_train_aug_mask_images":
+            "cure/Augmented/train_dir/mask_images",
+
+        # Valid
+        "cure_valid_aug_images":
+            "cure/Augmented/valid_dir/images",
+        "cure_valid_aug_yolo_labels":
+            "cure/Augmented/valid_dir/yolo_labels",
+        "cure_valid_aug_mask_images":
+            "cure/Augmented/valid_dir/mask_images",
+        # Test
+        "cure_test_images":
+            "cure/Augmented/test_dir/images",
+        "cure_test_yolo_labels":
+            "cure/Augmented/test_dir/yolo_labels",
+        "cure_test_mask_images":
+            "cure/Augmented/test_dir/masks",
 
         "dtd":
             "dtd_images"

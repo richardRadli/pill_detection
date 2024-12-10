@@ -78,6 +78,8 @@ def dataset_images_path_selector(dataset_name: str):
                         DATASET_PATH.get_data_path("stream_images_ogyei_v2_reference_rgb"),
                     "stream_images_texture":
                         DATASET_PATH.get_data_path("stream_images_ogyei_v2_reference_texture"),
+                    "stream_mask_images":
+                        DATASET_PATH.get_data_path("stream_images_ogyei_v2_reference_masks")
                 },
                 "customer": {
                     "stream_images":
@@ -107,6 +109,29 @@ def dataset_images_path_selector(dataset_name: str):
             "other": {
                 "k_fold":
                     DATA_PATH.get_data_path("ogyei_v2_k_fold")
+            },
+
+            "dynamic_margin": {
+                "pill_desc_xlsx":
+                    DATA_PATH.get_data_path("pill_desc_xlsx_ogyei_v2"),
+                "Fourier_vectors":
+                    DATA_PATH.get_data_path("Fourier_saved_mean_vectors_ogyei_v2"),
+                "Fourier_euclidean_distance":
+                    IMAGES_PATH.get_data_path("Fourier_euclidean_distance_ogyei_v2"),
+                "Fourier_images_by_shape":
+                    IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_ogyei_v2"),
+                "colour_vectors":
+                    DATA_PATH.get_data_path("colour_vectors_ogyei_v2"),
+                "imprint_vectors":
+                    DATA_PATH.get_data_path("imprint_vectors_ogyei_v2"),
+                "score_vectors":
+                    DATA_PATH.get_data_path("score_vectors_ogyei_v2"),
+                "concatenated_vectors":
+                    DATA_PATH.get_data_path("concatenated_vectors_ogyei_v2"),
+                "combined_vectors_euc_dst":
+                    IMAGES_PATH.get_data_path("combined_vectors_euc_dst_ogyei_v2"),
+                "euc_mtx_xlsx":
+                    DATA_PATH.get_data_path("euc_mtx_xlsx_ogyei_v2")
             }
         },
 
@@ -177,6 +202,8 @@ def dataset_images_path_selector(dataset_name: str):
                         DATASET_PATH.get_data_path("stream_images_cure_one_sided_reference_rgb"),
                     "stream_images_texture":
                         DATASET_PATH.get_data_path("stream_images_cure_one_sided_reference_texture"),
+                    "stream_mask_images":
+                        DATASET_PATH.get_data_path("stream_images_cure_one_sided_reference_masks")
                 },
                 "customer": {
                     "stream_images":
@@ -206,6 +233,31 @@ def dataset_images_path_selector(dataset_name: str):
             "other": {
                 "k_fold":
                     DATA_PATH.get_data_path("cure_one_sided_k_fold")
+            },
+
+            "dynamic_margin": {
+                "pill_desc_xlsx":
+                    DATA_PATH.get_data_path("pill_desc_xlsx_cure_one_sided"),
+                "Fourier_vectors":
+                    DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure_one_sided"),
+                "Fourier_euclidean_distance":
+                    IMAGES_PATH.get_data_path("Fourier_euclidean_distance_cure_one_sided"),
+                "Fourier_saved_mean_vectors":
+                    DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure_one_sided"),
+                "Fourier_images_by_shape":
+                    IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_cure_one_sided"),
+                "colour_vectors":
+                    DATA_PATH.get_data_path("colour_vectors_cure_one_sided"),
+                "imprint_vectors":
+                    DATA_PATH.get_data_path("imprint_vectors_cure_one_sided"),
+                "score_vectors":
+                    DATA_PATH.get_data_path("score_vectors_cure_one_sided"),
+                "concatenated_vectors":
+                    DATA_PATH.get_data_path("concatenated_vectors_cure_one_sided"),
+                "combined_vectors_euc_dst":
+                    IMAGES_PATH.get_data_path("combined_vectors_euc_dst_cure_one_sided"),
+                "euc_mtx_xlsx":
+                    DATA_PATH.get_data_path("euc_mtx_xlsx_cure_one_sided")
             }
         },
 
@@ -276,6 +328,8 @@ def dataset_images_path_selector(dataset_name: str):
                         DATASET_PATH.get_data_path("stream_images_cure_two_sided_reference_rgb"),
                     "stream_images_texture":
                         DATASET_PATH.get_data_path("stream_images_cure_two_sided_reference_texture"),
+                    "stream_mask_images":
+                        DATASET_PATH.get_data_path("stream_images_cure_two_sided_reference_masks")
                 },
                 "customer": {
                     "stream_images":
@@ -305,6 +359,31 @@ def dataset_images_path_selector(dataset_name: str):
             "other": {
                 "k_fold":
                     DATA_PATH.get_data_path("cure_two_sided_k_fold")
+            },
+
+            "dynamic_margin": {
+                "pill_desc_xlsx":
+                    DATA_PATH.get_data_path("pill_desc_xlsx_cure_two_sided"),
+                "Fourier_vectors":
+                    DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure_two_sided"),
+                "Fourier_euclidean_distance":
+                    IMAGES_PATH.get_data_path("Fourier_euclidean_distance_cure_two_sided"),
+                "Fourier_saved_mean_vectors":
+                    DATA_PATH.get_data_path("Fourier_saved_mean_vectors_cure_two_sided"),
+                "Fourier_images_by_shape":
+                    IMAGES_PATH.get_data_path("Fourier_collected_images_by_shape_cure_two_sided"),
+                "colour_vectors":
+                    DATA_PATH.get_data_path("colour_vectors_cure_two_sided"),
+                "imprint_vectors":
+                    DATA_PATH.get_data_path("imprint_vectors_cure_two_sided"),
+                "score_vectors":
+                    DATA_PATH.get_data_path("score_vectors_cure_two_sided"),
+                "concatenated_vectors":
+                    DATA_PATH.get_data_path("concatenated_vectors_cure_two_sided"),
+                "combined_vectors_euc_dst":
+                    IMAGES_PATH.get_data_path("combined_vectors_euc_dst_cure_two_sided"),
+                "euc_mtx_xlsx":
+                    DATA_PATH.get_data_path("euc_mtx_xlsx_cure_two_sided")
             }
         },
 

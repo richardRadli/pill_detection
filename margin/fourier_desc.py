@@ -13,12 +13,15 @@ import shutil
 from tqdm import tqdm
 from sklearn.decomposition import PCA
 
-from config.config import ConfigStreamImages
-from config.config_selector import dataset_images_path_selector
-from utils.utils import create_timestamp, find_latest_file_in_directory, plot_euclidean_distances
+from config.json_config import json_config_selector
+from config.dataset_paths_selector import dataset_images_path_selector
+from utils.utils import create_timestamp, find_latest_file_in_directory, plot_euclidean_distances, load_config_json
 
 
 class NumpyEncoder(json.JSONEncoder):
+    """
+        Custom JSON encoder for handling numpy arrays.
+    """
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
@@ -26,17 +29,38 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 class FourierDescriptor:
+    """
+    Class for processing images and extracting Fourier descriptors.
+    """
     def __init__(self, copy_images, order):
+        """
+        Initializes the FourierDescriptor with dataset configuration and paths.
+
+        Args:
+            copy_images: Whether to copy images to specific directories based on shapes.
+            order: Order of the Fourier descriptors.
+        Returns:
+            None
+        """
+
         self.timestamp = create_timestamp()
         colorama.init()
 
-        cfg = ConfigStreamImages().parse()
+        cfg = (
+            load_config_json(
+                json_schema_filename=json_config_selector("stream_images").get("schema"),
+                json_filename=json_config_selector("stream_images").get("config")
+            )
+        )
+
         self.dataset_name = cfg.dataset_type
 
         self.order = order
         self.copy_images = copy_images
 
-        self.images_dir = "D:/storage/pill_detection/datasets/cure_two_sided/Reference/stream_images/masks"
+        self.images_dir = (
+            dataset_images_path_selector(self.dataset_name).get("src_stream_images").get("reference").get("stream_mask_images")
+        )
 
         self.file_path = (
             dataset_images_path_selector(self.dataset_name).get("dynamic_margin").get("Fourier_images_by_shape")
@@ -58,7 +82,8 @@ class FourierDescriptor:
         """
         Reads an Excel file, processes the data, and copies corresponding files based on specified conditions.
 
-        :return: None
+        Returns:
+            None
         """
 
         workbook = openpyxl.load_workbook(self.excel_path)
@@ -97,9 +122,13 @@ class FourierDescriptor:
     @staticmethod
     def get_largest_contour(segmented_image: np.ndarray):
         """
+        Finds the largest contour in a segmented image.
 
-        :param segmented_image:
-        :return:
+        Args:
+            segmented_image: Binary segmented image.
+
+        Return:
+             Largest contour as a numpy array.
         """
 
         contours, _ = cv2.findContours(segmented_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -108,9 +137,12 @@ class FourierDescriptor:
 
     def elliptic_fourier_w_norm(self, segmented_image: np.ndarray):
         """
+        Computes normalized elliptic Fourier descriptors for the largest contour.
 
-        :param segmented_image:
-        :return:
+        Args:
+            segmented_image: Binary segmented image.
+        Returns:
+             Flattened array of Fourier descriptors excluding the first three coefficients.
         """
 
         largest_contour = self.get_largest_contour(segmented_image)
@@ -123,9 +155,10 @@ class FourierDescriptor:
     @staticmethod
     def plot_vectors(class_averages) -> None:
         """
+        Plots 3D representations of class vectors using PCA for dimensionality reduction.
 
         Args:
-            class_averages:
+            class_averages: Dictionary of class labels to average Fourier descriptors.
 
         Returns:
             None
@@ -212,7 +245,7 @@ class FourierDescriptor:
                         elif self.dataset_name == "cure_two_sided":
                             file_key = f"{file.split('_')[0]}"
 
-                        elif self.dataset_name == "ogyei":
+                        elif self.dataset_name == "ogyeiv2":
                             if "_s_" in file:
                                 match = re.search(r'^(.*?)_s_\d{3}\.jpg$', file)
                             elif "_u_" in file:
