@@ -1,0 +1,46 @@
+{
+  "dataset_type": "ogyeiv2",
+  "type_of_net": "EfficientNetV2",
+  "mining_type": "semihard",
+  "type_of_stream": "Texture",
+  "type_of_loss_func": "dmtl",
+  "type_of_dmtl": "textual",
+  "fold": "fold1",
+  "margin": 0.2,
+  "upper_norm_limit": 0.5,
+  "epochs": 20,
+  "batch_size": 32,
+  "train_valid_ratio": 0.8,
+  "weight_decay": 0.00001,
+  "step_size": 5,
+  "gamma": 0.333,
+  "load_ref_vector": false,
+  "networks": {
+    "EfficientNetV2": {
+      "learning_rate": 0.0001,
+      "image_size": 224
+    }
+  },
+  "streams": {
+    "Contour": {
+      "channels": [1, 32, 48, 64, 128, 192, 256],
+      "embedded_dim": 128,
+      "grayscale": true
+    },
+    "LBP": {
+      "channels": [1, 32, 48, 64, 128, 192, 256],
+      "embedded_dim": 128,
+      "grayscale": true
+    },
+    "RGB": {
+      "channels": [3, 64, 96, 128, 256, 384, 512],
+      "embedded_dim": 256,
+      "grayscale": false
+    },
+    "Texture": {
+      "channels": [1, 32, 48, 64, 128, 192, 256],
+      "embedded_dim": 128,
+      "grayscale": true
+    }
+  }
+}

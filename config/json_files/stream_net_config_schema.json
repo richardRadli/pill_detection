@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StreamNet Configuration",
+  "type": "object",
+  "properties": {
+    "dataset_type": {
+      "type": "string",
+      "enum": ["ogyeiv2", "cure_one_sided", "cure_two_sided"]
+    },
+    "type_of_net": {
+      "type": "string",
+      "enum": ["EfficientNetV2"]
+    },
+    "type_of_stream": {
+      "type": "string",
+      "enum": ["Contour", "LBP", "RGB", "Texture"]
+    },
+    "type_of_loss_func": {
+      "type": "string",
+      "enum": ["hmtl", "dmtl"]
+    },
+    "type_of_dmtl": {
+      "type": "string",
+      "enum": ["visual", "textual"]
+    },
+    "fold": {
+      "type": "string",
+      "enum": ["fold1", "fold2", "fold3", "fold4", "fold5"]
+    },
+    "networks": {
+      "type": "object",
+      "properties": {
+        "EfficientNetV2": {
+          "type": "object",
+          "properties": {
+            "learning_rate": { "type": "number" },
+            "image_size": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "upper_norm_limit": {
+      "type": "number"
+    },
+    "mining_type": {
+      "type": "string",
+      "enum": ["semihard", "hard", "easy"]
+    },
+    "margin": {
+      "type": "number"
+    },
+    "epochs": {
+      "type": "integer"
+    },
+    "batch_size": {
+      "type": "integer"
+    },
+    "train_valid_ratio": {
+      "type": "number"
+    },
+    "streams": {
+      "type": "object",
+      "properties": {
+        "Contour": {
+          "type": "object",
+          "properties": {
+            "channels": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "embedded_dim": {
+              "type": "integer"
+            },
+            "grayscale": {
+              "type": "boolean"
+            }
+          }
+        },
+        "LBP": {
+          "type": "object",
+          "properties": {
+            "channels": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "embedded_dim": {
+              "type": "integer"
+            },
+            "grayscale": {
+              "type": "boolean"
+            }
+          }
+        },
+        "RGB": {
+          "type": "object",
+          "properties": {
+            "channels": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "embedded_dim": {
+              "type": "integer"
+            },
+            "grayscale": {
+              "type": "boolean"
+            }
+          }
+        },
+        "Texture": {
+          "type": "object",
+          "properties": {
+            "channels": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "embedded_dim": {
+              "type": "integer"
+            },
+            "grayscale": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "weight_decay": {
+      "type": "number"
+    },
+    "step_size": {
+      "type": "integer"
+    },
+    "gamma": {
+      "type": "number"
+    },
+    "load_ref_vector": {
+      "type": "boolean"
+    }
+  },
+  "required": ["dataset_type", "type_of_net", "type_of_stream", "type_of_loss_func", "networks", "mining_type",
+    "margin", "epochs", "batch_size", "train_valid_ratio", "weight_decay", "step_size", "gamma", "load_ref_vector",
+    "streams"]
+}

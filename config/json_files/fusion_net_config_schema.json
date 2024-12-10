@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Training Configuration Schema",
+  "type": "object",
+  "properties": {
+    "dataset_type": {
+      "type": "string",
+      "enum": ["ogyeiv2", "cure_one_sided", "cure_two_sided"]
+    },
+    "type_of_net": {
+      "type": "string",
+      "enum": ["EfficientNetV2MultiHeadAttention"]
+    },
+    "type_of_loss_func": {
+      "type": "string",
+      "enum": ["hmtl", "dmtl"]
+    },
+    "type_of_dmtl": {
+      "type": "string",
+      "enum": ["visual", "textual"]
+    },
+    "upper_norm_limit": {
+      "type": "number"
+    },
+    "margin": {
+      "type": "number",
+      "default": 0.5
+    },
+    "train_valid_ratio": {
+      "type": "number",
+      "default": 0.8
+    },
+    "epochs": {
+      "type": "integer",
+      "default": 7
+    },
+    "batch_size": {
+      "type": "integer",
+      "default": 32
+    },
+    "learning_rate": {
+      "type": "number",
+      "default": 0.0001
+    },
+    "weight_decay": {
+      "type": "number",
+      "default": 0.001
+    },
+    "step_size": {
+      "type": "integer",
+      "default": 2,
+      "description": "Number of epochs after which to decay the learning rate"
+    },
+    "gamma": {
+      "type": "number",
+      "default": 0.3333,
+      "description": "Factor by which to decay the learning rate"
+    }
+  },
+  "required": [
+    "dataset_type",
+    "type_of_net",
+    "margin",
+    "train_valid_ratio",
+    "epochs",
+    "batch_size",
+    "learning_rate",
+    "weight_decay",
+    "step_size",
+    "gamma"
+  ]
+}

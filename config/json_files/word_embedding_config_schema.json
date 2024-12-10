@@ -1,0 +1,8 @@
+{
+  "dataset_name": "ogyeiv2",
+  "train_valid_ratio": 0.8,
+  "batch_size": 64,
+  "learning_rate": 2e-4,
+  "weight_decay": 1e-5,
+  "epochs": 10
+}

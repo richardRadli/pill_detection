@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WordEmbedding",
+  "type": "object",
+  "properties": {
+    "dataset_name": {
+      "type": "string",
+      "enum": [
+        "ogyeiv2",
+        "cure_one_sided",
+        "cure_two_sided"
+      ],
+      "description": "The name of the dataset to be used."
+    },
+    "train_valid_ratio": {
+      "type": "number",
+      "description": "Percentage value of the size of the train set."
+    },
+    "batch_size": {
+      "type": "integer",
+      "description": "Size of the batch."
+    },
+    "learning_rate": {
+      "type": "number",
+      "description": "Value of the learning rate."
+    },
+    "weight_decay": {
+      "type": "number",
+      "description": "Value of the weight decay."
+    },
+    "epochs": {
+      "type": "integer",
+      "description": "Number of epochs."
+    }
+  },
+  "required": [
+    "dataset_name"
+  ]
+}

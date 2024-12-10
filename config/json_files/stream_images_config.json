@@ -1,0 +1,10 @@
+{
+  "dataset_type": "ogyeiv2",
+  "operation": "reference",
+  "threshold_area": 100,
+  "kernel_median_contour": 7,
+  "canny_low_thr": 10,
+  "canny_high_thr": 30,
+  "kernel_gaussian_texture": 7,
+  "max_worker": 6
+}
